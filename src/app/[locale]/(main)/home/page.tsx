@@ -71,7 +71,7 @@ function UserDetailCard({ user }: UserDetailProps) {
 }
 
 export default function HomePage() {
-  const t = useTranslations("header");
+  const t = useTranslations("home");
   const { handleLogin } = useAuth();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -122,24 +122,26 @@ export default function HomePage() {
 
           <Card className="h-full">
             <CardHeader>
-              <CardTitle className="text-2xl">{t("title")}</CardTitle>
+              <CardTitle className="text-2xl">{t("header")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <p className="text-lg">
-                  Current theme:{" "}
-                  <span className="font-semibold">{mounted ? theme : ""}</span>
+                  {t("currentTheme")}:{" "}
+                  <span className="font-semibold">
+                    {mounted ? t(theme) : ""}
+                  </span>
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <Button variant="outline" className="w-full">
-                    Primary Action
+                    {t("primaryAction")}
                   </Button>
                   <Button variant="secondary" className="w-full">
-                    Secondary Action
+                    {t("secondaryAction")}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between bg-muted p-4 rounded-lg">
-                  <span>Muted background</span>
+                  <span>{t("mutedBackground")}</span>
                   <Badge>New</Badge>
                 </div>
               </div>
