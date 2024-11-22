@@ -20,12 +20,14 @@ const en: Messages = {
   },
   api: {
     auth: {
-      loginSuccess: "Login successful",
-      registerSuccess: "Register successful",
-      logoutSuccess: "Logout successful",
-      loginError: "Login error",
-      registerError: "Register error",
-      logoutError: "Logout error",
+      login: {
+        loginSuccess: "Login successful",
+        loginError: "Login error",
+        requiredEmail: "Email or username is required",
+        minPassword: "Password must be at least 6 characters",
+        maxPassword: "Password must not exceed 50 characters",
+        invalidEmail: "Invalid email format",
+      },
     },
   },
 };

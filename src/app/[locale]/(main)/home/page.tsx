@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, MapPin, Briefcase } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
   ssr: false,
@@ -72,10 +73,9 @@ function UserDetailCard({ user }: UserDetailProps) {
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const { handleLogin } = useAuth();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -103,16 +103,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4">
               <ThemeToggle />
               <LangToggle />
-              <Button
-                onClick={() =>
-                  handleLogin({
-                    emailOrUserName: "nguyenpro2080@gmail.com",
-                    password: "Dung123@",
-                  })
-                }
-              >
-                Login
-              </Button>
+              <Button onClick={() => router.push("/login")}>Login</Button>
             </div>
           </CardContent>
         </Card>

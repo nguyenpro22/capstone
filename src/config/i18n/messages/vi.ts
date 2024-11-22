@@ -20,12 +20,14 @@ const vi: Messages = {
   },
   api: {
     auth: {
-      loginSuccess: "Đăng nhập thành công",
-      registerSuccess: "Đăng ký thành công",
-      logoutSuccess: "Đăng xuất thành công",
-      loginError: "Đăng nhập thất bại",
-      registerError: "Đăng ký thất bại",
-      logoutError: "Đăng xuất thất bại",
+      login: {
+        loginSuccess: "Đăng nhập thành công",
+        loginError: "Đăng nhập thất bại",
+        requiredEmail: "Email hoặc tên đăng nhập là bắt buộc",
+        minPassword: "Mật khẩu phải có ít nhất 6 ký tự",
+        maxPassword: "Mật khẩu không được vượt quá 50 ký tự",
+        invalidEmail: "Email không hợp lệ",
+      },
     },
   },
 };

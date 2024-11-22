@@ -18,12 +18,14 @@ export type Messages = {
   };
   api: {
     auth: {
-      loginSuccess: string;
-      registerSuccess: string;
-      logoutSuccess: string;
-      loginError: string;
-      registerError: string;
-      logoutError: string;
+      login: {
+        loginSuccess: string;
+        loginError: string;
+        requiredEmail: string;
+        minPassword: string;
+        maxPassword: string;
+        invalidEmail: string;
+      };
     };
   };
 };
