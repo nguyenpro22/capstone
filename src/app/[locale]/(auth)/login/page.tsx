@@ -24,10 +24,10 @@ import {
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const { handleLogin } = useAuth();
+  const { handleLogin, signInWithProvider, handleLogout } = useAuth();
   const t = useTranslations("api.auth.login");
 
-  // Tạo schema với translations
+  // Create schema with translations
   const loginSchema = createLoginSchema(t);
 
   const form = useForm<LoginFormValues>({
@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
@@ -105,6 +105,31 @@ export default function LoginPage() {
               </Button>
             </form>
           </Form>
+
+          {/* OAuth Login Buttons */}
+          <div className="mt-6 space-y-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => signInWithProvider("google")}
+            >
+              Login with Google
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => signInWithProvider("github")}
+            >
+              Login with GitHub
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => handleLogout()}
+            >
+              Logout
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
