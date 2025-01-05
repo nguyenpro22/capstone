@@ -27,6 +27,8 @@ const vi: Messages = {
         minPassword: "Mật khẩu phải có ít nhất 6 ký tự",
         maxPassword: "Mật khẩu không được vượt quá 50 ký tự",
         invalidEmail: "Email không hợp lệ",
+        userNotFoundError: "Tên đăng nhập không tìm thấy",
+        providerLoginError: "Đăng nhập thất bại",
       },
     },
   },

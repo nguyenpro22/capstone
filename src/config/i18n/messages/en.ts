@@ -27,6 +27,8 @@ const en: Messages = {
         minPassword: "Password must be at least 6 characters",
         maxPassword: "Password must not exceed 50 characters",
         invalidEmail: "Invalid email format",
+        userNotFoundError: "User not found",
+        providerLoginError: "Provider login error",
       },
     },
   },

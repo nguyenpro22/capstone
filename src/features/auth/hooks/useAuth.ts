@@ -11,7 +11,7 @@ import type { Session, User } from "@supabase/supabase-js";
 
 export const useAuth = () => {
   const router = useRouter();
-  const t = useTranslations("api.auth");
+  const t = useTranslations("api.auth.login");
   const [login] = useLoginMutation();
 
   const handleLogin = useCallback(
@@ -56,22 +56,23 @@ export const useAuth = () => {
   const signInWithProvider = useCallback(
     async (provider: "github" | "google") => {
       try {
-        // Trigger OAuth sign-in with popup (this opens a popup window for account selection)
+        // Đăng nhập vs supabase ("github" | "google")
         const { error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            // skipBrowserRedirect: true, // skip browser redirect, need to add popup to handle it
+            // redirectTo: window.location.origin,
+            // skipBrowserRedirect: true, // Chặn redirect trên browser
           },
         });
 
-        // Handle errors from Supabase OAuth process
+        // Xử lý lỗi
         if (error) {
           showError(t("providerLoginError", { provider }));
           console.error("Error signing in with provider:", error.message);
           return;
         }
 
-        // Fetch session after successful OAuth login
+        // Lấy dữ liệu session của supabase
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
 
@@ -85,7 +86,7 @@ export const useAuth = () => {
         const user: User | null = session?.user ?? null;
 
         if (user) {
-          // Display success and log user data
+          // log ra thông tin user
           console.log("Logged-in user:", user);
           showSuccess(
             t("providerLoginSuccess", {
