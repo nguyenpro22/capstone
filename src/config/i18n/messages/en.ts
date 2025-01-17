@@ -29,6 +29,7 @@ const en: Messages = {
         invalidEmail: "Invalid email format",
         userNotFoundError: "User not found",
         providerLoginError: "Provider login error",
+        providerLoginSuccess: "Login success",
       },
     },
   },

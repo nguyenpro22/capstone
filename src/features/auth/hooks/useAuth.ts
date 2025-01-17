@@ -60,7 +60,7 @@ export const useAuth = () => {
         const { error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            // redirectTo: window.location.origin,
+            redirectTo: "/",
             // skipBrowserRedirect: true, // Chặn redirect trên browser
           },
         });
@@ -80,22 +80,6 @@ export const useAuth = () => {
           console.error("Error fetching session:", sessionError.message);
           showError(t("fetchSessionError"));
           return;
-        }
-
-        const session: Session | null = sessionData?.session ?? null;
-        const user: User | null = session?.user ?? null;
-
-        if (user) {
-          // log ra thông tin user
-          console.log("Logged-in user:", user);
-          showSuccess(
-            t("providerLoginSuccess", {
-              provider,
-              userName: user.user_metadata.full_name || user.email,
-            })
-          );
-        } else {
-          showError(t("userNotFoundError"));
         }
       } catch (error) {
         showError(t("providerLoginError", { provider }));

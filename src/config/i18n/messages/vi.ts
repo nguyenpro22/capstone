@@ -29,6 +29,7 @@ const vi: Messages = {
         invalidEmail: "Email không hợp lệ",
         userNotFoundError: "Tên đăng nhập không tìm thấy",
         providerLoginError: "Đăng nhập thất bại",
+        providerLoginSuccess: "Dang nhap thanh cong",
       },
     },
   },

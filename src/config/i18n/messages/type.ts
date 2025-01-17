@@ -27,6 +27,7 @@ export type Messages = {
         invalidEmail: string;
         userNotFoundError: string;
         providerLoginError: string;
+        providerLoginSuccess: string;
       };
     };
   };
