@@ -75,6 +75,9 @@ export type Messages = {
         minPassword: string;
         maxPassword: string;
         invalidEmail: string;
+        userNotFoundError: string;
+        providerLoginError: string;
+        providerLoginSuccess: string;
       };
     };
   };

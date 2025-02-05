@@ -6,12 +6,13 @@ import { publicRoutes } from "@/constants";
 import { useLoginMutation } from "../api";
 import { ILoginRequest } from "../types";
 import { useTranslations } from "next-intl";
+import { supabase } from "../../../utils/supabaseClient";
+import type { Session, User } from "@supabase/supabase-js";
 
 export const useAuth = () => {
   const router = useRouter();
-  const t = useTranslations("api.auth");
+  const t = useTranslations("api.auth.login");
   const [login] = useLoginMutation();
-  // const [register] = useRegisterMutation();
 
   const handleLogin = useCallback(
     async (credentials: ILoginRequest) => {
@@ -26,11 +27,67 @@ export const useAuth = () => {
         }
       } catch (error) {
         showError(t("loginError"));
-        console.log(error);
+        console.error(error);
       }
     },
     [login, router, t]
   );
 
-  return { handleLogin };
+  const handleLogout = useCallback(async () => {
+    try {
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        showError(t("logoutError"));
+        console.error("Error signing out:", error.message);
+        return;
+      }
+
+      showSuccess(t("logoutSuccess"));
+      // Optionally, redirect the user after logout
+      router.push("/login");
+    } catch (error) {
+      showError(t("logoutError"));
+      console.error("Unexpected error:", error);
+    }
+  }, [router, t]);
+
+  const signInWithProvider = useCallback(
+    async (provider: "github" | "google") => {
+      try {
+        // Đăng nhập vs supabase ("github" | "google")
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: "/",
+            // skipBrowserRedirect: true, // Chặn redirect trên browser
+          },
+        });
+
+        // Xử lý lỗi
+        if (error) {
+          showError(t("providerLoginError", { provider }));
+          console.error("Error signing in with provider:", error.message);
+          return;
+        }
+
+        // Lấy dữ liệu session của supabase
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("Error fetching session:", sessionError.message);
+          showError(t("fetchSessionError"));
+          return;
+        }
+      } catch (error) {
+        showError(t("providerLoginError", { provider }));
+        console.error("Unexpected error:", error);
+      }
+    },
+    [t]
+  );
+
+  return { handleLogin, handleLogout, signInWithProvider };
 };
