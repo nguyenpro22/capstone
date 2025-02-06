@@ -15,6 +15,18 @@ const en: Messages = {
   },
 
   landing: {
+    form:{
+      Name: "Clinic Name",
+      Email: "Email",
+      PhoneNumber: "Phone Number",
+      Address: "Address",
+      TaxCode: "Tax Code",
+      BusinessLicenseUrl: "Business License",
+      OperatingLicenseUrl: "Operating License",
+      OperatingLicenseExpiryDate: "Operating License Expiry Date",
+      ProfilePictureUrl: "Profile Picture",
+      title: "Registration Form",
+    },
     hero: {
       title: "Discover Your True Beauty",
       description: "Experience the ultimate in beauty and wellness at Beautify Clinic. Our expert team is dedicated to helping you look and feel your best.",

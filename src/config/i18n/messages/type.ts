@@ -12,6 +12,18 @@ export type Messages = {
     logout: string;
   };
   landing: {
+    form: {
+      Name: string;
+      Email: string;
+      PhoneNumber: string;
+      Address: string;
+      TaxCode: string;
+      BusinessLicenseUrl: string;
+      OperatingLicenseUrl: string;
+      OperatingLicenseExpiryDate: string;
+      ProfilePictureUrl: string;
+      title: string;
+    };
     hero: {
       title: string;
       description: string;
@@ -60,7 +72,7 @@ export type Messages = {
       subscribe: string;
       copyright: string;
     };
-};
+  };
   navbar: {
     home: string;
     about: string;
