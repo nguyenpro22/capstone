@@ -11,10 +11,14 @@ import {
   ArchiveIcon,
   CogIcon,
   LogoutIcon,
+  OfficeBuildingIcon,
+  ClipboardListIcon,
+  InboxIcon,
+  VideoCameraIcon,
 } from '@heroicons/react/outline';
 
 type SidebarProps = {
-  role: 'systemAdmin' | 'user' | 'manager';
+  role: 'systemAdmin' | 'user' | 'manager' | 'systemStaff' | 'clinicManager';
   onClose: () => void;
 };
 
@@ -50,6 +54,24 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
       { label: 'Package', path: '/systemAdmin/package', icon: <ArchiveIcon className="w-5 h-5" /> }, // Thêm Package
       { label: 'Settings', path: '/systemAdmin/settings', icon: <CogIcon className="w-5 h-5" /> }, // Thêm Settings
       { label: 'Logout', path: '/logout', icon: <LogoutIcon className="w-5 h-5" /> }, // Thêm Logout
+    ],
+    systemStaff: [
+      { label: 'User', path: '/systemStaff/user', icon: <ChartBarIcon className="w-5 h-5" /> },
+      { label: 'Clinic', path: '/systemStaff/clinic', icon: <TicketIcon className="w-5 h-5" /> },
+      { label: 'Partnership', path: '/systemStaff/partnership', icon: <ArchiveIcon className="w-5 h-5" /> }, // Thêm Package
+      { label: 'Settings', path: '/systemStaff/setting', icon: <CogIcon className="w-5 h-5" /> }, // Thêm Settings
+      { label: 'Logout', path: '/logout', icon: <LogoutIcon className="w-5 h-5" /> }, // Thêm Logout
+    ],
+    clinicManager: [
+      { label: 'Dashboard', path: '/clinicManager/dashboard', icon: <ChartBarIcon className="w-5 h-5" /> },
+      { label: 'Branch Management', path: '/clinicManager/branch', icon: <OfficeBuildingIcon className="w-5 h-5" /> }, // Quản lý chi nhánh
+      { label: 'Service', path: '/clinicManager/service', icon: <TicketIcon className="w-5 h-5" /> }, // Dịch vụ
+      { label: 'Order', path: '/clinicManager/order', icon: <ClipboardListIcon className="w-5 h-5" /> }, // Đơn hàng
+      { label: 'Inbox', path: '/clinicManager/inbox', icon: <InboxIcon className="w-5 h-5" /> }, // Hộp thư
+      { label: 'Live Stream', path: '/clinicManager/live-stream', icon: <VideoCameraIcon className="w-5 h-5" /> }, // Live Stream
+      { label: 'Profile', path: '/clinicManager/profile', icon: <UserIcon className="w-5 h-5" /> }, // Hồ sơ
+      { label: 'Settings', path: '/clinicManager/settings', icon: <CogIcon className="w-5 h-5" /> }, // Cài đặt
+      { label: 'Logout', path: '/logout', icon: <LogoutIcon className="w-5 h-5" /> }, // Đăng xuất
     ],
     user: [
       { label: 'Home', path: '/user/home', icon: <HomeIcon className="w-5 h-5" /> },

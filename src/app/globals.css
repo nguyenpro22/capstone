@@ -72,3 +72,36 @@ body {
     @apply dark:bg-gray-800 bg-white;
   }
 }
+/* Toggle button styles */
+.toggle-checkbox {
+  width: 40px;
+  height: 20px;
+  border-radius: 999px;
+  position: relative;
+  background: #ddd;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.toggle-checkbox:checked {
+  background: #34d399; /* Màu xanh khi bật */
+}
+
+.toggle-checkbox:before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 999px;
+  transition: transform 0.3s ease;
+}
+
+.toggle-checkbox:checked:before {
+  transform: translateX(20px); /* Dịch sang phải khi bật */
+}
+
