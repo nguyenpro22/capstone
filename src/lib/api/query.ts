@@ -6,9 +6,10 @@ export const BASE_URL = {
   command: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_COMMAND_URL || "",
   query: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_QUERY_URL || "",
 };
+export type ServiceType = keyof typeof BASE_URL;
 
 // Hàm chọn baseUrl, mặc định là API `query`
-const getBaseUrl = (service: keyof typeof BASE_URL) => {
+export const getBaseUrl = (service: keyof typeof BASE_URL) => {
   return BASE_URL[service] || BASE_URL.query;
 };
 

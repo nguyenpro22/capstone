@@ -10,32 +10,32 @@ import { IResCommon } from "@/lib/api";
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: reAuthQuery,
+  baseQuery: reAuthQuery("auth"),
   endpoints: (builder) => ({
     login: builder.mutation<IResCommon<ILoginResponse>, ILoginRequest>({
       query: (credentials) => ({
-        url: "http://160.187.240.214:5000/api/v1/auth/login",
+        url: "/auth/login",
         method: "POST",
         body: credentials,
       }),
     }),
     register: builder.mutation<Response, IRegisterRequest>({
       query: (userData) => ({
-        url: "http://160.187.240.214:5000/api/v1/auth/register",
+        url: "/auth/register",
         method: "POST",
         body: userData,
       }),
     }),
     verify: builder.mutation<Response, IVerifyRequest>({
       query: (credentials) => ({
-        url: "http://160.187.240.214:5000/api/v1/auth/verify_code",
+        url: "/auth/verify_code",
         method: "POST",
         body: credentials,
       }),
     }),
     sendRequest: builder.mutation<Response, { email: string }>({
       query: (email) => ({
-        url: "http://160.187.240.214:5000/api/v1/auth/forgot_password",
+        url: "/auth/forgot_password",
         method: "POST",
         body: email,
       }),
@@ -45,7 +45,7 @@ export const authApi = createApi({
       { email: string; password: string }
     >({
       query: (data) => ({
-        url: "http://160.187.240.214:5000/api/v1/auth/change_password",
+        url: "/auth/change_password",
         method: "POST",
         body: data,
       }),

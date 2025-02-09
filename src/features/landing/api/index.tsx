@@ -1,16 +1,16 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
-import type { IClinicRegistrationRequest } from "../types";
 
 export const landingApi = createApi({
   reducerPath: "landingApi",
-  baseQuery: reAuthQuery,
+  baseQuery: reAuthQuery("command"),
   endpoints: (builder) => ({
-    clinicRegistration: builder.mutation<Response, IClinicRegistrationRequest>({
+    clinicRegistration: builder.mutation<Response, Partial<FormData>>({
       query: (credentials) => ({
-        url: "http://160.187.240.214:4000/api/v1/clinics/apply",
+        url: "/clinics/apply",
         method: "POST",
         body: credentials,
+        formData: true,
       }),
     }),
   }),

@@ -1,6 +1,7 @@
 "use client";
-
-import { useState } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,41 +9,52 @@ import type { Props } from "../type";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useClinicRegistrationMutation } from "@/features/landing/api";
 
+const formSchema = z.object({
+  Name: z.string().min(1, "Name is required"),
+  Email: z.string().email("Invalid email"),
+  PhoneNumber: z.string().min(1, "Phone number is required"),
+  Address: z.string().min(1, "Address is required"),
+  TaxCode: z.string().min(1, "Tax code is required"),
+  OperatingLicenseExpiryDate: z.string().min(1, "Expiry date is required"),
+  BusinessLicense: z
+    .instanceof(FileList)
+    .refine((files) => files.length > 0, "Business license is required"),
+  OperatingLicense: z
+    .instanceof(FileList)
+    .refine((files) => files.length > 0, "Operating license is required"),
+  ProfilePictureUrl: z
+    .instanceof(FileList)
+    .refine((files) => files.length > 0, "Profile picture is required"),
+});
+
+type FormSchemaType = z.infer<typeof formSchema>;
+
 export default function RegistrationForm({ t }: Props) {
   const [registrationForm] = useClinicRegistrationMutation();
-  const [formData, setFormData] = useState({
-    Name: "",
-    Email: "",
-    PhoneNumber: "",
-    Address: "",
-    TaxCode: "",
-    BusinessLicense: "",
-    OperatingLicense: "",
-    OperatingLicenseExpiryDate: new Date().toISOString().split("T")[0],
-    ProfilePictureUrl: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormSchemaType>({
+    resolver: zodResolver(formSchema),
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]:
-        name === "OperatingLicenseExpiryDate"
-          ? new Date(value).toISOString().split("T")[0]
-          : value,
-    }));
-  };
+  const onSubmit: SubmitHandler<FormSchemaType> = async (data) => {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value instanceof FileList) {
+        formData.append(key, value[0]);
+      } else {
+        formData.append(key, value);
+      }
+    });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log(formData);
     try {
       const res = await registrationForm(formData);
       console.log(res);
     } catch (err) {
       console.error(err);
     }
-    // Here you would typically send the data to your backend
   };
 
   return (
@@ -58,9 +70,9 @@ export default function RegistrationForm({ t }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.keys(formData).map((key) => (
+                {Object.keys(formSchema.shape).map((key) => (
                   <div key={key}>
                     <Label
                       htmlFor={key}
@@ -81,17 +93,19 @@ export default function RegistrationForm({ t }: Props) {
                           : "text"
                       }
                       id={key}
-                      name={key}
-                      value={formData[key as keyof typeof formData] || ""} // Đảm bảo giá trị không undefined
-                      onChange={handleChange}
-                      required
+                      {...register(key as keyof FormSchemaType)}
                       className="w-full"
                     />
+                    {errors[key as keyof FormSchemaType] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[key as keyof FormSchemaType]?.message}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
               <Button type="submit" className="w-full">
-                {"submit"}
+                {t("form.submit")}
               </Button>
             </form>
           </CardContent>
