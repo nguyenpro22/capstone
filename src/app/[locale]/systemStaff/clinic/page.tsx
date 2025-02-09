@@ -16,7 +16,6 @@ const ClinicsList: React.FC = () => {
                                                                 pageIndex,
                                                                  pageSize,
                                                                 searchTerm });
-
   const clinics = data?.value.items || [];
   const totalCount = data?.value.totalCount || 0;
   const hasNextPage = data?.value.hasNextPage || false;

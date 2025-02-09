@@ -76,10 +76,10 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
           <input
             type="text"
             name="id"
-            value={formData.id}
+            value={formData.documentId}
             onChange={handleChange}
             className="w-full border rounded p-2 mb-4 bg-gray-200"
-             // Không cho chỉnh sửa ID
+             readOnly// Không cho chỉnh sửa ID
           />
           {validationErrors.id && <p className="text-red-500 text-sm">{validationErrors.id}</p>}
 
@@ -105,7 +105,7 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
           {validationErrors.description && <p className="text-red-500 text-sm">{validationErrors.description}</p>}
 
           {/* Price */}
-          <label className="block mb-2">Giá</label>
+          <label className="block mb-2">Giá ( đ )</label>
           <input
             type="number"
             name="price"
@@ -116,9 +116,9 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
           {validationErrors.price && <p className="text-red-500 text-sm">{validationErrors.price}</p>}
 
           {/* Duration */}
-          <label className="block mb-2">Thời gian</label>
+          <label className="block mb-2">Thời gian (tháng)</label>
           <input
-            type="text"
+            type="number"
             name="duration"
             value={formData.duration}
             onChange={handleChange}

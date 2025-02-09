@@ -2,7 +2,7 @@ export interface Package {
     id: string;
     name: string;
     description: string;
-    price: number;
+    price: string;
     duration: string;
     status: string;
   }

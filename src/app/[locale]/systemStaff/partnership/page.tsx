@@ -26,6 +26,7 @@ const PartnershipRequest: React.FC = () => {
     searchTerm
   });
 
+  
   const [updatePartnershipRequest, { isLoading: isUpdating }] =
     useUpdatePartnershipRequestMutation();
 
@@ -37,7 +38,10 @@ const PartnershipRequest: React.FC = () => {
       request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.email.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
-
+  const totalCount = data?.value.totalCount || 0;
+  const hasNextPage = data?.value.hasNextPage || false;
+  const hasPreviousPage = data?.value.hasPreviousPage || false;
+  
   const handleAction = async (id: string, action: "accept" | "reject" | "ban") => {
     try {
       let actionNumber: number;
@@ -165,6 +169,29 @@ const PartnershipRequest: React.FC = () => {
           ))}
         </tbody>
       </table>
+
+      {/* 🔥 PHÂN TRANG */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+          onClick={() => setPageIndex((prev) => Math.max(1, prev - 1))}
+          disabled={!hasPreviousPage}
+        >
+          ← Previous
+        </button>
+
+        <span className="text-lg">
+          Page {pageIndex} / {Math.ceil(totalCount / pageSize)}
+        </span>
+
+        <button
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+          onClick={() => setPageIndex((prev) => prev + 1)}
+          disabled={!hasNextPage}
+        >
+          Next →
+        </button>
+      </div>
 
       {/* Modal nhập lý do reject/ban */}
 {selectedRequestId && (

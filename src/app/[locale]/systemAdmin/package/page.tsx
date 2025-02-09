@@ -3,8 +3,7 @@
 import { useState } from "react";
 import {
   useGetPackagesQuery,
-  useActivatePackageMutation,
-  useDeactivatePackageMutation,
+  useChangeStatusPackageMutation,
   useLazyGetPackagesByIdQuery,
   useDeletePackageMutation, 
 } from "@/features/package/api";
@@ -31,35 +30,33 @@ const [editPackage, setEditPackage] = useState<any | null>(null);
                                                                 pageIndex, 
                                                                 pageSize,
                                                                 searchTerm });
-  const [activatePackage] = useActivatePackageMutation();
-  const [deactivatePackage] = useDeactivatePackageMutation();
+console.log("API Response:", data);
+  const [changeStatusPackage] = useChangeStatusPackageMutation();
   const [fetchPackageById, { data: packageDetail, isFetching }] = useLazyGetPackagesByIdQuery();
   const [deletePackage] = useDeletePackageMutation();
 
   const packages = data?.value?.items || [];
+  console.log("Package Data:", packages); // Debug
+
   const totalCount = data?.value?.totalCount || 0;
   const hasNextPage = data?.value?.hasNextPage;
   const hasPreviousPage = data?.value?.hasPreviousPage;
 
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
+  // const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
 
   const handleToggleMenu = (packageId: string) => {
     setMenuOpen(menuOpen === packageId ? null : packageId);
   };
 
-  const handleToggleStatus = async (packageId: string, isActive: boolean) => {
+  const handleToggleStatus = async (packageId: string) => {
     try {
-      if (isActive) {
-        await activatePackage(packageId).unwrap();
-        toast.success(" Package Activated!");
-      } else {
-        await deactivatePackage(packageId).unwrap();
-        toast.warn(" Package Deactivated!");
-      }
+      await changeStatusPackage({packageId}).unwrap();
+      console.log("Package Data:", packageId); // Debug
+      toast.success("Trạng thái gói đã được cập nhật!");
       refetch();
     } catch (error) {
-      toast.error(" Failed to update package status");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
     }
   };
 
@@ -155,6 +152,7 @@ const [editPackage, setEditPackage] = useState<any | null>(null);
               </tr>
             </thead>
             <tbody>
+              
               {packages.map((pkg: any, index: number) => (
                 <tr key={pkg.documentId} className="border-t">
                   <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
@@ -167,8 +165,9 @@ const [editPackage, setEditPackage] = useState<any | null>(null);
                       type="checkbox"
                       checked={pkg.isActivated}
                       className="toggle-checkbox"
-                      onChange={() => handleToggleStatus(pkg.documentId, !pkg.isActivated)}
+                      onChange={() => handleToggleStatus(pkg.documentId)}
                     />
+                  
                     <span className={pkg.isActivated ? "text-green-600" : "text-red-600"}>
                       {pkg.isActivated ? "Active" : "Inactive"}
                     </span>
@@ -267,8 +266,8 @@ const [editPackage, setEditPackage] = useState<any | null>(null);
     <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
     <p><strong>Tên gói:</strong> {viewPackage .name}</p>
     <p><strong>Mô tả:</strong> {viewPackage .description}</p>
-    <p><strong>Giá:</strong> {viewPackage .price}</p>
-    <p><strong>Thời gian:</strong> {viewPackage .duration}</p>
+    <p><strong>Giá:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewPackage?.price || 0))} đ</p>
+    <p><strong>Thời gian:</strong> {viewPackage .duration} tháng</p>
     <p>
       <strong>Trạng thái:</strong>{" "}
       <span className={viewPackage .isActivated ? "text-green-600" : "text-red-600"}>

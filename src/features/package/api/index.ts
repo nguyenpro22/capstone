@@ -11,10 +11,10 @@ export const packageApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'http://160.187.240.214:3000/api/v1' }),
   endpoints: (builder) => ({
     getPackages: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/subscriptions?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
+      query: ({ pageIndex, pageSize, searchTerm }) => `/subscriptions?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
     }),
     getPackagesById: builder.query<PackageDetailResponse, string>({
-      query: (id) => `subscriptions/${id}`,
+      query: (id) => `subscriptions/${id}?id=${id}`,
     }),
   }),
 });
@@ -32,10 +32,10 @@ export const packageCreateApi = createApi({
       }),
     }),
     updatePackage: builder.mutation({
-      query: (updatedPackage) => ({
-        url: "/subscriptions",
+      query: ({ documentId, ...rest }) => ({
+        url: `/subscriptions`, // Sử dụng documentId trong URL nếu cần
         method: "PUT",
-        body: updatedPackage,
+        body: { id: documentId, ...rest }, // Chuyển documentId thành id trong request body
       }),
     }),
     deletePackage: builder.mutation({
@@ -45,18 +45,11 @@ export const packageCreateApi = createApi({
         body: { id }, // Gửi ID trong body
       }),
     }),
-    activatePackage: builder.mutation({
-      query: (packageId) => ({
-        url: "/subscriptions/activate",
+    changeStatusPackage: builder.mutation({
+      query: ({ packageId }) => ({
+        url: `/subscriptions/${packageId}/change-status`, // Truyền ID vào URL
         method: "PUT",
-        body: { id: packageId },
-      }),
-    }),
-    deactivatePackage: builder.mutation({
-      query: (packageId) => ({
-        url: "/subscriptions/deactivate",
-        method: "PUT",
-        body: { id: packageId },
+        params: { id: packageId }, // ID trong parameters
       }),
     }),
   }),
@@ -66,6 +59,5 @@ export const { useGetPackagesQuery, useLazyGetPackagesByIdQuery } = packageApi;
 export const { useCreatePackageMutation,
               useUpdatePackageMutation, // Thêm API cập nhật gói
               useDeletePackageMutation,
-              useActivatePackageMutation,
-              useDeactivatePackageMutation, 
+              useChangeStatusPackageMutation,
               } = packageCreateApi;
