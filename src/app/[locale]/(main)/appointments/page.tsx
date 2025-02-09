@@ -1,4 +1,4 @@
-import AppointmentList from "@/components/AppointmentList"
+import AppointmentList from "@/components/home/AppointmentList";
 
 export default function AppointmentsPage() {
   return (
@@ -6,6 +6,5 @@ export default function AppointmentsPage() {
       <h1 className="text-3xl font-bold mb-6">My Appointments</h1>
       <AppointmentList />
     </div>
-  )
+  );
 }
-

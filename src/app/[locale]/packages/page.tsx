@@ -1,5 +1,5 @@
-import PackageSearch from "@/components/PackageSearch"
-import PackageList from "@/components/PackageList"
+import PackageList from "@/components/home/PackageList";
+import PackageSearch from "@/components/home/PackageSearch";
 
 export default function PackagesPage() {
   return (
@@ -8,6 +8,5 @@ export default function PackagesPage() {
       <PackageSearch />
       <PackageList />
     </div>
-  )
+  );
 }
-

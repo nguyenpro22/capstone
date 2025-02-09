@@ -1,4 +1,4 @@
-import ChatInterface from "@/components/ChatInterface"
+import ChatInterface from "@/components/home/ChatInterface";
 
 export default function ChatPage() {
   return (
@@ -6,6 +6,5 @@ export default function ChatPage() {
       <h1 className="text-3xl font-bold mb-6">Chat with Clinic</h1>
       <ChatInterface />
     </div>
-  )
+  );
 }
-

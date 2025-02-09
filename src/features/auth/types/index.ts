@@ -7,19 +7,22 @@ export interface ILoginResponse {
 }
 
 export interface ILoginRequest {
-  emailOrUserName: string;
+  email: string;
   password: string;
 }
 
 export interface IRegisterRequest {
-  email: string;
-  username: string;
-  password: string;
-  confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  phonenumber: string;
-  role: number;
+  Email: string;
+  Password: string;
+  FirstName: string;
+  LastName: string;
+  PhoneNumber: string;
+  DateOfBirth: string;
+  Address: string;
 }
 
-export type AuthResponse = IResCommon<ILoginResponse>;
+export interface IVerifyRequest {
+  email: string;
+  code: string;
+  type: number;
+}

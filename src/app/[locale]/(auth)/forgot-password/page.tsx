@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useChangePasswordMutation,
+  useSendRequestMutation,
+  useVerifyMutation,
+} from "@/features/auth/api";
+import { showError, showSuccess } from "@/utils";
 
 export default function ForgotPasswordForm() {
   const [step, setStep] = useState<"email" | "otp" | "newPassword" | "success">(
@@ -21,7 +27,10 @@ export default function ForgotPasswordForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [countdown, setCountdown] = useState(120);
+  const [countdown, setCountdown] = useState(60);
+  const [sendOTP] = useSendRequestMutation();
+  const [verifyOTP] = useVerifyMutation();
+  const [resetPassword] = useChangePasswordMutation();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,33 +43,60 @@ export default function ForgotPasswordForm() {
     return () => clearInterval(timer);
   }, [step, countdown]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // 🟢 Gửi yêu cầu quên mật khẩu (Bước 1)
+  const handleEmailSubmit = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (step === "email") {
-      // Handle email submission
+    try {
+      const response = await sendOTP({ email }).unwrap();
+      showSuccess("Send OTP successfully, please check your email");
       setStep("otp");
-      setCountdown(120); // Reset countdown when moving to OTP step
-    } else if (step === "otp") {
-      // Handle OTP verification
+      setCountdown(60);
+    } catch (error) {
+      showError("User is not existed, please try again!");
+      setError("Failed to send OTP. Please try again.");
+    }
+    setIsLoading(false);
+  };
+
+  // 🟢 Xác minh OTP (Bước 2)
+  const handleOtpSubmit = async (e: any) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await verifyOTP({ email, code: otp, type: 1 }).unwrap();
+      console.log("OTP verified:", response);
+      showSuccess("Verified OTP successfully");
       setStep("newPassword");
-    } else if (step === "newPassword") {
-      if (password !== confirmPassword) {
-        setError(
-          "The new password and re-entered password do not match. Please check again."
-        );
-        setIsLoading(false);
-        return;
-      }
-      // Handle password reset
-      setStep("success");
+    } catch (error) {
+      showError("Invalid OTP. Please try again.");
+      setError("Invalid OTP. Please try again.");
+    }
+    setIsLoading(false);
+  };
+
+  // 🟢 Đặt lại mật khẩu (Bước 3)
+  const handlePasswordSubmit = async (e: any) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
     }
 
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await resetPassword({ email, password }).unwrap();
+      console.log("Password reset successful:", response);
+      showSuccess("Reset password successfully");
+
+      setStep("success");
+    } catch (error) {
+      setError("Failed to reset password. Please try again.");
+      showError("Failed to reset password. Please try again.");
+    }
     setIsLoading(false);
   };
 
@@ -68,7 +104,7 @@ export default function ForgotPasswordForm() {
     setIsLoading(true);
     // Simulate API call for resending OTP
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    setCountdown(120); // Reset countdown
+    setCountdown(60); // Reset countdown
     setIsLoading(false);
   };
 
@@ -89,7 +125,7 @@ export default function ForgotPasswordForm() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -127,7 +163,7 @@ export default function ForgotPasswordForm() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleOtpSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="otp">Verification Code</Label>
                   <Input
@@ -182,7 +218,7 @@ export default function ForgotPasswordForm() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">New Password</Label>
                   <div className="relative">
