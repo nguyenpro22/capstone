@@ -1,15 +1,25 @@
 import { getAccessToken } from "@/utils";
 import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 
-const BASE_URL = process.env["NEXT_PUBLIC_API_URL"];
+export const BASE_URL = {
+  auth: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_AUTH_URL || "",
+  command: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_COMMAND_URL || "",
+  query: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_QUERY_URL || "",
+};
 
-export const baseQuery = fetchBaseQuery({
-  baseUrl: BASE_URL,
-  prepareHeaders: (headers) => {
-    const token = getAccessToken();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-    return headers;
-  },
-});
+// Hàm chọn baseUrl, mặc định là API `query`
+const getBaseUrl = (service: keyof typeof BASE_URL) => {
+  return BASE_URL[service] || BASE_URL.query;
+};
+
+export const createBaseQuery = (service: keyof typeof BASE_URL) =>
+  fetchBaseQuery({
+    baseUrl: getBaseUrl(service),
+    prepareHeaders: (headers) => {
+      const token = getAccessToken();
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  });

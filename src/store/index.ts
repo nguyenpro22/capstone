@@ -1,5 +1,6 @@
 // import { ExampleAPI } from "@/services/apis";
 import { authApi } from "@/features/auth/api";
+import { landingApi } from "@/features/landing/api";
 import authReducer from "@/features/auth/slice";
 import { clinicsApi } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api"; // Đảm bảo đường dẫn đúng
