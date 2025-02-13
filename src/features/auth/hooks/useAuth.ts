@@ -56,6 +56,15 @@ export const useAuth = () => {
   const signInWithProvider = useCallback(
     async (provider: "github" | "google") => {
       try {
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+        const session: Session | null = sessionData?.session ?? null;
+        const user: User | null = session?.user ?? null;
+        if (user) {
+          console.log("User already logged in:", user);
+          showSuccess(user.user_metadata.full_name || user.email);
+          return; // Không đăng nhập lại
+        }
         // Đăng nhập vs supabase ("github" | "google")
         const { error } = await supabase.auth.signInWithOAuth({
           provider,
@@ -73,17 +82,12 @@ export const useAuth = () => {
         }
 
         // Lấy dữ liệu session của supabase
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.getSession();
 
         if (sessionError) {
           console.error("Error fetching session:", sessionError.message);
           showError(t("fetchSessionError"));
           return;
         }
-
-        const session: Session | null = sessionData?.session ?? null;
-        const user: User | null = session?.user ?? null;
 
         if (user) {
           // log ra thông tin user
