@@ -69,7 +69,7 @@ export const useAuth = () => {
         const { error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            // redirectTo: window.location.origin,
+            redirectTo: "/",
             // skipBrowserRedirect: true, // Chặn redirect trên browser
           },
         });
