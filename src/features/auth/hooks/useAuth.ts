@@ -56,6 +56,7 @@ export const useAuth = () => {
   const signInWithProvider = useCallback(
     async (provider: "github" | "google") => {
       try {
+        // Kiểm tra đăng nhập
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
         const session: Session | null = sessionData?.session ?? null;
