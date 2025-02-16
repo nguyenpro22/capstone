@@ -15,6 +15,13 @@ const nextConfig = {
     NEXT_PUBLIC_BEAUTIFY_BACKEND_QUERY_URL:
       process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_QUERY_URL,
   },
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.html$/,
+      type: "asset/source", // Bỏ qua file .html (cách mới thay vì 'ignore-loader')
+    });
+    return config;
+  },
 };
 
 export default withNextIntl(nextConfig);

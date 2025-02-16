@@ -2,7 +2,7 @@
 import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
 import authReducer from "@/features/auth/slice";
-import { clinicsApi } from "@/features/clinic/api";
+import { clinicsQueryApi, clinicsCommandApi  } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api"; // Đảm bảo đường dẫn đúng
 import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm bảo đường dẫn đúng
 
@@ -12,11 +12,14 @@ const store = configureStore({
   reducer: {
     // [ExampleAPI.reducerPath]: ExampleAPI.reducer,
     auth: authReducer, //save state auth
+    [landingApi.reducerPath]: landingApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [packageApi.reducerPath]: packageApi.reducer, // ✅ Thêm reducer của RTK Query
     [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
-    [clinicsApi.reducerPath]: clinicsApi.reducer,
+    [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
+    [clinicsCommandApi.reducerPath]: clinicsCommandApi.reducer,
+
   },
   middleware: (getDefaultMiddleware) =>
     // getDefaultMiddleware().concat(ExampleAPI.middleware),
@@ -25,7 +28,8 @@ const store = configureStore({
       packageApi.middleware,
       packageCreateApi.middleware, // Thêm middleware cho packageCreateApi
       partnershipRequestApi.middleware,
-      clinicsApi.middleware
+      clinicsQueryApi.middleware,
+      clinicsCommandApi.middleware
     ),// ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 

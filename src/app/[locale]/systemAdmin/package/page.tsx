@@ -12,7 +12,7 @@ import EditPackageForm from "@/components/systemAdmin/EditPackageForm";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { MoreVertical, X } from "lucide-react"; // Import icon ba chấm và icon đóng
+import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
 import Modal from "@/components/systemAdmin/Modal"; // Component popup để hiển thị thông tin gói
 
 export default function Voucher() {
@@ -51,8 +51,8 @@ console.log("API Response:", data);
 
   const handleToggleStatus = async (packageId: string) => {
     try {
-      await changeStatusPackage({packageId}).unwrap();
-      console.log("Package Data:", packageId); // Debug
+      await changeStatusPackage({ packageId}).unwrap(); // Đảo trạng thái
+      console.log("Package Data:", { packageId }); // Debug
       toast.success("Trạng thái gói đã được cập nhật!");
       refetch();
     } catch (error) {
@@ -165,7 +165,7 @@ console.log("API Response:", data);
                       type="checkbox"
                       checked={pkg.isActivated}
                       className="toggle-checkbox"
-                      onChange={() => handleToggleStatus(pkg.documentId)}
+                      onChange={() => handleToggleStatus(pkg.documentId, pkg.isActivated)}
                     />
                   
                     <span className={pkg.isActivated ? "text-green-600" : "text-red-600"}>
