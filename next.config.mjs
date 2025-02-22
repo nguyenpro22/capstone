@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/config/i18n/request.ts");
 const nextConfig = {
   images: {
     domains: ["res.cloudinary.com"],
+    domains: ["upload.wikimedia.org"],
   },
   reactStrictMode: true,
   env: {
