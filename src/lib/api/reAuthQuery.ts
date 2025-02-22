@@ -1,6 +1,9 @@
-import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
-import { baseQuery } from "./query";
-import { CustomBaseQuery } from "./type";
+import type {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
+import { createBaseQuery, getBaseUrl, type ServiceType } from "./query";
 import {
   clearCookieStorage,
   clearToken,
@@ -10,82 +13,73 @@ import {
   setRefreshToken,
   showError,
 } from "@/utils";
-
 import { Mutex } from "async-mutex";
-import { AuthResponse } from "@/features/auth/types";
+import { IResCommon } from "./type";
+import { ILoginResponse } from "@/features/auth/types";
 
 const mutex = new Mutex();
 
-export const reAuthQuery: CustomBaseQuery = async (
-  args: string | FetchArgs,
-  api: BaseQueryApi,
-  extraOptions: object
-) => {
-  let result = await baseQuery(args, api, extraOptions);
+export const reAuthQuery = (
+  defaultService: ServiceType
+): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> => {
+  return async (args, api, extraOptions) => {
+    const service =
+      typeof args === "object" && "service" in args
+        ? (args.service as ServiceType)
+        : defaultService;
+    const baseQuery = createBaseQuery(service);
 
-  if (result.error?.status === 401) {
-    const release = await mutex.acquire();
+    // Remove 'service' from args if it exists
+    if (typeof args === "object" && "service" in args) {
+      const { service: _, ...restArgs } = args;
+      args = restArgs;
+    }
 
-    try {
-      const accessToken = getAccessToken();
-      const refreshToken = getRefreshToken();
+    let result = await baseQuery(args, api, extraOptions);
 
-      if (!refreshToken || !accessToken) {
-        clearCookieStorage();
-        return { error: { status: 401, data: "No tokens available" } };
-      }
+    if (result.error && result.error.status === 401) {
+      const release = await mutex.acquire();
 
-      const refreshResult = await baseQuery(
-        {
-          url: "/auth/refresh_token",
-          method: "POST",
-          body: { accessToken, refreshToken },
-        },
-        api,
-        extraOptions
-      );
+      try {
+        const accessToken = getAccessToken();
+        const refreshToken = getRefreshToken();
 
-      if (refreshResult.data) {
-        const { value } = refreshResult.data as AuthResponse;
-        setAccessToken(value.accessToken);
-        setRefreshToken(value.refreshToken);
+        if (!refreshToken || !accessToken) {
+          clearCookieStorage();
+          return { error: { status: 401, data: "No tokens available" } };
+        }
 
-        // Retry original query with the new token
-        result = await baseQuery(args, api, extraOptions);
-      } else {
-        // Handle refresh token failure
-        if (refreshResult.error?.status === 500) {
+        const authBaseQuery = createBaseQuery("auth");
+        const refreshResult = await authBaseQuery(
+          {
+            url: "/auth/refresh_token",
+            method: "POST",
+            body: { accessToken, refreshToken },
+          },
+          api,
+          extraOptions
+        );
+
+        if (refreshResult.data) {
+          const { value } = refreshResult.data as IResCommon<ILoginResponse>;
+          setAccessToken(value.accessToken);
+          setRefreshToken(value.refreshToken);
+
+          result = await baseQuery(args, api, extraOptions);
+        } else {
           showError("Session expired. Please log in again.");
           clearToken();
           return { error: { status: 401, data: "Session expired" } };
         }
-        result = refreshResult;
+      } catch (error) {
+        console.error(error);
+        showError("An unexpected error occurred during re-authentication.");
+        return { error: { status: 500, data: "Re-authentication failed" } };
+      } finally {
+        release();
       }
-    } catch (error) {
-      // Add a catch block for mutex or unexpected issues
-      console.log(error);
-      showError("An unexpected error occurred during re-authentication.");
-      return { error: { status: 500, data: "Re-authentication failed" } };
-    } finally {
-      release();
     }
-  }
 
-  // Handle other error cases
-  if (result.error) {
-    switch (result.error.status) {
-      case 401:
-        showError("Unauthorized access. Redirecting to login.");
-        clearToken();
-        break;
-      case 403:
-        showError("Access forbidden.");
-        break;
-      default:
-        showError("An unexpected error occurred.");
-        break;
-    }
-  }
-
-  return result;
+    return result;
+  };
 };
