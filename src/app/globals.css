@@ -105,3 +105,14 @@ body {
   transform: translateX(20px); /* Dịch sang phải khi bật */
 }
 
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
