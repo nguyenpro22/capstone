@@ -9,6 +9,7 @@ import {
 } from "@/features/package/api";
 import PackageForm from "@/components/systemAdmin/PackageForm";
 import EditPackageForm from "@/components/systemAdmin/EditPackageForm";
+import Pagination from "@/components/common/Pagination/Pagination";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,7 +33,7 @@ const [editPackage, setEditPackage] = useState<any | null>(null);
                                                                 searchTerm });
 console.log("API Response:", data);
   const [changeStatusPackage] = useChangeStatusPackageMutation();
-  const [fetchPackageById, { data: packageDetail, isFetching }] = useLazyGetPackagesByIdQuery();
+  const [fetchPackageById] = useLazyGetPackagesByIdQuery();
   const [deletePackage] = useDeletePackageMutation();
 
   const packages = data?.value?.items || [];
@@ -56,6 +57,7 @@ console.log("API Response:", data);
       toast.success("Trạng thái gói đã được cập nhật!");
       refetch();
     } catch (error) {
+      console.error(error);
       toast.error("Có lỗi xảy ra, vui lòng thử lại!");
     }
   };
@@ -70,6 +72,7 @@ console.log("API Response:", data);
         const result = await fetchPackageById(pkgId).unwrap();
         setViewPackage(result.value); // Chỉ đặt giá trị cho View
       } catch (error) {
+        console.error(error);
         toast.error("Không thể lấy thông tin gói!");
         setViewPackage({
           name: "",
@@ -86,6 +89,7 @@ console.log("API Response:", data);
         const result = await fetchPackageById(pkgId).unwrap();
         setEditPackage(result.value); // Chỉ đặt giá trị cho Edit
       } catch (error) {
+        console.error(error);
         toast.error("Không thể lấy thông tin gói!");
         setEditPackage({
           name: "",
@@ -108,6 +112,7 @@ console.log("API Response:", data);
         toast.success("Gói đã được xóa thành công!");
         refetch();
       } catch (error) {
+        console.error(error);
         toast.error("Xóa gói thất bại!");
       }
     }
@@ -165,7 +170,7 @@ console.log("API Response:", data);
                       type="checkbox"
                       checked={pkg.isActivated}
                       className="toggle-checkbox"
-                      onChange={() => handleToggleStatus(pkg.documentId, pkg.isActivated)}
+                      onChange={() => handleToggleStatus(pkg.documentId)}
                     />
                   
                     <span className={pkg.isActivated ? "text-green-600" : "text-red-600"}>
@@ -220,7 +225,7 @@ console.log("API Response:", data);
           }}
         />
       )}
-          {showEditForm && editPackage && (
+      {showEditForm && editPackage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <EditPackageForm
             initialData={editPackage}
@@ -239,7 +244,7 @@ console.log("API Response:", data);
 
 
 
-      <div className="flex items-center justify-between mt-4">
+      {/* <div className="flex items-center justify-between mt-4">
         <button
           disabled={!hasPreviousPage}
           onClick={() => setPageIndex((prev) => prev - 1)}
@@ -259,9 +264,18 @@ console.log("API Response:", data);
         >
           Next
         </button>
-      </div>
+      </div> */}
 
-      {viewPackage  && (
+      <Pagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onPageChange={setPageIndex}
+      />
+
+  {viewPackage  && (
   <Modal onClose={() => setViewPackage(null)}>
     <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
     <p><strong>Tên gói:</strong> {viewPackage .name}</p>
@@ -275,7 +289,7 @@ console.log("API Response:", data);
       </span>
     </p>
   </Modal>
-)}
+  )}
 
     </div>
   );

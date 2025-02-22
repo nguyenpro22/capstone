@@ -8,6 +8,8 @@ import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm b�
 
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
+import { categoryQueryApi, categoryCommandApi } from "@/features/category-service/api";
+import { serviceCommandApi, serviceQueryApi } from "@/features/clinic-service/api";
 const store = configureStore({
   reducer: {
     // [ExampleAPI.reducerPath]: ExampleAPI.reducer,
@@ -19,6 +21,12 @@ const store = configureStore({
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
     [clinicsCommandApi.reducerPath]: clinicsCommandApi.reducer,
+    [categoryQueryApi.reducerPath]: categoryQueryApi.reducer,
+    [categoryCommandApi.reducerPath]: categoryCommandApi.reducer,
+    [serviceCommandApi.reducerPath]: serviceCommandApi.reducer,
+    [serviceQueryApi.reducerPath]: serviceQueryApi.reducer,
+
+
 
   },
   middleware: (getDefaultMiddleware) =>
@@ -29,7 +37,11 @@ const store = configureStore({
       packageCreateApi.middleware, // Thêm middleware cho packageCreateApi
       partnershipRequestApi.middleware,
       clinicsQueryApi.middleware,
-      clinicsCommandApi.middleware
+      clinicsCommandApi.middleware,
+      categoryQueryApi.middleware,
+      categoryCommandApi.middleware,
+      serviceCommandApi.middleware,
+      serviceQueryApi.middleware
     ),// ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 

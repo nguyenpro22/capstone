@@ -10,6 +10,7 @@ import { MoreVertical } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "@/components/systemStaff/Modal";
 import EditClinicForm from "@/components/systemStaff/EditClinicForm";
+import Pagination from "@/components/common/Pagination/Pagination";
 
 const ClinicsList: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);
@@ -78,9 +79,6 @@ const ClinicsList: React.FC = () => {
   };
   
   
-  const handleEditClinic = (id: string) => {
-    setSelectedClinicId(id); // Chỉ cập nhật ID, không set formData ngay
-  };
   
   const handleToggleStatus = async (id: string) => {
     const clinic = clinics.find((clinic) => clinic.id === id);
@@ -201,27 +199,15 @@ const ClinicsList: React.FC = () => {
       </table>
 
       {/* 🔥 PHÂN TRANG */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => Math.max(1, prev - 1))}
-          disabled={!hasPreviousPage}
-        >
-          ← Previous
-        </button>
+      <Pagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onPageChange={setPageIndex}
+      />
 
-        <span className="text-lg">
-          Page {pageIndex} / {Math.ceil(totalCount / pageSize)}
-        </span>
-
-        <button
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => prev + 1)}
-          disabled={!hasNextPage}
-        >
-          Next →
-        </button>
-      </div>
 
       {/* 🔥 FORM CHỈNH SỬA */}
 
