@@ -10,6 +10,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Pagination from "@/components/common/Pagination/Pagination";
 
 const PartnershipRequest: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);  
@@ -171,27 +172,15 @@ const PartnershipRequest: React.FC = () => {
       </table>
 
       {/* 🔥 PHÂN TRANG */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => Math.max(1, prev - 1))}
-          disabled={!hasPreviousPage}
-        >
-          ← Previous
-        </button>
+      <Pagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onPageChange={setPageIndex}
+      />
 
-        <span className="text-lg">
-          Page {pageIndex} / {Math.ceil(totalCount / pageSize)}
-        </span>
-
-        <button
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => prev + 1)}
-          disabled={!hasNextPage}
-        >
-          Next →
-        </button>
-      </div>
 
       {/* Modal nhập lý do reject/ban */}
 {selectedRequestId && (

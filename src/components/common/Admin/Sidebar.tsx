@@ -16,6 +16,8 @@ import {
   InboxIcon,
   VideoCameraIcon,
 } from '@heroicons/react/outline';
+import { LayersIcon } from "lucide-react";
+
 
 type SidebarProps = {
   role: 'systemAdmin' | 'user' | 'manager' | 'systemStaff' | 'clinicManager';
@@ -52,6 +54,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
       { label: 'Dashboard', path: '/systemAdmin/dashboard', icon: <ChartBarIcon className="w-5 h-5" /> },
       { label: 'Voucher', path: '/systemAdmin/voucher', icon: <TicketIcon className="w-5 h-5" /> },
       { label: 'Package', path: '/systemAdmin/package', icon: <ArchiveIcon className="w-5 h-5" /> }, // Thêm Package
+      { label: 'Category Services', path: '/systemAdmin/category-service', icon: <LayersIcon className="w-5 h-5" /> }, // Thêm Package
       { label: 'Settings', path: '/systemAdmin/settings', icon: <CogIcon className="w-5 h-5" /> }, // Thêm Settings
       { label: 'Logout', path: '/logout', icon: <LogoutIcon className="w-5 h-5" /> }, // Thêm Logout
     ],
@@ -98,7 +101,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
       {/* Menu điều hướng */}
       <nav className="p-4">
         <ul className="space-y-4">
-          {menuItems[role].map((item) => {
+          {menuItems[role].map((item: any) => {
             // In ra giá trị của item.path để kiểm tra
             console.log('item.path for', item.label, ':', item.path);
 

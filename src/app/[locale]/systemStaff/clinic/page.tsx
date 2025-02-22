@@ -2,51 +2,84 @@
 import React, { useState } from "react";
 import {
   useGetClinicsQuery,
+  useLazyGetClinicByIdQuery,
   useUpdateClinicMutation,
-  useGetClinicByIdQuery,
 } from "@/features/clinic/api";
-import { Clinic } from "@/features/clinic/types";
 import * as XLSX from "xlsx";
+import { MoreVertical } from "lucide-react";
+import { toast } from "react-toastify";
+import Modal from "@/components/systemStaff/Modal";
+import EditClinicForm from "@/components/systemStaff/EditClinicForm";
+import Pagination from "@/components/common/Pagination/Pagination";
 
 const ClinicsList: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 5;
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewClinic, setViewClinic] = useState<any | null>(null); // Cho popup "Xem thông tin"
+  const [editClinic, setEditClinic] = useState<any | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+
   const { data, isLoading, error, refetch } = useGetClinicsQuery({ 
                                                                 pageIndex,
                                                                  pageSize,
                                                                 searchTerm });
+  const [updateClinic] = useUpdateClinicMutation();
+                                                                
   const clinics = data?.value.items || [];
   const totalCount = data?.value.totalCount || 0;
   const hasNextPage = data?.value.hasNextPage || false;
   const hasPreviousPage = data?.value.hasPreviousPage || false;
 
-  const [formData, setFormData] = useState<Partial<Clinic> | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
-
-
-  const [updateClinic, { isLoading: isUpdating }] = useUpdateClinicMutation();
-
-  const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
-  const { data: clinicDataDetail, isLoading: isLoadingClinic } = useGetClinicByIdQuery(
-    selectedClinicId ?? "", 
-    { skip: !selectedClinicId } 
-  );
+  // const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
+  const [ fetchClinicById ] = useLazyGetClinicByIdQuery();
   
-  const clinicDetail = clinicDataDetail?.value; // Lấy đúng dữ liệu
+  // const clinicDetail = clinicDataDetail?.value; // Lấy đúng dữ liệu
 
-  const handleEditClinic = (id: string) => {
-    setSelectedClinicId(id); // Chỉ cập nhật ID, không set formData ngay
+  const handleToggleMenu = (clinicId: string) => {
+    setMenuOpen(menuOpen === clinicId ? null : clinicId);
+
+  };
+
+  const handleMenuAction = async (action: string, clinicId: string) => {
+    if (action === "view") {
+      try {
+        const result = await fetchClinicById(clinicId).unwrap();
+        setViewClinic(result.value); // Chỉ đặt giá trị cho View
+      } catch (error) {
+        toast.error("Không thể lấy thông tin phòng khám!");
+        setViewClinic(null);
+      }
+    }
+  
+    if (action === "edit") {
+      try {
+        const result = await fetchClinicById(clinicId).unwrap();
+        setEditClinic(result.value); // Chỉ đặt giá trị cho Edit
+      } catch (error) {
+        toast.error("Không thể lấy thông tin phòng khám!");
+        setEditClinic(null);
+      }
+      setShowEditForm(true); // Chỉ mở form, không mở popup
+    }
+  
+    setMenuOpen(null);
   };
   
-  // Khi clinicDataDetail có dữ liệu, cập nhật formData
-  React.useEffect(() => {
-    if (clinicDataDetail?.value) {
-      setFormData(clinicDataDetail.value);
-    }
-  }, [clinicDataDetail]);
+  
+  
+  const handleCloseEditForm = () => {
+    setViewClinic(null);
+    setShowEditForm(false);
+    setEditClinic(null);
+    console.log("After Update - showEditForm:", showEditForm, "viewClinic:", viewClinic);
 
+  };
+  
+  
+  
   const handleToggleStatus = async (id: string) => {
     const clinic = clinics.find((clinic) => clinic.id === id);
     if (!clinic) return;
@@ -65,42 +98,7 @@ const ClinicsList: React.FC = () => {
     }
   };
   
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : prev));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
-  const handleSaveChanges = async () => {
-    if (!selectedClinicId || !formData) return;
-  
-    const updatedFormData = new FormData();
-    updatedFormData.append("clinicId", formData.id || "");
-    updatedFormData.append("name", formData.name || "");
-    updatedFormData.append("email", formData.email || "");
-    updatedFormData.append("phoneNumber", formData.phoneNumber || "");
-    updatedFormData.append("address", formData.address || "");
-  
-    if (selectedFile) {
-      updatedFormData.append("profilePicture", selectedFile);
-    }
-  
-    try {
-      await updateClinic({ clinicId: selectedClinicId, data: updatedFormData }).unwrap();
-      alert("Clinic updated successfully!");
-      setSelectedClinicId(null); // Ẩn modal sau khi update
-      refetch();
-    } catch (error) {
-      console.error("Update failed:", error);
-      alert("Failed to update clinic.");
-    }
-  };
-  
+ 
   
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(clinics);
@@ -162,131 +160,85 @@ const ClinicsList: React.FC = () => {
                   <span>{clinic.isActivated ? "Active" : "Inactive"}</span>
                 </label>
               </td>
-              <td className="p-3 flex space-x-2">
-                <button
-                  className="text-blue-500 hover:text-blue-700"
-                  onClick={() => handleEditClinic(clinic.id)}
-                >
-                  ✏️
-                </button>
-              </td>
+              
+
+              <td className="p-3 border relative">
+                    <button
+                      className="p-2 rounded-full hover:bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleMenu(clinic.id);
+                      }}
+                    >
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+
+                    {menuOpen === clinic.id && (
+                      <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
+                        <li
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() =>  handleMenuAction("view", clinic.id)}
+                        >
+                          Xem thông tin gói
+                        </li>
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" 
+                        onClick={() => handleMenuAction("edit", clinic.id)}>
+                          Chỉnh sửa thông tin gói
+                        </li>
+                        <li className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
+                        onClick={()=> handleDeletePackage(clinic.id)}>
+                          Xóa gói</li>
+                      </ul>
+                    )}
+                  </td>
+
+              
             </tr>
           ))}
         </tbody>
       </table>
 
       {/* 🔥 PHÂN TRANG */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => Math.max(1, prev - 1))}
-          disabled={!hasPreviousPage}
-        >
-          ← Previous
-        </button>
+      <Pagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onPageChange={setPageIndex}
+      />
 
-        <span className="text-lg">
-          Page {pageIndex} / {Math.ceil(totalCount / pageSize)}
-        </span>
-
-        <button
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          onClick={() => setPageIndex((prev) => prev + 1)}
-          disabled={!hasNextPage}
-        >
-          Next →
-        </button>
-      </div>
 
       {/* 🔥 FORM CHỈNH SỬA */}
-      {selectedClinicId && (
-  <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-md shadow-lg w-1/3">
-      {isLoadingClinic ? (
-        <p>Loading clinic details...</p>
-      ) : (
-        <>
-          <h2 className="text-xl font-semibold mb-4">Edit Clinic</h2>
-          <div className="space-y-4">
-            {/* Name */}
-            <input 
-              type="text" 
-              name="name" 
-              value={formData?.name || ""} 
-              onChange={handleFormChange} 
-              className="w-full border px-4 py-2 rounded-md" 
-              placeholder="Clinic Name"
-            />
 
-            {/* Email */}
-            <input 
-              type="email" 
-              name="email" 
-              value={formData?.email || ""} 
-              onChange={handleFormChange} 
-              className="w-full border px-4 py-2 rounded-md" 
-              placeholder="Email"
-              readOnly
-            />
+{viewClinic  && (
+  <Modal onClose={() => setViewClinic(null)}>
+    <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
+    <p><strong>Tên gói:</strong> {viewClinic .name}</p>
+    <p><strong>Mô tả:</strong> {viewClinic .description}</p>
+    <p><strong>Giá:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewClinic?.price || 0))} đ</p>
+    <p><strong>Thời gian:</strong> {viewClinic .duration} tháng</p>
+    <p>
+      <strong>Trạng thái:</strong>{" "}
+      <span className={viewClinic .isActivated ? "text-green-600" : "text-red-600"}>
+        {viewClinic .isActivated ? "Active" : "Inactive"}
+      </span>
+    </p>
+  </Modal>
+  )}
 
-            {/* Phone Number */}
-            <input 
-              type="text" 
-              name="phoneNumber" 
-              value={formData?.phoneNumber || ""} 
-              onChange={handleFormChange} 
-              className="w-full border px-4 py-2 rounded-md" 
-              placeholder="Phone Number"
+  {showEditForm && editClinic && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <EditClinicForm
+              initialData={editClinic}
+              onClose={handleCloseEditForm}
+              onSaveSuccess={() => {
+                handleCloseEditForm();
+                refetch();
+              }}
             />
-
-            {/* Address */}
-            <input 
-              type="text" 
-              name="address" 
-              value={formData?.address || ""} 
-              onChange={handleFormChange} 
-              className="w-full border px-4 py-2 rounded-md" 
-              placeholder="Address"
-            />
-
-            {/* Upload Profile Picture */}
-            <input 
-              type="file" 
-              onChange={handleFileChange} 
-              className="w-full border px-4 py-2 rounded-md"
-            />
-
-            {/* Hiển thị ảnh hiện tại nếu có */}
-            {formData?.profilePictureUrl && (
-              <img 
-                src={formData.profilePictureUrl} 
-                alt="Profile" 
-                className="w-24 h-24 object-cover rounded-md"
-              />
-            )}
           </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end mt-4 space-x-2">
-            <button 
-              className="px-4 py-2 bg-gray-500 text-white rounded-md"
-              onClick={() => setSelectedClinicId(null)}
-            >
-              Cancel
-            </button>
-            <button 
-              className="px-4 py-2 bg-blue-500 text-white rounded-md"
-              onClick={handleSaveChanges}
-              disabled={isUpdating}
-            >
-              Save
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  </div>
-)}
+        )}
 
     </div>
   );
