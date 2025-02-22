@@ -1,0 +1,20 @@
+export type voucherMessages = {
+  voucherLists: string;
+  addNewVoucher: string;
+  filterBy: string;
+  voucherType: string;
+  voucherStatus: string;
+  resetFilter: string;
+  id: string;
+  voucherCode: string;
+  validFrom: string;
+  validTo: string;
+  type: string;
+  status: string;
+  completed: string;
+  processing: string;
+  rejected: string;
+  prevDate: string;
+  nextDate: string;
+  rowsPerPage: string;
+};
