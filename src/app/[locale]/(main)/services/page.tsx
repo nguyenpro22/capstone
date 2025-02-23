@@ -18,6 +18,7 @@ import { AnimatedText } from "@/components/ui/animated-text";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { Search, Grid, List, Star, Clock, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ServicesPage() {
   return (
@@ -45,9 +46,9 @@ export default function ServicesPage() {
             className="mb-4 text-white"
           />
           <div className="flex items-center justify-center gap-2 text-sm">
-            <a href="/" className="hover:text-primary transition-colors">
+            <Link href="/" className="hover:text-primary transition-colors">
               Home
-            </a>
+            </Link>
             <span>/</span>
             <span className="text-primary">Services</span>
           </div>

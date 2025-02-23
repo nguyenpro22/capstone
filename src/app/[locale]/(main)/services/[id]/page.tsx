@@ -25,6 +25,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { GradientButton } from "@/components/ui/gradient-button";
+import Link from "next/link";
 
 export default function ServiceDetail() {
   return (
@@ -43,20 +44,20 @@ export default function ServiceDetail() {
         <div className="relative z-10 container px-4 mx-auto">
           <div className="max-w-4xl">
             <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
-              <a href="/" className="hover:text-primary transition-colors">
+              <Link href="/" className="hover:text-primary transition-colors">
                 Home
-              </a>
+              </Link>
               <ChevronRight className="h-4 w-4" />
-              <a
+              <Link
                 href="/services"
                 className="hover:text-primary transition-colors"
               >
                 Services
-              </a>
+              </Link>
               <ChevronRight className="h-4 w-4" />
-              <a href="#" className="hover:text-primary transition-colors">
+              <Link href="#" className="hover:text-primary transition-colors">
                 Facial Treatments
-              </a>
+              </Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-primary">Premium Facial Treatment</span>
             </div>
