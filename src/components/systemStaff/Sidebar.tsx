@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation'; // Sử dụng usePathname
-import Link from 'next/link'; // Import next/link để điều hướng mà không tải lại trang
+import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation"; // Sử dụng usePathname
+import Link from "next/link"; // Import next/link để điều hướng mà không tải lại trang
 import {
   HomeIcon,
   UserIcon,
@@ -11,10 +11,10 @@ import {
   ArchiveIcon,
   CogIcon,
   LogoutIcon,
-} from '@heroicons/react/outline';
+} from "@heroicons/react/outline";
 
 type SidebarProps = {
-  role: 'systemAdmin' | 'user' | 'manager';
+  role: "systemAdmin" | "user" | "manager";
   onClose: () => void;
 };
 
@@ -33,30 +33,70 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
 
   // Lấy phần đường dẫn mà không có tiền tố /en hoặc /vi
   const normalizePath = (path: string) => {
-    return path.replace(/^\/(en|vi)/, ''); // Loại bỏ tiền tố ngôn ngữ (en hoặc vi)
+    return path.replace(/^\/(en|vi)/, ""); // Loại bỏ tiền tố ngôn ngữ (en hoặc vi)
   };
 
   // Kiểm tra đường dẫn có chứa /en hoặc /vi
   const normalizedPathname = normalizePath(pathname); // Chuẩn hóa pathname
 
   // In ra các giá trị để kiểm tra
-  console.log('Current pathname:', pathname);
-  console.log('Normalized pathname:', normalizedPathname);
+  console.log("Current pathname:", pathname);
+  console.log("Normalized pathname:", normalizedPathname);
 
   const menuItems = {
     systemAdmin: [
-      { label: 'Dashboard', path: '/systemAdmin/dashboard', icon: <ChartBarIcon className="w-5 h-5" /> },
-      { label: 'Voucher', path: '/systemAdmin/voucher', icon: <TicketIcon className="w-5 h-5" /> },
-      { label: 'Package', path: '/systemAdmin/package', icon: <ArchiveIcon className="w-5 h-5" /> }, // Thêm Package
-      { label: 'Settings', path: '/systemAdmin/settings', icon: <CogIcon className="w-5 h-5" /> }, // Thêm Settings
-      { label: 'Logout', path: '/logout', icon: <LogoutIcon className="w-5 h-5" /> }, // Thêm Logout
+      {
+        label: "Dashboard",
+        path: "/systemAdmin/dashboard",
+        icon: <ChartBarIcon className="w-5 h-5" />,
+      },
+      {
+        label: "Voucher",
+        path: "/systemAdmin/voucher",
+        icon: <TicketIcon className="w-5 h-5" />,
+      },
+      {
+        label: "Package",
+        path: "/systemAdmin/package",
+        icon: <ArchiveIcon className="w-5 h-5" />,
+      }, // Thêm Package
+      {
+        label: "Settings",
+        path: "/systemAdmin/settings",
+        icon: <CogIcon className="w-5 h-5" />,
+      }, // Thêm Settings
+      {
+        label: "Logout",
+        path: "/logout",
+        icon: <LogoutIcon className="w-5 h-5" />,
+      }, // Thêm Logout
     ],
     user: [
-      { label: 'Home', path: '/user/home', icon: <HomeIcon className="w-5 h-5" /> },
-      { label: 'Profile', path: '/user/profile', icon: <UserIcon className="w-5 h-5" /> },
-      { label: 'Package', path: '/user/package', icon: <ArchiveIcon className="w-5 h-5" /> }, // Thêm Package
-      { label: 'Settings', path: '/user/settings', icon: <CogIcon className="w-5 h-5" /> }, // Thêm Settings
-      { label: 'Logout', path: '/logout', icon: <LogoutIcon className="w-5 h-5" /> }, // Thêm Logout
+      {
+        label: "Home",
+        path: "/user/home",
+        icon: <HomeIcon className="w-5 h-5" />,
+      },
+      {
+        label: "Profile",
+        path: "/user/profile",
+        icon: <UserIcon className="w-5 h-5" />,
+      },
+      {
+        label: "Package",
+        path: "/user/package",
+        icon: <ArchiveIcon className="w-5 h-5" />,
+      }, // Thêm Package
+      {
+        label: "Settings",
+        path: "/user/settings",
+        icon: <CogIcon className="w-5 h-5" />,
+      }, // Thêm Settings
+      {
+        label: "Logout",
+        path: "/logout",
+        icon: <LogoutIcon className="w-5 h-5" />,
+      }, // Thêm Logout
     ],
   };
 
@@ -74,7 +114,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
       </div>
 
       {/* Menu điều hướng */}
-      <nav className="p-4">
+      {/* <nav className="p-4">
         <ul className="space-y-4">
           {menuItems[role].map((item) => {
             // In ra giá trị của item.path để kiểm tra
@@ -114,7 +154,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
             );
           })}
         </ul>
-      </nav>
+      </nav> */}
     </div>
   );
 }

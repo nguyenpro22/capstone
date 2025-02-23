@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useUpdateServiceMutation } from "@/features/clinic-service/api";
 import { Service } from "@/features/clinic-service/types";
+import Image from "next/image";
 
 interface EditServiceFormProps {
   initialData: Partial<Service>;
@@ -10,13 +11,22 @@ interface EditServiceFormProps {
   onSaveSuccess: () => void;
 }
 
-const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categories, onClose, onSaveSuccess }) => {
+const EditServiceForm: React.FC<EditServiceFormProps> = ({
+  initialData,
+  categories,
+  onClose,
+  onSaveSuccess,
+}) => {
   const [formData, setFormData] = useState<Partial<Service>>(initialData);
   const [selectedCoverFiles, setSelectedCoverFiles] = useState<File[]>([]);
-  const [selectedDescriptionFiles, setSelectedDescriptionFiles] = useState<File[]>([]);
+  const [selectedDescriptionFiles, setSelectedDescriptionFiles] = useState<
+    File[]
+  >([]);
   const [updateService, { isLoading }] = useUpdateServiceMutation();
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -27,7 +37,9 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categori
     }
   };
 
-  const handleDescriptionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDescriptionFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (e.target.files) {
       setSelectedDescriptionFiles(Array.from(e.target.files));
     }
@@ -52,7 +64,10 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categori
     });
 
     try {
-      await updateService({ documentId: formData.id, data: updatedFormData }).unwrap();
+      await updateService({
+        documentId: formData.id,
+        data: updatedFormData,
+      }).unwrap();
       alert("Service updated successfully!");
       onSaveSuccess();
     } catch (error) {
@@ -95,7 +110,12 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categori
         <select
           name="category"
           value={formData.category?.id || ""}
-          onChange={(e) => setFormData((prev) => ({ ...prev, category: { id: e.target.value, name: "" } }))} 
+          onChange={(e) =>
+            setFormData((prev: any) => ({
+              ...prev,
+              category: { id: e.target.value, name: "" },
+            }))
+          }
           className="w-full border px-4 py-2 rounded-md"
           required
         >
@@ -109,29 +129,52 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categori
 
         {/* Upload Cover Image */}
         <label className="block font-semibold">Cover Image</label>
-        <input type="file" multiple onChange={handleCoverFileChange} className="w-full border px-4 py-2 rounded-md" />
-        {formData.coverImage?.length > 0 && (
+        <input
+          type="file"
+          multiple
+          onChange={handleCoverFileChange}
+          className="w-full border px-4 py-2 rounded-md"
+        />
+        {(formData?.coverImage?.length ?? 0) > 0 && (
           <div className="flex gap-2">
-            {formData.coverImage.map((imgUrl, index) => (
-              <img key={index} src={imgUrl} alt={`Cover ${index}`} className="w-24 h-24 object-cover rounded-md" />
+            {formData.coverImage?.map((imgUrl, index) => (
+              <Image
+                key={index}
+                src={imgUrl}
+                alt={`Cover ${index}`}
+                className="w-24 h-24 object-cover rounded-md"
+              />
             ))}
           </div>
         )}
 
         {/* Upload Description Images */}
         <label className="block font-semibold">Description Images</label>
-        <input type="file" multiple onChange={handleDescriptionFileChange} className="w-full border px-4 py-2 rounded-md" />
-        {formData.descriptionImages?.length > 0 && (
+        <input
+          type="file"
+          multiple
+          onChange={handleDescriptionFileChange}
+          className="w-full border px-4 py-2 rounded-md"
+        />
+        {(formData.descriptionImages?.length ?? 0) > 0 && (
           <div className="flex gap-2">
-            {formData.descriptionImages.map((imgUrl, index) => (
-              <img key={index} src={imgUrl} alt={`Description ${index}`} className="w-24 h-24 object-cover rounded-md" />
+            {formData.descriptionImages?.map((imgUrl, index) => (
+              <Image
+                key={index}
+                src={imgUrl}
+                alt={`Description ${index}`}
+                className="w-24 h-24 object-cover rounded-md"
+              />
             ))}
           </div>
         )}
       </div>
 
       <div className="flex justify-end mt-4 space-x-2">
-        <button className="px-4 py-2 bg-gray-500 text-white rounded-md" onClick={onClose}>
+        <button
+          className="px-4 py-2 bg-gray-500 text-white rounded-md"
+          onClick={onClose}
+        >
           Cancel
         </button>
         <button

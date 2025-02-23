@@ -4,25 +4,23 @@ import { useState } from "react";
 import {
   useGetServicesQuery,
   useLazyGetServiceByIdQuery,
-  useDeleteServiceMutation, 
+  useDeleteServiceMutation,
 } from "@/features/clinic-service/api";
-import {
-  useGetCategoriesQuery 
-} from "@/features/category-service/api";
+import { useGetCategoriesQuery } from "@/features/category-service/api";
 import ServiceForm from "@/components/clinicManager/ServiceForm";
 import EditServiceForm from "@/components/clinicManager/EditServiceForm";
 import Pagination from "@/components/common/Pagination/Pagination";
 import ImageModal from "@/components/clinicManager/ImageModal";
 
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
 import Modal from "@/components/systemAdmin/Modal"; // Component popup để hiển thị thông tin gói
+import Image from "next/image";
 
 export default function Voucher() {
   const [viewService, setViewService] = useState<any | null>(null); // Cho popup "Xem thông tin"
-const [editService, setEditService] = useState<any | null>(null);
+  const [editService, setEditService] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -31,13 +29,18 @@ const [editService, setEditService] = useState<any | null>(null);
   const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 5;
 
-  const { data, refetch } = useGetServicesQuery({ 
-                                                                pageIndex, 
-                                                                pageSize,
-                                                                searchTerm });
-   const { data: categoriesData } = useGetCategoriesQuery({ pageIndex: 1, pageSize: 100, searchTerm: "" });
+  const { data, refetch } = useGetServicesQuery({
+    pageIndex,
+    pageSize,
+    searchTerm,
+  });
+  const { data: categoriesData } = useGetCategoriesQuery({
+    pageIndex: 1,
+    pageSize: 100,
+    searchTerm: "",
+  });
 
-console.log("API Response:", data);
+  console.log("API Response:", data);
   const [fetchServiceById] = useLazyGetServiceByIdQuery();
   const [deleteService] = useDeleteServiceMutation();
 
@@ -45,7 +48,6 @@ console.log("API Response:", data);
   const categories = categoriesData?.value || [];
   console.log("Service Data:", services); // Debug
   console.log("Category Data:", categories); // Debug
-
 
   const totalCount = data?.value?.totalCount || 0;
   const hasNextPage = data?.value?.hasNextPage;
@@ -71,7 +73,7 @@ console.log("API Response:", data);
 
   const handleToggleStatus = async (ServiceId: string) => {
     try {
-      await changeStatusService({ ServiceId}).unwrap(); // Đảo trạng thái
+      // await changeStatusService({ ServiceId}).unwrap(); // Đảo trạng thái
       console.log("Service Data:", { ServiceId }); // Debug
       toast.success("Trạng thái gói đã được cập nhật!");
       refetch();
@@ -102,7 +104,7 @@ console.log("API Response:", data);
         });
       }
     }
-  
+
     if (action === "edit") {
       try {
         const result = await fetchServiceById(pkgId).unwrap();
@@ -120,10 +122,10 @@ console.log("API Response:", data);
       }
       setShowEditForm(true); // Chỉ mở form, không mở popup
     }
-  
+
     setMenuOpen(null);
   };
-  
+
   const handleDeleteService = async (ServiceId: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
       try {
@@ -160,101 +162,113 @@ console.log("API Response:", data);
       </div>
 
       <div className="bg-white p-4 shadow rounded-lg relative">
-      {services.length > 0 ? (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-3 border">No.</th>
-              <th className="p-3 border">Service Name</th>
-              <th className="p-3 border">Price</th>
-              <th className="p-3 border">Cover Image</th>
-              <th className="p-3 border">Category</th>
-              <th className="p-3 border">Status</th>
-              <th className="p-3 border">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {services.map((service, index) => (
-              <tr key={service.id} className="border-t">
-                <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
-                <td className="p-3 border">{service.name}</td>
-                <td className="p-3 border">{service.price.toLocaleString()} VND</td>
-                <td className="p-3 border">
-                  <div className="flex items-center space-x-2">
-                    {service.coverImage.length > 0 && (
-                      <img
-                        src={service.coverImage[0]}
-                        alt="Cover"
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                    )}
-                    {service.coverImage.length > 1 && (
-                      <button
-                        className="text-blue-500 underline text-sm"
-                        onClick={() => handleOpenModal(service.coverImage)}
-                      >
-                        View More
-                      </button>
-                    )}
-                  </div>
-                </td>
-                <td className="p-3 border">{service.category.name}</td>
-                <td className="p-3 border">
-                  <input
-                    type="checkbox"
-                    checked={service.isActivated}
-                    className="toggle-checkbox"
-                    onChange={() => handleToggleStatus(service.id)}
-                  />
-                  <span className={service.isActivated ? "text-green-600" : "text-red-600"}>
-                    {service.isActivated ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="p-3 border relative">
-                  <button
-                    className="p-2 rounded-full hover:bg-gray-200"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpen(menuOpen === service.id ? null : service.id);
-                    }}
-                  >
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
-
-                  {menuOpen === service.id && (
-                    <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
-                      <li
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleMenuAction("view", service.id)}
-                      >
-                        Xem thông tin gói
-                      </li>
-                      <li
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleMenuAction("edit", service.id)}
-                      >
-                        Chỉnh sửa thông tin gói
-                      </li>
-                      <li
-                        className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-                        onClick={() => handleDeleteService(service.id)}
-                      >
-                        Xóa gói
-                      </li>
-                    </ul>
-                  )}
-                </td>
+        {services.length > 0 ? (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-3 border">No.</th>
+                <th className="p-3 border">Service Name</th>
+                <th className="p-3 border">Price</th>
+                <th className="p-3 border">Cover Image</th>
+                <th className="p-3 border">Category</th>
+                <th className="p-3 border">Status</th>
+                <th className="p-3 border">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="text-gray-500">No Services available.</p>
-      )}
+            </thead>
+            <tbody>
+              {services.map((service: any, index: any) => (
+                <tr key={service.id} className="border-t">
+                  <td className="p-3 border">
+                    {(pageIndex - 1) * pageSize + index + 1}
+                  </td>
+                  <td className="p-3 border">{service.name}</td>
+                  <td className="p-3 border">
+                    {service.price.toLocaleString()} VND
+                  </td>
+                  <td className="p-3 border">
+                    <div className="flex items-center space-x-2">
+                      {service.coverImage.length > 0 && (
+                        <Image
+                          src={service.coverImage[0]}
+                          alt="Cover"
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                      {service.coverImage.length > 1 && (
+                        <button
+                          className="text-blue-500 underline text-sm"
+                          onClick={() => handleOpenModal(service.coverImage)}
+                        >
+                          View More
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-3 border">{service.category.name}</td>
+                  <td className="p-3 border">
+                    <input
+                      type="checkbox"
+                      checked={service.isActivated}
+                      className="toggle-checkbox"
+                      onChange={() => handleToggleStatus(service.id)}
+                    />
+                    <span
+                      className={
+                        service.isActivated ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {service.isActivated ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="p-3 border relative">
+                    <button
+                      className="p-2 rounded-full hover:bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpen(
+                          menuOpen === service.id ? null : service.id
+                        );
+                      }}
+                    >
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
 
-      {/* Modal hiển thị ảnh */}
-      {isModalOpen && <ImageModal images={selectedImages} onClose={handleCloseModal} />}
-    </div>
+                    {menuOpen === service.id && (
+                      <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
+                        <li
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleMenuAction("view", service.id)}
+                        >
+                          Xem thông tin gói
+                        </li>
+                        <li
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleMenuAction("edit", service.id)}
+                        >
+                          Chỉnh sửa thông tin gói
+                        </li>
+                        <li
+                          className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
+                          onClick={() => handleDeleteService(service.id)}
+                        >
+                          Xóa gói
+                        </li>
+                      </ul>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500">No Services available.</p>
+        )}
+
+        {/* Modal hiển thị ảnh */}
+        {isModalOpen && (
+          <ImageModal images={selectedImages} onClose={handleCloseModal} />
+        )}
+      </div>
 
       {showForm && (
         <ServiceForm
@@ -283,8 +297,6 @@ console.log("API Response:", data);
           />
         </div>
       )}
-
-
 
       {/* <div className="flex items-center justify-between mt-4">
         <button
@@ -317,22 +329,37 @@ console.log("API Response:", data);
         onPageChange={setPageIndex}
       />
 
-  {viewService  && (
-  <Modal onClose={() => setViewService(null)}>
-    <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
-    <p><strong>Tên gói:</strong> {viewService .name}</p>
-    <p><strong>Mô tả:</strong> {viewService .description}</p>
-    <p><strong>Giá:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewService?.price || 0))} đ</p>
-    <p><strong>Thời gian:</strong> {viewService .duration} tháng</p>
-    <p>
-      <strong>Trạng thái:</strong>{" "}
-      <span className={viewService .isActivated ? "text-green-600" : "text-red-600"}>
-        {viewService .isActivated ? "Active" : "Inactive"}
-      </span>
-    </p>
-  </Modal>
-  )}
-
+      {viewService && (
+        <Modal onClose={() => setViewService(null)}>
+          <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
+          <p>
+            <strong>Tên gói:</strong> {viewService.name}
+          </p>
+          <p>
+            <strong>Mô tả:</strong> {viewService.description}
+          </p>
+          <p>
+            <strong>Giá:</strong>{" "}
+            {new Intl.NumberFormat("vi-VN").format(
+              Number(viewService?.price || 0)
+            )}{" "}
+            đ
+          </p>
+          <p>
+            <strong>Thời gian:</strong> {viewService.duration} tháng
+          </p>
+          <p>
+            <strong>Trạng thái:</strong>{" "}
+            <span
+              className={
+                viewService.isActivated ? "text-green-600" : "text-red-600"
+              }
+            >
+              {viewService.isActivated ? "Active" : "Inactive"}
+            </span>
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }

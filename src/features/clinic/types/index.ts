@@ -7,3 +7,13 @@ export interface Clinic {
   totalBranches: number;
   isActivated: boolean;
 }
+
+export interface ClinicDetailResponse {
+  value: Clinic;
+  isSuccess: boolean;
+}
+
+export interface ClinicsResponse {
+  value: Clinic[];
+  isSuccess: boolean;
+}

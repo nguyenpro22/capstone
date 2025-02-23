@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
 import React, { useState } from "react";
 import Sidebar from "@/components/clinicManager/Sidebar";
 import LiveHistoryTable from "@/components/clinicManager/LiveHistoryTable";
 import LiveStreamForm from "@/components/clinicManager/LiveStreamForm";
+import Image from "next/image";
 
+type LiveStreamFormProps = {
+  formValues: { id: string; image: string };
+  onSubmit: (formValues: { id: string; image: string }) => void;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCancel: () => void;
+};
 const LiveStreamManager: React.FC = () => {
   const liveHistory = [
     {
@@ -65,7 +72,7 @@ const LiveStreamManager: React.FC = () => {
         {currentLiveStream ? (
           <div>
             <h2 className="text-2xl font-semibold mb-4">Luồng trực tiếp</h2>
-            <img
+            <Image
               src={currentLiveStream.image}
               alt="Live Stream"
               className="w-full rounded-lg mb-4"
@@ -106,12 +113,12 @@ const LiveStreamManager: React.FC = () => {
         <div className="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 flex">
             <Sidebar />
-            <LiveStreamForm
+            {/* <LiveStreamForm
               formValues={formValues}
               onSubmit={handleFormSubmit}
               onInputChange={handleInputChange}
               onCancel={() => setShowForm(false)}
-            />
+            /> */}
           </div>
         </div>
       )}

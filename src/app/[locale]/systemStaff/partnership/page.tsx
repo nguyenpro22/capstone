@@ -13,9 +13,11 @@ import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/common/Pagination/Pagination";
 
 const PartnershipRequest: React.FC = () => {
-  const [pageIndex, setPageIndex] = useState(1);  
+  const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 5;
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null
+  );
   const [rejectReason, setRejectReason] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -24,26 +26,29 @@ const PartnershipRequest: React.FC = () => {
   const { data, isLoading, isError, refetch } = useGetPartnershipRequestsQuery({
     pageIndex,
     pageSize,
-    searchTerm
+    searchTerm,
   });
 
-  
   const [updatePartnershipRequest, { isLoading: isUpdating }] =
     useUpdatePartnershipRequestMutation();
 
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading data</p>;
 
-  const requests = data?.value?.items?.filter(
-    (request) =>
-      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const requests =
+    data?.value?.items?.filter(
+      (request: any) =>
+        request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.email.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
   const totalCount = data?.value.totalCount || 0;
   const hasNextPage = data?.value.hasNextPage || false;
   const hasPreviousPage = data?.value.hasPreviousPage || false;
-  
-  const handleAction = async (id: string, action: "accept" | "reject" | "ban") => {
+
+  const handleAction = async (
+    id: string,
+    action: "accept" | "reject" | "ban"
+  ) => {
     try {
       let actionNumber: number;
       if (action === "accept") {
@@ -66,10 +71,11 @@ const PartnershipRequest: React.FC = () => {
     if (!selectedRequestId) return;
 
     const actionNumber = action === "reject" ? 1 : 2;
-    const reason = rejectReason.trim() || (action === "reject"
-      ? "Your request has been rejected"
-      : "Your request has been banned"
-    );
+    const reason =
+      rejectReason.trim() ||
+      (action === "reject"
+        ? "Your request has been rejected"
+        : "Your request has been banned");
     setIsSubmitting(true); // Bắt đầu loading
 
     try {
@@ -79,7 +85,11 @@ const PartnershipRequest: React.FC = () => {
         rejectReason: reason,
       });
 
-      toast.success(`${action === "reject" ? "Rejected" : "Banned"} request ID: ${selectedRequestId}`);
+      toast.success(
+        `${
+          action === "reject" ? "Rejected" : "Banned"
+        } request ID: ${selectedRequestId}`
+      );
       refetch();
     } catch (error) {
       toast.error("Failed to update the request");
@@ -89,7 +99,6 @@ const PartnershipRequest: React.FC = () => {
     setRejectReason("");
 
     setIsSubmitting(false); // Kết thúc loading
-
   };
 
   return (
@@ -133,7 +142,7 @@ const PartnershipRequest: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {requests.map((request) => (
+          {requests.map((request: any) => (
             <tr key={request.id} className="border-t">
               <td className="p-3">{request.id}</td>
               <td className="p-3">{request.name}</td>
@@ -181,42 +190,42 @@ const PartnershipRequest: React.FC = () => {
         onPageChange={setPageIndex}
       />
 
-
       {/* Modal nhập lý do reject/ban */}
-{selectedRequestId && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white p-6 rounded-md shadow-lg w-96">
-      <h2 className="text-xl font-semibold mb-4">Enter Reject Reason</h2>
-      <textarea
-        className="w-full border p-2 rounded-md"
-        rows={3}
-        placeholder="Enter reason..."
-        value={rejectReason}
-        onChange={(e) => setRejectReason(e.target.value)}
-        disabled={isSubmitting} // Không cho nhập khi đang gửi request
-      />
-      <div className="flex justify-end mt-4 space-x-2">
-        <button
-          className="px-4 py-2 bg-gray-500 text-white rounded-md"
-          onClick={() => setSelectedRequestId(null)}
-          disabled={isSubmitting} // Không cho hủy khi đang gửi request
-        >
-          Cancel
-        </button>
-        <button
-          className={`px-4 py-2 rounded-md ${
-            isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
-          } text-white`}
-          onClick={() => handleConfirmReject("reject")}
-          disabled={isSubmitting} // Vô hiệu hóa khi đang gửi request
-        >
-          {isSubmitting ? "Đang gửi yêu cầu..." : "Confirm"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+      {selectedRequestId && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Enter Reject Reason</h2>
+            <textarea
+              className="w-full border p-2 rounded-md"
+              rows={3}
+              placeholder="Enter reason..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              disabled={isSubmitting} // Không cho nhập khi đang gửi request
+            />
+            <div className="flex justify-end mt-4 space-x-2">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded-md"
+                onClick={() => setSelectedRequestId(null)}
+                disabled={isSubmitting} // Không cho hủy khi đang gửi request
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md ${
+                  isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600"
+                } text-white`}
+                onClick={() => handleConfirmReject("reject")}
+                disabled={isSubmitting} // Vô hiệu hóa khi đang gửi request
+              >
+                {isSubmitting ? "Đang gửi yêu cầu..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

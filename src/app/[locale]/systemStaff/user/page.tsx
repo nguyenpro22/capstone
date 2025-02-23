@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 const UserList: React.FC = () => {
@@ -80,7 +81,7 @@ const UserList: React.FC = () => {
                 <input type="checkbox" />
               </td>
               <td className="p-3">
-                <img
+                <Image
                   src={user.image}
                   alt={user.name}
                   className="w-10 h-10 rounded-full"

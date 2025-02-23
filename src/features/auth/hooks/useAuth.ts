@@ -96,7 +96,7 @@ export const useAuth = () => {
           showSuccess(
             t("providerLoginSuccess", {
               provider,
-              userName: user.user_metadata.full_name || user.email,
+              // userName: user.user_metadata.full_name || user.email,
             })
           );
         } else {

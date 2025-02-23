@@ -1,11 +1,15 @@
-'use client'
-import { useState } from 'react';
-import { Provider } from 'react-redux';
-import  store  from '@/store'; // Đảm bảo đường dẫn đúng
-import Sidebar from '@/components/common/Admin/Sidebar';
-import Navbar from '@/components/common/Admin/Navbar';
+"use client";
+import { useState } from "react";
+import { Provider } from "react-redux";
+import store from "@/store"; // Đảm bảo đường dẫn đúng
+import Sidebar from "@/components/common/Admin/Sidebar";
+import Navbar from "@/components/common/Admin/Navbar";
 
-export default function SystemAdminLayout({ children }: { children: React.ReactNode }) {
+export default function SystemAdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   return (
@@ -14,16 +18,16 @@ export default function SystemAdminLayout({ children }: { children: React.ReactN
         {/* Sidebar */}
         <div
           className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-md transform transition-transform duration-300 ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <Sidebar role="systemAdmin" />
+          <Sidebar onClose={() => setSidebarOpen(false)} role="systemAdmin" />
         </div>
 
         {/* Main Content */}
         <div
           className={`flex flex-1 flex-col transition-all duration-300 ${
-            isSidebarOpen ? 'ml-64' : 'ml-0'
+            isSidebarOpen ? "ml-64" : "ml-0"
           }`}
         >
           {/* Navbar */}
