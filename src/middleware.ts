@@ -27,3 +27,5 @@ export const config = {
   // Match all routes except for static files, API routes, and other excluded paths
   matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };
+
+export { middleware as default };
