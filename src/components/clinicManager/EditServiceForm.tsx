@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useUpdateServiceMutation } from "@/features/clinic-service/api";
 import { Service } from "@/features/clinic-service/types";
-import Image from "next/image";
+
 
 interface EditServiceFormProps {
   initialData: Partial<Service>;
@@ -22,10 +22,14 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({
     coverImage: initialData.coverImage || [],
   });
   const [selectedCoverFiles, setSelectedCoverFiles] = useState<File[]>([]);
-  const [selectedDescriptionFiles, setSelectedDescriptionFiles] = useState<File[]>([]);
+  const [selectedDescriptionFiles, setSelectedDescriptionFiles] = useState<
+    File[]
+  >([]);
   const [updateService, { isLoading }] = useUpdateServiceMutation();
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -46,7 +50,9 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({
     }
   };
 
-  const handleDescriptionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDescriptionFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (e.target.files) {
       setSelectedDescriptionFiles(Array.from(e.target.files));
     }
@@ -71,7 +77,10 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({
     });
 
     try {
-      await updateService({ documentId: formData.id, data: updatedFormData }).unwrap();
+      await updateService({
+        documentId: formData.id,
+        data: updatedFormData,
+      }).unwrap();
       alert("Service updated successfully!");
       onSaveSuccess();
     } catch (error) {
@@ -158,7 +167,10 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({
 
       {/* Nút lưu và hủy */}
       <div className="flex justify-end mt-4 space-x-2">
-        <button className="px-4 py-2 bg-gray-500 text-white rounded-md" onClick={onClose}>
+        <button
+          className="px-4 py-2 bg-gray-500 text-white rounded-md"
+          onClick={onClose}
+        >
           Cancel
         </button>
         <button

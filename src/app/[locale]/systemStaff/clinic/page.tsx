@@ -21,26 +21,25 @@ const ClinicsList: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
 
-  const { data, isLoading, error, refetch } = useGetClinicsQuery({ 
-                                                                pageIndex,
-                                                                 pageSize,
-                                                                searchTerm });
+  const { data, isLoading, error, refetch } = useGetClinicsQuery({
+    pageIndex,
+    pageSize,
+    searchTerm,
+  });
   const [updateClinic] = useUpdateClinicMutation();
-                                                                
+
   const clinics = data?.value.items || [];
   const totalCount = data?.value.totalCount || 0;
   const hasNextPage = data?.value.hasNextPage || false;
   const hasPreviousPage = data?.value.hasPreviousPage || false;
 
-  
   // const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
-  const [ fetchClinicById ] = useLazyGetClinicByIdQuery();
-  
+  const [fetchClinicById] = useLazyGetClinicByIdQuery();
+
   // const clinicDetail = clinicDataDetail?.value; // Lấy đúng dữ liệu
 
   const handleToggleMenu = (clinicId: string) => {
     setMenuOpen(menuOpen === clinicId ? null : clinicId);
-
   };
 
   const handleMenuAction = async (action: string, clinicId: string) => {
@@ -133,14 +132,14 @@ const ClinicsList: React.FC = () => {
         📥 Export Excel
       </button>
       <input
-          type="text"
-          placeholder="Search By Package Name"
-          className="border px-4 py-2 rounded-md w-1/3"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-          }}
-        />
+        type="text"
+        placeholder="Search By Package Name"
+        className="border px-4 py-2 rounded-md w-1/3"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
+      />
 
       <table className="table-auto w-full border-collapse">
         <thead className="bg-gray-100">
@@ -154,7 +153,7 @@ const ClinicsList: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {clinics.map((clinic) => (
+          {clinics.map((clinic: any) => (
             <tr key={clinic.id} className="border-t">
               <td className="p-3">{clinic.name}</td>
               <td className="p-3">{clinic.email}</td>
@@ -171,18 +170,17 @@ const ClinicsList: React.FC = () => {
                   <span>{clinic.isActivated ? "Active" : "Inactive"}</span>
                 </label>
               </td>
-              
 
               <td className="p-3 border relative">
-                    <button
-                      className="p-2 rounded-full hover:bg-gray-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleMenu(clinic.id);
-                      }}
-                    >
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
+                <button
+                  className="p-2 rounded-full hover:bg-gray-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleMenu(clinic.id);
+                  }}
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
 
                     {menuOpen === clinic.id && (
                       <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
@@ -209,7 +207,7 @@ const ClinicsList: React.FC = () => {
         </tbody>
       </table>
 
-      {/* 🔥 PHÂN TRANG */}
+       {/* 🔥 PHÂN TRANG */}
       <Pagination
         pageIndex={pageIndex}
         pageSize={pageSize}

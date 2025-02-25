@@ -26,7 +26,7 @@ export const authApi = createApi({
         body: userData,
       }),
     }),
-    verify: builder.mutation<Response, IVerifyRequest>({
+    verify: builder.mutation<IResCommon<ILoginResponse>, IVerifyRequest>({
       query: (credentials) => ({
         url: "/auth/verify_code",
         method: "POST",
@@ -40,10 +40,7 @@ export const authApi = createApi({
         body: email,
       }),
     }),
-    changePassword: builder.mutation<
-      Response,
-      { email: string; password: string }
-    >({
+    changePassword: builder.mutation<Response, { newPassword: string }>({
       query: (data) => ({
         url: "/auth/change_password",
         method: "POST",

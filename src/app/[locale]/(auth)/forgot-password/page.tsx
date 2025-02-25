@@ -13,7 +13,7 @@ import {
   useSendRequestMutation,
   useVerifyMutation,
 } from "@/features/auth/api";
-import { showError, showSuccess } from "@/utils";
+import { clearToken, setAccessToken, showError, showSuccess } from "@/utils";
 
 export default function ForgotPasswordForm() {
   const [step, setStep] = useState<"email" | "otp" | "newPassword" | "success">(
@@ -67,6 +67,7 @@ export default function ForgotPasswordForm() {
     setError("");
     try {
       const response = await verifyOTP({ email, code: otp, type: 1 }).unwrap();
+      setAccessToken(response.value.accessToken);
       console.log("OTP verified:", response);
       showSuccess("Verified OTP successfully");
       setStep("newPassword");
@@ -88,7 +89,8 @@ export default function ForgotPasswordForm() {
     setIsLoading(true);
     setError("");
     try {
-      const response = await resetPassword({ email, password }).unwrap();
+      const response = await resetPassword({ newPassword: password }).unwrap();
+      clearToken();
       console.log("Password reset successful:", response);
       showSuccess("Reset password successfully");
 

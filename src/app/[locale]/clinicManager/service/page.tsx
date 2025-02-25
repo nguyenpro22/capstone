@@ -4,11 +4,9 @@ import { useState } from "react";
 import {
   useGetServicesQuery,
   useLazyGetServiceByIdQuery,
-  useDeleteServiceMutation, 
+  useDeleteServiceMutation,
 } from "@/features/clinic-service/api";
-import {
-  useGetCategoriesQuery 
-} from "@/features/category-service/api";
+import { useGetCategoriesQuery } from "@/features/category-service/api";
 import ServiceForm from "@/components/clinicManager/ServiceForm";
 import EditServiceForm from "@/components/clinicManager/EditServiceForm";
 import AddProcedure from "@/components/clinicManager/AddProcedure";
@@ -37,13 +35,18 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 5;
 
-  const { data, refetch } = useGetServicesQuery({ 
-                                                                pageIndex, 
-                                                                pageSize,
-                                                                searchTerm });
-   const { data: categoriesData } = useGetCategoriesQuery({ pageIndex: 1, pageSize: 100, searchTerm: "" });
+  const { data, refetch } = useGetServicesQuery({
+    pageIndex,
+    pageSize,
+    searchTerm,
+  });
+  const { data: categoriesData } = useGetCategoriesQuery({
+    pageIndex: 1,
+    pageSize: 100,
+    searchTerm: "",
+  });
 
-console.log("API Response:", data);
+  console.log("API Response:", data);
   const [fetchServiceById] = useLazyGetServiceByIdQuery();
   const [deleteService] = useDeleteServiceMutation();
 
@@ -51,7 +54,6 @@ console.log("API Response:", data);
   const categories = categoriesData?.value || [];
   console.log("Service Data:", services); // Debug
   console.log("Category Data:", categories); // Debug
-
 
   const totalCount = data?.value?.totalCount || 0;
   const hasNextPage = data?.value?.hasNextPage;
@@ -96,7 +98,7 @@ console.log("API Response:", data);
         });
       }
     }
-  
+
     if (action === "edit") {
       try {
         const result = await fetchServiceById(pkgId).unwrap();
@@ -118,7 +120,7 @@ console.log("API Response:", data);
     if (action === "addProcedure") {
       setSelectedServiceId(pkgId); // Mở modal AddProcedure
     }
-  
+
     setMenuOpen(null);
   };
   
@@ -248,9 +250,11 @@ console.log("API Response:", data);
         <p className="text-gray-500">No Services available.</p>
       )}
 
-      {/* Modal hiển thị ảnh */}
-      {isModalOpen && <ImageModal images={selectedImages} onClose={handleCloseModal} />}
-    </div>
+        {/* Modal hiển thị ảnh */}
+        {isModalOpen && (
+          <ImageModal images={selectedImages} onClose={handleCloseModal} />
+        )}
+      </div>
 
     {showForm && (
   <div
