@@ -18,12 +18,14 @@ import {
   showError,
   showSuccess,
 } from "@/utils";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export default function LoginPage() {
   const [login] = useLoginMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const { signInWithProvider } = useAuth();
 
   // ✅ Sử dụng react-hook-form với Zod validation
   const {
@@ -34,6 +36,9 @@ export default function LoginPage() {
     resolver: zodResolver(createLoginSchema),
   });
 
+  const handleLoginGoogle = () => {
+    signInWithProvider("google");
+  };
   // ✅ Hàm xử lý đăng nhập
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -173,15 +178,9 @@ export default function LoginPage() {
           type="button"
           variant="outline"
           className="h-14 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gray-50"
+          onClick={handleLoginGoogle}
         >
           Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-14 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gray-50"
-        >
-          Github
         </Button>
       </div>
 
