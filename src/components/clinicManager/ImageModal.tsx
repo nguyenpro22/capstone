@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 interface ImageModalProps {
@@ -18,10 +19,12 @@ const ImageModal: React.FC<ImageModalProps> = ({ images, onClose }) => {
         <h3 className="text-lg font-semibold mb-4 text-center">Service Images</h3>
         <div className="grid grid-cols-2 gap-2">
           {images.map((img, index) => (
-            <img 
+            <Image
               key={index} 
               src={img} 
               alt={`Cover ${index}`} 
+              width={96} // Thay đổi kích thước phù hợp
+              height={96}
               className="w-full h-24 object-cover rounded"
             />
           ))}

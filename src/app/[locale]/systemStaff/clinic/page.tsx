@@ -49,7 +49,7 @@ const ClinicsList: React.FC = () => {
         const result = await fetchClinicById(clinicId).unwrap();
         setViewClinic(result.value); // Chỉ đặt giá trị cho View
       } catch (error) {
-        toast.error("Không thể lấy thông tin phòng khám!");
+        toast.error("Không thể lấy thông tin phòng khám!" + error);
         setViewClinic(null);
       }
     }
@@ -59,7 +59,7 @@ const ClinicsList: React.FC = () => {
         const result = await fetchClinicById(clinicId).unwrap();
         setEditClinic(result.value); // Chỉ đặt giá trị cho Edit
       } catch (error) {
-        toast.error("Không thể lấy thông tin phòng khám!");
+        toast.error("Không thể lấy thông tin phòng khám!"+ error);
         setEditClinic(null);
       }
       setShowEditForm(true); // Chỉ mở form, không mở popup
@@ -68,7 +68,18 @@ const ClinicsList: React.FC = () => {
     setMenuOpen(null);
   };
   
-  
+  const handleDeleteClinic = async (clinicId: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
+      try {
+        // await deleteClinic(clinicId).unwrap();
+        toast.success("Gói đã được xóa thành công!"+ clinicId);
+        refetch();
+      } catch (error) {
+        console.error(error);
+        toast.error("Xóa gói thất bại!");
+      }
+    }
+  };
   
   const handleCloseEditForm = () => {
     setViewClinic(null);
@@ -186,7 +197,7 @@ const ClinicsList: React.FC = () => {
                           Chỉnh sửa thông tin gói
                         </li>
                         <li className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-                        onClick={()=> handleDeletePackage(clinic.id)}>
+                        onClick={()=> handleDeleteClinic(clinic.id)}>
                           Xóa gói</li>
                       </ul>
                     )}

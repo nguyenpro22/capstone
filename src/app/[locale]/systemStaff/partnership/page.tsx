@@ -11,6 +11,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/common/Pagination/Pagination";
+import { RequestItem } from "@/features/partnership/types";
 
 const PartnershipRequest: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);  
@@ -34,8 +35,8 @@ const PartnershipRequest: React.FC = () => {
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading data</p>;
 
-  const requests = data?.value?.items?.filter(
-    (request) =>
+  const requests: RequestItem[] = data?.value?.items?.filter(
+    (request: RequestItem) =>
       request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.email.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -58,6 +59,7 @@ const PartnershipRequest: React.FC = () => {
       toast.success(`Accepted request ID: ${id}`);
       refetch();
     } catch (error) {
+      console.log(error);
       toast.error("Failed to update the request");
     }
   };
@@ -82,6 +84,7 @@ const PartnershipRequest: React.FC = () => {
       toast.success(`${action === "reject" ? "Rejected" : "Banned"} request ID: ${selectedRequestId}`);
       refetch();
     } catch (error) {
+      console.log(error);
       toast.error("Failed to update the request");
     }
 
@@ -133,7 +136,7 @@ const PartnershipRequest: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {requests.map((request) => (
+          {requests.map((request: any) => (
             <tr key={request.id} className="border-t">
               <td className="p-3">{request.id}</td>
               <td className="p-3">{request.name}</td>

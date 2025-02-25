@@ -13,7 +13,7 @@ export default function SystemStaffLayout({ children }: { children: React.ReactN
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <Sidebar role="systemStaff" />
+      <Sidebar role="systemStaff" onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Main Content */}

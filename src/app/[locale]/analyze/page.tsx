@@ -7,7 +7,7 @@ export default function FaceAnalysis() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (e: any) => {
     setImage(e.target.files[0]);
   };
 

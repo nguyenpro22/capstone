@@ -33,9 +33,9 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
       console.log("✅ API response:", response);
 
       if (response.isSuccess) {
-        await refetch(); // Làm mới danh sách
         onSaveSuccess(); // 🟢 Hiển thị toast thành công
         onClose(); // 🔴 Chỉ đóng form khi lưu thành công
+        await refetch(); // Làm mới danh sách
       } else {
         setErrorMessages(["⚠️ An unexpected error occurred. Please try again."]);
       }

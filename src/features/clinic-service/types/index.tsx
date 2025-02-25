@@ -9,7 +9,7 @@ export interface Service {
     name: string;
     description : string;
     price: number;
-    coverImage: string[] | undefined; // Danh sách ảnh
+    coverImage?: string[] | undefined; // Danh sách ảnh
     descriptionImages: string[];
     category: Category; // Thông tin danh mục dịch vụ
   }

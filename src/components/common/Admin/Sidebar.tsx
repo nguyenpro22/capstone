@@ -20,7 +20,7 @@ import { LayersIcon } from "lucide-react";
 
 
 type SidebarProps = {
-  role: 'systemAdmin' | 'user' | 'manager' | 'systemStaff' | 'clinicManager';
+  role: 'systemAdmin' | 'user' | 'systemStaff' | 'clinicManager';
   onClose: () => void;
 };
 
@@ -89,7 +89,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
     <div className="w-64 h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
-        <h1 className="text-lg font-bold text-center">BeautyClinic</h1>
+        <h1 className="text-lg font-bold text-center">Beautify</h1>
         <button
           onClick={onClose}
           className="text-gray-700 hover:text-gray-900 lg:hidden"
@@ -120,16 +120,18 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
               <li
                 key={item.path}
                 className={`flex items-center space-x-3 ${
-                  isActive ? 'bg-blue-100 text-blue-700 rounded-md' : ''
+                  isActive ? 'bg-yellow-100 text-amber-800 rounded-md' : 'hover:bg-amber-100'
                 }`}
               >
                 <Link href={item.path} className={`flex items-center space-x-3 p-2 w-full`}>
-                  <span className={`text-gray-500 ${isActive ? 'text-blue-700' : ''}`}>
+                  <span className={`text-gray-500 ${isActive ? 'text-yellow-400' : ''}`}>
                     {item.icon}
                   </span>
                   <span
                     className={`${
-                      isActive ? 'font-bold underline' : 'text-blue-600 hover:underline'
+                      isActive
+                        ? 'font-bold underline text-amber-800'
+                        : 'text-gray-600 hover:text-amber-600 hover:underline'
                     }`}
                   >
                     {item.label}

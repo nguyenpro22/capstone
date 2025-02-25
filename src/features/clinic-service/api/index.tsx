@@ -37,10 +37,23 @@ export const serviceCommandApi = createApi({
         body: data, // Truyền trực tiếp FormData
       }),
     }),
-    deleteService: builder.mutation<any, string>({
-      query: (id) => ({
-        url: `/services/${id}`,
+    deleteService: builder.mutation<any, { id: string }>({ // Chỉnh lại kiểu tham số
+      query: ({ id }) => ({
+        url: `clinicServices/${id}?id=${id}`, // Không cần truyền id trên query string lần nữa
         method: "DELETE",
+        body: { id }, // Truyền request body đúng định dạng
+        headers: {
+          "Content-Type": "application/json", // Đảm bảo server hiểu đây là JSON
+        },
+      }),
+    }),
+    
+    
+    addProcedure: builder.mutation<any, { data: FormData }>({
+      query: ({ data }) => ({
+        url: "/procedures",
+        method: "POST",
+        body: data, // Truyền trực tiếp FormData
       }),
     }),
   }),
@@ -50,4 +63,5 @@ export const { useGetServicesQuery, useLazyGetServiceByIdQuery } = serviceQueryA
 export const { useCreateServiceMutation,
               useUpdateServiceMutation, // Thêm API cập nhật gói
               useDeleteServiceMutation,
+              useAddProcedureMutation, // Hook để gọi API thêm Procedure
               } = serviceCommandApi;

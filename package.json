@@ -30,11 +30,7 @@
     "@reduxjs/toolkit": "^2.3.0",
     "@shadcn/ui": "^0.0.4",
     "@supabase/supabase-js": "^2.47.10",
-    "@tensorflow-models/blazeface": "^0.1.0",
-    "@tensorflow-models/mobilenet": "^2.1.1",
-    "@tensorflow/tfjs-backend-cpu": "^4.22.0",
-    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
-    "@tensorflow/tfjs-node": "^4.22.0",
+
     "async-mutex": "^0.5.0",
     "aws-sdk": "^2.1692.0",
     "canvas": "^3.1.0",
