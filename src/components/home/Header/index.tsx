@@ -741,7 +741,7 @@ function SiteHeader() {
               className="flex items-center transition-all duration-300 hover:scale-105 transform"
             >
               <Image
-                src="https://upload.wikimedia.org/wikipedia/commons/7/78/Image.jpg"
+                src=""
                 alt="Eucerin Logo"
                 width={120}
                 height={40}
