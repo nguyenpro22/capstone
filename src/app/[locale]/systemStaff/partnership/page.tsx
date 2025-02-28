@@ -11,6 +11,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/common/Pagination/Pagination";
+import { RequestItem } from "@/features/partnership/types";
 
 const PartnershipRequest: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);
@@ -35,12 +36,11 @@ const PartnershipRequest: React.FC = () => {
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading data</p>;
 
-  const requests =
-    data?.value?.items?.filter(
-      (request: any) =>
-        request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.email.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+  const requests: RequestItem[] = data?.value?.items?.filter(
+    (request: RequestItem) =>
+      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.email.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
   const totalCount = data?.value.totalCount || 0;
   const hasNextPage = data?.value.hasNextPage || false;
   const hasPreviousPage = data?.value.hasPreviousPage || false;
@@ -58,11 +58,12 @@ const PartnershipRequest: React.FC = () => {
         return;
       }
 
-      await updatePartnershipRequest({ requestId: id, action: actionNumber });
+      await updatePartnershipRequest({ requestId: id, action: actionNumber }).unwrap();
 
       toast.success(`Accepted request ID: ${id}`);
       refetch();
     } catch (error) {
+      console.log(error);
       toast.error("Failed to update the request");
     }
   };
@@ -92,6 +93,7 @@ const PartnershipRequest: React.FC = () => {
       );
       refetch();
     } catch (error) {
+      console.log(error);
       toast.error("Failed to update the request");
     }
 

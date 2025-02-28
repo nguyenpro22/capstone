@@ -1,4 +1,6 @@
+import { serviceMessages } from './service';
 import { apiMessages } from "./api";
+import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
 import { homeMessage } from "./home";
 import { landingMessages } from "./landing";
@@ -12,6 +14,8 @@ const vi = {
   landing: landingMessages,
   dashboard: dashboardMessages,
   api: apiMessages,
+  clinic: clinicMessages,
+  service: serviceMessages,
 };
 
 export default vi;

@@ -17,7 +17,7 @@ export default function SystemStaffLayout({
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} role="systemStaff" />
+      <Sidebar role="systemStaff" onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Main Content */}

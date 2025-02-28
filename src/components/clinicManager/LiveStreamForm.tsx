@@ -1,7 +1,10 @@
+import Image from "next/image";
 import React, { useState } from "react";
 
 interface LiveStreamFormProps {
+  formValues: { id: string; image: string };
   onSubmit: (formValues: { id: string; image: string }) => void;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCancel: () => void;
 }
 
@@ -43,7 +46,7 @@ const LiveStreamForm: React.FC<LiveStreamFormProps> = ({ onSubmit, onCancel }) =
           <ul className="space-y-4">
             <li className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                <img src="/path-to-image.png" alt="icon" className="w-6 h-6" />
+                <Image src="/path-to-image.png" alt="icon" className="w-6 h-6" />
               </div>
               <span>Hình ảnh trang</span>
             </li>
@@ -75,10 +78,12 @@ const LiveStreamForm: React.FC<LiveStreamFormProps> = ({ onSubmit, onCancel }) =
               {preview && (
                 <div className="mt-4">
                   <p className="text-gray-700 font-semibold mb-2">Preview:</p>
-                  <img
+                  <Image
                     src={preview}
                     alt="Preview"
                     className="w-32 h-32 object-cover border rounded-md"
+                    width={96} // Thay đổi kích thước phù hợp
+                    height={96}
                   />
                 </div>
               )}

@@ -85,6 +85,8 @@ const UserList: React.FC = () => {
                   src={user.image}
                   alt={user.name}
                   className="w-10 h-10 rounded-full"
+                  width={80}
+                  height={80}
                 />
               </td>
               <td className="p-3">{user.name}</td>

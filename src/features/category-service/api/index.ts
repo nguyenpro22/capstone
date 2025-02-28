@@ -30,10 +30,10 @@ export const categoryCommandApi = createApi({
       }),
     }),
     updateCategory: builder.mutation({
-      query: ({ documentId, ...rest }) => ({
-        url: `/categories/${documentId}`, // Sử dụng documentId trong URL nếu cần
+      query: ({ data }) => ({
+        url: `/categories/${data.id}?id=${data.id}`,
         method: "PUT",
-        body: { id: documentId, ...rest }, // Chuyển documentId thành id trong request body
+        body: data, // Không cần gửi `id` trong body vì nó đã có trong URL
       }),
     }),
     deleteCategory: builder.mutation({
