@@ -198,7 +198,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
       </div>
 
       {/* Menu điều hướng */}
-      {/* <nav className="p-4">
+      <nav className="p-4">
         <ul className="space-y-4">
           {menuItems[role].map((item: any) => {
             // In ra giá trị của item.path để kiểm tra
@@ -240,7 +240,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
             );
           })}
         </ul>
-      </nav> */}
+      </nav>
     </div>
   );
 }

@@ -30,9 +30,9 @@ export const serviceCommandApi = createApi({
         body: data, // Truyền trực tiếp FormData
       }),
     }),
-    updateService: builder.mutation<any, { documentId: string; data: FormData }>({
-      query: ({ documentId, data }) => ({
-        url: `/services/${documentId}`,
+    updateService: builder.mutation<any, { id: string; data: FormData }>({
+      query: ({ id, data }) => ({
+        url: `/clinicServices/${id}`,
         method: "PUT",
         body: data, // Truyền trực tiếp FormData
       }),

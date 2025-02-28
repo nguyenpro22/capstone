@@ -58,7 +58,7 @@ const PartnershipRequest: React.FC = () => {
         return;
       }
 
-      await updatePartnershipRequest({ requestId: id, action: actionNumber });
+      await updatePartnershipRequest({ requestId: id, action: actionNumber }).unwrap();
 
       toast.success(`Accepted request ID: ${id}`);
       refetch();

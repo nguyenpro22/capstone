@@ -9,20 +9,26 @@ interface EditCategoryFormProps {
 }
 
 interface ValidationErrors {
-  id?: string;
   name?: string;
   description?: string;
+  parentId?: string;
 }
 
 export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }: EditCategoryFormProps) {
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState({
+    id: initialData.id,
+    name: initialData.name || "",
+    description: initialData.description || "",
+    parentId: initialData.parentId || "",
+  });
+
   const [updateCategory, { isLoading }] = useUpdateCategoryMutation();
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -38,25 +44,21 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
     e.preventDefault();
     try {
       await updateCategory(formData).unwrap();
-      toast.success("Cập nhật gói thành công!");
+      toast.success("Cập nhật danh mục thành công!");
       onSaveSuccess();
     } catch (error: any) {
-      console.log("Error response:", error); // Debug API response
+      console.log("Error response:", error);
 
-      // Kiểm tra nếu lỗi là 400 hoặc 422 (Validation Error)
       if (error?.status === 400 || error?.status === 422) {
         const validationErrors = error?.data?.errors || [];
-
         if (validationErrors.length > 0) {
-          // Tạo object chứa lỗi theo trường (field)
           const newErrors: Record<string, string> = {};
           validationErrors.forEach((err: { code: string; message: string }) => {
-            newErrors[err.code.toLowerCase()] = err.message; // Chuyển code thành chữ thường
+            newErrors[err.code.toLowerCase()] = err.message;
           });
 
-          setValidationErrors(newErrors); // Cập nhật state lỗi để hiển thị trong form
+          setValidationErrors(newErrors);
         }
-
         toast.error(error?.data?.detail || "Dữ liệu không hợp lệ!");
       } else {
         toast.error("Có lỗi xảy ra, vui lòng thử lại!");
@@ -67,22 +69,20 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Chỉnh sửa gói</h2>
+        <h2 className="text-xl font-bold mb-4">Chỉnh sửa danh mục</h2>
         <form onSubmit={handleSubmit}>
-          {/* ID */}
+          {/* ID (Read-only) */}
           <label className="block mb-2">ID</label>
           <input
             type="text"
             name="id"
-            value={formData.documentId}
-            onChange={handleChange}
+            value={formData.id}
             className="w-full border rounded p-2 mb-4 bg-gray-200"
-             readOnly// Không cho chỉnh sửa ID
+            readOnly
           />
-          {validationErrors.id && <p className="text-red-500 text-sm">{validationErrors.id}</p>}
 
           {/* Name */}
-          <label className="block mb-2">Tên gói</label>
+          <label className="block mb-2">Tên danh mục</label>
           <input
             type="text"
             name="name"
@@ -102,7 +102,16 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
           />
           {validationErrors.description && <p className="text-red-500 text-sm">{validationErrors.description}</p>}
 
-         
+          {/* Parent ID */}
+          <label className="block mb-2">Parent ID</label>
+          <input
+            type="text"
+            name="parentId"
+            value={formData.parentId}
+            onChange={handleChange}
+            className="w-full border rounded p-2 mb-4"
+          />
+          {validationErrors.parentId && <p className="text-red-500 text-sm">{validationErrors.parentId}</p>}
 
           {/* Buttons */}
           <div className="flex justify-end">

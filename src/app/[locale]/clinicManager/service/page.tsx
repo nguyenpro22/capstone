@@ -1,6 +1,8 @@
 "use client";
-
+import { MdEditSquare } from "react-icons/md";
 import { useState } from "react";
+import { MapPin, Mail, Phone, ImageIcon } from "lucide-react"
+import { motion } from "framer-motion"
 import {
   useGetServicesQuery,
   useLazyGetServiceByIdQuery,
@@ -8,12 +10,16 @@ import {
 } from "@/features/clinic-service/api";
 import { useGetCategoriesQuery } from "@/features/category-service/api";
 import ServiceForm from "@/components/clinicManager/ServiceForm";
+import PromotionForm from "@/components/clinicManager/PromotionForm";
+
 import EditServiceForm from "@/components/clinicManager/EditServiceForm";
 import AddProcedure from "@/components/clinicManager/AddProcedure";
+import { useTranslations } from 'next-intl';
 
 import Pagination from "@/components/common/Pagination/Pagination";
 import ImageModal from "@/components/clinicManager/ImageModal";
-import { Service } from '@/features/clinic-service/types';
+import { Procedure, ProcedurePriceType, Service } from '@/features/clinic-service/types';
+import { Clinic } from '@/features/clinic/types';
 
 
 import { toast, ToastContainer } from "react-toastify";
@@ -23,13 +29,17 @@ import Modal from "@/components/systemAdmin/Modal"; // Component popup để hi�
 import Image from "next/image";
 
 export default function ServicePage() {
+    const t = useTranslations('service'); // Sử dụng namespace "dashboard"
+  
   const [viewService, setViewService] = useState<any | null>(null); // Cho popup "Xem thông tin"
 const [editService, setEditService] = useState<any | null>(null);
 const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+const [modalType, setModalType] = useState<"promotion" | "procedure" | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-
+  const [showPromotionForm, setShowPromotionForm] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState("");
 
   const [pageIndex, setPageIndex] = useState(1);
@@ -77,6 +87,11 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
     setIsModalOpen(false);
   };
 
+  const openPromotionForm = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    setModalType("promotion");
+  };
+
   const handleCloseMenu = () => {
     setMenuOpen(null);
   };
@@ -119,6 +134,7 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   
     if (action === "addProcedure") {
       setSelectedServiceId(pkgId); // Mở modal AddProcedure
+      setModalType("procedure"); // 🆕 Chỉ mở form AddProcedure
     }
 
     setMenuOpen(null);
@@ -142,7 +158,7 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
     <div className="p-6" onClick={handleCloseMenu}>
       <ToastContainer />
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Service Lists</h1>
+        <h1 className="text-2xl font-bold">{t('servicesList')}</h1>
         <input
           type="text"
           placeholder="Search By Service Name"
@@ -152,12 +168,14 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
             setSearchTerm(e.target.value);
           }}
         />
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300"
         >
-          Add new Service
-        </button>
+          <span className="font-medium tracking-wide">{t("addNewService")}</span>
+        </motion.button>
       </div>
 
       <div className="bg-white p-4 shadow rounded-lg relative">
@@ -165,12 +183,13 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-100 text-left">
-              <th className="p-3 border">No.</th>
-              <th className="p-3 border">Service Name</th>
-              <th className="p-3 border">Price</th>
-              <th className="p-3 border">Cover Image</th>
-              <th className="p-3 border">Category</th>
-              <th className="p-3 border">Action</th>
+              <th className="p-3 border">{t('no')}</th>
+              <th className="p-3 border">{t('serviceName')}</th>
+              <th className="p-3 border">{t('price')}</th>
+              <th className="p-3 border">{t('coverImage')}</th>
+              <th className="p-3 border">{t('category')}</th>
+              <th className="p-3 border">{t('percentDiscount')}</th>
+              <th className="p-3 border">{t('action')}</th>
             </tr>
           </thead>
           <tbody>
@@ -178,14 +197,18 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
     <tr key={service.id} className="border-t">
       <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
       <td className="p-3 border">{service.name}</td>
-      <td className="p-3 border">{service.price.toLocaleString()} VND</td>
+      <td className="p-3 border">
+        {service.minPrice.toLocaleString()} - {service.maxPrice.toLocaleString()} VND
+        </td>
       <td className="p-3 border">
         <div className="flex items-center space-x-2">
           {service.coverImage && service.coverImage.length > 0 && (
-            <img
+            <Image
               src={service.coverImage[0]}
               alt="Cover"
               className="w-12 h-12 object-cover rounded"
+              width={100}
+              height={100}
             />
           )}
           {service.coverImage && service.coverImage.length > 1 && (
@@ -199,8 +222,12 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
         </div>
       </td>
       <td className="p-3 border">{service.category.name}</td>
-  
-            <td className="p-3 border relative">
+      <td className="p-3 border flex items-center space-x-2">
+                    <span>{service.discountPercent}</span>
+                    <button onClick={() => openPromotionForm(service.id)} className="text-blue-500">
+                      <MdEditSquare />
+                    </button>
+                  </td>            <td className="p-3 border relative">
         <button
           className="p-2 rounded-full hover:bg-gray-200"
           onClick={(e) => {
@@ -217,25 +244,25 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleMenuAction("view", service.id)}
             >
-              Xem thông tin gói
+              {t('viewServiceDetail')}
             </li>
             <li
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleMenuAction("edit", service.id)}
             >
-              Chỉnh sửa thông tin gói
+              {t('editService')}
             </li>
             <li
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleMenuAction("addProcedure", service.id)}
             >
-              Thêm thủ tục
+              {t('addProcedure')}
             </li>
             <li
               className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
               onClick={() => handleDeleteService(service?.id)}
             >
-              Xóa gói
+              {t('deleteService')}
             </li>
           </ul>
         )}
@@ -281,8 +308,11 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
     />
   </div>
 )}
-
-{selectedServiceId && (
+ {/* Hiển thị PromotionForm khi click */}
+ {modalType === "promotion" && selectedServiceId && (
+  <PromotionForm serviceId={selectedServiceId} onClose={() => setModalType(null)} />
+)}
+{modalType === "procedure" && selectedServiceId && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
   <AddProcedure onClose={() => setSelectedServiceId(null)} 
   clinicServiceId={selectedServiceId} />
@@ -317,144 +347,175 @@ const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
 {viewService && (
   <Modal onClose={() => setViewService(null)}>
-    <div className="p-4 space-y-6">
-      {/* Tiêu đề Modal */}
-      <h2 className="text-2xl font-bold text-black text-center bg-gradient-to-r from-blue-100 to-white py-3 rounded-md">
-        Thông tin dịch vụ
-      </h2>
-
-      {/* Thông tin Gói & Ảnh bìa */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Cột Trái: Thông tin Gói */}
-        <div className="space-y-2">
-          <p className="text-lg font-semibold text-blue-600">
-            <strong className="text-black">Tên gói:</strong> {viewService?.name}
-          </p>
-          <p className="text-gray-700">
-            <strong className="text-black">Mô tả:</strong> {viewService?.description}
-          </p>
-          <p className="text-xl font-bold text-orange-500">
-            <strong className="text-black">Giá:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewService?.price || 0))} đ
-          </p>
-          {viewService?.category && (
-            <p>
-              <strong className="text-black">Danh mục:</strong>{" "}
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                {viewService.category.name}
-              </span>
-            </p>
-          )}
+    <div className="space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-serif tracking-wide text-gray-800">{viewService?.name}</h2>
+          <div className="w-20 h-1 mx-auto bg-gradient-to-r from-pink-200 to-purple-200 rounded-full" />
         </div>
 
+        {/* Service Info & Cover Image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Service Information */}
+          <div className="space-y-6 p-6 bg-white/80 backdrop-blur rounded-xl shadow-sm">
+            <div className="space-y-4">
+              <p className="text-gray-700 leading-relaxed">{viewService?.description}</p>
 
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">
+                  {new Intl.NumberFormat("vi-VN").format(Number(viewService?.price || 0))} đ
+                </span>
+              </div>
 
-        {/* Cột Phải: Ảnh bìa */}
-        {viewService?.coverImage?.length > 0 ? (
-          <img
-            src={viewService.coverImage[0]}
-            alt="Cover"
-            className="w-full h-48 object-cover rounded-lg border border-gray-300"
-          />
-        ) : (
-          <div className="w-full h-48 flex items-center justify-center bg-gray-100 text-gray-500 rounded-lg">
-            Không có ảnh
+              {viewService?.category && (
+                <div
+                  className="inline-flex items-center px-4 py-1.5 rounded-full 
+                              bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100"
+                >
+                  <span className="text-sm font-medium text-green-700">{viewService.category.name}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Cover Image */}
+          <div className="relative h-[300px] rounded-xl overflow-hidden group">
+            {viewService?.coverImage?.length > 0 ? (
+              <Image
+                src={viewService.coverImage[0] || "/placeholder.svg"}
+                alt="Cover"
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-400">
+                <ImageIcon className="w-12 h-12 mb-2" />
+                <span className="text-sm">Không có ảnh</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Clinics Section */}
+        {viewService?.clinics?.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-serif text-gray-800">Phòng khám</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+              {viewService.clinics.map((clinic: any) => (
+                <motion.div
+                  key={clinic.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="group p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex gap-4">
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden">
+                      {clinic.profilePictureUrl ? (
+                        <Image
+                          src={clinic.profilePictureUrl || "/placeholder.svg"}
+                          alt={clinic.name}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                          <ImageIcon className="w-8 h-8" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-medium text-gray-800">{clinic.name}</h4>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          <span>{clinic.email}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          <span>{clinic.address}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span>{clinic.phoneNumber}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Procedures Section */}
+        {viewService?.procedures?.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-serif text-gray-800">Các thủ tục</h3>
+            <div className="space-y-4">
+              {viewService.procedures.map((procedure: any, index: number) => (
+                <motion.div
+                  key={procedure.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                >
+                  <div className="flex gap-6 p-4">
+                    {/* Procedure Image */}
+                    <div className="relative w-32 h-32 rounded-lg overflow-hidden">
+                      {procedure.coverImage?.length ? (
+                        <Image
+                          src={procedure.coverImage[0] || "/placeholder.svg"}
+                          alt={procedure.name}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                          <ImageIcon className="w-8 h-8" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Procedure Info */}
+                    <div className="flex-1 space-y-4">
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-800">{procedure.name}</h4>
+                        <p className="text-gray-600 mt-1">{procedure.description}</p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Bước:</span>
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-600">
+                          {procedure.stepIndex}
+                        </span>
+                      </div>
+
+                      {/* Price Types */}
+                      {procedure.procedurePriceTypes?.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3">
+                          {procedure.procedurePriceTypes.map((priceType: any) => (
+                            <div
+                              key={priceType.id}
+                              className="p-3 rounded-lg bg-gradient-to-br from-gray-50 to-white border border-gray-100"
+                            >
+                              <div className="text-sm font-medium text-gray-600">{priceType.name}</div>
+                              <div className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">
+                                {new Intl.NumberFormat("vi-VN").format(priceType.price)} đ
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Danh sách Clinics */}
-      {viewService?.clinics?.length > 0 && (
-        <div>
-          <h3 className="text-lg font-bold text-black">Phòng khám</h3>
-          <div className="flex space-x-4 overflow-x-auto p-2">
-            {viewService.clinics.map((clinic) => (
-              <div
-                key={clinic.id}
-                className="flex items-center space-x-4 bg-white border rounded-lg shadow-md p-3 hover:shadow-lg transition w-72"
-              >
-                {/* Ảnh Clinic */}
-                {clinic.profilePictureUrl ? (
-                  <img
-                    src={clinic.profilePictureUrl}
-                    alt="Clinic"
-                    className="w-16 h-16 rounded-full border border-gray-300 object-cover"
-                  />
-                ) : (
-                  <div className="w-16 h-16 flex items-center justify-center bg-gray-200 text-gray-500 rounded-full">
-                    ?
-                  </div>
-                )}
-
-                {/* Thông tin */}
-                <div className="text-sm">
-                  <p className="font-semibold text-black">{clinic.name}</p>
-                  <p className="text-gray-600 flex items-center">
-                    📧 {clinic.email}
-                  </p>
-                  <p className="text-gray-600 flex items-center">
-                    📍 {clinic.address}
-                  </p>
-                  <p className="text-gray-600 flex items-center">
-                    📞 {clinic.phoneNumber}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Danh sách Procedures */}
-      {viewService?.procedures?.length > 0 && (
-        <div>
-          <h3 className="text-lg font-bold text-black">Các thủ tục</h3>
-          <div className="space-y-4">
-            {viewService.procedures.map((procedure) => (
-              <div key={procedure.id} className="border rounded-lg p-3 shadow-sm hover:shadow-md flex space-x-4">
-                {/* Ảnh Thủ Tục */}
-                {procedure.coverImage?.length > 0 ? (
-                  <img
-                    src={procedure.coverImage[0]}
-                    alt="Procedure"
-                    className="w-20 h-20 object-cover rounded-md border border-gray-300"
-                  />
-                ) : (
-                  <div className="w-20 h-20 flex items-center justify-center bg-gray-200 text-gray-500 rounded-md">
-                    No Image
-                  </div>
-                )}
-
-                {/* Thông tin Thủ Tục */}
-                <div className="flex-1">
-                  <p className="font-semibold text-blue-600">{procedure.name}</p>
-                  <p className="text-gray-700 text-sm">{procedure.description}</p>
-                  <p className="text-sm font-medium text-gray-800">
-                    Bước: <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">{procedure.stepIndex}</span>
-                  </p>
-
-                  {/* Danh sách Giá Thủ Tục */}
-                  {procedure.procedurePriceTypes?.length > 0 && (
-                    <div className="mt-2">
-                      <h4 className="text-sm font-bold text-gray-900">Loại Giá:</h4>
-                      <ul className="space-y-2 mt-1">
-                        {procedure.procedurePriceTypes.map((priceType) => (
-                          <li key={priceType.id} className="border p-2 rounded bg-gray-50">
-                            <p className="font-medium">{priceType.name}</p>
-                            <p className="text-orange-500 font-semibold">
-                              {new Intl.NumberFormat("vi-VN").format(priceType.price)} đ
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
   </Modal>
 )}
 

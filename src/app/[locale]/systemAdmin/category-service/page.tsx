@@ -9,16 +9,19 @@ import {
 import CategoryForm from "@/components/systemAdmin/CategoryForm";
 import EditCategoryForm from "@/components/systemAdmin/EditCategoryForm";
 import Pagination from "@/components/common/Pagination/Pagination";
+import { motion } from "framer-motion";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
+import SubCategoryForm from "@/components/systemAdmin/SubCategoryForm";
 
-export default function Voucher() {
+export default function Category() {
 const [editCategory, setEditCategory] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-
+  const [showSubCategoryForm, setShowSubCategoryForm] = useState(false);
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [pageIndex, setPageIndex] = useState(1);
@@ -50,11 +53,11 @@ console.log("API Response:", data);
     setMenuOpen(null);
   };
 
-  const handleMenuAction = async (action: string, pkgId: string) => {
+  const handleMenuAction = async (action: string, categoryId: string) => {
   
     if (action === "edit") {
       try {
-        const result = await fetchCategoryById(pkgId).unwrap();
+        const result = await fetchCategoryById(categoryId).unwrap();
         setEditCategory(result.value); // Chỉ đặt giá trị cho Edit
       } catch (error) {
         console.error(error);
@@ -71,10 +74,10 @@ console.log("API Response:", data);
     setMenuOpen(null);
   };
   
-  const handleDeleteCategory = async (CategoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
       try {
-        await deleteCategory(CategoryId).unwrap();
+        await deleteCategory(categoryId).unwrap();
         toast.success("Gói đã được xóa thành công!");
         refetch();
       } catch (error) {
@@ -82,6 +85,10 @@ console.log("API Response:", data);
         toast.error("Xóa gói thất bại!");
       }
     }
+  };
+  const handleSubCategory = (parentId: string) => {
+    setSelectedParentId(parentId);
+    setShowSubCategoryForm(true);
   };
 
   return (
@@ -98,12 +105,14 @@ console.log("API Response:", data);
             setSearchTerm(e.target.value);
           }}
         />
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300"
         >
-          Add new Category
-        </button>
+          <span className="font-medium tracking-wide">Add New Category</span>
+        </motion.button>
       </div>
 
       <div className="bg-white p-4 shadow rounded-lg relative">
@@ -121,11 +130,11 @@ console.log("API Response:", data);
             </thead>
             <tbody>
               
-              {categories.map((pkg: any, index: number) => (
-                <tr key={pkg.documentId} className="border-t">
+              {categories.map((cat: any, index: number) => (
+                <tr key={cat.id} className="border-t">
                   <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
-                  <td className="p-3 border">{pkg.name}</td>
-                  <td className="p-3 border">{pkg.description}</td>
+                  <td className="p-3 border">{cat.name}</td>
+                  <td className="p-3 border">{cat.description}</td>
           
                   
                   <td className="p-3 border relative">
@@ -133,21 +142,25 @@ console.log("API Response:", data);
                       className="p-2 rounded-full hover:bg-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleMenu(pkg.documentId);
+                        handleToggleMenu(cat.id);
                       }}
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
 
-                    {menuOpen === pkg.documentId && (
-                      <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
-                
+                    {menuOpen === cat.id && (
+                      <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">              
+                        <li className="px-4 py-2 hover:bg-blue-100 text-blue-600 cursor-pointer" 
+                        onClick={() => handleSubCategory(cat.id)}>
+                          Add SubCategory
+                        </li>
+
                         <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" 
-                        onClick={() => handleMenuAction("edit", pkg.documentId)}>
+                        onClick={() => handleMenuAction("edit", cat.id)}>
                           Chỉnh sửa thông tin gói
                         </li>
                         <li className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-                        onClick={()=> handleDeleteCategory(pkg.documentId)}>
+                        onClick={()=> handleDeleteCategory(cat.id)}>
                           Xóa gói</li>
                       </ul>
                     )}
@@ -188,6 +201,16 @@ console.log("API Response:", data);
         </div>
       )}
 
+{showSubCategoryForm && selectedParentId && (
+  <SubCategoryForm
+    parentId={selectedParentId}
+    onClose={() => setShowSubCategoryForm(false)}
+    onSaveSuccess={() => {
+      setShowSubCategoryForm(false);
+      refetch(); // Refresh danh sách categories
+    }}
+  />
+)}
 
 
 <Pagination

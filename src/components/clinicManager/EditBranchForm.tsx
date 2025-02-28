@@ -1,31 +1,34 @@
+"use client";
+
 import { useState } from "react";
-import { useUpdatePackageMutation } from "@/features/package/api";
+import { useUpdateBranchMutation } from "@/features/clinic/api"; // Adjust import path as needed
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, X, AlertCircle } from "lucide-react";
+import { Layers, X, AlertCircle, FileText } from "lucide-react";
 
-interface EditPackageFormProps {
-  initialData: any;
+interface EditBranchFormProps {
+  initialData: any; // Initial branch data from API
   onClose: () => void;
   onSaveSuccess: () => void;
 }
 
 interface ValidationErrors {
-  id?: string;
+  branchId?: string;
   name?: string;
-  description?: string;
-  price?: string;
-  duration?: string;
+  phoneNumber?: string;
+  address?: string;
+  profilePicture?: string;
+  isActivated?: string;
 }
 
-export default function EditPackageForm({ initialData, onClose, onSaveSuccess }: EditPackageFormProps) {
+export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: EditBranchFormProps) {
   const [formData, setFormData] = useState(initialData);
-  const [updatePackage, { isLoading }] = useUpdatePackageMutation();
+  const [updateBranch, { isLoading }] = useUpdateBranchMutation();
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -35,23 +38,57 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
     }));
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+    setValidationErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        profilePicture: e.target.files![0],
+      }));
+      setValidationErrors((prev) => ({
+        ...prev,
+        profilePicture: "",
+      }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const formDataToSend = new FormData();
+    formDataToSend.append("branchId", formData.branchId);
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("phoneNumber", formData.phoneNumber);
+    formDataToSend.append("address", formData.address);
+    formDataToSend.append("isActivated", formData.isActivated.toString());
+    if (formData.profilePicture) {
+      formDataToSend.append("profilePicture", formData.profilePicture);
+    }
+
     try {
-      await updatePackage(formData).unwrap();
-      toast.success("Package updated successfully!");
+      await updateBranch({ data: formDataToSend }).unwrap();
+      toast.success("Branch updated successfully!");
       onSaveSuccess();
+      onClose();
     } catch (error: any) {
-      console.log("Error response:", error);
+      console.error("Error response:", error);
       if (error?.status === 400 || error?.status === 422) {
         const validationErrors = error?.data?.errors || [];
-        if (validationErrors.length > 0) {
-          const newErrors: Record<string, string> = {};
-          validationErrors.forEach((err: { code: string; message: string }) => {
-            newErrors[err.code.toLowerCase()] = err.message;
-          });
-          setValidationErrors(newErrors);
-        }
+        const newErrors: ValidationErrors = {};
+        validationErrors.forEach((err: { code: string; message: string }) => {
+          newErrors[err.code.toLowerCase() as keyof ValidationErrors] = err.message;
+        });
+        setValidationErrors(newErrors);
         toast.error(error?.data?.detail || "Invalid data provided!");
       } else {
         toast.error("An error occurred, please try again!");
@@ -82,7 +119,7 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <Layers className="w-6 h-6 text-purple-500" />
-              <h2 className="text-2xl font-serif tracking-wide text-gray-800">Edit Package</h2>
+              <h2 className="text-2xl font-serif tracking-wide text-gray-800">Edit Branch</h2>
             </div>
             <button
               onClick={onClose}
@@ -118,14 +155,14 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ID */}
+            {/* Branch ID */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Package ID</label>
+              <label className="text-sm font-medium text-gray-700">Branch ID</label>
               <input
                 type="text"
-                name="id"
-                value={formData.documentId}
-                onChange={handleChange}
+                name="branchId"
+                value={formData.branchId}
+                onChange={handleInputChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                 readOnly
               />
@@ -133,62 +170,75 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
 
             {/* Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Package Name</label>
+              <label className="text-sm font-medium text-gray-700">Branch Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter package name"
+                placeholder="Enter branch name"
                 required
               />
               {validationErrors.name && <p className="text-red-500 text-sm">{validationErrors.name}</p>}
             </div>
 
-            {/* Description */}
+            {/* Phone Number */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Description</label>
+              <label className="text-sm font-medium text-gray-700">Phone Number</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                placeholder="Enter phone number"
+                required
+              />
+              {validationErrors.phoneNumber && <p className="text-red-500 text-sm">{validationErrors.phoneNumber}</p>}
+            </div>
+
+            {/* Address */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Address</label>
               <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                rows={2}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter package description"
+                placeholder="Enter address"
                 required
               />
-              {validationErrors.description && <p className="text-red-500 text-sm">{validationErrors.description}</p>}
+              {validationErrors.address && <p className="text-red-500 text-sm">{validationErrors.address}</p>}
             </div>
 
-            {/* Price */}
+            {/* Profile Picture (File Upload) */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Price (VND)</label>
+              <label className="text-sm font-medium text-gray-700">Profile Picture</label>
               <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
+                type="file"
+                onChange={handleFileChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter price"
-                required
+                accept="image/*"
               />
-              {validationErrors.price && <p className="text-red-500 text-sm">{validationErrors.price}</p>}
+              {validationErrors.profilePicture && <p className="text-red-500 text-sm">{validationErrors.profilePicture}</p>}
             </div>
 
-            {/* Duration */}
+            {/* Status */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Duration (Months)</label>
-              <input
-                type="number"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter duration"
-                required
-              />
-              {validationErrors.duration && <p className="text-red-500 text-sm">{validationErrors.duration}</p>}
+              <label className="text-sm font-medium text-gray-700">Status</label>
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  name="isActivated"
+                  checked={formData.isActivated}
+                  onChange={handleCheckboxChange}
+                  className="w-5 h-5 rounded-full border-gray-300 text-pink-500 focus:ring-pink-300 transition-colors duration-200"
+                />
+                <span className="text-gray-700">Active</span>
+              </label>
+              {validationErrors.isActivated && <p className="text-red-500 text-sm">{validationErrors.isActivated}</p>}
             </div>
 
             {/* Form Actions */}
