@@ -1,9 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap");
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Roboto Slab", serif;
 }
 
 @layer base {
@@ -135,4 +136,13 @@ body {
 .animate-gradient {
   animation: gradient 3s ease infinite;
   background-size: 200% 200%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

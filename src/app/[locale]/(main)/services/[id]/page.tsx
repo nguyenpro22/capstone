@@ -1,3 +1,5 @@
+"use client";
+// UI Components
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
   CarouselContent,
@@ -13,8 +18,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Progress } from "@/components/ui/progress";
-import Image from "next/image";
+
+// Icons
 import {
   Star,
   Clock,
@@ -25,141 +30,361 @@ import {
   CheckCircle,
   MapPin,
 } from "lucide-react";
-import { GradientButton } from "@/components/ui/gradient-button";
 
-// Define types based on the API response
-interface ServiceImage {
-  id: string;
-  index: number;
-  url: string;
-}
+// Next.js
+import Image from "next/image";
+import { useGetServiceByIdQuery } from "@/features/services/api";
+import { useParams } from "next/navigation";
 
-interface Clinic {
-  id: string;
-  name: string;
-  email: string;
-  address: string;
-  phoneNumber: string;
-  profilePictureUrl: string;
-  isParent: boolean;
-  parentId: string | null;
-}
+// Constants
+const BENEFITS = [
+  "Tạo dáng mũi cao, thon gọn",
+  "Cải thiện tỷ lệ khuôn mặt",
+  "Tự nhiên, hài hòa với gương mặt",
+  "Thời gian phục hồi nhanh",
+  "Kết quả lâu dài",
+  "An toàn, ít biến chứng",
+];
 
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-}
+const SUITABLE_FOR = [
+  "Người có sống mũi thấp, bẹt",
+  "Người có mũi tẹt, mũi hếch",
+  "Người muốn cải thiện tỷ lệ khuôn mặt",
+  "Người đã từng nâng mũi nhưng không đạt kết quả mong muốn",
+];
 
-type Procedure = {};
+const RECOVERY_TIMELINE = [
+  "Sau 1-2 ngày: Có thể sinh hoạt nhẹ nhàng",
+  "Sau 7-10 ngày: Tháo băng, rút chỉ (nếu có)",
+  "Sau 2-3 tuần: Sưng giảm đáng kể, có thể quay lại công việc",
+  "Sau 1-3 tháng: Mũi ổn định dần, đạt kết quả cuối cùng",
+];
 
-interface ServiceDetail {
-  id: string;
-  name: string;
-  description: string;
-  maxPrice: number;
-  minPrice: number;
-  discountMaxPrice: number;
-  discountMinPrice: number;
-  coverImage: ServiceImage[];
-  descriptionImage: ServiceImage[];
-  clinics: Clinic[];
-  category: Category;
-  procedures: Procedure[];
-}
+const DEFAULT_PROCEDURE_STEPS = [
+  {
+    title: "Tư vấn và thăm khám",
+    description:
+      "Bác sĩ thăm khám, đánh giá tình trạng mũi và khuôn mặt, tư vấn phương pháp phù hợp.",
+  },
+  {
+    title: "Thiết kế dáng mũi",
+    description:
+      "Sử dụng công nghệ mô phỏng 3D để thiết kế dáng mũi phù hợp với khuôn mặt.",
+  },
+  {
+    title: "Chuẩn bị trước phẫu thuật",
+    description:
+      "Kiểm tra sức khỏe tổng quát, chụp phim, xét nghiệm cần thiết để đảm bảo an toàn.",
+  },
+  {
+    title: "Gây mê",
+    description:
+      "Tùy theo phương pháp, có thể sử dụng gây mê cục bộ hoặc gây mê toàn thân.",
+  },
+  {
+    title: "Thực hiện phẫu thuật",
+    description:
+      "Bác sĩ tạo đường mổ, đặt sụn và định hình dáng mũi theo thiết kế.",
+  },
+  {
+    title: "Khâu đóng vết mổ",
+    description: "Sử dụng chỉ tự tiêu, đảm bảo thẩm mỹ và giảm thiểu sẹo.",
+  },
+  {
+    title: "Theo dõi hậu phẫu",
+    description:
+      "Theo dõi tình trạng sau phẫu thuật, hướng dẫn chăm sóc tại nhà.",
+  },
+];
 
-interface ServiceDetailResponse {
-  value: ServiceDetail;
-  isSuccess: boolean;
-  isFailure: boolean;
-  error: {
-    code: string;
-    message: string;
-  };
+const RELATED_SERVICES = [
+  {
+    id: 1,
+    name: "Nâng mũi S-line",
+    price: 1200,
+    rating: 4.8,
+    reviews: 48,
+  },
+  {
+    id: 2,
+    name: "Nâng mũi sụn tự thân",
+    price: 1500,
+    rating: 4.9,
+    reviews: 52,
+  },
+  {
+    id: 3,
+    name: "Nâng mũi không phẫu thuật",
+    price: 1000,
+    rating: 4.7,
+    reviews: 36,
+  },
+];
+
+// Loading Skeleton Component
+function ServiceDetailSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-rose-50/50 to-white dark:from-gray-900 dark:to-gray-950">
+      {/* Banner Section Skeleton */}
+      <section className="relative h-[50vh] min-h-[400px] flex items-center">
+        <div className="absolute inset-0">
+          <Skeleton className="h-full w-full" />
+        </div>
+        <div className="relative z-10 container px-4 mx-auto">
+          <div className="max-w-4xl">
+            {/* Breadcrumb Skeleton */}
+            <div className="flex items-center gap-2 mb-4">
+              <Skeleton className="h-4 w-20" />
+              <ChevronRight className="h-4 w-4 text-white/40" />
+              <Skeleton className="h-4 w-24" />
+              <ChevronRight className="h-4 w-4 text-white/40" />
+              <Skeleton className="h-4 w-28" />
+            </div>
+
+            {/* Badges Skeleton */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+
+            {/* Title Skeleton */}
+            <Skeleton className="h-12 w-3/4 mb-4" />
+
+            {/* Rating Skeleton */}
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-6 w-32" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="container px-4 mx-auto py-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content Skeleton */}
+          <div className="lg:col-span-2">
+            {/* Image Gallery Skeleton */}
+            <div className="mb-12">
+              <Skeleton className="h-[300px] w-full rounded-lg" />
+            </div>
+
+            {/* Tabs Skeleton */}
+            <div className="mb-12">
+              <div className="flex gap-2 mb-6 overflow-x-auto">
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <Skeleton key={i} className="h-10 w-28 rounded-md shrink-0" />
+                ))}
+              </div>
+
+              {/* Tab Content Skeleton */}
+              <div className="space-y-6">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-3/4" />
+
+                <div className="pt-4">
+                  <Skeleton className="h-8 w-48 mb-4" />
+                  <div className="grid sm:grid-cols-2 gap-4 mb-8">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-5 rounded-full" />
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <Skeleton className="h-8 w-48 mb-4" />
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <Skeleton key={i} className="h-6 w-full" />
+                    ))}
+                  </div>
+                </div>
+
+                <Skeleton className="h-[200px] w-full rounded-lg" />
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Skeleton */}
+          <div className="lg:col-span-1">
+            <div>
+              {/* Price Card Skeleton */}
+              <Card className="border-primary/10 shadow-lg mb-6">
+                <CardContent className="p-6">
+                  <div className="mb-6">
+                    <Skeleton className="h-8 w-32 mb-2" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 mb-6">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-5 rounded-full" />
+                        <Skeleton className="h-5 w-full" />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    <Skeleton className="h-12 w-full rounded-md" />
+                    <Skeleton className="h-12 w-full rounded-md" />
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  <div className="text-center">
+                    <Skeleton className="h-4 w-32 mx-auto mb-2" />
+                    <Skeleton className="h-6 w-40 mx-auto" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Booking Form Skeleton */}
+              <Card className="border-primary/10">
+                <CardContent className="p-6">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <div className="space-y-4">
+                    <Skeleton className="h-10 w-full rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                    <Skeleton className="h-[240px] w-full rounded-md" />
+                    <Skeleton className="h-24 w-full rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Related Services Skeleton */}
+        <section className="mt-16">
+          <Skeleton className="h-8 w-48 mb-8" />
+          <div className="grid md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden border-primary/10">
+                <CardContent className="p-0">
+                  <Skeleton className="h-48 w-full" />
+                  <div className="p-6">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-24 mb-4" />
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-6 w-20" />
+                      <Skeleton className="h-10 w-28 rounded-md" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* CTA Section Skeleton */}
+      <section className="py-16 bg-muted">
+        <div className="container px-4 mx-auto text-center">
+          <div className="max-w-2xl mx-auto">
+            <Skeleton className="h-8 w-3/4 mx-auto mb-4" />
+            <Skeleton className="h-4 w-full mx-auto mb-8" />
+            <Skeleton className="h-12 w-40 mx-auto rounded-md" />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 export default function ServiceDetail() {
-  // Mock data from the API response
-  const serviceData: ServiceDetailResponse = {
-    value: {
-      id: "458176ae-5289-4567-b392-d9e83afb2911",
-      name: "Nâng mũi cấu trúc",
-      description:
-        "Dịch vụ nâng mũi cấu trúc sử dụng công nghệ tiên tiến, giúp tạo dáng mũi cao, thon gọn và tự nhiên. Phương pháp này phù hợp với nhiều đối tượng khách hàng, đảm bảo tính thẩm mỹ và an toàn.",
-      maxPrice: 15000000,
-      minPrice: 10000000,
-      discountMaxPrice: 12750000,
-      discountMinPrice: 8500000,
-      coverImage: [
-        {
-          id: "2312d98c-8b73-4438-88a0-bbaeaad4000f",
-          index: 0,
-          url: "https://res.cloudinary.com/dvadlh7ah/image/upload/v1740576255/gynaxhkdy9u3c8id159o.png",
-        },
-      ],
-      descriptionImage: [
-        {
-          id: "e2233885-c286-48fe-9641-96c1600a3f88",
-          index: 0,
-          url: "https://res.cloudinary.com/dvadlh7ah/image/upload/v1740576257/zb2kg2egoc9v26suet1e.png",
-        },
-      ],
-      clinics: [
-        {
-          id: "8bce32aa-88e8-49f9-b761-a5b076f95e52",
-          name: "Beauty Clinic Saigon",
-          email: "tan182205@gmail.com",
-          address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
-          phoneNumber: "+84979901551",
-          profilePictureUrl:
-            "https://res.cloudinary.com/dvadlh7ah/image/upload/v1740575109/c2fpxfjhi1bpcfqys7ax.png",
-          isParent: true,
-          parentId: null,
-        },
-      ],
-      category: {
-        id: "11111111-1111-1111-1111-111111111112",
-        name: "Nâng mũi",
-        description: "Nhóm dịch vụ thẩm mỹ nâng mũi",
-      },
-      procedures: [],
-    },
-    isSuccess: true,
-    isFailure: false,
-    error: {
-      code: "",
-      message: "",
-    },
-  };
+  const { id } = useParams() as { id: string };
+
+  const { data: serviceData, error, isLoading } = useGetServiceByIdQuery(id);
+
+  // Show loading skeleton while data is being fetched
+  if (isLoading) return <ServiceDetailSkeleton />;
+
+  if (error)
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <h2 className="text-2xl font-bold mb-4">
+          Không thể tải thông tin dịch vụ
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          Đã xảy ra lỗi khi tải thông tin chi tiết. Vui lòng thử lại sau.
+        </p>
+        <Button onClick={() => window.location.reload()}>Thử lại</Button>
+      </div>
+    );
+
+  if (!serviceData?.value)
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <h2 className="text-2xl font-bold mb-4">Không tìm thấy dịch vụ</h2>
+        <p className="text-muted-foreground mb-6">
+          Dịch vụ bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
+        </p>
+        <Button asChild>
+          <a href="/services">Quay lại danh sách dịch vụ</a>
+        </Button>
+      </div>
+    );
 
   const service = serviceData.value;
+
+  // Calculate discount information
   const hasDiscount =
-    service.discountMaxPrice > 0 && service.discountMaxPrice < service.maxPrice;
+    service.discountMaxPrice > 0 &&
+    service.maxPrice > 0 &&
+    service.discountMaxPrice < service.maxPrice;
+
   const discountPercent = hasDiscount
     ? Math.round(100 - (service.discountMaxPrice / service.maxPrice) * 100)
     : 0;
 
-  // Combine cover and description images for the gallery
-  const allImages = [...service.coverImage, ...service.descriptionImage];
+  // Combine images for gallery
+  const allImages = [
+    ...(service.coverImage || []),
+    ...(service.descriptionImage || []),
+  ];
+
+  // Helper function to render star ratings
+  const renderStars = (count = 5, size = 5) => (
+    <div className="flex">
+      {Array.from({ length: count }).map((_, i) => (
+        <Star
+          key={i}
+          className={`h-${size} w-${size} fill-primary text-primary`}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50/50 to-white dark:from-gray-900 dark:to-gray-950">
-      {/* Banner */}
+      {/* Banner Section */}
       <section className="relative h-[50vh] min-h-[400px] flex items-center">
         <div className="absolute inset-0">
           <Image
             src={
-              service.coverImage[0]?.url ||
-              "/placeholder.svg?height=800&width=1600"
+              service.coverImage?.[0]?.url ||
+              "/placeholder.svg?height=800&width=1600" ||
+              "/placeholder.svg"
             }
             alt={service.name}
             fill
             className="object-cover"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
         </div>
+
         <div className="relative z-10 container px-4 mx-auto">
           <div className="max-w-4xl">
+            {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
               <a href="/" className="hover:text-primary transition-colors">
                 Trang chủ
@@ -173,11 +398,13 @@ export default function ServiceDetail() {
               </a>
               <ChevronRight className="h-4 w-4" />
               <a href="#" className="hover:text-primary transition-colors">
-                {service.category.name}
+                {service.category?.name || "Uncategorized"}
               </a>
               <ChevronRight className="h-4 w-4" />
               <span className="text-primary">{service.name}</span>
             </div>
+
+            {/* Badges */}
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="secondary">Phổ biến</Badge>
               {hasDiscount && (
@@ -187,16 +414,16 @@ export default function ServiceDetail() {
                 Mới
               </Badge>
             </div>
+
+            {/* Title */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-4">
               {service.name}
             </h1>
+
+            {/* Rating */}
             <div className="flex items-center gap-4 text-white">
               <div className="flex items-center">
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
+                {renderStars()}
                 <span className="ml-2">5.0</span>
               </div>
               <span className="text-white/60">(128 đánh giá)</span>
@@ -209,22 +436,23 @@ export default function ServiceDetail() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Gallery */}
+            {/* Image Gallery */}
             <Carousel className="mb-12">
               <CarouselContent>
-                {allImages.map((image, index) => (
-                  <CarouselItem key={image.id}>
-                    <div className="relative aspect-video rounded-lg overflow-hidden">
-                      <Image
-                        src={image.url || "/placeholder.svg"}
-                        alt={`${service.name} - Hình ảnh ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-                {allImages.length === 0 && (
+                {allImages.length > 0 ? (
+                  allImages.map((image, index) => (
+                    <CarouselItem key={image.id}>
+                      <div className="relative aspect-video rounded-lg overflow-hidden">
+                        <Image
+                          src={image.url || "/placeholder.svg"}
+                          alt={`${service.name} - Hình ảnh ${index + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))
+                ) : (
                   <CarouselItem>
                     <div className="relative aspect-video rounded-lg overflow-hidden">
                       <Image
@@ -241,7 +469,7 @@ export default function ServiceDetail() {
               <CarouselNext />
             </Carousel>
 
-            {/* Service Details */}
+            {/* Service Details Tabs */}
             <Tabs defaultValue="overview" className="mb-12">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value="overview">Tổng quan</TabsTrigger>
@@ -253,6 +481,7 @@ export default function ServiceDetail() {
                 <TabsTrigger value="reviews">Đánh giá</TabsTrigger>
               </TabsList>
 
+              {/* Overview Tab */}
               <TabsContent value="overview" className="mt-6">
                 <div className="prose dark:prose-invert max-w-none">
                   <p className="text-lg text-muted-foreground leading-relaxed mb-6">
@@ -263,14 +492,7 @@ export default function ServiceDetail() {
                     Lợi ích
                   </h3>
                   <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                    {[
-                      "Tạo dáng mũi cao, thon gọn",
-                      "Cải thiện tỷ lệ khuôn mặt",
-                      "Tự nhiên, hài hòa với gương mặt",
-                      "Thời gian phục hồi nhanh",
-                      "Kết quả lâu dài",
-                      "An toàn, ít biến chứng",
-                    ].map((benefit, index) => (
+                    {BENEFITS.map((benefit, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-primary" />
                         <span>{benefit}</span>
@@ -282,15 +504,12 @@ export default function ServiceDetail() {
                     Phù hợp với
                   </h3>
                   <ul className="list-disc list-inside mb-8 space-y-2">
-                    <li>Người có sống mũi thấp, bẹt</li>
-                    <li>Người có mũi tẹt, mũi hếch</li>
-                    <li>Người muốn cải thiện tỷ lệ khuôn mặt</li>
-                    <li>
-                      Người đã từng nâng mũi nhưng không đạt kết quả mong muốn
-                    </li>
+                    {SUITABLE_FOR.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
                   </ul>
 
-                  {service.descriptionImage.length > 0 && (
+                  {service.descriptionImage?.length > 0 && (
                     <div className="relative rounded-lg overflow-hidden mb-8">
                       <Image
                         src={
@@ -306,66 +525,98 @@ export default function ServiceDetail() {
                 </div>
               </TabsContent>
 
+              {/* Procedure Tab */}
               <TabsContent value="procedure" className="mt-6">
                 <div className="prose dark:prose-invert max-w-none">
                   <h3 className="text-2xl font-serif font-semibold mb-4">
                     Quy trình thực hiện
                   </h3>
-                  <ol className="list-decimal list-inside space-y-4 mb-8">
-                    <li className="pl-2">
-                      <span className="font-medium">Tư vấn và thăm khám:</span>{" "}
-                      Bác sĩ thăm khám, đánh giá tình trạng mũi và khuôn mặt, tư
-                      vấn phương pháp phù hợp.
-                    </li>
-                    <li className="pl-2">
-                      <span className="font-medium">Thiết kế dáng mũi:</span> Sử
-                      dụng công nghệ mô phỏng 3D để thiết kế dáng mũi phù hợp
-                      với khuôn mặt.
-                    </li>
-                    <li className="pl-2">
-                      <span className="font-medium">
-                        Chuẩn bị trước phẫu thuật:
-                      </span>{" "}
-                      Kiểm tra sức khỏe tổng quát, chụp phim, xét nghiệm cần
-                      thiết để đảm bảo an toàn.
-                    </li>
-                    <li className="pl-2">
-                      <span className="font-medium">Gây mê:</span> Tùy theo
-                      phương pháp, có thể sử dụng gây mê cục bộ hoặc gây mê toàn
-                      thân.
-                    </li>
-                    <li className="pl-2">
-                      <span className="font-medium">Thực hiện phẫu thuật:</span>{" "}
-                      Bác sĩ tạo đường mổ, đặt sụn và định hình dáng mũi theo
-                      thiết kế.
-                    </li>
-                    <li className="pl-2">
-                      <span className="font-medium">Khâu đóng vết mổ:</span> Sử
-                      dụng chỉ tự tiêu, đảm bảo thẩm mỹ và giảm thiểu sẹo.
-                    </li>
-                    <li className="pl-2">
-                      <span className="font-medium">Theo dõi hậu phẫu:</span>{" "}
-                      Theo dõi tình trạng sau phẫu thuật, hướng dẫn chăm sóc tại
-                      nhà.
-                    </li>
-                  </ol>
+
+                  {service.procedures?.length > 0 ? (
+                    <div className="space-y-8">
+                      {service.procedures.map((procedure, index) => (
+                        <div
+                          key={procedure.id}
+                          className="border-l-4 border-primary pl-4"
+                        >
+                          <h4 className="text-xl font-medium mb-2">
+                            {index + 1}. {procedure.name}
+                          </h4>
+                          <p className="text-muted-foreground mb-4">
+                            {procedure.description}
+                          </p>
+
+                          {procedure.coverImage.length > 0 && (
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              {procedure.coverImage.map((imgUrl, imgIndex) => (
+                                <div
+                                  key={imgIndex}
+                                  className="relative rounded-lg overflow-hidden aspect-video"
+                                >
+                                  <Image
+                                    src={imgUrl || "/placeholder.svg"}
+                                    alt={`${procedure.name} - Hình ảnh ${
+                                      imgIndex + 1
+                                    }`}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {procedure.procedurePriceTypes.length > 0 && (
+                            <div className="mt-4">
+                              <h5 className="font-medium mb-2">
+                                Các loại dịch vụ:
+                              </h5>
+                              <div className="space-y-2">
+                                {procedure.procedurePriceTypes.map(
+                                  (priceType) => (
+                                    <div
+                                      key={priceType.id}
+                                      className="flex justify-between items-center p-2 bg-muted rounded-md"
+                                    >
+                                      <span>{priceType.name}</span>
+                                      <span className="font-semibold text-primary">
+                                        {priceType.price.toLocaleString(
+                                          "vi-VN"
+                                        )}
+                                        đ
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <ol className="list-decimal list-inside space-y-4 mb-8">
+                      {DEFAULT_PROCEDURE_STEPS.map((step, index) => (
+                        <li key={index} className="pl-2">
+                          <span className="font-medium">{step.title}:</span>{" "}
+                          {step.description}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
 
                   <h3 className="text-2xl font-serif font-semibold mb-4">
                     Thời gian phục hồi
                   </h3>
                   <ul className="list-disc list-inside mb-8 space-y-2">
-                    <li>Sau 1-2 ngày: Có thể sinh hoạt nhẹ nhàng</li>
-                    <li>Sau 7-10 ngày: Tháo băng, rút chỉ (nếu có)</li>
-                    <li>
-                      Sau 2-3 tuần: Sưng giảm đáng kể, có thể quay lại công việc
-                    </li>
-                    <li>
-                      Sau 1-3 tháng: Mũi ổn định dần, đạt kết quả cuối cùng
-                    </li>
+                    {RECOVERY_TIMELINE.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
                   </ul>
                 </div>
               </TabsContent>
 
+              {/* Reviews Tab */}
               <TabsContent value="reviews" className="mt-6">
                 <div className="space-y-8">
                   {/* Rating Overview */}
@@ -374,11 +625,7 @@ export default function ServiceDetail() {
                       <div className="text-center mb-4">
                         <div className="text-5xl font-bold mb-2">4.9</div>
                         <div className="flex justify-center mb-2">
-                          <Star className="h-5 w-5 fill-primary text-primary" />
-                          <Star className="h-5 w-5 fill-primary text-primary" />
-                          <Star className="h-5 w-5 fill-primary text-primary" />
-                          <Star className="h-5 w-5 fill-primary text-primary" />
-                          <Star className="h-5 w-5 fill-primary text-primary" />
+                          {renderStars()}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Dựa trên 128 đánh giá
@@ -421,13 +668,7 @@ export default function ServiceDetail() {
                           <div>
                             <h4 className="font-medium">Nguyễn Thị Hương</h4>
                             <div className="flex items-center gap-2 mt-1">
-                              <div className="flex">
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                              </div>
+                              {renderStars(5, 4)}
                               <span className="text-sm text-muted-foreground">
                                 1 tháng trước
                               </span>
@@ -466,6 +707,7 @@ export default function ServiceDetail() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
+              {/* Price Card */}
               <Card className="border-primary/10 shadow-lg mb-6">
                 <CardContent className="p-6">
                   <div className="mb-6">
@@ -499,7 +741,7 @@ export default function ServiceDetail() {
                     <div className="flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-muted-foreground" />
                       <span className="line-clamp-1">
-                        {service.clinics[0]?.name}
+                        {service.clinics?.[0]?.name || "Location unavailable"}
                       </span>
                     </div>
                   </div>
@@ -522,12 +764,13 @@ export default function ServiceDetail() {
                     </div>
                     <div className="font-semibold text-lg flex items-center justify-center gap-2">
                       <Phone className="h-5 w-5 text-primary" />
-                      {service.clinics[0]?.phoneNumber || "1800-BEAUTIFY"}
+                      {service.clinics?.[0]?.phoneNumber || "1800-BEAUTIFY"}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Booking Form Card */}
               <Card className="border-primary/10">
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Đặt lịch nhanh</h3>
@@ -561,16 +804,16 @@ export default function ServiceDetail() {
             Dịch vụ liên quan
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((item) => (
+            {RELATED_SERVICES.map((relatedService) => (
               <Card
-                key={item}
+                key={relatedService.id}
                 className="group overflow-hidden border-primary/10"
               >
                 <CardContent className="p-0">
                   <div className="relative h-48">
                     <Image
                       src="/placeholder.svg?height=200&width=300"
-                      alt={`Dịch vụ liên quan ${item}`}
+                      alt={`Dịch vụ liên quan: ${relatedService.name}`}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -578,33 +821,17 @@ export default function ServiceDetail() {
                   </div>
                   <div className="p-6">
                     <h3 className="text-lg font-serif font-semibold mb-2">
-                      {item === 1
-                        ? "Nâng mũi S-line"
-                        : item === 2
-                        ? "Nâng mũi sụn tự thân"
-                        : "Nâng mũi không phẫu thuật"}
+                      {relatedService.name}
                     </h3>
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="flex">
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                      </div>
+                      {renderStars(5, 4)}
                       <span className="text-sm text-muted-foreground">
-                        (48)
+                        ({relatedService.reviews})
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-lg font-semibold text-primary">
-                        {(item === 1
-                          ? 12000000
-                          : item === 2
-                          ? 15000000
-                          : 8000000
-                        ).toLocaleString("vi-VN")}
-                        đ
+                        {relatedService.price.toLocaleString("vi-VN")}đ
                       </div>
                       <Button variant="outline">Xem chi tiết</Button>
                     </div>

@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ClientProvider from "@/components/common/Provider";
-import { Playfair_Display, Poppins } from "next/font/google";
+import { Roboto_Slab } from "next/font/google";
 
-const playfair = Playfair_Display({ subsets: ["latin"] });
-const poppins = Poppins({
+const robotoSlab = Roboto_Slab({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-poppins",
+  display: "swap",
+  variable: "--font-roboto-slab",
 });
-
 export const metadata: Metadata = {
   title: "Beautify Clinic - Premium Beauty & Aesthetic Center",
   description:
@@ -23,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${playfair.className} ${poppins.variable}`}>
+      <body className={`${robotoSlab.variable}`}>
         <ClientProvider>{children}</ClientProvider>
       </body>
     </html>
