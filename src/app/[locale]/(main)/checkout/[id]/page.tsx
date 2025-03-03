@@ -286,7 +286,7 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
                 <p className="text-sm">
                   Vui lòng chuyển khoản đúng số tiền và nội dung để hệ thống có
                   thể xác nhận thanh toán của bạn. Sau khi chuyển khoản, nhấn
-                  nút "Xác nhận đã thanh toán" bên dưới.
+                  nút &quot;Xác nhận đã thanh toán&quot; bên dưới.
                 </p>
               </div>
             </CardContent>
@@ -316,7 +316,7 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
                 <p className="text-sm">
                   Sau khi quét mã và thanh toán thành công, hệ thống sẽ tự động
                   cập nhật trạng thái đơn hàng của bạn. Nếu không được cập nhật,
-                  vui lòng nhấn nút "Xác nhận đã thanh toán" bên dưới.
+                  vui lòng nhấn nút &quot;Xác nhận đã thanh toán&quot; bên dưới.
                 </p>
               </div>
             </CardContent>

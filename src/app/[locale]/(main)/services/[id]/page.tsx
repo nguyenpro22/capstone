@@ -35,6 +35,7 @@ import {
 import Image from "next/image";
 import { useGetServiceByIdQuery } from "@/features/services/api";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 // Constants
 const BENEFITS = [
@@ -328,7 +329,7 @@ export default function ServiceDetail() {
           Dịch vụ bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
         </p>
         <Button asChild>
-          <a href="/services">Quay lại danh sách dịch vụ</a>
+          <Link href="/services">Quay lại danh sách dịch vụ</Link>
         </Button>
       </div>
     );
@@ -386,20 +387,20 @@ export default function ServiceDetail() {
           <div className="max-w-4xl">
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
-              <a href="/" className="hover:text-primary transition-colors">
+              <Link href="/" className="hover:text-primary transition-colors">
                 Trang chủ
-              </a>
+              </Link>
               <ChevronRight className="h-4 w-4" />
-              <a
+              <Link
                 href="/services"
                 className="hover:text-primary transition-colors"
               >
                 Dịch vụ
-              </a>
+              </Link>
               <ChevronRight className="h-4 w-4" />
-              <a href="#" className="hover:text-primary transition-colors">
+              <Link href="#" className="hover:text-primary transition-colors">
                 {service.category?.name || "Uncategorized"}
-              </a>
+              </Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-primary">{service.name}</span>
             </div>

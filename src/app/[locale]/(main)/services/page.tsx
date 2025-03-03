@@ -21,6 +21,7 @@ import { Search, Grid, List, Star, Clock, X, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useGetAllServicesQuery } from "@/features/services/api";
 import { useState } from "react";
+import Link from "next/link";
 
 // Define TypeScript interfaces for the API response
 interface ServiceImage {
@@ -423,9 +424,9 @@ export default function ServicesPage(): JSX.Element {
             className="mb-4 text-white"
           />
           <div className="flex items-center justify-center gap-2 text-sm">
-            <a href="/" className="hover:text-primary transition-colors">
+            <Link href="/" className="hover:text-primary transition-colors">
               Trang chủ
-            </a>
+            </Link>
             <span>/</span>
             <span className="text-primary">Dịch vụ</span>
           </div>
@@ -696,7 +697,9 @@ export default function ServicesPage(): JSX.Element {
                                 variant="outline"
                                 asChild
                               >
-                                <a href={`/services/${service.id}`}>Chi tiết</a>
+                                <Link href={`/services/${service.id}`}>
+                                  Chi tiết
+                                </Link>
                               </Button>
                               <GradientButton className="flex-1">
                                 Đặt lịch
@@ -799,9 +802,9 @@ export default function ServicesPage(): JSX.Element {
                                     variant="outline"
                                     asChild
                                   >
-                                    <a href={`/services/${service.id}`}>
+                                    <Link href={`/services/${service.id}`}>
                                       Chi tiết
-                                    </a>
+                                    </Link>
                                   </Button>
                                   <GradientButton className="flex-1">
                                     Đặt lịch
