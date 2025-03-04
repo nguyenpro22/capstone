@@ -1,7 +1,7 @@
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
-import { homeMessage } from "./home";
+import { homeMessages } from "./home";
 import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
 import { serviceMessages } from "./service";
@@ -9,7 +9,7 @@ import { voucherMessages } from "./voucher";
 
 
 const en = {
-  home: homeMessage,
+  home: homeMessages,
   navbar: navbarMessages,
   voucher: voucherMessages,
   landing: landingMessages,

@@ -8,6 +8,9 @@ import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm b�
 
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
+
+import { serviceApi } from "@/features/services/api";
+import { categoryApi } from "@/features/home/api";
 import { categoryQueryApi, categoryCommandApi } from "@/features/category-service/api";
 import { serviceCommandApi, serviceQueryApi } from "@/features/clinic-service/api";
 const store = configureStore({
@@ -19,6 +22,10 @@ const store = configureStore({
     [packageApi.reducerPath]: packageApi.reducer, // ✅ Thêm reducer của RTK Query
     [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
+
+    [clinicsApi.reducerPath]: clinicsApi.reducer,
+    [serviceApi.reducerPath]: serviceApi.reducer,
+    [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
     [clinicsCommandApi.reducerPath]: clinicsCommandApi.reducer,
     [categoryQueryApi.reducerPath]: categoryQueryApi.reducer,
@@ -26,16 +33,18 @@ const store = configureStore({
     [serviceCommandApi.reducerPath]: serviceCommandApi.reducer,
     [serviceQueryApi.reducerPath]: serviceQueryApi.reducer,
 
-
-
   },
   middleware: (getDefaultMiddleware) =>
     // getDefaultMiddleware().concat(ExampleAPI.middleware),
     getDefaultMiddleware().concat(
-      authApi.middleware, 
+      authApi.middleware,
       packageApi.middleware,
       packageCreateApi.middleware, // Thêm middleware cho packageCreateApi
       partnershipRequestApi.middleware,
+
+      clinicsApi.middleware,
+      serviceApi.middleware,
+      categoryApi.middleware,
       clinicsQueryApi.middleware,
       clinicsCommandApi.middleware,
       categoryQueryApi.middleware,
