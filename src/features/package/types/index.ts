@@ -6,4 +6,7 @@ export interface Package {
     duration: string;
     status: string;
   }
-  
+export interface PackageDetailResponse {
+  value: Package;
+  isSuccess: boolean;
+}

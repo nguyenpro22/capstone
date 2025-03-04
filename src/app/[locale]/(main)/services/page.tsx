@@ -425,6 +425,7 @@ export default function ServicesPage(): JSX.Element {
           />
           <div className="flex items-center justify-center gap-2 text-sm">
             <Link href="/" className="hover:text-primary transition-colors">
+
               Trang chủ
             </Link>
             <span>/</span>

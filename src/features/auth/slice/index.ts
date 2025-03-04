@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AuthResponse, ILoginResponse } from "../types";
+import { ILoginResponse } from "../types";
 import { authApi } from "../api";
 import { RootState } from "@/store";
+import { IResCommon } from "@/lib/api";
 
 interface AuthState {
   user: ILoginResponse | null;
@@ -21,7 +22,10 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<AuthResponse>) => {
+    setCredentials: (
+      state,
+      action: PayloadAction<IResCommon<ILoginResponse>>
+    ) => {
       const { value } = action.payload;
       // state.user = value.user;
       state.isAuthenticated = true;
@@ -31,27 +35,16 @@ const authSlice = createSlice({
     logout: () => initialState,
   },
   extraReducers: (builder) => {
-    builder
-      .addMatcher(
-        authApi.endpoints.login.matchFulfilled,
-        (state, { payload }) => {
-          const { value } = payload;
-          // state.user = value.user;
-          state.isAuthenticated = true;
-          state.accessToken = value.accessToken;
-          state.refreshToken = value.refreshToken;
-        }
-      )
-      .addMatcher(
-        authApi.endpoints.register.matchFulfilled,
-        (state, { payload }) => {
-          const { value } = payload;
-          // state.user = value.user;
-          state.isAuthenticated = true;
-          state.accessToken = value.accessToken;
-          state.refreshToken = value.refreshToken;
-        }
-      );
+    builder.addMatcher(
+      authApi.endpoints.login.matchFulfilled,
+      (state, { payload }) => {
+        const { value } = payload;
+        // state.user = value.user;
+        state.isAuthenticated = true;
+        state.accessToken = value.accessToken;
+        state.refreshToken = value.refreshToken;
+      }
+    );
   },
 });
 

@@ -388,6 +388,7 @@ export default function ServiceDetail() {
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
               <Link href="/" className="hover:text-primary transition-colors">
+
                 Trang chủ
               </Link>
               <ChevronRight className="h-4 w-4" />
