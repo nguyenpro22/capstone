@@ -4,10 +4,13 @@ import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
 
 export const clinicsQueryApi = createApi({
   reducerPath: "clinicsQueryApi",
-  baseQuery: reAuthQuery("query"),  // 👉 Dùng port 3000
+  baseQuery: reAuthQuery("query"), // 👉 Dùng port 3000
   tagTypes: ["Clinic"],
   endpoints: (builder) => ({
-    getClinics: builder.query<ClinicsResponse, { pageIndex: number; pageSize: number; searchTerm: string }>({
+    getClinics: builder.query<
+      ClinicsResponse,
+      { pageIndex: number; pageSize: number; searchTerm: string }
+    >({
       query: ({ pageIndex, pageSize, searchTerm }) =>
         `clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
     }),
@@ -28,10 +31,13 @@ export const clinicsQueryApi = createApi({
 
 export const clinicsCommandApi = createApi({
   reducerPath: "clinicsCommandApi",
-  baseQuery: reAuthQuery("command"),  // 👉 Dùng port 4000
+  baseQuery: reAuthQuery("command"), // 👉 Dùng port 4000
   tagTypes: ["Clinic"],
   endpoints: (builder) => ({
-    updateClinic: builder.mutation<Clinic, { clinicId: string; data: FormData }>({
+    updateClinic: builder.mutation<
+      Clinic,
+      { clinicId: string; data: FormData }
+    >({
       query: ({ clinicId, data }) => ({
         url: `/clinics/${clinicId}`,
         method: "PUT",
@@ -62,6 +68,7 @@ export const clinicsCommandApi = createApi({
         // body: { packageId, isActivated },
       }),
     }),
+   
   }),
 });
 
@@ -76,5 +83,5 @@ export const {
   useUpdateClinicMutation,
   useCreateBranchMutation,
   useUpdateBranchMutation,
-  useChangeStatusBranchMutation
+  useChangeStatusBranchMutation,
 } = clinicsCommandApi;

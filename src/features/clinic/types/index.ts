@@ -60,3 +60,21 @@ export interface BranchDetailResponse {
     message: string;
   };
 }
+
+export interface SubscriptionResponse {
+  documentId: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: number;
+  isActivated: boolean;
+}
+
+export interface TransactionDetails {
+  transactionId: string;
+  bankNumber: string;
+  bankGateway: string;
+  amount: number;
+  orderDescription: string;
+  qrUrl: string;
+}
