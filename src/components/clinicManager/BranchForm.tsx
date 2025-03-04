@@ -1,25 +1,35 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useCreateBranchMutation } from "@/features/clinic/api"; // Adjust import path as needed
-import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "framer-motion";
-import { Layers, X, AlertCircle, FileText } from "lucide-react";
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+import type React from "react"
 
+import { useState } from "react"
+import { useCreateBranchMutation } from "@/features/clinic/api"
+import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
+import { toast } from "react-toastify"
+import { motion } from "framer-motion"
+import { X, AlertCircle } from "lucide-react"
+
+// Interfaces
 interface BranchFormProps {
-  onClose: () => void;
-  onSaveSuccess: () => void;
+  onClose: () => void
+  onSaveSuccess: () => void
 }
 
 interface ValidationErrors {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  address?: string;
-  operatingLicense?: string;
-  operatingLicenseExpiryDate?: string;
-  profilePictureUrl?: string;
+  name?: string
+  email?: string
+  phoneNumber?: string
+  address?: string
+  operatingLicense?: string
+  operatingLicenseExpiryDate?: string
+  profilePictureUrl?: string
+}
+
+interface AddressDetail {
+  provinceId: string
+  districtId: string
+  wardId: string
+  streetAddress: string
 }
 
 export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) {
@@ -27,139 +37,212 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     name: "",
     email: "",
     phoneNumber: "",
-    address: "",
+    streetAddress: "", // Changed from address to streetAddress
     operatingLicense: null as File | null,
     operatingLicenseExpiryDate: "",
     profilePictureUrl: null as File | null,
-  });
-//   const token = getAccessToken() as string;
-//   const { clinicId } = GetDataByToken(token) as TokenData;
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [createBranch, { isLoading }] = useCreateBranchMutation();
+  })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setValidationErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-  };
+  const [addressDetail, setAddressDetail] = useState<AddressDetail>({
+    provinceId: "",
+    districtId: "",
+    wardId: "",
+    streetAddress: "",
+  })
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "operatingLicense" | "profilePictureUrl") => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData((prev) => ({
+  // RTK Query hooks
+  const { data: provinces, isLoading: isLoadingProvinces } = useGetProvincesQuery()
+  const { data: districts, isLoading: isLoadingDistricts } = useGetDistrictsQuery(addressDetail.provinceId, {
+    skip: !addressDetail.provinceId,
+  })
+  const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(addressDetail.districtId, {
+    skip: !addressDetail.districtId,
+  })
+
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+  const [createBranch, { isLoading }] = useCreateBranchMutation()
+
+  // Handle address selection changes
+  const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const { name, value } = e.target
+    setAddressDetail((prev) => {
+      const newDetail = {
         ...prev,
-        [field]: e.target.files![0],
-      }));
-      setValidationErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
+        [name]: value,
+      }
+
+      // Reset dependent fields
+      if (name === "provinceId") {
+        newDetail.districtId = ""
+        newDetail.wardId = ""
+      } else if (name === "districtId") {
+        newDetail.wardId = ""
+      }
+
+      return newDetail
+    })
+
+    // Clear address validation error when any address field changes
+    if (validationErrors.address) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.address
+        return newErrors
+      })
     }
-  };
+  }
+
+  // Combine address parts into full address string
+  const getFullAddress = (): string => {
+    const parts: string[] = []
+
+    if (addressDetail.streetAddress) parts.push(addressDetail.streetAddress)
+    if (addressDetail.wardId && wards) {
+      const ward = wards.data.find((w) => w.id === addressDetail.wardId)
+      if (ward) parts.push(ward.name)
+    }
+    if (addressDetail.districtId && districts) {
+      const district = districts.data.find((d) => d.id === addressDetail.districtId)
+      if (district) parts.push(district.name)
+    }
+    if (addressDetail.provinceId && provinces) {
+      const province = provinces.data.find((p) => p.id === addressDetail.provinceId)
+      if (province) parts.push(province.name)
+    }
+
+    return parts.join(", ")
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("phoneNumber", formData.phoneNumber);
-    formDataToSend.append("address", formData.address);
+    e.preventDefault()
+
+    // Clear all previous errors before submitting
+    setValidationErrors({})
+
+    const formDataToSend = new FormData()
+    formDataToSend.append("name", formData.name)
+    formDataToSend.append("email", formData.email)
+    formDataToSend.append("phoneNumber", formData.phoneNumber)
+    formDataToSend.append("address", getFullAddress())
+    formDataToSend.append("operatingLicenseExpiryDate", formData.operatingLicenseExpiryDate)
     if (formData.operatingLicense) {
-      formDataToSend.append("operatingLicense", formData.operatingLicense);
+      formDataToSend.append("operatingLicense", formData.operatingLicense)
     }
     if (formData.profilePictureUrl) {
-      formDataToSend.append("profilePictureUrl", formData.profilePictureUrl);
-    }
-    if (formData.operatingLicenseExpiryDate) {
-      formDataToSend.append("operatingLicenseExpiryDate", formData.operatingLicenseExpiryDate);
+      formDataToSend.append("profilePictureUrl", formData.profilePictureUrl)
     }
 
     try {
-      await createBranch({ data: formDataToSend }).unwrap();
-      toast.success("Branch created successfully!");
-      onSaveSuccess();
-      onClose();
+      await createBranch({ data: formDataToSend }).unwrap()
+      toast.success("Branch created successfully!")
+      onSaveSuccess()
+      onClose()
     } catch (error: any) {
-      console.error("Error response:", error);
-      if (error?.status === 400 || error?.status === 422) {
-        const validationErrors = error?.data?.errors || [];
-        const newErrors: ValidationErrors = {};
-        validationErrors.forEach((err: { code: string; message: string }) => {
-          newErrors[err.code.toLowerCase() as keyof ValidationErrors] = err.message;
-        });
-        setValidationErrors(newErrors);
-        toast.error(error?.data?.detail || "Invalid data provided!");
+      console.error("Error response:", error)
+
+      // Handle API validation errors
+      if (error?.data?.errors) {
+        const formattedErrors: ValidationErrors = {}
+
+        // Assuming error.data.errors is an array of error objects
+        error.data.errors.forEach((err: any) => {
+          // Get the field name from either field or code property
+          const fieldName = err.field || err.code
+
+          // Map API field names to display names
+          const fieldDisplayNames: Record<string, string> = {
+            name: "Branch Name",
+            email: "Email",
+            phoneNumber: "Phone Number",
+            address: "Address",
+            operatingLicense: "Operating License",
+            operatingLicenseExpiryDate: "Operating License Expiry Date",
+            profilePictureUrl: "Profile Picture",
+          }
+
+          // Format the error message with the display name
+          const displayName = fieldDisplayNames[fieldName] || fieldName
+          formattedErrors[fieldName as keyof ValidationErrors] = `${displayName}: ${err.message}`
+        })
+
+        setValidationErrors(formattedErrors)
+        toast.error("Please check the form for errors")
       } else {
-        toast.error("An error occurred, please try again!");
+        // Handle unexpected errors
+        toast.error(error?.data?.message || "An unexpected error occurred. Please try again later.")
       }
     }
-  };
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Clear the specific error when input changes
+    if (validationErrors[name as keyof ValidationErrors]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name as keyof ValidationErrors]
+        return newErrors
+      })
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    const file = e.target.files?.[0]
+    setFormData((prev) => ({ ...prev, [fieldName]: file }))
+
+    // Clear the specific error when file changes
+    if (validationErrors[fieldName as keyof ValidationErrors]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[fieldName as keyof ValidationErrors]
+        return newErrors
+      })
+    }
+  }
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/30 backdrop-blur-sm"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto p-4"
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-md bg-white/95 backdrop-blur rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="relative w-full max-w-2xl bg-white rounded-lg shadow-lg my-8"
       >
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-t from-pink-100/20 to-transparent rounded-full -translate-x-16 translate-y-16" />
+        <div className="p-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 focus:outline-none"
+          >
+            <X size={20} />
+          </button>
 
-        <div className="relative p-4 sm:p-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3">
-              <Layers className="w-6 h-6 text-purple-500" />
-              <h2 className="text-2xl font-serif tracking-wide text-gray-800">Create Branch</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-
-          {/* Error Messages */}
-          <AnimatePresence>
-            {Object.keys(validationErrors).length > 0 && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="mb-6 max-h-32 overflow-y-auto"
-              >
-                {Object.entries(validationErrors).map(([field, message], index) => (
-                  message && (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      <p className="text-sm">{message}</p>
+          {Object.entries(validationErrors).filter(([_, message]) => message).length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 p-4 rounded-lg bg-red-50">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <p className="text-red-500 font-medium">Please fix the following errors:</p>
+              </div>
+              <div className="mt-3 space-y-2">
+                {Object.entries(validationErrors)
+                  .filter(([_, message]) => message) // Only show non-empty error messages
+                  .map(([field, message]) => (
+                    <div key={field} className="text-sm text-red-500 pl-4">
+                      • {message}
                     </div>
-                  )
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  ))}
+              </div>
+            </div>
+          )}
 
-          {/* Form */}
+          <h2 className="text-xl font-bold mb-4">Create New Branch</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Branch Name</label>
               <input
@@ -171,10 +254,9 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                 placeholder="Enter branch name"
                 required
               />
-              {validationErrors.name && <p className="text-red-500 text-sm">{validationErrors.name}</p>}
+              {validationErrors.name && <p className="text-red-500 text-xs italic">{validationErrors.name}</p>}
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Email</label>
               <input
@@ -186,14 +268,13 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                 placeholder="Enter email"
                 required
               />
-              {validationErrors.email && <p className="text-red-500 text-sm">{validationErrors.email}</p>}
+              {validationErrors.email && <p className="text-red-500 text-xs italic">{validationErrors.email}</p>}
             </div>
 
-            {/* Phone Number */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Phone Number</label>
               <input
-                type="text"
+                type="tel"
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
@@ -201,37 +282,115 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                 placeholder="Enter phone number"
                 required
               />
-              {validationErrors.phoneNumber && <p className="text-red-500 text-sm">{validationErrors.phoneNumber}</p>}
+              {validationErrors.phoneNumber && (
+                <p className="text-red-500 text-xs italic">{validationErrors.phoneNumber}</p>
+              )}
             </div>
 
-            {/* Address */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Address</label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter address"
-                required
-              />
-              {validationErrors.address && <p className="text-red-500 text-sm">{validationErrors.address}</p>}
+            {/* Address Section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-gray-700">Address Details</h3>
+
+              {/* Province Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Province/City</label>
+                <select
+                  name="provinceId"
+                  value={addressDetail.provinceId}
+                  onChange={handleAddressChange}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  required
+                >
+                  <option value="">Select Province/City</option>
+                  {provinces?.data.map((province) => (
+                    <option key={province.id} value={province.id}>
+                      {province.name}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.address && <p className="text-red-500 text-xs italic">{validationErrors.address}</p>}
+              </div>
+
+              {/* District Selection */}
+              {addressDetail.provinceId && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">District</label>
+                  <select
+                    name="districtId"
+                    value={addressDetail.districtId}
+                    onChange={handleAddressChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    required
+                  >
+                    <option value="">Select District</option>
+                    {districts?.data.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Ward Selection */}
+              {addressDetail.districtId && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Ward</label>
+                  <select
+                    name="wardId"
+                    value={addressDetail.wardId}
+                    onChange={handleAddressChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    required
+                  >
+                    <option value="">Select Ward</option>
+                    {wards?.data.map((ward) => (
+                      <option key={ward.id} value={ward.id}>
+                        {ward.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Street Address */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Street Address</label>
+                <input
+                  type="text"
+                  name="streetAddress"
+                  value={addressDetail.streetAddress}
+                  onChange={handleAddressChange}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  placeholder="Enter street address"
+                  required
+                />
+              </div>
+
+              {/* Preview Full Address */}
+              {addressDetail.provinceId && (
+                <div className="p-4 rounded-lg bg-gray-50">
+                  <p className="text-sm text-gray-600">Full Address:</p>
+                  <p className="text-sm font-medium text-gray-800">{getFullAddress()}</p>
+                </div>
+              )}
             </div>
 
-            {/* Operating License (File Upload) */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Operating License</label>
               <input
                 type="file"
+                name="operatingLicense"
                 onChange={(e) => handleFileChange(e, "operatingLicense")}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                accept="application/pdf,image/*"
+                accept=".pdf, .jpg, .jpeg, .png"
+                required
               />
-              {validationErrors.operatingLicense && <p className="text-red-500 text-sm">{validationErrors.operatingLicense}</p>}
+              {validationErrors.operatingLicense && (
+                <p className="text-red-500 text-xs italic">{validationErrors.operatingLicense}</p>
+              )}
             </div>
 
-            {/* Operating License Expiry Date */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Operating License Expiry Date</label>
               <input
@@ -242,48 +401,38 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                 required
               />
-              {validationErrors.operatingLicenseExpiryDate && <p className="text-red-500 text-sm">{validationErrors.operatingLicenseExpiryDate}</p>}
+              {validationErrors.operatingLicenseExpiryDate && (
+                <p className="text-red-500 text-xs italic">{validationErrors.operatingLicenseExpiryDate}</p>
+              )}
             </div>
 
-            {/* Profile Picture (File Upload) */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Profile Picture</label>
               <input
                 type="file"
+                name="profilePictureUrl"
                 onChange={(e) => handleFileChange(e, "profilePictureUrl")}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                accept="image/*"
+                accept=".jpg, .jpeg, .png"
               />
-              {validationErrors.profilePictureUrl && <p className="text-red-500 text-sm">{validationErrors.profilePictureUrl}</p>}
+              {validationErrors.profilePictureUrl && (
+                <p className="text-red-500 text-xs italic">{validationErrors.profilePictureUrl}</p>
+              )}
             </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-              >
-                Cancel
-              </button>
+            <div className="flex justify-end">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
+                className="px-6 py-3 text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
               >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
-                  </div>
-                ) : (
-                  "Create Branch"
-                )}
+                {isLoading ? "Creating..." : "Create Branch"}
               </button>
             </div>
           </form>
         </div>
       </motion.div>
     </motion.div>
-  );
+  )
 }
+

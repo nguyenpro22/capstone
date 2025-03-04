@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { Clinic, ClinicDetailResponse, ClinicsResponse, BranchDetailResponse, Branch } from "@/features/clinic/types";
-import { reAuthQuery } from '@/lib/api';
+import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
 
 export const clinicsQueryApi = createApi({
   reducerPath: "clinicsQueryApi",
@@ -14,12 +14,15 @@ export const clinicsQueryApi = createApi({
     getClinicById: builder.query<ClinicDetailResponse, string>({
       query: (id) => `clinics/${id}`,
     }),
-    getBranches: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/clinics/branches?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
-    }),
-    getBranchById: builder.query<BranchDetailResponse, string>({
-      query: (id) => `branches/${id}?id=${id}`,
-    }),
+    getBranches: builder.query<
+        IResCommon<IListResponse<Branch>>,
+        { pageIndex?: number; pageSize?: number; serchTerm?: string }
+      >({
+        query: ({ pageIndex = 1, pageSize = 10, serchTerm=""}) => `/clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${serchTerm}&sortOrder=desc`,
+        }),
+        getBranchById: builder.query<IResCommon<Branch>, string>({
+          query: (id) => `clinic/${id}?id=${id}`,
+        }),
   }),
 });
 

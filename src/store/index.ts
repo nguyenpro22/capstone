@@ -2,6 +2,9 @@
 import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
 import authReducer from "@/features/auth/slice";
+import { addressApi  } from "@/features/address/api";
+import { paymentsApi  } from "@/features/payment/api";
+
 import { clinicsQueryApi, clinicsCommandApi  } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api"; // Đảm bảo đường dẫn đúng
 import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm bảo đường dẫn đúng
@@ -25,6 +28,8 @@ const store = configureStore({
     [categoryCommandApi.reducerPath]: categoryCommandApi.reducer,
     [serviceCommandApi.reducerPath]: serviceCommandApi.reducer,
     [serviceQueryApi.reducerPath]: serviceQueryApi.reducer,
+    [addressApi.reducerPath]: addressApi.reducer,
+    [paymentsApi.reducerPath]: paymentsApi.reducer,
 
 
 
@@ -41,7 +46,9 @@ const store = configureStore({
       categoryQueryApi.middleware,
       categoryCommandApi.middleware,
       serviceCommandApi.middleware,
-      serviceQueryApi.middleware
+      serviceQueryApi.middleware,
+      addressApi.middleware,
+      paymentsApi.middleware,
     ),// ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 

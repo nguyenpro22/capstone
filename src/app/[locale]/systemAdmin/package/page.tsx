@@ -18,6 +18,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
 import Modal from "@/components/systemAdmin/Modal"; // Component popup để hiển thị thông tin gói
+import { Package } from "@/features/package/types";
 
 export default function Voucher() {
   const t = useTranslations('package'); // Sử dụng namespace "dashboard"
@@ -50,6 +51,7 @@ console.log("API Response:", data);
 
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   // const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
+  const [localPackages, setLocalPackages] = useState<any[]>([])
 
   const handleToggleMenu = (packageId: string) => {
     setMenuOpen(menuOpen === packageId ? null : packageId);
@@ -57,10 +59,24 @@ console.log("API Response:", data);
 
   const handleToggleStatus = async (packageId: string) => {
     try {
-      await changeStatusPackage({ packageId}).unwrap(); // Đảo trạng thái
-      console.log("Package Data:", { packageId }); // Debug
-      toast.success("Trạng thái gói đã được cập nhật!");
-      refetch();
+      // Find the package in the current list
+      const packageToUpdate = packages.find((pkg : Package) => pkg.documentId === packageId)
+      if (!packageToUpdate) return
+
+      // Optimistically update the UI
+      const updatedPackages = packages.map((pkg: Package) =>
+        pkg.documentId === packageId ? { ...pkg, isActivated: !pkg.isActivated } : pkg,
+      )
+
+      // Update the local state (this requires adding a new state variable)
+      setLocalPackages(updatedPackages)
+
+      // Make the API call
+      await changeStatusPackage({ packageId }).unwrap()
+      toast.success("Trạng thái gói đã được cập nhật!")
+
+      // Refetch to ensure server and client are in sync
+      refetch()
     } catch (error) {
       console.error(error);
       toast.error("Có lỗi xảy ra, vui lòng thử lại!");

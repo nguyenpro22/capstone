@@ -37,7 +37,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
   const { data: branchesData, isLoading: isBranchesLoading } = useGetBranchesQuery({
     pageIndex: 1,
     pageSize: 100,
-    searchTerm: "",
+    serchTerm: "",
   });
 
   const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : [];
