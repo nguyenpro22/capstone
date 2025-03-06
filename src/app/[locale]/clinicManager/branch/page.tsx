@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Clock, CreditCard, CheckCircle2, XCircle, FileText, Layers, MoreVertical } from "lucide-react"
+import { Clock, CheckCircle2, XCircle, FileText, Layers, MoreVertical } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGetBranchesQuery, useLazyGetBranchByIdQuery, useUpdateBranchMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
@@ -11,7 +11,6 @@ import { toast } from "react-toastify"
 import Modal from "@/components/systemStaff/Modal"
 import BranchForm from "@/components/clinicManager/BranchForm"
 import EditBranchForm from "@/components/clinicManager/EditBranchForm"
-import Pagination from "@/components/common/Pagination/Pagination"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Branch } from "@/features/clinic/types"
 
@@ -29,18 +28,15 @@ const BranchesList: React.FC = () => {
   const token = getAccessToken() as string
   const { clinicId } = GetDataByToken(token) as TokenData
 
-  const { data, isLoading, error, refetch } = useGetBranchesQuery({
-    pageIndex,
-    pageSize,
-    serchTerm : searchTerm,
-  })
+  const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || '')
+
   const [updateBranch] = useUpdateBranchMutation()
   const [fetchBranchById] = useLazyGetBranchByIdQuery()
 
-  const branches = data?.value.items || []
-  const totalCount = data?.value.totalCount || 0
-  const hasNextPage = data?.value.hasNextPage || false
-  const hasPreviousPage = data?.value.hasPreviousPage || false
+  const branches = data?.value?.branches || []
+  const totalCount = branches.length || 0
+  // const hasNextPage = false
+  // const hasPreviousPage = false
 
   const handleToggleMenu = (branchId: string) => {
     setMenuOpen(menuOpen === branchId ? null : branchId)
@@ -119,6 +115,15 @@ const BranchesList: React.FC = () => {
   if (isLoading) return <div className="text-center text-gray-600">{t("loading")}</div>
   if (error) return <div className="text-center text-red-600">{t("errorFetching")}</div>
 
+  const filteredBranches = searchTerm
+    ? branches.filter(
+        (branch: Branch) =>
+          branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          branch.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          branch.address.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : branches
+
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 shadow-xl rounded-xl">
       <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 tracking-wide">{t("branchesList")}</h1>
@@ -146,7 +151,7 @@ const BranchesList: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-         <div className="w-full flex justify-start">
+          <div className="w-full flex justify-start">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -156,115 +161,116 @@ const BranchesList: React.FC = () => {
               <span className="font-medium">{t("createNewBranch")}</span>
             </motion.button>
           </div>
-
         </div>
       </div>
 
       {/* Table */}
-        <table className="table-auto w-full border-collapse">
-          <thead className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700">
-            <tr>
-              <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("fullName")}</th>
-              <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("email")}</th>
-              <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("address")}</th>
-              <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">
-                {t("operatingLicenseExpiryDate")}
-              </th>
-              <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("status")}</th>
-              <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("action")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {branches.map((branch: Branch) => (
-              <motion.tr
-                key={branch.id}
-                whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.5)" }}
-                className="transition-colors duration-200"
-              >
-                <td className="p-4 text-gray-800 font-serif">{branch.name}</td>
-                <td className="p-4 text-gray-600">{branch.email}</td>
-                <td className="p-4 text-gray-600">{branch.address}</td>
-                <td className="p-4 text-gray-600">
-                  {branch.operatingLicenseExpiryDate
-                    ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                      })
-                    : "N/A"}
-                </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={branch.isActivated}
-                      onChange={() => handleToggleStatus(branch.id)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                    />
-                    <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600" : "text-red-600"}`}>
-                      {branch.isActivated ? t("active") : t("inactive")}
-                    </span>
-                  </div>
-                </td>
-                <td className="p-4 relative">
-                  <div className="relative">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleToggleMenu(branch.id)
-                      }}
-                    >
-                      <MoreVertical className="w-5 h-5 text-gray-600" />
-                    </motion.button>
+      <table className="table-auto w-full border-collapse">
+        <thead className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700">
+          <tr>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("fullName")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("email")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("address")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">
+              {t("operatingLicenseExpiryDate")}
+            </th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("status")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("action")}</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {filteredBranches.map((branch: Branch) => (
+            <motion.tr
+              key={branch.id}
+              whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.5)" }}
+              className="transition-colors duration-200"
+            >
+              <td className="p-4 text-gray-800 font-serif">{branch.name}</td>
+              <td className="p-4 text-gray-600">{branch.email}</td>
+              <td className="p-4 text-gray-600">{branch.address}</td>
+              <td className="p-4 text-gray-600">
+                {branch.operatingLicenseExpiryDate
+                  ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })
+                  : "N/A"}
+              </td>
+              <td className="p-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={branch.isActivated}
+                    onChange={() => handleToggleStatus(branch.id)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600" : "text-red-600"}`}>
+                    {branch.isActivated ? t("active") : t("inactive")}
+                  </span>
+                </div>
+              </td>
+              <td className="p-4 relative">
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleMenu(branch.id)
+                    }}
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                  </motion.button>
 
-                    <AnimatePresence>
-                      {menuOpen === branch.id && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg text-sm py-2 z-[100]"
-                          style={{ top: "100%" }}
+                  <AnimatePresence>
+                    {menuOpen === branch.id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg text-sm py-2 z-[100]"
+                        style={{ top: "100%" }}
+                      >
+                        <button
+                          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
+                          onClick={() => handleMenuAction("view", branch.id)}
                         >
-                          <button
-                            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
-                            onClick={() => handleMenuAction("view", branch.id)}
-                          >
-                            {t("viewBranchDetail")}
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
-                            onClick={() => handleMenuAction("edit", branch.id)}
-                          >
-                            {t("editBranch")}
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-150"
-                            onClick={() => handleDeleteBranch(branch.id)}
-                          >
-                            {t("deleteBranch")}
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+                          {t("viewBranchDetail")}
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
+                          onClick={() => handleMenuAction("edit", branch.id)}
+                        >
+                          {t("editBranch")}
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-150"
+                          onClick={() => handleDeleteBranch(branch.id)}
+                        >
+                          {t("deleteBranch")}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </td>
+            </motion.tr>
+          ))}
+        </tbody>
+      </table>
 
       {/* Pagination */}
-      <Pagination
-        pageIndex={pageIndex}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        hasNextPage={hasNextPage}
-        hasPreviousPage={hasPreviousPage}
-        onPageChange={setPageIndex}
-      />
+      {/* 
+<Pagination
+  pageIndex={pageIndex}
+  pageSize={pageSize}
+  totalCount={totalCount}
+  hasNextPage={hasNextPage}
+  hasPreviousPage={hasPreviousPage}
+  onPageChange={setPageIndex}
+/> 
+*/}
 
       {/* View Branch Modal */}
       {viewBranch && (

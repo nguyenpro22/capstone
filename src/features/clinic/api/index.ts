@@ -17,15 +17,13 @@ export const clinicsQueryApi = createApi({
     getClinicById: builder.query<ClinicDetailResponse, string>({
       query: (id) => `clinics/${id}`,
     }),
-    getBranches: builder.query<
-        IResCommon<IListResponse<Branch>>,
-        { pageIndex?: number; pageSize?: number; serchTerm?: string }
-      >({
-        query: ({ pageIndex = 1, pageSize = 10, serchTerm=""}) => `/clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${serchTerm}&sortOrder=desc`,
+    getBranches: builder.query<IResCommon<Branch>, string>({
+        // query: ({ pageIndex = 1, pageSize = 10, serchTerm=""}) => `/clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${serchTerm}&sortOrder=desc`,
+        query: (id) => `/clinics/${id}?id=${id}`,
         }),
-        getBranchById: builder.query<IResCommon<Branch>, string>({
-          query: (id) => `clinic/${id}?id=${id}`,
-        }),
+    getBranchById: builder.query<IResCommon<Branch>, string>({
+        query: (id) => `clinic/${id}?id=${id}`,
+    }),
   }),
 });
 

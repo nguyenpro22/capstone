@@ -2,7 +2,7 @@ import { Messages } from "../types";
 
 export const branchMessages: Messages["branch"] = {
   createNewBranch: "Create New Branch",
-  branchesList: "Clinics List",
+  branchesList: "Branches List",
   fullName: "Full Name",
   email: "Email",
   address: "Address",

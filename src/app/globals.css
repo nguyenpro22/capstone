@@ -3,10 +3,6 @@
 @tailwind utilities;
 
 
-body {
-  font-family: "Roboto Slab", serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;

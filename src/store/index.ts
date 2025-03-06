@@ -26,7 +26,6 @@ const store = configureStore({
     [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
 
-    [clinicsApi.reducerPath]: clinicsApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
@@ -46,8 +45,6 @@ const store = configureStore({
       packageApi.middleware,
       packageCreateApi.middleware, // Thêm middleware cho packageCreateApi
       partnershipRequestApi.middleware,
-
-      clinicsApi.middleware,
       serviceApi.middleware,
       categoryApi.middleware,
       clinicsQueryApi.middleware,

@@ -37,7 +37,7 @@ export const categoryCommandApi = createApi({
       query: ({ data }) => ({
         url: `/categories/${data.id}?id=${data.id}`,
         method: "PUT",
-        body: data, // Không cần gửi `id` trong body vì nó đã có trong URL
+        body: data, 
       }),
     }),
     deleteCategory: builder.mutation({

@@ -164,7 +164,7 @@ export default function ServicePage() {
           <div className="relative w-full md:w-64">
             <input
               type="text"
-              placeholder={`${t("searchByName")}...`}
+              placeholder={`${t("searchByServiceName")}...`}
               className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all"
               value={searchTerm}
               onChange={(e) => {
@@ -294,7 +294,15 @@ export default function ServicePage() {
                         <motion.ul
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="absolute right-0 mt-2 w-48 bg-white border shadow-lg rounded-md text-sm py-1 z-50"
+                          className="fixed right-auto mt-2 w-48 bg-white border shadow-lg rounded-md text-sm py-1 z-[1001]"
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: "auto",
+                            right: "0",
+                            maxHeight: "300px",
+                            overflowY: "auto",
+                          }}
                         >
                           <li
                             className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
@@ -401,7 +409,7 @@ export default function ServicePage() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <EditServiceForm
             initialData={editService}
-            categories={categoriesData?.value || []}
+            categories={categoriesData?.value.items || []}
             onClose={() => {
               setShowEditForm(false)
               setEditService(null)

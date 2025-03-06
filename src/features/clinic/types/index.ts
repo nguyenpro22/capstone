@@ -42,6 +42,7 @@ export interface Branch {
   operatingLicenseExpiryDate: string;
   profilePictureUrl: string;
   isActivated: boolean;
+  branches: Branch[];
 }
 
 export interface BranchDetailResponse {

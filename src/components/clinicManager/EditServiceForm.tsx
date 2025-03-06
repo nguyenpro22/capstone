@@ -7,7 +7,7 @@ import { useState } from "react"
 import { useUpdateServiceMutation } from "@/features/clinic-service/api"
 import type { Service } from "@/features/clinic-service/types"
 import Image from "next/image"
-import type { Category } from "@/features/category-service/types"
+import type { CategoryDetail } from "@/features/category-service/types"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -18,7 +18,7 @@ import { ImagePlus, Loader2, Save, XCircle } from "lucide-react"
 
 interface EditServiceFormProps {
   initialData: Partial<Service>
-  categories: { items: Category[] }
+  categories: CategoryDetail[] 
   onClose: () => void
   onSaveSuccess: () => void
 }
@@ -38,7 +38,7 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categori
   }
 
   const handleCategoryChange = (value: string) => {
-    const category = categories.items.find((cat) => cat.id === value)
+    const category = categories.find((cat) => cat.id === value)
     if (category) {
       setFormData((prev) => ({
         ...prev,
@@ -129,7 +129,7 @@ const EditServiceForm: React.FC<EditServiceFormProps> = ({ initialData, categori
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.items.map((category) => (
+              {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
