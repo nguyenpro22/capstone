@@ -35,8 +35,9 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
 
       if (response.isSuccess) {
         onSaveSuccess();
-        onClose();
         await refetch();
+        onClose();
+        
       } else {
         setErrorMessages(["An unexpected error occurred"]);
       }
@@ -154,7 +155,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
             {/* Duration */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Duration (days)</label>
-              <div className="relative">
+              <div className="relative">  
                 <input
                   type="number"
                   value={duration}

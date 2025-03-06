@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useUpdateCategoryMutation } from "@/features/category-service/api"
 import { toast } from "react-toastify"
-import { X, Save, FileText, Tag, FolderTree, Info } from 'lucide-react'
+import { X, Save, FileText, Tag, FolderTree, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -72,7 +72,8 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await updateCategory(formData).unwrap()
+      // Sửa lại cách gọi mutation để phù hợp với cấu trúc API
+      await updateCategory({ data: formData }).unwrap()
       toast.success("Cập nhật danh mục thành công!")
       onSaveSuccess()
     } catch (error: any) {
@@ -195,3 +196,4 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
     </div>
   )
 }
+

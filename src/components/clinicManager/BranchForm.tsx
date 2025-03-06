@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useCreateBranchMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
 import { toast } from "react-toastify"
 import { motion } from "framer-motion"
-import { X, AlertCircle } from "lucide-react"
+import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, Image, Loader2 } from "lucide-react"
 
 // Interfaces
 interface BranchFormProps {
@@ -37,7 +36,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     name: "",
     email: "",
     phoneNumber: "",
-    streetAddress: "", // Changed from address to streetAddress
+    streetAddress: "",
     operatingLicense: null as File | null,
     operatingLicenseExpiryDate: "",
     profilePictureUrl: null as File | null,
@@ -204,125 +203,197 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4"
     >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        className="relative w-full max-w-2xl bg-white rounded-lg shadow-lg my-8"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl my-8 overflow-hidden"
       >
-        <div className="p-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+          <h2 className="text-2xl font-bold">Create New Branch</h2>
+          <p className="text-purple-100 mt-1">Add a new location to your clinic network</p>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 focus:outline-none"
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+            aria-label="Close"
           >
             <X size={20} />
           </button>
+        </div>
 
+        <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
+          {/* Validation Errors */}
           {Object.entries(validationErrors).filter(([_, message]) => message).length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 p-4 rounded-lg bg-red-50">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 rounded-lg border border-red-200 overflow-hidden"
+            >
+              <div className="flex items-center gap-2 p-4 bg-red-50 border-b border-red-200">
                 <AlertCircle className="h-5 w-5 text-red-500" />
-                <p className="text-red-500 font-medium">Please fix the following errors:</p>
+                <p className="text-red-700 font-medium">Please fix the following errors:</p>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="p-4 bg-white space-y-2">
                 {Object.entries(validationErrors)
-                  .filter(([_, message]) => message) // Only show non-empty error messages
+                  .filter(([_, message]) => message)
                   .map(([field, message]) => (
-                    <div key={field} className="text-sm text-red-500 pl-4">
-                      • {message}
+                    <div key={field} className="flex items-start gap-2 text-sm text-red-600">
+                      <span className="mt-0.5">•</span>
+                      <span>{message}</span>
                     </div>
                   ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
-          <h2 className="text-xl font-bold mb-4">Create New Branch</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Branch Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter branch name"
-                required
-              />
-              {validationErrors.name && <p className="text-red-500 text-xs italic">{validationErrors.name}</p>}
-            </div>
+            {/* Basic Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-purple-500" />
+                <span>Basic Information</span>
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Branch Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.name
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      placeholder="Enter branch name"
+                      required
+                    />
+                  </div>
+                  {validationErrors.name && <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>}
+                </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter email"
-                required
-              />
-              {validationErrors.email && <p className="text-red-500 text-xs italic">{validationErrors.email}</p>}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.email
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      placeholder="Enter email"
+                      required
+                    />
+                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.email && <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>}
+                </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Phone Number</label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter phone number"
-                required
-              />
-              {validationErrors.phoneNumber && (
-                <p className="text-red-500 text-xs italic">{validationErrors.phoneNumber}</p>
-              )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.phoneNumber
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      placeholder="Enter phone number"
+                      required
+                    />
+                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.phoneNumber && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.phoneNumber}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Address Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700">Address Details</h3>
+            <div className="space-y-4 pt-2">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-purple-500" />
+                <span>Address Details</span>
+              </h3>
 
-              {/* Province Selection */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Province/City</label>
-                <select
-                  name="provinceId"
-                  value={addressDetail.provinceId}
-                  onChange={handleAddressChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                  required
-                >
-                  <option value="">Select Province/City</option>
-                  {provinces?.data.map((province) => (
-                    <option key={province.id} value={province.id}>
-                      {province.name}
-                    </option>
-                  ))}
-                </select>
-                {validationErrors.address && <p className="text-red-500 text-xs italic">{validationErrors.address}</p>}
-              </div>
-
-              {/* District Selection */}
-              {addressDetail.provinceId && (
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Province Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">District</label>
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Province/City <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="provinceId"
+                    value={addressDetail.provinceId}
+                    onChange={handleAddressChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.address
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
+                    required
+                  >
+                    <option value="">Select Province/City</option>
+                    {isLoadingProvinces ? (
+                      <option disabled>Loading provinces...</option>
+                    ) : (
+                      provinces?.data.map((province) => (
+                        <option key={province.id} value={province.id}>
+                          {province.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                {/* District Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    District <span className="text-red-500">*</span>
+                  </label>
                   <select
                     name="districtId"
                     value={addressDetail.districtId}
                     onChange={handleAddressChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.address
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
                     required
+                    disabled={!addressDetail.provinceId || isLoadingDistricts}
                   >
-                    <option value="">Select District</option>
+                    <option value="">
+                      {!addressDetail.provinceId
+                        ? "Select province first"
+                        : isLoadingDistricts
+                          ? "Loading districts..."
+                          : "Select District"}
+                    </option>
                     {districts?.data.map((district) => (
                       <option key={district.id} value={district.id}>
                         {district.name}
@@ -330,20 +401,31 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                     ))}
                   </select>
                 </div>
-              )}
 
-              {/* Ward Selection */}
-              {addressDetail.districtId && (
+                {/* Ward Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Ward</label>
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Ward <span className="text-red-500">*</span>
+                  </label>
                   <select
                     name="wardId"
                     value={addressDetail.wardId}
                     onChange={handleAddressChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.address
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
                     required
+                    disabled={!addressDetail.districtId || isLoadingWards}
                   >
-                    <option value="">Select Ward</option>
+                    <option value="">
+                      {!addressDetail.districtId
+                        ? "Select district first"
+                        : isLoadingWards
+                          ? "Loading wards..."
+                          : "Select Ward"}
+                    </option>
                     {wards?.data.map((ward) => (
                       <option key={ward.id} value={ward.id}>
                         {ward.name}
@@ -351,82 +433,146 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                     ))}
                   </select>
                 </div>
-              )}
 
-              {/* Street Address */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Street Address</label>
-                <input
-                  type="text"
-                  name="streetAddress"
-                  value={addressDetail.streetAddress}
-                  onChange={handleAddressChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                  placeholder="Enter street address"
-                  required
-                />
+                {/* Street Address */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Street Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="streetAddress"
+                    value={addressDetail.streetAddress}
+                    onChange={handleAddressChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.address
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                    placeholder="Enter street address"
+                    required
+                  />
+                </div>
               </div>
 
               {/* Preview Full Address */}
               {addressDetail.provinceId && (
-                <div className="p-4 rounded-lg bg-gray-50">
-                  <p className="text-sm text-gray-600">Full Address:</p>
-                  <p className="text-sm font-medium text-gray-800">{getFullAddress()}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100"
+                >
+                  <p className="text-sm text-gray-600 font-medium">Full Address:</p>
+                  <p className="text-sm text-gray-800 mt-1">{getFullAddress()}</p>
+                </motion.div>
+              )}
+              {validationErrors.address && <p className="text-red-500 text-xs mt-1">{validationErrors.address}</p>}
+            </div>
+
+            {/* Documents Section */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-purple-500" />
+                <span>Documents & Media</span>
+              </h3>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Operating License <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      name="operatingLicense"
+                      onChange={(e) => handleFileChange(e, "operatingLicense")}
+                      className={`w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 px-4 py-3 rounded-lg border ${
+                        validationErrors.operatingLicense
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      accept=".pdf, .jpg, .jpeg, .png"
+                      required
+                    />
+                  </div>
+                  {validationErrors.operatingLicense && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.operatingLicense}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Accepted formats: PDF, JPG, PNG</p>
                 </div>
-              )}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Operating License Expiry Date <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      name="operatingLicenseExpiryDate"
+                      value={formData.operatingLicenseExpiryDate}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.operatingLicenseExpiryDate
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      required
+                    />
+                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.operatingLicenseExpiryDate && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.operatingLicenseExpiryDate}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Profile Picture <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      name="profilePictureUrl"
+                      onChange={(e) => handleFileChange(e, "profilePictureUrl")}
+                      className={`w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 px-4 py-3 rounded-lg border ${
+                        validationErrors.profilePictureUrl
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      accept=".jpg, .jpeg, .png"
+                    />
+                    <Image className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.profilePictureUrl && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.profilePictureUrl}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Accepted formats: JPG, PNG (max 5MB)</p>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Operating License</label>
-              <input
-                type="file"
-                name="operatingLicense"
-                onChange={(e) => handleFileChange(e, "operatingLicense")}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                accept=".pdf, .jpg, .jpeg, .png"
-                required
-              />
-              {validationErrors.operatingLicense && (
-                <p className="text-red-500 text-xs italic">{validationErrors.operatingLicense}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Operating License Expiry Date</label>
-              <input
-                type="date"
-                name="operatingLicenseExpiryDate"
-                value={formData.operatingLicenseExpiryDate}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                required
-              />
-              {validationErrors.operatingLicenseExpiryDate && (
-                <p className="text-red-500 text-xs italic">{validationErrors.operatingLicenseExpiryDate}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Profile Picture</label>
-              <input
-                type="file"
-                name="profilePictureUrl"
-                onChange={(e) => handleFileChange(e, "profilePictureUrl")}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                accept=".jpg, .jpeg, .png"
-              />
-              {validationErrors.profilePictureUrl && (
-                <p className="text-red-500 text-xs italic">{validationErrors.profilePictureUrl}</p>
-              )}
-            </div>
-
-            <div className="flex justify-end">
+            {/* Form Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-200"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-3 text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                className="px-6 py-3 text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition-all duration-200 flex items-center gap-2"
               >
-                {isLoading ? "Creating..." : "Create Branch"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <span>Create Branch</span>
+                )}
               </button>
             </div>
           </form>

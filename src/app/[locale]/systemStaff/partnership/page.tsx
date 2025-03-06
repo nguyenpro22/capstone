@@ -4,25 +4,20 @@ import {
   useGetPartnershipRequestsQuery,
   useUpdatePartnershipRequestMutation,
 } from "@/features/partnership/api";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { RequestItem } from "@/features/partnership/types";
+import { Filter, Search, CheckCircle, XCircle, Ban, MoreHorizontal, Calendar, RefreshCw, X, AlertCircle, Loader2 } from 'lucide-react';
 
 const PartnershipRequest: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 5;
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
-    null
-  );
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionType, setActionType] = useState<"reject" | "ban" | null>(null);
 
   const { data, isLoading, isError, refetch } = useGetPartnershipRequestsQuery({
     pageIndex,
@@ -33,51 +28,36 @@ const PartnershipRequest: React.FC = () => {
   const [updatePartnershipRequest, { isLoading: isUpdating }] =
     useUpdatePartnershipRequestMutation();
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading data</p>;
-
-  const requests: RequestItem[] = data?.value?.items?.filter(
-    (request: RequestItem) =>
-      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-  const totalCount = data?.value.totalCount || 0;
-  const hasNextPage = data?.value.hasNextPage || false;
-  const hasPreviousPage = data?.value.hasPreviousPage || false;
-
   const handleAction = async (
     id: string,
     action: "accept" | "reject" | "ban"
   ) => {
     try {
-      let actionNumber: number;
       if (action === "accept") {
-        actionNumber = 0;
+        await updatePartnershipRequest({ requestId: id, action: 0 }).unwrap();
+        toast.success(`Partnership request accepted successfully`);
+        refetch();
       } else {
         setSelectedRequestId(id);
-        return;
+        setActionType(action);
       }
-
-      await updatePartnershipRequest({ requestId: id, action: actionNumber }).unwrap();
-
-      toast.success(`Accepted request ID: ${id}`);
-      refetch();
     } catch (error) {
       console.log(error);
       toast.error("Failed to update the request");
     }
   };
 
-  const handleConfirmReject = async (action: "reject" | "ban") => {
-    if (!selectedRequestId) return;
+  const handleConfirmReject = async () => {
+    if (!selectedRequestId || !actionType) return;
 
-    const actionNumber = action === "reject" ? 1 : 2;
+    const actionNumber = actionType === "reject" ? 1 : 2;
     const reason =
       rejectReason.trim() ||
-      (action === "reject"
+      (actionType === "reject"
         ? "Your request has been rejected"
         : "Your request has been banned");
-    setIsSubmitting(true); // Bắt đầu loading
+    
+    setIsSubmitting(true);
 
     try {
       await updatePartnershipRequest({
@@ -87,9 +67,7 @@ const PartnershipRequest: React.FC = () => {
       });
 
       toast.success(
-        `${
-          action === "reject" ? "Rejected" : "Banned"
-        } request ID: ${selectedRequestId}`
+        `Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`
       );
       refetch();
     } catch (error) {
@@ -99,131 +77,248 @@ const PartnershipRequest: React.FC = () => {
 
     setSelectedRequestId(null);
     setRejectReason("");
-
-    setIsSubmitting(false); // Kết thúc loading
+    setActionType(null);
+    setIsSubmitting(false);
   };
 
-  return (
-    <div className="container mx-auto p-6 bg-white shadow-md rounded-md">
-      <ToastContainer />
-      <h1 className="text-2xl font-semibold mb-6">Partnership Requests</h1>
+  const requests: RequestItem[] = data?.value?.items?.filter(
+    (request: RequestItem) =>
+      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.email.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+  
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = data?.value?.hasNextPage || false;
+  const hasPreviousPage = data?.value?.hasPreviousPage || false;
 
-      {/* Filter & Search */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex space-x-4">
-          <button className="flex items-center px-4 py-2 border rounded-md text-gray-600">
-            <FilterListIcon className="mr-2" />
-            Filter By
-          </button>
-          <select className="border px-4 py-2 rounded-md text-gray-600">
-            <option>14 Feb 2019</option>
-          </select>
-          <button className="text-red-500 px-4 py-2 border rounded-md hover:bg-red-100">
-            Reset Filter
-          </button>
+  return (
+    <div className="container mx-auto p-6 bg-white shadow-lg rounded-xl border border-gray-100">
+      <ToastContainer />
+      
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
+          Partnership Requests
+          <span className="ml-2 text-sm font-medium px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            {totalCount} Total
+          </span>
+        </h1>
+        
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            className="pl-10 pr-4 py-2.5 w-full md:w-64 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <input
-          type="text"
-          placeholder="Search By Name/Email"
-          className="border px-4 py-2 rounded-md w-1/3"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
       </div>
 
+      {/* Filter Bar */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-wrap gap-3">
+          <button className="flex items-center px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+            <Filter className="mr-2 h-4 w-4 text-gray-500" />
+            <span>Filter By</span>
+          </button>
+          
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <select className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-700 appearance-none focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200">
+              <option>14 Feb 2019</option>
+              <option>15 Feb 2019</option>
+              <option>16 Feb 2019</option>
+            </select>
+          </div>
+          
+          <button className="flex items-center px-4 py-2.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors duration-200">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            <span>Reset Filter</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-20">
+          <div className="flex flex-col items-center">
+            <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-4" />
+            <p className="text-gray-500">Loading partnership requests...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {isError && (
+        <div className="flex justify-center items-center py-20">
+          <div className="flex flex-col items-center text-red-500">
+            <AlertCircle className="h-8 w-8 mb-4" />
+            <p>Error loading data. Please try again later.</p>
+            <button 
+              onClick={() => refetch()}
+              className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
-      <table className="w-full border-collapse table-auto text-left">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-3">ID</th>
-            <th className="p-3">Clinic Name</th>
-            <th className="p-3">Email</th>
-            <th className="p-3">Address</th>
-            <th className="p-3">Total Apply</th>
-            <th className="p-3">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((request: any) => (
-            <tr key={request.id} className="border-t">
-              <td className="p-3">{request.id}</td>
-              <td className="p-3">{request.name}</td>
-              <td className="p-3">{request.email}</td>
-              <td className="p-3">{request.address}</td>
-              <td className="p-3">{request.totalApply}</td>
-              <td className="p-3 flex space-x-2">
-                <button
-                  className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600"
-                  onClick={() => handleAction(request.id, "accept")}
-                  disabled={isUpdating}
-                >
-                  <CheckIcon className="mr-1" />
-                  Accept
-                </button>
-                <button
-                  className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
-                  onClick={() => handleAction(request.id, "reject")}
-                  disabled={isUpdating}
-                >
-                  <CloseIcon className="mr-1" />
-                  Reject
-                </button>
-                <button
-                  className="flex items-center px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-                  onClick={() => handleAction(request.id, "ban")}
-                  disabled={isUpdating}
-                >
-                  <MoreVertIcon className="mr-1" />
-                  Ban
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {!isLoading && !isError && (
+        <>
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full border-collapse table-auto text-left">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600 text-sm">
+                  <th className="px-6 py-4 font-medium">ID</th>
+                  <th className="px-6 py-4 font-medium">Clinic Name</th>
+                  <th className="px-6 py-4 font-medium">Email</th>
+                  <th className="px-6 py-4 font-medium">Address</th>
+                  <th className="px-6 py-4 font-medium">Total Apply</th>
+                  <th className="px-6 py-4 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {requests.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      No partnership requests found
+                    </td>
+                  </tr>
+                ) : (
+                  requests.map((request: RequestItem) => (
+                    <tr key={request.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{request.id}</td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900">{request.name}</div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{request.email}</td>
+                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">{request.address}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {request.totalApply}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors duration-200"
+                            onClick={() => handleAction(request.id, "accept")}
+                            disabled={isUpdating}
+                          >
+                            <CheckCircle className="mr-1.5 h-4 w-4" />
+                            Accept
+                          </button>
+                          <button
+                            className="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                            onClick={() => handleAction(request.id, "reject")}
+                            disabled={isUpdating}
+                          >
+                            <XCircle className="mr-1.5 h-4 w-4" />
+                            Reject
+                          </button>
+                          <button
+                            className="inline-flex items-center px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors duration-200"
+                            onClick={() => handleAction(request.id, "ban")}
+                            disabled={isUpdating}
+                          >
+                            <Ban className="mr-1.5 h-4 w-4" />
+                            Ban
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-      {/* 🔥 PHÂN TRANG */}
-      <Pagination
-        pageIndex={pageIndex}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        hasNextPage={hasNextPage}
-        hasPreviousPage={hasPreviousPage}
-        onPageChange={setPageIndex}
-      />
-
-      {/* Modal nhập lý do reject/ban */}
-      {selectedRequestId && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-md shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Enter Reject Reason</h2>
-            <textarea
-              className="w-full border p-2 rounded-md"
-              rows={3}
-              placeholder="Enter reason..."
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              disabled={isSubmitting} // Không cho nhập khi đang gửi request
+          {/* Pagination */}
+          <div className="mt-6">
+            <Pagination
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
+              onPageChange={setPageIndex}
             />
-            <div className="flex justify-end mt-4 space-x-2">
-              <button
-                className="px-4 py-2 bg-gray-500 text-white rounded-md"
-                onClick={() => setSelectedRequestId(null)}
-                disabled={isSubmitting} // Không cho hủy khi đang gửi request
-              >
-                Cancel
-              </button>
-              <button
-                className={`px-4 py-2 rounded-md ${
-                  isSubmitting
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600"
-                } text-white`}
-                onClick={() => handleConfirmReject("reject")}
-                disabled={isSubmitting} // Vô hiệu hóa khi đang gửi request
-              >
-                {isSubmitting ? "Đang gửi yêu cầu..." : "Confirm"}
-              </button>
+          </div>
+        </>
+      )}
+
+      {/* Modal for reject/ban reason */}
+      {selectedRequestId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">
+                  {actionType === "reject" ? "Reject Request" : "Ban Request"}
+                </h2>
+                <button 
+                  onClick={() => {
+                    setSelectedRequestId(null);
+                    setActionType(null);
+                  }}
+                  className="p-1 rounded-full hover:bg-white/20 transition-colors duration-200"
+                  disabled={isSubmitting}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">
+                Please provide a reason for {actionType === "reject" ? "rejecting" : "banning"} this partnership request:
+              </p>
+              
+              <textarea
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
+                rows={4}
+                placeholder={`Enter reason for ${actionType}...`}
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                disabled={isSubmitting}
+              />
+              
+              <div className="flex justify-end mt-6 gap-3">
+                <button
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                  onClick={() => {
+                    setSelectedRequestId(null);
+                    setActionType(null);
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`px-4 py-2 rounded-lg text-white flex items-center ${
+                    isSubmitting
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } transition-colors duration-200`}
+                  onClick={handleConfirmReject}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {actionType === "reject" ? "Reject" : "Ban"} Request
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

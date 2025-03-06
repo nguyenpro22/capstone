@@ -141,19 +141,22 @@ const BranchesList: React.FC = () => {
         <div className="flex items-center gap-4">
           <input
             type="text"
-            placeholder={t("searchByBranchName")}
+            placeholder={t("searchByName")}
             className="w-full max-w-md px-5 py-3 bg-white/80 border border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all duration-200 text-gray-700 placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowCreateForm(true)}
-            className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <span className="font-medium">{t("createNewBranch")}</span>
-          </motion.button>
+         <div className="w-full flex justify-start">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCreateForm(true)}
+              className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 whitespace-nowrap"
+            >
+              <span className="font-medium">{t("createNewBranch")}</span>
+            </motion.button>
+          </div>
+
         </div>
       </div>
 

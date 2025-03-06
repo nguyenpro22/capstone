@@ -1,5 +1,5 @@
-import { reAuthQuery } from '@/lib/api';
-import { CategoryDetailResponse } from './../types/index';
+import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
+import { CategoryDetail, CategoryDetailResponse } from './../types/index';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 
@@ -8,10 +8,14 @@ export const categoryQueryApi = createApi({
   reducerPath: 'categoryQueryApi',
   baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
-    getCategories: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
+    getCategories: builder.query<
+      IResCommon<IListResponse<CategoryDetail>>,
+      { pageIndex?: number; pageSize?: number; searchTerm?: string }
+    >({
+      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "" }) =>
+        `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
     }),
-    getCategoryById: builder.query<CategoryDetailResponse, string>({
+    getCategoryById: builder.query<IResCommon<CategoryDetail>, string>({
       query: (id) => `categories/${id}?id=${id}`,
     }),
   }),

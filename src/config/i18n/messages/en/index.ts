@@ -1,3 +1,4 @@
+import { branchCommandApi } from "@/features/branch/api";
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
@@ -6,6 +7,7 @@ import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
 import { serviceMessages } from "./service";
 import { voucherMessages } from "./voucher";
+import { branchMessages } from "./branch";
 
 
 const en = {
@@ -16,7 +18,8 @@ const en = {
   dashboard: dashboardMessages,
   api: apiMessages,
   clinic: clinicMessages,
-  service: serviceMessages
+  service: serviceMessages,
+  branch: branchMessages,
 };
 
 export default en;
