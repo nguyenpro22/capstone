@@ -50,12 +50,19 @@ export const decodeJwt = (token: string | null) => {
 
 export const GetDataByToken = (token: string): unknown | null => {
   const decoded = decodeJwt(token);
-  const id = decoded?.UserId;
-  // const role = decoded?.Role;
-  // const vendorId = decoded?.VendorId;
-  return { id };
+  const role = decoded?.Role;
+  const roleId = decoded?.RoleId;
+  const userId = decoded?.UserId;
+  const ClinicId = decoded?.ClinicId;
+  return { role, roleId, userId, ClinicId };
 };
 
+export type TokenData = {
+  role: string;
+  roleId: string;
+  userId: string;
+  ClinicId?: string;
+};
 export const rememberMe = (token: string, refreshToken: string): void => {
   setCookie(CookieStorageKey.REMEMBER_ME, "true", 30);
   setCookie(CookieStorageKey.ACCESS_TOKEN, token, 30);

@@ -1,7 +1,7 @@
-const privateAdminPath = "/admin";
+const privateClinicAdminPath = "/clinicAdmin";
 
 export const adminRoutes = {
-  DASHBOARD: `${privateAdminPath}/dashboard`,
+  DASHBOARD: `${privateClinicAdminPath}/dashboard`,
   // VENDORS: `${privateAdminPath}/vendors`,
   // ORDERS: `${privateAdminPath}/vendor-orders`,
   // APPROVAL: `${privateAdminPath}/vendor-approval`,

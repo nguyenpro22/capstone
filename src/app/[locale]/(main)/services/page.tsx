@@ -644,7 +644,7 @@ export default function ServicesPage(): JSX.Element {
                               )}
                           </div>
                           <div className="p-6">
-                            <h3 className="text-lg font-serif font-semibold mb-2">
+                            <h3 className="text-lg font-semibold mb-2">
                               {service.name}
                             </h3>
                             <div className="flex items-center gap-2 mb-2">
