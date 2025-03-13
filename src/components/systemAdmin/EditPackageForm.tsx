@@ -1,94 +1,160 @@
-import { useState } from "react";
-import { useUpdatePackageMutation } from "@/features/package/api";
-import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "framer-motion";
-import { Layers, X, AlertCircle } from "lucide-react";
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { useUpdatePackageMutation } from "@/features/package/api"
+import { toast } from "react-toastify"
+import { motion, AnimatePresence } from "framer-motion"
+import { Layers, X, AlertCircle, Package, FileText, DollarSign, Clock, Building2, Video, Users } from "lucide-react"
 
 interface EditPackageFormProps {
-  initialData: any;
-  onClose: () => void;
-  onSaveSuccess: () => void;
+  initialData: any
+  onClose: () => void
+  onSaveSuccess: () => void
 }
 
 interface ValidationErrors {
-  id?: string;
-  name?: string;
-  description?: string;
-  price?: string;
-  duration?: string;
+  id?: string
+  name?: string
+  description?: string
+  price?: string
+  duration?: string
+  limitBranch?: string
+  limitLiveStream?: string
+  enhancedViewer?: string
 }
 
 export default function EditPackageForm({ initialData, onClose, onSaveSuccess }: EditPackageFormProps) {
-  const [formData, setFormData] = useState(initialData);
-  const [updatePackage, { isLoading }] = useUpdatePackageMutation();
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [formData, setFormData] = useState(initialData)
+  const [updatePackage, { isLoading }] = useUpdatePackageMutation()
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev: any) => ({
       ...prev,
       [name]: value,
-    }));
+    }))
     setValidationErrors((prev) => ({
       ...prev,
       [name]: "",
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      await updatePackage(formData).unwrap();
-      toast.success("Package updated successfully!");
-      onSaveSuccess();
+      await updatePackage(formData).unwrap()
+      toast.success("Package updated successfully!")
+      onSaveSuccess()
     } catch (error: any) {
-      console.log("Error response:", error);
+      console.log("Error response:", error)
       if (error?.status === 400 || error?.status === 422) {
-        const validationErrors = error?.data?.errors || [];
+        const validationErrors = error?.data?.errors || []
         if (validationErrors.length > 0) {
-          const newErrors: Record<string, string> = {};
+          const newErrors: Record<string, string> = {}
           validationErrors.forEach((err: { code: string; message: string }) => {
-            newErrors[err.code.toLowerCase()] = err.message;
-          });
-          setValidationErrors(newErrors);
+            newErrors[err.code.toLowerCase()] = err.message
+          })
+          setValidationErrors(newErrors)
         }
-        toast.error(error?.data?.detail || "Invalid data provided!");
+        toast.error(error?.data?.detail || "Invalid data provided!")
       } else {
-        toast.error("An error occurred, please try again!");
+        toast.error("An error occurred, please try again!")
       }
     }
-  };
+  }
+
+  // Input field with icon component
+  const InputField = ({
+    label,
+    name,
+    value,
+    type = "text",
+    placeholder,
+    icon: Icon,
+    readOnly = false,
+    required = true,
+    error,
+  }: {
+    label: string
+    name: string
+    value: any
+    type?: string
+    placeholder?: string
+    icon: React.ElementType
+    readOnly?: boolean
+    required?: boolean
+    error?: string
+  }) => (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <Icon className="w-5 h-5 text-gray-400" />
+        </div>
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={handleChange}
+          className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+            error ? "border-red-300 bg-red-50" : "border-gray-200"
+          } ${
+            readOnly ? "bg-gray-50" : ""
+          } focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200`}
+          placeholder={placeholder}
+          readOnly={readOnly}
+          required={required}
+        />
+      </div>
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+    </div>
+  )
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/30 backdrop-blur-sm"
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-md bg-white/95 backdrop-blur rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        transition={{
+          type: "spring",
+          damping: 25,
+          stiffness: 300,
+        }}
+        className="relative w-full max-w-2xl bg-white/95 backdrop-blur rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-t from-pink-100/20 to-transparent rounded-full -translate-x-16 translate-y-16" />
+        {/* Enhanced Decorative Elements */}
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-t from-pink-100/20 to-transparent rounded-full -translate-x-16 translate-y-16" />
+        <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-pink-100/10 to-transparent rounded-full translate-x-8 translate-y-8" />
+        <div className="absolute top-1/2 left-0 w-16 h-16 bg-gradient-to-r from-purple-100/10 to-transparent rounded-full -translate-x-8" />
 
-        <div className="relative p-4 sm:p-8">
+        <div className="relative p-6 sm:p-8">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
-              <Layers className="w-6 h-6 text-purple-500" />
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Layers className="w-6 h-6 text-purple-600" />
+              </div>
               <h2 className="text-2xl font-serif tracking-wide text-gray-800">Edit Package</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 group"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500 group-hover:rotate-90 transition-transform duration-300" />
             </button>
           </div>
 
@@ -101,17 +167,15 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                 exit={{ height: 0, opacity: 0 }}
                 className="mb-6 max-h-32 overflow-y-auto"
               >
-                {Object.entries(validationErrors).map(([field, message], index) => (
-                  message && (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      <p className="text-sm">{message}</p>
-                    </div>
-                  )
-                ))}
+                {Object.entries(validationErrors).map(
+                  ([field, message], index) =>
+                    message && (
+                      <div key={index} className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <p className="text-sm">{message}</p>
+                      </div>
+                    ),
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -119,90 +183,114 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* ID */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Package ID</label>
-              <input
-                type="text"
-                name="id"
-                value={formData.documentId}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                readOnly
-              />
-            </div>
+            <InputField label="Package ID" name="id" value={formData.id} icon={Package} readOnly={true} />
 
             {/* Name */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Package Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter package name"
-                required
-              />
-              {validationErrors.name && <p className="text-red-500 text-sm">{validationErrors.name}</p>}
-            </div>
+            <InputField
+              label="Package Name"
+              name="name"
+              value={formData.name}
+              icon={Package}
+              placeholder="Enter package name"
+              error={validationErrors.name}
+            />
 
             {/* Description */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter package description"
-                required
-              />
+              <div className="relative">
+                <div className="absolute top-3 left-3 pointer-events-none">
+                  <FileText className="w-5 h-5 text-gray-400" />
+                </div>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={3}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                    validationErrors.description ? "border-red-300 bg-red-50" : "border-gray-200"
+                  } focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200`}
+                  placeholder="Enter package description"
+                  required
+                />
+              </div>
               {validationErrors.description && <p className="text-red-500 text-sm">{validationErrors.description}</p>}
             </div>
 
-            {/* Price */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Price (VND)</label>
-              <input
-                type="number"
+            {/* Two-column layout for smaller fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Price */}
+              <InputField
+                label="Price (VND)"
                 name="price"
                 value={formData.price}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter price"
-                required
-              />
-              {validationErrors.price && <p className="text-red-500 text-sm">{validationErrors.price}</p>}
-            </div>
-
-            {/* Duration */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Duration (Months)</label>
-              <input
                 type="number"
+                icon={DollarSign}
+                placeholder="Enter price"
+                error={validationErrors.price}
+              />
+
+              {/* Duration */}
+              <InputField
+                label="Duration (Months)"
                 name="duration"
                 value={formData.duration}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                type="number"
+                icon={Clock}
                 placeholder="Enter duration"
-                required
+                error={validationErrors.duration}
               />
-              {validationErrors.duration && <p className="text-red-500 text-sm">{validationErrors.duration}</p>}
+
+              {/* Branch Limit */}
+              <InputField
+                label="Branch Limit"
+                name="limitBranch"
+                value={formData.limitBranch}
+                type="number"
+                icon={Building2}
+                placeholder="Enter branch limit"
+                error={validationErrors.limitBranch}
+              />
+
+              {/* Live Stream Limit */}
+              <InputField
+                label="Live Stream Limit"
+                name="limitLiveStream"
+                value={formData.limitLiveStream}
+                type="number"
+                icon={Video}
+                placeholder="Enter live stream limit"
+                error={validationErrors.limitLiveStream}
+              />
             </div>
 
+            {/* Enhanced Viewer - Full width */}
+            <InputField
+              label="Enhanced Viewer Capacity"
+              name="enhancedViewer"
+              value={formData.enhancedViewer}
+              type="number"
+              icon={Users}
+              placeholder="Enter enhanced viewer capacity"
+              error={validationErrors.enhancedViewer}
+            />
+
             {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <button
+            <div className="flex justify-end gap-3 pt-6 mt-2 border-t">
+              <motion.button
                 type="button"
                 onClick={onClose}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
               >
                 Cancel
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="submit"
                 disabled={isLoading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
               >
                 {isLoading ? (
@@ -213,11 +301,12 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                 ) : (
                   "Save Changes"
                 )}
-              </button>
+              </motion.button>
             </div>
           </form>
         </div>
       </motion.div>
     </motion.div>
-  );
+  )
 }
+

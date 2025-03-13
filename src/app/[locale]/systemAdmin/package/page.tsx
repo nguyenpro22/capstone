@@ -1,4 +1,5 @@
 "use client";
+import { Clock, CreditCard, Building2, Video, Eye } from "lucide-react"
 
 import { useState } from "react";
 import {
@@ -60,12 +61,12 @@ console.log("API Response:", data);
   const handleToggleStatus = async (packageId: string) => {
     try {
       // Find the package in the current list
-      const packageToUpdate = packages.find((pkg : Package) => pkg.documentId === packageId)
+      const packageToUpdate = packages.find((pkg : Package) => pkg.id === packageId)
       if (!packageToUpdate) return
 
       // Optimistically update the UI
       const updatedPackages = packages.map((pkg: Package) =>
-        pkg.documentId === packageId ? { ...pkg, isActivated: !pkg.isActivated } : pkg,
+        pkg.id === packageId ? { ...pkg, isActivated: !pkg.isActivated } : pkg,
       )
 
       // Update the local state (this requires adding a new state variable)
@@ -182,7 +183,7 @@ console.log("API Response:", data);
             <tbody>
               
               {packages.map((pkg: any, index: number) => (
-                <tr key={pkg.documentId} className="border-t">
+                <tr key={pkg.id} className="border-t">
                   <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
                   <td className="p-3 border">{pkg.name}</td>
                   <td className="p-3 border">{pkg.description}</td>
@@ -193,7 +194,7 @@ console.log("API Response:", data);
                       type="checkbox"
                       checked={pkg.isActivated}
                       className="toggle-checkbox"
-                      onChange={() => handleToggleStatus(pkg.documentId)}
+                      onChange={() => handleToggleStatus(pkg.id)}
                     />
                   
                     <span className={pkg.isActivated ? "text-green-600" : "text-red-600"}>
@@ -205,26 +206,26 @@ console.log("API Response:", data);
                       className="p-2 rounded-full hover:bg-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleMenu(pkg.documentId);
+                        handleToggleMenu(pkg.id);
                       }}
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
 
-                    {menuOpen === pkg.documentId && (
+                    {menuOpen === pkg.id && (
                       <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
                         <li
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleMenuAction("view", pkg.documentId)}
+                          onClick={() => handleMenuAction("view", pkg.id)}
                         >
                           Xem thông tin gói
                         </li>
                         <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" 
-                        onClick={() => handleMenuAction("edit", pkg.documentId)}>
+                        onClick={() => handleMenuAction("edit", pkg.id)}>
                           Chỉnh sửa thông tin gói
                         </li>
                         <li className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-                        onClick={()=> handleDeletePackage(pkg.documentId)}>
+                        onClick={()=> handleDeletePackage(pkg.id)}>
                           Xóa gói</li>
                       </ul>
                     )}
@@ -277,23 +278,103 @@ console.log("API Response:", data);
   {/* View Package Modal */}
   {viewPackage && (
         <Modal onClose={() => setViewPackage(null)}>
-          <div className="p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="text-2xl font-serif font-semibold mb-4 text-gray-800">Package Details</h2>
-            <div className="space-y-4 text-gray-700">
-              <p><strong>Name:</strong> {viewPackage.name}</p>
-              <p><strong>Description:</strong> {viewPackage.description}</p>
-              <p><strong>Price:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewPackage.price || 0))} đ</p>
-              <p><strong>Duration:</strong> {viewPackage.duration} months</p>
-              <p>
-                <strong>Status:</strong>{" "}
-                <span className={viewPackage.isActivated ? "text-emerald-600" : "text-gray-500"}>
-                  {viewPackage.isActivated ? "Active" : "Inactive"}
-                </span>
-              </p>
+        <div className="bg-white rounded-lg">
+          <div className="mb-6">
+            <h2 className="text-3xl font-serif font-semibold text-gray-800 mb-2">{viewPackage.name}</h2>
+            <div className="flex items-center">
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  viewPackage.isActivated ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                <span
+                  className={`mr-1.5 h-2 w-2 rounded-full ${viewPackage.isActivated ? "bg-emerald-400" : "bg-gray-400"}`}
+                ></span>
+                {viewPackage.isActivated ? "Active" : "Inactive"}
+              </span>
             </div>
-            
           </div>
-        </Modal>
+  
+          <p className="text-gray-600 mb-8 text-lg">{viewPackage.description}</p>
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-purple-100 p-3 rounded-lg">
+                  <CreditCard className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                    {new Intl.NumberFormat("vi-VN").format(Number(viewPackage.price || 0))} đ
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Duration</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                    {viewPackage.duration} {viewPackage.duration === 1 ? "month" : "months"}
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-pink-100 p-3 rounded-lg">
+                  <Building2 className="h-6 w-6 text-pink-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Branch Limit</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                    {viewPackage.limitBranch} {viewPackage.limitBranch === 1 ? "branch" : "branches"}
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-amber-100 p-3 rounded-lg">
+                  <Video className="h-6 w-6 text-amber-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Live Stream Limit</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.limitLiveStream} streams</p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md md:col-span-2">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-emerald-100 p-3 rounded-lg">
+                  <Eye className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Enhanced Viewer Capacity</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.enhancedViewer} viewers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={() => setViewPackage(null)}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
       )}
 
     </div>

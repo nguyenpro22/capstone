@@ -3,20 +3,34 @@
 import { useState } from "react"
 import {
   useGetCategoriesQuery,
+  useGetAllCategoriesQuery,
   useLazyGetCategoryByIdQuery,
   useDeleteCategoryMutation,
+  useMoveCategoryMutation,
 } from "@/features/category-service/api"
 import CategoryForm from "@/components/systemAdmin/CategoryForm"
 import EditCategoryForm from "@/components/systemAdmin/EditCategoryForm"
 import SubCategoryForm from "@/components/systemAdmin/SubCategoryForm"
 import EditSubCategoryForm from "@/components/systemAdmin/EditSubCategoryForm"
-import Pagination from "@/components/common/Pagination/Pagination";
+import Pagination from "@/components/common/Pagination/Pagination"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { ChevronDown, ChevronRight, Plus, Edit, Trash2, Search, FolderPlus, Folder, FolderOpen } from "lucide-react"
-import { CategoryDetail, SubCategory } from "@/features/category-service/types"
+import {
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  FolderPlus,
+  Folder,
+  FolderOpen,
+  ArrowRightLeft,
+} from "lucide-react"
+import type { CategoryDetail, SubCategory } from "@/features/category-service/types"
+import MoveSubCategoryModal from "@/components/systemAdmin/MoveSubCategoryModal"
 
 export default function Category() {
   const [editCategory, setEditCategory] = useState<any | null>(null)
@@ -29,6 +43,8 @@ export default function Category() {
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
   const [categoryDetails, setCategoryDetails] = useState<Record<string, CategoryDetail>>({})
+  const [showMoveSubCategoryModal, setShowMoveSubCategoryModal] = useState(false)
+  const [subCategoryToMove, setSubCategoryToMove] = useState<SubCategory | null>(null)
 
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 5
@@ -39,11 +55,17 @@ export default function Category() {
     searchTerm,
   })
 
+  // New query to get all categories for the modal
+  const { data: allCategoriesData, isLoading: isLoadingAllCategories } = useGetAllCategoriesQuery()
+
   const [fetchCategoryById] = useLazyGetCategoryByIdQuery()
   const [deleteCategory] = useDeleteCategoryMutation()
   const [deleteSubCategory] = useDeleteCategoryMutation()
+  const [moveCategory, { isLoading: isMoving }] = useMoveCategoryMutation()
 
   const categories: CategoryDetail[] = data?.value?.items || []
+  // All categories for the modal
+  const allCategories: CategoryDetail[] = allCategoriesData?.value?.items || []
 
   const totalCount = data?.value?.totalCount || 0
   const hasNextPage = data?.value?.hasNextPage ?? false
@@ -172,6 +194,62 @@ export default function Category() {
       }))
     } catch (error) {
       console.error("Failed to refresh category details:", error)
+    }
+  }
+
+  const handleMoveSubCategory = (subCategory: SubCategory) => {
+    console.log("Selected subcategory for moving:", subCategory)
+    if (!subCategory || !subCategory.id) {
+      toast.error("Không thể chuyển danh mục con này!")
+      return
+    }
+    setSubCategoryToMove(subCategory)
+    setShowMoveSubCategoryModal(true)
+  }
+
+  const handleMoveSubCategorySubmit = async (destinationCategoryId: string) => {
+    if (!subCategoryToMove) return
+
+    console.log("Moving subcategory:", subCategoryToMove)
+    console.log("Subcategory ID:", subCategoryToMove.id)
+    console.log("Destination category ID:", destinationCategoryId)
+
+    if (!subCategoryToMove.id) {
+      toast.error("ID danh mục con không hợp lệ!")
+      return
+    }
+
+    try {
+      await moveCategory({
+        subCategoryId: subCategoryToMove.id,
+        categoryId: destinationCategoryId,
+      }).unwrap()
+
+      toast.success("Chuyển danh mục thành công!")
+
+      // Refresh the source category
+      const sourceParentId = subCategoryToMove.parentId
+      const sourceResult = await fetchCategoryById(sourceParentId).unwrap()
+      setCategoryDetails((prev) => ({
+        ...prev,
+        [sourceParentId]: sourceResult.value,
+      }))
+
+      // Refresh the destination category if it's already expanded
+      if (expandedCategories[destinationCategoryId]) {
+        const destResult = await fetchCategoryById(destinationCategoryId).unwrap()
+        setCategoryDetails((prev) => ({
+          ...prev,
+          [destinationCategoryId]: destResult.value,
+        }))
+      }
+
+      setShowMoveSubCategoryModal(false)
+      setSubCategoryToMove(null)
+      refetch()
+    } catch (error) {
+      console.error("Failed to move subcategory:", error)
+      toast.error("Không thể chuyển danh mục!")
     }
   }
 
@@ -327,38 +405,44 @@ export default function Category() {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {categoryDetails[category.id]?.subCategories?.map(
-                                        (subCategory: SubCategory) => (
-                                          <tr key={subCategory.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="p-2 pl-8 border-b border-gray-200">
-                                              <div className="flex items-center">
-                                                <div className="w-1 h-1 bg-purple-400 rounded-full mr-2"></div>
-                                                <span>{subCategory.name}</span>
-                                              </div>
-                                            </td>
-                                            <td className="p-2 border-b border-gray-200">{subCategory.description}</td>
-                                            <td className="p-2 border-b border-gray-200">
-                                              <div className="flex items-center space-x-1">
-                                                <button
-                                                  onClick={() => handleEditSubCategory(subCategory)}
-                                                  className="p-1 rounded-full hover:bg-blue-50 text-blue-500 transition-colors"
-                                                  title="Chỉnh sửa danh mục con"
-                                                >
-                                                  <Edit className="w-4 h-4" />
-                                                </button>
+                                      {categoryDetails[category.id]?.subCategories?.map((subCategory: SubCategory) => (
+                                        <tr key={subCategory.id} className="hover:bg-gray-50 transition-colors">
+                                          <td className="p-2 pl-8 border-b border-gray-200">
+                                            <div className="flex items-center">
+                                              <div className="w-1 h-1 bg-purple-400 rounded-full mr-2"></div>
+                                              <span>{subCategory.name}</span>
+                                            </div>
+                                          </td>
+                                          <td className="p-2 border-b border-gray-200">{subCategory.description}</td>
+                                          <td className="p-2 border-b border-gray-200">
+                                            <div className="flex items-center space-x-1">
+                                              <button
+                                                onClick={() => handleMoveSubCategory(subCategory)}
+                                                className="p-1 rounded-full hover:bg-amber-50 text-amber-500 transition-colors"
+                                                title="Chuyển danh mục"
+                                              >
+                                                <ArrowRightLeft className="w-4 h-4" />
+                                              </button>
 
-                                                <button
-                                                  onClick={() => handleDeleteSubCategory(subCategory.id)}
-                                                  className="p-1 rounded-full hover:bg-red-50 text-red-500 transition-colors"
-                                                  title="Xóa danh mục con"
-                                                >
-                                                  <Trash2 className="w-4 h-4" />
-                                                </button>
-                                              </div>
-                                            </td>
-                                          </tr>
-                                        ),
-                                      )}
+                                              <button
+                                                onClick={() => handleEditSubCategory(subCategory)}
+                                                className="p-1 rounded-full hover:bg-blue-50 text-blue-500 transition-colors"
+                                                title="Chỉnh sửa danh mục con"
+                                              >
+                                                <Edit className="w-4 h-4" />
+                                              </button>
+
+                                              <button
+                                                onClick={() => handleDeleteSubCategory(subCategory.id)}
+                                                className="p-1 rounded-full hover:bg-red-50 text-red-500 transition-colors"
+                                                title="Xóa danh mục con"
+                                              >
+                                                <Trash2 className="w-4 h-4" />
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
                                     </tbody>
                                   </table>
                                 </div>
@@ -469,6 +553,21 @@ export default function Category() {
               setEditSubCategory(null)
               handleSubCategorySuccess(parentId)
             }}
+          />
+        </div>
+      )}
+
+      {showMoveSubCategoryModal && subCategoryToMove && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <MoveSubCategoryModal
+            subCategory={subCategoryToMove}
+            categories={allCategories.filter((cat) => cat.id !== subCategoryToMove.parentId)}
+            onClose={() => {
+              setShowMoveSubCategoryModal(false)
+              setSubCategoryToMove(null)
+            }}
+            onSubmit={handleMoveSubCategorySubmit}
+            isLoading={isMoving || isLoadingAllCategories}
           />
         </div>
       )}

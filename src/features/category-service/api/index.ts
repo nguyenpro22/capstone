@@ -15,6 +15,10 @@ export const categoryQueryApi = createApi({
       query: ({ pageIndex = 1, pageSize = 10, searchTerm = "" }) =>
         `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
     }),
+    getAllCategories: builder.query<IResCommon<IListResponse<CategoryDetail>>, void>({
+      query: () => `/categories?pageIndex=1&pageSize=1000&sortOrder=desc`,
+    }),
+    
     getCategoryById: builder.query<IResCommon<CategoryDetail>, string>({
       query: (id) => `categories/${id}?id=${id}`,
     }),
@@ -47,12 +51,24 @@ export const categoryCommandApi = createApi({
         body: { id }, // Gửi ID trong body
       }),
     }),
+    moveCategory: builder.mutation({
+      query: ({ subCategoryId, categoryId }) => ({
+        url: `/categories/${subCategoryId}`,
+        method: "PATCH",
+        body: {
+          categoryId,
+        },
+      }),
+    }),
 
   }),
 });
 
-export const { useGetCategoriesQuery, useLazyGetCategoryByIdQuery } = categoryQueryApi;
+export const { useGetCategoriesQuery, useLazyGetCategoryByIdQuery,
+  useGetAllCategoriesQuery,
+ } = categoryQueryApi;
 export const { useCreateCategoryMutation,
               useUpdateCategoryMutation, // Thêm API cập nhật gói
               useDeleteCategoryMutation,
+              useMoveCategoryMutation,
               } = categoryCommandApi;

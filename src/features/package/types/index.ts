@@ -1,10 +1,13 @@
 export interface Package {
-  documentId: string
+  id: string
   name: string
   description: string
   price: number // Changed from string to number based on API response
   duration: number // Changed from string to number based on API response
   isActivated: boolean // Changed from status: string to match API response
+  limitBranch: number
+  limitLiveStream: number
+  enhancedViewer: number
 }
 
 export interface PackagesResponse {
