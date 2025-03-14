@@ -3,10 +3,16 @@ export interface Clinic {
   name: string;
   email: string;
   address: string;
+  city: string;
+  district: string;
+  ward: string;
   phoneNumber: string;
   totalBranches: number;
   profilePictureUrl: string;
+  bankName: string;
+  bankAccountNumber: string;
   isActivated: boolean;
+  
 }
 
 export interface ClinicsResponse {

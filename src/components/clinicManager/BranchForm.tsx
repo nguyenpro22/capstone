@@ -6,7 +6,7 @@ import { useCreateBranchMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
 import { toast } from "react-toastify"
 import { motion } from "framer-motion"
-import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, Image, Loader2 } from "lucide-react"
+import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, ImageIcon, Loader2 } from "lucide-react"
 
 // Interfaces
 interface BranchFormProps {
@@ -19,6 +19,9 @@ interface ValidationErrors {
   email?: string
   phoneNumber?: string
   address?: string
+  city?: string
+  district?: string
+  ward?: string
   operatingLicense?: string
   operatingLicenseExpiryDate?: string
   profilePictureUrl?: string
@@ -26,8 +29,11 @@ interface ValidationErrors {
 
 interface AddressDetail {
   provinceId: string
+  provinceName: string
   districtId: string
+  districtName: string
   wardId: string
+  wardName: string
   streetAddress: string
 }
 
@@ -36,7 +42,6 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     name: "",
     email: "",
     phoneNumber: "",
-    streetAddress: "",
     operatingLicense: null as File | null,
     operatingLicenseExpiryDate: "",
     profilePictureUrl: null as File | null,
@@ -44,8 +49,11 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
 
   const [addressDetail, setAddressDetail] = useState<AddressDetail>({
     provinceId: "",
+    provinceName: "",
     districtId: "",
+    districtName: "",
     wardId: "",
+    wardName: "",
     streetAddress: "",
   })
 
@@ -64,50 +72,62 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
   // Handle address selection changes
   const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target
-    setAddressDetail((prev) => {
-      const newDetail = {
+
+    if (name === "provinceId" && provinces) {
+      const province = provinces.data.find((p) => p.id === value)
+      setAddressDetail((prev) => ({
         ...prev,
-        [name]: value,
-      }
+        provinceId: value,
+        provinceName: province?.name || "",
+        districtId: "",
+        districtName: "",
+        wardId: "",
+        wardName: "",
+      }))
+    } else if (name === "districtId" && districts) {
+      const district = districts.data.find((d) => d.id === value)
+      setAddressDetail((prev) => ({
+        ...prev,
+        districtId: value,
+        districtName: district?.name || "",
+        wardId: "",
+        wardName: "",
+      }))
+    } else if (name === "wardId" && wards) {
+      const ward = wards.data.find((w) => w.id === value)
+      setAddressDetail((prev) => ({
+        ...prev,
+        wardId: value,
+        wardName: ward?.name || "",
+      }))
+    } else if (name === "streetAddress") {
+      setAddressDetail((prev) => ({
+        ...prev,
+        streetAddress: value,
+      }))
+    }
 
-      // Reset dependent fields
-      if (name === "provinceId") {
-        newDetail.districtId = ""
-        newDetail.wardId = ""
-      } else if (name === "districtId") {
-        newDetail.wardId = ""
-      }
-
-      return newDetail
-    })
-
-    // Clear address validation error when any address field changes
-    if (validationErrors.address) {
+    // Clear address validation errors
+    if (validationErrors.address || validationErrors.city || validationErrors.district || validationErrors.ward) {
       setValidationErrors((prev) => {
         const newErrors = { ...prev }
         delete newErrors.address
+        delete newErrors.city
+        delete newErrors.district
+        delete newErrors.ward
         return newErrors
       })
     }
   }
 
-  // Combine address parts into full address string
+  // Get full address for display purposes
   const getFullAddress = (): string => {
     const parts: string[] = []
 
     if (addressDetail.streetAddress) parts.push(addressDetail.streetAddress)
-    if (addressDetail.wardId && wards) {
-      const ward = wards.data.find((w) => w.id === addressDetail.wardId)
-      if (ward) parts.push(ward.name)
-    }
-    if (addressDetail.districtId && districts) {
-      const district = districts.data.find((d) => d.id === addressDetail.districtId)
-      if (district) parts.push(district.name)
-    }
-    if (addressDetail.provinceId && provinces) {
-      const province = provinces.data.find((p) => p.id === addressDetail.provinceId)
-      if (province) parts.push(province.name)
-    }
+    if (addressDetail.wardName) parts.push(addressDetail.wardName)
+    if (addressDetail.districtName) parts.push(addressDetail.districtName)
+    if (addressDetail.provinceName) parts.push(addressDetail.provinceName)
 
     return parts.join(", ")
   }
@@ -122,7 +142,16 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     formDataToSend.append("name", formData.name)
     formDataToSend.append("email", formData.email)
     formDataToSend.append("phoneNumber", formData.phoneNumber)
-    formDataToSend.append("address", getFullAddress())
+
+    // Send address components separately
+    formDataToSend.append("address", addressDetail.streetAddress)
+    formDataToSend.append("city", addressDetail.provinceName)
+    formDataToSend.append("district", addressDetail.districtName)
+    formDataToSend.append("ward", addressDetail.wardName)
+
+    // Also include the full address for backward compatibility if needed
+    // formDataToSend.append("fullAddress", getFullAddress())
+
     formDataToSend.append("operatingLicenseExpiryDate", formData.operatingLicenseExpiryDate)
     if (formData.operatingLicense) {
       formDataToSend.append("operatingLicense", formData.operatingLicense)
@@ -153,7 +182,10 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
             name: "Branch Name",
             email: "Email",
             phoneNumber: "Phone Number",
-            address: "Address",
+            address: "Street Address",
+            city: "Province/City",
+            district: "District",
+            ward: "Ward",
             operatingLicense: "Operating License",
             operatingLicenseExpiryDate: "Operating License Expiry Date",
             profilePictureUrl: "Profile Picture",
@@ -351,7 +383,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                     value={addressDetail.provinceId}
                     onChange={handleAddressChange}
                     className={`w-full px-4 py-3 rounded-lg border ${
-                      validationErrors.address
+                      validationErrors.city
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
                         : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
                     } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
@@ -368,6 +400,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                       ))
                     )}
                   </select>
+                  {validationErrors.city && <p className="text-red-500 text-xs mt-1">{validationErrors.city}</p>}
                 </div>
 
                 {/* District Selection */}
@@ -380,7 +413,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                     value={addressDetail.districtId}
                     onChange={handleAddressChange}
                     className={`w-full px-4 py-3 rounded-lg border ${
-                      validationErrors.address
+                      validationErrors.district
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
                         : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
                     } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
@@ -400,6 +433,9 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                       </option>
                     ))}
                   </select>
+                  {validationErrors.district && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.district}</p>
+                  )}
                 </div>
 
                 {/* Ward Selection */}
@@ -412,7 +448,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                     value={addressDetail.wardId}
                     onChange={handleAddressChange}
                     className={`w-full px-4 py-3 rounded-lg border ${
-                      validationErrors.address
+                      validationErrors.ward
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
                         : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
                     } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
@@ -432,6 +468,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                       </option>
                     ))}
                   </select>
+                  {validationErrors.ward && <p className="text-red-500 text-xs mt-1">{validationErrors.ward}</p>}
                 </div>
 
                 {/* Street Address */}
@@ -452,11 +489,12 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                     placeholder="Enter street address"
                     required
                   />
+                  {validationErrors.address && <p className="text-red-500 text-xs mt-1">{validationErrors.address}</p>}
                 </div>
               </div>
 
               {/* Preview Full Address */}
-              {addressDetail.provinceId && (
+              {(addressDetail.provinceName || addressDetail.provinceId) && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -466,7 +504,6 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                   <p className="text-sm text-gray-800 mt-1">{getFullAddress()}</p>
                 </motion.div>
               )}
-              {validationErrors.address && <p className="text-red-500 text-xs mt-1">{validationErrors.address}</p>}
             </div>
 
             {/* Documents Section */}
@@ -541,7 +578,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
                       } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                       accept=".jpg, .jpeg, .png"
                     />
-                    <Image className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <ImageIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   </div>
                   {validationErrors.profilePictureUrl && (
                     <p className="text-red-500 text-xs mt-1">{validationErrors.profilePictureUrl}</p>

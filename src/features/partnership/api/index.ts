@@ -11,7 +11,7 @@ export const partnershipRequestApi = createApi({
     updatePartnershipRequest: builder.mutation({
       // Custom fetchBaseQuery for the update request (port 4000)
       query: ({ requestId, action, rejectReason }) => ({
-        url: `http://160.187.240.214:4000/api/v1/clinics/apply/${requestId}`, // Port 4000
+        url: `http://160.187.240.214:4000/api/v1/clinics/application/${requestId}`, // Port 4000
         method: 'PUT',
         body: { requestId, action, rejectReason },
       }),
