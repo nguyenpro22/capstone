@@ -6,13 +6,14 @@ import { Toaster } from "react-hot-toast";
 import store from "@/store";
 
 import { ThemeProvider } from "next-themes";
+import { LivestreamProvider } from "@/components/clinicManager/livestream/context";
 
 const ClientProvider: React.FC<{ children: React.ReactNode }> = React.memo(
   ({ children }) => {
     return (
       <Provider store={store}>
         <ThemeProvider attribute="class">
-          {children}
+          <LivestreamProvider>{children}</LivestreamProvider>
           <Toaster
             position="top-center"
             reverseOrder={false}

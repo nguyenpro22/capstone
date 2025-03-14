@@ -1,131 +1,138 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import dynamic from "next/dynamic"
-import "react-quill/dist/quill.snow.css"
-import { useMemo } from "react"
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+import { useMemo } from "react";
 
 // Dynamically import ReactQuill
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
-  loading: () => <div className="h-32 w-full border rounded-md bg-muted/20 animate-pulse" />,
-})
+  loading: () => (
+    <div className="h-32 w-full border rounded-md bg-muted/20 animate-pulse" />
+  ),
+});
 
 interface SimpleQuillEditorProps {
-  value: string
-  onChange: (data: string) => void
-  error?: boolean
-  placeholder?: string
+  value: string;
+  onChange: (data: string) => void;
+  error?: boolean;
+  placeholder?: string;
 }
 
-export default function SimpleQuillEditor({ value, onChange, error, placeholder }: SimpleQuillEditorProps) {
-  const [mounted, setMounted] = useState(false)
-  const [quillInstance, setQuillInstance] = useState<any>(null)
+export default function SimpleQuillEditor({
+  value,
+  onChange,
+  error,
+  placeholder,
+}: SimpleQuillEditorProps) {
+  const [mounted, setMounted] = useState(false);
+  const [quillInstance, setQuillInstance] = useState<any>(null);
 
   // Ensure component is mounted before rendering Quill
   useEffect(() => {
-    setMounted(true)
-    console.log("🔍 SimpleQuillEditor mounted")
+    setMounted(true);
+    console.log("🔍 SimpleQuillEditor mounted");
 
     // Find the Quill instance after component is mounted
     if (mounted) {
       // Wait a bit for the editor to initialize
       const timer = setTimeout(() => {
-        const quillEditor = document.querySelector(".quill-editor .ql-editor")
+        const quillEditor = document.querySelector(".quill-editor .ql-editor");
         if (quillEditor) {
           // Walk up to find the ReactQuill instance
-          let parent = quillEditor.parentElement
+          let parent = quillEditor.parentElement;
           while (parent && !parent.className.includes("quill-editor")) {
-            parent = parent.parentElement
+            parent = parent.parentElement;
           }
 
           if (parent) {
-            const quill = (parent as any).__quill
+            const quill = (parent as any).__quill;
             if (quill) {
-              console.log("🔍 Quill instance found")
-              setQuillInstance(quill)
+              console.log("🔍 Quill instance found");
+              setQuillInstance(quill);
             }
           }
         }
-      }, 500)
+      }, 500);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [mounted])
+  }, [mounted]);
 
   // Handle image upload
   const handleImageUpload = () => {
     if (!quillInstance) {
-      console.log("❌ Quill instance not found")
-      return
+      console.log("❌ Quill instance not found");
+      return;
     }
 
-    console.log("🔍 Image upload handler triggered")
-    const input = document.createElement("input")
-    input.setAttribute("type", "file")
-    input.setAttribute("accept", "image/*")
-    input.style.display = "none"
+    console.log("🔍 Image upload handler triggered");
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.style.display = "none";
 
     // Append to body and remove after selection
-    document.body.appendChild(input)
+    document.body.appendChild(input);
 
     input.onchange = async () => {
       if (!input.files?.length) {
-        document.body.removeChild(input)
-        return
+        document.body.removeChild(input);
+        return;
       }
 
-      const file = input.files[0]
-      console.log("🔍 File selected:", file.name)
+      const file = input.files[0];
+      console.log("🔍 File selected:", file.name);
 
       try {
-        console.log("🚀 Sending API request to /api/upload-image")
+        console.log("🚀 Sending API request to /api/upload-image");
 
         // Create FormData for upload
-        const formData = new FormData()
-        formData.append("image", file)
+        const formData = new FormData();
+        formData.append("image", file);
 
         // Upload image to your server
         const response = await fetch("/api/upload-image", {
           method: "POST",
           body: formData,
-        })
+        });
 
-        console.log(`📡 API response status: ${response.status}`)
+        console.log(`📡 API response status: ${response.status}`);
 
         if (!response.ok) {
-          throw new Error(`Upload failed with status: ${response.status}`)
+          throw new Error(`Upload failed with status: ${response.status}`);
         }
 
-        const data = await response.json()
-        console.log("📦 API response data:", data)
-        const imageUrl = data.url
+        const data = await response.json();
+        console.log("📦 API response data:", data);
+        const imageUrl = data.url;
 
         // Insert the image at cursor position
-        const range = quillInstance.getSelection(true)
-        quillInstance.insertEmbed(range.index, "image", imageUrl)
-        quillInstance.setSelection(range.index + 1)
+        const range = quillInstance.getSelection(true);
+        quillInstance.insertEmbed(range.index, "image", imageUrl);
+        quillInstance.setSelection(range.index + 1);
 
-        console.log("🖼️ Image inserted successfully")
+        console.log("🖼️ Image inserted successfully");
       } catch (error) {
-        console.error("❌ Error uploading image:", error)
-        alert("Lỗi khi tải ảnh lên. Vui lòng thử lại.")
+        console.error("❌ Error uploading image:", error);
+        alert("Lỗi khi tải ảnh lên. Vui lòng thử lại.");
       } finally {
-        document.body.removeChild(input)
+        document.body.removeChild(input);
       }
-    }
+    };
 
-    input.click()
-  }
+    input.click();
+  };
 
   // Update toolbar handlers when quill instance changes
   useEffect(() => {
     if (quillInstance) {
-      console.log("🔧 Setting up image handler")
-      const toolbar = quillInstance.getModule("toolbar")
-      toolbar.addHandler("image", handleImageUpload)
+      console.log("🔧 Setting up image handler");
+      const toolbar = quillInstance.getModule("toolbar");
+      toolbar.addHandler("image", handleImageUpload);
     }
-  }, [quillInstance])
+  }, [quillInstance]);
 
   // Quill modules configuration
   const modules = useMemo(
@@ -142,8 +149,8 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
         ],
       },
     }),
-    [],
-  )
+    []
+  );
 
   // Quill formats
   const formats = [
@@ -160,14 +167,20 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
     "code-block",
     "indent",
     "align",
-  ]
+  ];
 
   if (!mounted) {
-    return <div className="h-32 w-full border rounded-md bg-muted/20 animate-pulse" />
+    return (
+      <div className="h-32 w-full border rounded-md bg-muted/20 animate-pulse" />
+    );
   }
 
   return (
-    <div className={`quill-container ${error ? "border border-destructive rounded-md" : ""}`}>
+    <div
+      className={`quill-container ${
+        error ? "border border-destructive rounded-md" : ""
+      }`}
+    >
       <ReactQuill
         theme="snow"
         value={value}
@@ -182,43 +195,42 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
           display: block;
           width: 100%;
         }
-        
+
         .quill-error .ql-toolbar.ql-snow {
           border-color: var(--destructive);
           border-bottom-color: var(--destructive);
           border-top-left-radius: 0.375rem;
           border-top-right-radius: 0.375rem;
         }
-        
+
         .quill-error .ql-container.ql-snow {
           border-color: var(--destructive);
           border-bottom-left-radius: 0.375rem;
           border-bottom-right-radius: 0.375rem;
         }
-        
+
         .ql-toolbar.ql-snow {
           border-top-left-radius: 0.375rem;
           border-top-right-radius: 0.375rem;
           z-index: 10;
           position: relative;
         }
-        
+
         .ql-container.ql-snow {
           border-bottom-left-radius: 0.375rem;
           border-bottom-right-radius: 0.375rem;
           min-height: 120px;
         }
-        
+
         .ql-editor {
           min-height: 120px;
         }
-        
+
         .ql-editor img {
           max-width: 100%;
           height: auto;
         }
       `}</style>
     </div>
-  )
+  );
 }
-

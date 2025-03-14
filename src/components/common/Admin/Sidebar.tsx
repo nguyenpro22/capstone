@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Ticket,
@@ -19,9 +19,9 @@ import {
   Layers,
   ChevronRight,
   Menu,
-  ShoppingBag
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+  ShoppingBag,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -30,19 +30,27 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 type SidebarProps = {
-  role: "systemAdmin" | "user" | "systemStaff" | "clinicManager"
-  onClose?: () => void
-}
+  role: "systemAdmin" | "user" | "systemStaff" | "clinicManager";
+  onClose?: () => void;
+};
 
 const menuItems = {
   systemAdmin: [
-    { label: "Dashboard", path: "/systemAdmin/dashboard", icon: LayoutDashboard },
+    {
+      label: "Dashboard",
+      path: "/systemAdmin/dashboard",
+      icon: LayoutDashboard,
+    },
     { label: "Voucher", path: "/systemAdmin/voucher", icon: Ticket },
     { label: "Package", path: "/systemAdmin/package", icon: Archive },
-    { label: "Category Services", path: "/systemAdmin/category-service", icon: Layers },
+    {
+      label: "Category Services",
+      path: "/systemAdmin/category-service",
+      icon: Layers,
+    },
     { label: "Settings", path: "/systemAdmin/settings", icon: Settings },
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
@@ -54,11 +62,23 @@ const menuItems = {
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
   clinicManager: [
-    { label: "Dashboard", path: "/clinicManager/dashboard", icon: LayoutDashboard },
-    { label: "Branch Management", path: "/clinicManager/branch", icon: Building2 },
+    {
+      label: "Dashboard",
+      path: "/clinicManager/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Branch Management",
+      path: "/clinicManager/branch",
+      icon: Building2,
+    },
     { label: "Service", path: "/clinicManager/service", icon: Ticket },
     { label: "Order", path: "/clinicManager/order", icon: ClipboardList },
-    { label: "Buy Package", path: "/clinicManager/buy-package", icon: ShoppingBag },
+    {
+      label: "Buy Package",
+      path: "/clinicManager/buy-package",
+      icon: ShoppingBag,
+    },
     { label: "Inbox", path: "/clinicManager/inbox", icon: Inbox },
     { label: "Live Stream", path: "/clinicManager/live-stream", icon: Video },
     { label: "Profile", path: "/clinicManager/profile", icon: User },
@@ -72,23 +92,23 @@ const menuItems = {
     { label: "Settings", path: "/user/settings", icon: Settings },
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
-}
+};
 
 export default function AppSidebar({ role, onClose }: SidebarProps) {
-  const [mounted, setMounted] = useState(false)
-  const pathname = usePathname()
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   const normalizePath = (path: string) => {
-    return path.replace(/^\/(en|vi)/, "")
-  }
+    return path.replace(/^\/(en|vi)/, "");
+  };
 
-  const normalizedPathname = normalizePath(pathname)
+  const normalizedPathname = normalizePath(pathname);
 
   return (
     <SidebarProvider defaultOpen>
@@ -102,8 +122,12 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
                     <Layers className="size-5" />
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-serif text-lg tracking-wide">Beautify</span>
-                    <span className="text-xs text-muted-foreground">Admin Portal</span>
+                    <span className="font-serif text-lg tracking-wide">
+                      Beautify
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Admin Portal
+                    </span>
                   </div>
                 </Link>
               </SidebarMenuButton>
@@ -114,8 +138,10 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
         <SidebarContent className="p-4">
           <SidebarMenu>
             {menuItems[role].map((item) => {
-              const Icon = item.icon
-              const isActive = normalizedPathname === normalizePath(item.path)
+              const Icon = item.icon;
+              const isActive =
+                normalizedPathname === normalizePath(item.path) ||
+                normalizedPathname.startsWith(normalizePath(item.path) + "/");
 
               return (
                 <SidebarMenuItem key={item.path}>
@@ -124,21 +150,30 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
                     isActive={isActive}
                     className={cn(
                       "group relative overflow-hidden rounded-lg transition-colors",
-                      isActive && "bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-pink-600",
-                      !isActive && "hover:bg-gradient-to-r hover:from-pink-500/5 hover:to-purple-500/5",
+                      isActive &&
+                        "bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-pink-600",
+                      !isActive &&
+                        "hover:bg-gradient-to-r hover:from-pink-500/5 hover:to-purple-500/5"
                     )}
                   >
-                    <Link href={item.path} className="flex items-center gap-3 py-2">
+                    <Link
+                      href={item.path}
+                      className="flex items-center gap-3 py-2"
+                    >
                       <Icon
                         className={cn(
                           "size-5 transition-colors",
-                          isActive ? "text-pink-600" : "text-muted-foreground group-hover:text-pink-500",
+                          isActive
+                            ? "text-pink-600"
+                            : "text-muted-foreground group-hover:text-pink-500"
                         )}
                       />
                       <span
                         className={cn(
                           "font-medium tracking-wide transition-colors",
-                          isActive ? "text-pink-600" : "text-foreground/70 group-hover:text-pink-500",
+                          isActive
+                            ? "text-pink-600"
+                            : "text-foreground/70 group-hover:text-pink-500"
                         )}
                       >
                         {item.label}
@@ -154,12 +189,11 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              )
+              );
             })}
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>
     </SidebarProvider>
-  )
+  );
 }
-
