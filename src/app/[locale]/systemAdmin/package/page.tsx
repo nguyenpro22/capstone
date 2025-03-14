@@ -7,15 +7,21 @@ import {
   useLazyGetPackagesByIdQuery,
   useDeletePackageMutation, 
 } from "@/features/package/api";
+
+import { motion } from "framer-motion";
 import PackageForm from "@/components/systemAdmin/PackageForm";
 import EditPackageForm from "@/components/systemAdmin/EditPackageForm";
+import Pagination from "@/components/common/Pagination/Pagination";
+import { useTranslations } from 'next-intl';
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { MoreVertical, X } from "lucide-react"; // Import icon ba chấm và icon đóng
+import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
 import Modal from "@/components/systemAdmin/Modal"; // Component popup để hiển thị thông tin gói
 
 export default function Voucher() {
+  const t = useTranslations('package'); // Sử dụng namespace "dashboard"
+
   const [viewPackage, setViewPackage] = useState<any | null>(null); // Cho popup "Xem thông tin"
 const [editPackage, setEditPackage] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -32,7 +38,7 @@ const [editPackage, setEditPackage] = useState<any | null>(null);
                                                                 searchTerm });
 console.log("API Response:", data);
   const [changeStatusPackage] = useChangeStatusPackageMutation();
-  const [fetchPackageById, { data: packageDetail, isFetching }] = useLazyGetPackagesByIdQuery();
+  const [fetchPackageById] = useLazyGetPackagesByIdQuery();
   const [deletePackage] = useDeletePackageMutation();
 
   const packages = data?.value?.items || [];
@@ -51,11 +57,12 @@ console.log("API Response:", data);
 
   const handleToggleStatus = async (packageId: string) => {
     try {
-      await changeStatusPackage({packageId}).unwrap();
-      console.log("Package Data:", packageId); // Debug
+      await changeStatusPackage({ packageId}).unwrap(); // Đảo trạng thái
+      console.log("Package Data:", { packageId }); // Debug
       toast.success("Trạng thái gói đã được cập nhật!");
       refetch();
     } catch (error) {
+      console.error(error);
       toast.error("Có lỗi xảy ra, vui lòng thử lại!");
     }
   };
@@ -70,6 +77,7 @@ console.log("API Response:", data);
         const result = await fetchPackageById(pkgId).unwrap();
         setViewPackage(result.value); // Chỉ đặt giá trị cho View
       } catch (error) {
+        console.error(error);
         toast.error("Không thể lấy thông tin gói!");
         setViewPackage({
           name: "",
@@ -86,6 +94,7 @@ console.log("API Response:", data);
         const result = await fetchPackageById(pkgId).unwrap();
         setEditPackage(result.value); // Chỉ đặt giá trị cho Edit
       } catch (error) {
+        console.error(error);
         toast.error("Không thể lấy thông tin gói!");
         setEditPackage({
           name: "",
@@ -108,6 +117,7 @@ console.log("API Response:", data);
         toast.success("Gói đã được xóa thành công!");
         refetch();
       } catch (error) {
+        console.error(error);
         toast.error("Xóa gói thất bại!");
       }
     }
@@ -127,12 +137,14 @@ console.log("API Response:", data);
             setSearchTerm(e.target.value);
           }}
         />
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300"
         >
-          Add new Package
-        </button>
+          <span className="font-medium tracking-wide">Add New Package</span>
+        </motion.button>
       </div>
 
       <div className="bg-white p-4 shadow rounded-lg relative">
@@ -220,7 +232,7 @@ console.log("API Response:", data);
           }}
         />
       )}
-          {showEditForm && editPackage && (
+      {showEditForm && editPackage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <EditPackageForm
             initialData={editPackage}
@@ -237,45 +249,36 @@ console.log("API Response:", data);
         </div>
       )}
 
+      <Pagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onPageChange={setPageIndex}
+      />
 
-
-      <div className="flex items-center justify-between mt-4">
-        <button
-          disabled={!hasPreviousPage}
-          onClick={() => setPageIndex((prev) => prev - 1)}
-          className="px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900"
-        >
-          Prev
-        </button>
-
-        <span className="text-sm text-gray-500">
-          Page {pageIndex} - {Math.ceil(totalCount / pageSize)}
-        </span>
-
-        <button
-          disabled={!hasNextPage}
-          onClick={() => setPageIndex((prev) => prev + 1)}
-          className="px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900"
-        >
-          Next
-        </button>
-      </div>
-
-      {viewPackage  && (
-  <Modal onClose={() => setViewPackage(null)}>
-    <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
-    <p><strong>Tên gói:</strong> {viewPackage .name}</p>
-    <p><strong>Mô tả:</strong> {viewPackage .description}</p>
-    <p><strong>Giá:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewPackage?.price || 0))} đ</p>
-    <p><strong>Thời gian:</strong> {viewPackage .duration} tháng</p>
-    <p>
-      <strong>Trạng thái:</strong>{" "}
-      <span className={viewPackage .isActivated ? "text-green-600" : "text-red-600"}>
-        {viewPackage .isActivated ? "Active" : "Inactive"}
-      </span>
-    </p>
-  </Modal>
-)}
+  {/* View Package Modal */}
+  {viewPackage && (
+        <Modal onClose={() => setViewPackage(null)}>
+          <div className="p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-serif font-semibold mb-4 text-gray-800">Package Details</h2>
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Name:</strong> {viewPackage.name}</p>
+              <p><strong>Description:</strong> {viewPackage.description}</p>
+              <p><strong>Price:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewPackage.price || 0))} đ</p>
+              <p><strong>Duration:</strong> {viewPackage.duration} months</p>
+              <p>
+                <strong>Status:</strong>{" "}
+                <span className={viewPackage.isActivated ? "text-emerald-600" : "text-gray-500"}>
+                  {viewPackage.isActivated ? "Active" : "Inactive"}
+                </span>
+              </p>
+            </div>
+            
+          </div>
+        </Modal>
+      )}
 
     </div>
   );

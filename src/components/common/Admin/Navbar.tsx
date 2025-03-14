@@ -1,5 +1,6 @@
 import React from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 
 // Tải động LangToggle
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
@@ -46,10 +47,12 @@ export default function Navbar({ children }: { children?: React.ReactNode }) {
 
         {/* Thông tin người dùng */}
         <div className="flex items-center space-x-2">
-          <img
+          <Image
             src="https://via.placeholder.com/40"
             alt="User Avatar"
             className="w-10 h-10 rounded-full"
+            width={96} // Thay đổi kích thước phù hợp
+            height={96}
           />
           <div>
             <p className="text-sm font-medium text-gray-800">Moni Roy</p>

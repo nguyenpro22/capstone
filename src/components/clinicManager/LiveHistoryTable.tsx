@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 interface LiveHistoryItem {
@@ -31,7 +32,11 @@ const LiveHistoryTable: React.FC<{ history: LiveHistoryItem[] }> = ({ history })
           <tr key={stream.id} className="border-t">
             <td className="p-3">{stream.id}</td>
             <td className="p-3">
-              <img src={stream.image} alt={`Stream ${stream.id}`} className="w-12 h-12 rounded-full" />
+              <Image src={stream.image} 
+              alt={`Stream ${stream.id}`} 
+              className="w-12 h-12 rounded-full"
+               width={96} // Thay đổi kích thước phù hợp
+               height={96} />
             </td>
             <td className="p-3">{stream.productsSold}</td>
             <td className="p-3">{stream.date}</td>
