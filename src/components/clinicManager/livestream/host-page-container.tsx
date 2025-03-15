@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { AlertCircle, Camera, CheckCircle2, RefreshCw } from "lucide-react";
 import { useLivestream } from "./context";
 
-// Dynamically import the HostPageStreamScreen with Next.js dynamic
+// Sửa lại dynamic import để đảm bảo nó import đúng component
 const HostPageStreamScreen = dynamic(
-  () => import("@/components/clinicManager/livestream/host-page-stream-screen"),
+  () =>
+    import(
+      "@/components/clinicManager/livestream/host-page-stream-screen"
+    ).then((mod) => mod.default),
   {
     loading: () => (
       <div className="flex items-center justify-center min-h-screen bg-rose-50">
@@ -28,6 +32,7 @@ export default function HostPageContainer(): JSX.Element {
     isCreateRoom,
     isConnecting,
     error,
+    clearError,
     viewerCount,
     localVideoRef,
     startPublishing,
@@ -35,13 +40,21 @@ export default function HostPageContainer(): JSX.Element {
     endLive,
     createRoom,
     resetLivestream,
+    checkCamera,
   } = useLivestream();
 
   // Sử dụng useRef để theo dõi việc đã gọi createRoom hay chưa
   const hasCalledCreateRoomRef = useRef(false);
 
+  // State để theo dõi trạng thái kiểm tra camera
+  const [isCameraChecking, setIsCameraChecking] = useState(false);
+  const [cameraCheckResult, setCameraCheckResult] = useState<boolean | null>(
+    null
+  );
+
   // Check if form is submitted and create room if needed
   useEffect(() => {
+    console.log("Checking form data and create room", isCreateRoom);
     if (!formData || !isFormSubmitted) {
       // No form data, redirect back to form
       router.push("/clinicManager/live-stream");
@@ -60,7 +73,6 @@ export default function HostPageContainer(): JSX.Element {
       // Auto-create room when component mounts and form is submitted
       createRoom();
     }
-    console.log("Checking form data and create room", isPublish);
   }, [
     formData,
     isFormSubmitted,
@@ -70,6 +82,27 @@ export default function HostPageContainer(): JSX.Element {
     createRoom,
     router,
   ]);
+
+  // Hàm xử lý kiểm tra camera
+  const handleCheckCamera = async () => {
+    setIsCameraChecking(true);
+    setCameraCheckResult(null);
+    clearError();
+
+    try {
+      const result = await checkCamera();
+      setCameraCheckResult(result);
+    } catch (err) {
+      setCameraCheckResult(false);
+    } finally {
+      setIsCameraChecking(false);
+
+      // Tự động ẩn kết quả sau 5 giây
+      setTimeout(() => {
+        setCameraCheckResult(null);
+      }, 5000);
+    }
+  };
 
   if (!formData || !isFormSubmitted) {
     return (
@@ -128,23 +161,85 @@ export default function HostPageContainer(): JSX.Element {
             </div>
           ) : (
             <div className="text-center">
-              <div className="text-rose-600 text-xl mb-4">
-                {error || "Không thể tạo phòng phát sóng"}
+              <div className="flex items-center justify-center mb-4">
+                <AlertCircle className="text-rose-600 mr-2 h-6 w-6" />
+                <div className="text-rose-600 text-xl">
+                  {error || "Không thể tạo phòng phát sóng"}
+                </div>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 max-w-md mx-auto">
+                <div className="bg-white p-4 rounded-lg shadow-md text-left">
+                  <h3 className="font-medium text-gray-800 mb-2">
+                    Kiểm tra kết nối:
+                  </h3>
+                  <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                    <li>Đảm bảo bạn có kết nối internet ổn định</li>
+                    <li>
+                      Kiểm tra camera và microphone của bạn hoạt động bình
+                      thường
+                    </li>
+                    <li>
+                      Đảm bảo bạn đã cấp quyền truy cập camera và microphone cho
+                      trình duyệt
+                    </li>
+                    <li>Thử làm mới trang và tạo lại phòng</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={handleCheckCamera}
+                  disabled={isCameraChecking}
+                  className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center justify-center"
+                >
+                  {isCameraChecking ? (
+                    <>
+                      <RefreshCw className="animate-spin h-4 w-4 mr-2" />
+                      Đang kiểm tra...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Kiểm tra Camera
+                    </>
+                  )}
+                </button>
+
+                {cameraCheckResult !== null && (
+                  <div
+                    className={`p-3 rounded-lg ${
+                      cameraCheckResult
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    } flex items-center`}
+                  >
+                    {cameraCheckResult ? (
+                      <>
+                        <CheckCircle2 className="h-5 w-5 mr-2" />
+                        Camera hoạt động bình thường!
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="h-5 w-5 mr-2" />
+                        Không thể truy cập camera. Vui lòng kiểm tra quyền truy
+                        cập.
+                      </>
+                    )}
+                  </div>
+                )}
+
                 <button
                   onClick={() => {
                     // Reset flag khi thử lại
                     hasCalledCreateRoomRef.current = false;
+                    clearError();
                     createRoom();
                   }}
-                  className="px-6 py-3 font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors"
+                  className="w-full px-6 py-3 font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors"
                 >
                   Thử lại
                 </button>
                 <button
                   onClick={resetLivestream}
-                  className="block w-full px-6 py-3 font-medium text-rose-600 bg-white border border-rose-300 hover:bg-rose-50 rounded-lg transition-colors"
+                  className="w-full px-6 py-3 font-medium text-rose-600 bg-white border border-rose-300 hover:bg-rose-50 rounded-lg transition-colors"
                 >
                   Quay lại tạo livestream
                 </button>
@@ -181,6 +276,55 @@ export default function HostPageContainer(): JSX.Element {
               {formData.isPrivate ? "Riêng tư" : "Công khai"}
             </p>
           </div>
+
+          {/* Thêm nút kiểm tra camera */}
+          {!isPublish && (
+            <div className="absolute top-16 left-4 z-10">
+              <button
+                onClick={handleCheckCamera}
+                disabled={isCameraChecking}
+                className={`flex items-center px-3 py-1 text-sm rounded-lg shadow-md transition ${
+                  isCameraChecking
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
+                {isCameraChecking ? (
+                  <>
+                    <RefreshCw className="animate-spin h-4 w-4 mr-2" />
+                    Đang kiểm tra...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-4 w-4 mr-2" />
+                    Kiểm tra Camera
+                  </>
+                )}
+              </button>
+
+              {cameraCheckResult !== null && (
+                <div
+                  className={`mt-2 p-2 rounded-lg text-xs ${
+                    cameraCheckResult
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  } flex items-center`}
+                >
+                  {cameraCheckResult ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Camera OK!
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Lỗi camera
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <HostPageStreamScreen
             view={viewerCount}
