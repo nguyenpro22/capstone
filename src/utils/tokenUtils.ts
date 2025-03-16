@@ -53,16 +53,17 @@ export const GetDataByToken = (token: string): unknown | null => {
   const role = decoded?.Role;
   const roleId = decoded?.RoleId;
   const userId = decoded?.UserId;
-  const ClinicId = decoded?.ClinicId;
-  return { role, roleId, userId, ClinicId };
+  const clinicId = decoded?.ClinicId;
+  return { role, roleId, userId, clinicId };
 };
 
 export type TokenData = {
   role: string;
   roleId: string;
   userId: string;
-  ClinicId?: string;
+  clinicId?: string;
 };
+
 export const rememberMe = (token: string, refreshToken: string): void => {
   setCookie(CookieStorageKey.REMEMBER_ME, "true", 30);
   setCookie(CookieStorageKey.ACCESS_TOKEN, token, 30);

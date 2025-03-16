@@ -24,6 +24,7 @@ const store = configureStore({
     // [ExampleAPI.reducerPath]: ExampleAPI.reducer,
     auth: authReducer, //save state auth
     [landingApi.reducerPath]: landingApi.reducer,
+    [landingApi.reducerPath]: landingApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [packageApi.reducerPath]: packageApi.reducer, // ✅ Thêm reducer của RTK Query
     [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
