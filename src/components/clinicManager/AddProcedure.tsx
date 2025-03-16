@@ -1,63 +1,75 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useAddProcedureMutation } from "@/features/clinic-service/api"
-import { toast } from "react-toastify"
-import { X, Plus, ImageIcon, Clock, DollarSign, Trash2 } from "lucide-react"
-import { motion } from "framer-motion"
+import type React from "react";
+import { useState } from "react";
+import { useAddProcedureMutation } from "@/features/clinic-service/api";
+import { toast } from "react-toastify";
+import { X, Plus, ImageIcon, Clock, DollarSign, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 
-const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clinicServiceId: string }) => {
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [stepIndex, setStepIndex] = useState(0)
-  const [procedureCoverImage, setProcedureCoverImage] = useState<File | null>(null)
-  const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0 }])
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+const AddProcedure = ({
+  onClose,
+  clinicServiceId,
+}: {
+  onClose: () => void;
+  clinicServiceId: string;
+}) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [stepIndex, setStepIndex] = useState(0);
+  const [procedureCoverImage, setProcedureCoverImage] = useState<File | null>(
+    null
+  );
+  const [priceTypes, setPriceTypes] = useState([
+    { name: "", duration: 0, price: 0 },
+  ]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const [addProcedure, { isLoading }] = useAddProcedureMutation()
+  const [addProcedure, { isLoading }] = useAddProcedureMutation();
 
   const handleAddPriceType = () => {
-    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }])
-  }
+    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }]);
+  };
 
   const handleRemovePriceType = (index: number) => {
-    setPriceTypes(priceTypes.filter((_, i) => i !== index))
-  }
+    setPriceTypes(priceTypes.filter((_, i) => i !== index));
+  };
 
   const handlePriceTypeChange = (index: number, field: string, value: any) => {
-    const updatedPriceTypes = priceTypes.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    setPriceTypes(updatedPriceTypes)
-  }
+    const updatedPriceTypes = priceTypes.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    );
+    setPriceTypes(updatedPriceTypes);
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    setProcedureCoverImage(file)
+    const file = e.target.files?.[0] || null;
+    setProcedureCoverImage(file);
 
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     } else {
-      setImagePreview(null)
+      setImagePreview(null);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!name.trim()) {
-      toast.error("Tên thủ tục không được để trống!")
-      return
+      toast.error("Tên thủ tục không được để trống!");
+      return;
     }
     if (!description.trim()) {
-      toast.error("Mô tả không được để trống!")
-      return
+      toast.error("Mô tả không được để trống!");
+      return;
     }
     if (priceTypes.length === 0) {
-      toast.error("Phải có ít nhất một loại giá!")
-      return
+      toast.error("Phải có ít nhất một loại giá!");
+      return;
     }
 
     // Chuyển đổi format đúng theo API yêu cầu
@@ -65,26 +77,26 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
       Name: item.name,
       Duration: item.duration,
       Price: item.price,
-    }))
-    const formData = new FormData()
-    formData.append("clinicServiceId", clinicServiceId)
-    formData.append("name", name)
-    formData.append("description", description)
-    formData.append("stepIndex", stepIndex.toString())
+    }));
+    const formData = new FormData();
+    formData.append("clinicServiceId", clinicServiceId);
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("stepIndex", stepIndex.toString());
     if (procedureCoverImage) {
-      formData.append("procedureCoverImage", procedureCoverImage)
+      formData.append("procedureCoverImage", procedureCoverImage);
     }
-    formData.append("procedurePriceTypes", JSON.stringify(procedurePriceTypes))
+    formData.append("procedurePriceTypes", JSON.stringify(procedurePriceTypes));
 
     try {
-      await addProcedure({ data: formData }).unwrap()
-      toast.success("Thêm thủ tục thành công!")
-      onClose()
+      await addProcedure({ data: formData }).unwrap();
+      toast.success("Thêm thủ tục thành công!");
+      onClose();
     } catch (error) {
-      console.error("Lỗi khi thêm Procedure:", error)
-      toast.error("Thêm thất bại, vui lòng thử lại.")
+      console.error("Lỗi khi thêm Procedure:", error);
+      toast.error("Thêm thất bại, vui lòng thử lại.");
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
@@ -108,7 +120,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         <div className="overflow-y-auto flex-1">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Tên Thủ Tục</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Tên Thủ Tục
+              </label>
               <input
                 type="text"
                 className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
@@ -120,7 +134,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Mô Tả</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Mô Tả
+              </label>
               <textarea
                 className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all min-h-[100px]"
                 value={description}
@@ -131,7 +147,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Thứ tự bước</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Thứ tự bước
+              </label>
               <input
                 type="number"
                 className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
@@ -143,17 +161,25 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Hình Ảnh</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Hình Ảnh
+              </label>
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
                   <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <ImageIcon className="w-8 h-8 mb-2 text-gray-400" />
                       <p className="text-sm text-gray-500">
-                        <span className="font-medium">Nhấp để tải lên</span> hoặc kéo thả
+                        <span className="font-medium">Nhấp để tải lên</span>{" "}
+                        hoặc kéo thả
                       </p>
                     </div>
-                    <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleImageChange}
+                      accept="image/*"
+                    />
                   </label>
                 </div>
 
@@ -167,8 +193,8 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                     <button
                       type="button"
                       onClick={() => {
-                        setProcedureCoverImage(null)
-                        setImagePreview(null)
+                        setProcedureCoverImage(null);
+                        setImagePreview(null);
                       }}
                       className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white"
                     >
@@ -181,7 +207,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">Loại Giá Dịch Vụ</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Loại Giá Dịch Vụ
+                </label>
                 <button
                   type="button"
                   onClick={handleAddPriceType}
@@ -208,7 +236,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="VD: Cơ bản"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.name}
-                        onChange={(e) => handlePriceTypeChange(index, "name", e.target.value)}
+                        onChange={(e) =>
+                          handlePriceTypeChange(index, "name", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -223,7 +253,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="30"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.duration}
-                        onChange={(e) => handlePriceTypeChange(index, "duration", Number(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "duration",
+                            Number(e.target.value)
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -239,7 +275,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="100,000"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.price}
-                        onChange={(e) => handlePriceTypeChange(index, "price", Number(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "price",
+                            Number(e.target.value)
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -280,8 +322,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default AddProcedure
-
+export default AddProcedure;
