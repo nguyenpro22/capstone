@@ -17,7 +17,7 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const [createCategory, { isLoading }] = useCreateCategoryMutation();
-  const { refetch } = useGetCategoriesQuery(undefined);
+  const { refetch } = useGetCategoriesQuery({ pageIndex: 1, pageSize: 10, searchTerm: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

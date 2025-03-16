@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ClientProvider from "@/components/common/Provider";
-import { Roboto_Slab } from "next/font/google";
 
-const robotoSlab = Roboto_Slab({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-roboto-slab",
-});
 export const metadata: Metadata = {
   title: "Beautify Clinic - Premium Beauty & Aesthetic Center",
   description:
@@ -21,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${robotoSlab.variable}`}>
+      <body>
         <ClientProvider>{children}</ClientProvider>
       </body>
     </html>

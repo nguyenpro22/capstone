@@ -1,25 +1,40 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useCreateBranchMutation } from "@/features/clinic/api"; // Adjust import path as needed
-import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "framer-motion";
-import { Layers, X, AlertCircle, FileText } from "lucide-react";
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+import type React from "react"
+import { useState } from "react"
+import { useCreateBranchMutation } from "@/features/clinic/api"
+import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
+import { toast } from "react-toastify"
+import { motion } from "framer-motion"
+import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, ImageIcon, Loader2 } from "lucide-react"
 
+// Interfaces
 interface BranchFormProps {
-  onClose: () => void;
-  onSaveSuccess: () => void;
+  onClose: () => void
+  onSaveSuccess: () => void
 }
 
 interface ValidationErrors {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  address?: string;
-  operatingLicense?: string;
-  operatingLicenseExpiryDate?: string;
-  profilePictureUrl?: string;
+  name?: string
+  email?: string
+  phoneNumber?: string
+  address?: string
+  city?: string
+  district?: string
+  ward?: string
+  operatingLicense?: string
+  operatingLicenseExpiryDate?: string
+  profilePictureUrl?: string
+}
+
+interface AddressDetail {
+  provinceId: string
+  provinceName: string
+  districtId: string
+  districtName: string
+  wardId: string
+  wardName: string
+  streetAddress: string
 }
 
 export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) {
@@ -27,257 +42,573 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     name: "",
     email: "",
     phoneNumber: "",
-    address: "",
     operatingLicense: null as File | null,
     operatingLicenseExpiryDate: "",
     profilePictureUrl: null as File | null,
-  });
-//   const token = getAccessToken() as string;
-//   const { clinicId } = GetDataByToken(token) as TokenData;
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [createBranch, { isLoading }] = useCreateBranchMutation();
+  })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setValidationErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-  };
+  const [addressDetail, setAddressDetail] = useState<AddressDetail>({
+    provinceId: "",
+    provinceName: "",
+    districtId: "",
+    districtName: "",
+    wardId: "",
+    wardName: "",
+    streetAddress: "",
+  })
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "operatingLicense" | "profilePictureUrl") => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData((prev) => ({
+  // RTK Query hooks
+  const { data: provinces, isLoading: isLoadingProvinces } = useGetProvincesQuery()
+  const { data: districts, isLoading: isLoadingDistricts } = useGetDistrictsQuery(addressDetail.provinceId, {
+    skip: !addressDetail.provinceId,
+  })
+  const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(addressDetail.districtId, {
+    skip: !addressDetail.districtId,
+  })
+
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+  const [createBranch, { isLoading }] = useCreateBranchMutation()
+
+  // Handle address selection changes
+  const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const { name, value } = e.target
+
+    if (name === "provinceId" && provinces) {
+      const province = provinces.data.find((p) => p.id === value)
+      setAddressDetail((prev) => ({
         ...prev,
-        [field]: e.target.files![0],
-      }));
-      setValidationErrors((prev) => ({
+        provinceId: value,
+        provinceName: province?.name || "",
+        districtId: "",
+        districtName: "",
+        wardId: "",
+        wardName: "",
+      }))
+    } else if (name === "districtId" && districts) {
+      const district = districts.data.find((d) => d.id === value)
+      setAddressDetail((prev) => ({
         ...prev,
-        [field]: "",
-      }));
+        districtId: value,
+        districtName: district?.name || "",
+        wardId: "",
+        wardName: "",
+      }))
+    } else if (name === "wardId" && wards) {
+      const ward = wards.data.find((w) => w.id === value)
+      setAddressDetail((prev) => ({
+        ...prev,
+        wardId: value,
+        wardName: ward?.name || "",
+      }))
+    } else if (name === "streetAddress") {
+      setAddressDetail((prev) => ({
+        ...prev,
+        streetAddress: value,
+      }))
     }
-  };
+
+    // Clear address validation errors
+    if (validationErrors.address || validationErrors.city || validationErrors.district || validationErrors.ward) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.address
+        delete newErrors.city
+        delete newErrors.district
+        delete newErrors.ward
+        return newErrors
+      })
+    }
+  }
+
+  // Get full address for display purposes
+  const getFullAddress = (): string => {
+    const parts: string[] = []
+
+    if (addressDetail.streetAddress) parts.push(addressDetail.streetAddress)
+    if (addressDetail.wardName) parts.push(addressDetail.wardName)
+    if (addressDetail.districtName) parts.push(addressDetail.districtName)
+    if (addressDetail.provinceName) parts.push(addressDetail.provinceName)
+
+    return parts.join(", ")
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("phoneNumber", formData.phoneNumber);
-    formDataToSend.append("address", formData.address);
+    e.preventDefault()
+
+    // Clear all previous errors before submitting
+    setValidationErrors({})
+
+    const formDataToSend = new FormData()
+    formDataToSend.append("name", formData.name)
+    formDataToSend.append("email", formData.email)
+    formDataToSend.append("phoneNumber", formData.phoneNumber)
+
+    // Send address components separately
+    formDataToSend.append("address", addressDetail.streetAddress)
+    formDataToSend.append("city", addressDetail.provinceName)
+    formDataToSend.append("district", addressDetail.districtName)
+    formDataToSend.append("ward", addressDetail.wardName)
+
+    // Also include the full address for backward compatibility if needed
+    // formDataToSend.append("fullAddress", getFullAddress())
+
+    formDataToSend.append("operatingLicenseExpiryDate", formData.operatingLicenseExpiryDate)
     if (formData.operatingLicense) {
-      formDataToSend.append("operatingLicense", formData.operatingLicense);
+      formDataToSend.append("operatingLicense", formData.operatingLicense)
     }
     if (formData.profilePictureUrl) {
-      formDataToSend.append("profilePictureUrl", formData.profilePictureUrl);
-    }
-    if (formData.operatingLicenseExpiryDate) {
-      formDataToSend.append("operatingLicenseExpiryDate", formData.operatingLicenseExpiryDate);
+      formDataToSend.append("profilePictureUrl", formData.profilePictureUrl)
     }
 
     try {
-      await createBranch({ data: formDataToSend }).unwrap();
-      toast.success("Branch created successfully!");
-      onSaveSuccess();
-      onClose();
+      await createBranch({ data: formDataToSend }).unwrap()
+      toast.success("Branch created successfully!")
+      onSaveSuccess()
+      onClose()
     } catch (error: any) {
-      console.error("Error response:", error);
-      if (error?.status === 400 || error?.status === 422) {
-        const validationErrors = error?.data?.errors || [];
-        const newErrors: ValidationErrors = {};
-        validationErrors.forEach((err: { code: string; message: string }) => {
-          newErrors[err.code.toLowerCase() as keyof ValidationErrors] = err.message;
-        });
-        setValidationErrors(newErrors);
-        toast.error(error?.data?.detail || "Invalid data provided!");
+      console.error("Error response:", error)
+
+      // Handle API validation errors
+      if (error?.data?.errors) {
+        const formattedErrors: ValidationErrors = {}
+
+        // Assuming error.data.errors is an array of error objects
+        error.data.errors.forEach((err: any) => {
+          // Get the field name from either field or code property
+          const fieldName = err.field || err.code
+
+          // Map API field names to display names
+          const fieldDisplayNames: Record<string, string> = {
+            name: "Branch Name",
+            email: "Email",
+            phoneNumber: "Phone Number",
+            address: "Street Address",
+            city: "Province/City",
+            district: "District",
+            ward: "Ward",
+            operatingLicense: "Operating License",
+            operatingLicenseExpiryDate: "Operating License Expiry Date",
+            profilePictureUrl: "Profile Picture",
+          }
+
+          // Format the error message with the display name
+          const displayName = fieldDisplayNames[fieldName] || fieldName
+          formattedErrors[fieldName as keyof ValidationErrors] = `${displayName}: ${err.message}`
+        })
+
+        setValidationErrors(formattedErrors)
+        toast.error("Please check the form for errors")
       } else {
-        toast.error("An error occurred, please try again!");
+        // Handle unexpected errors
+        toast.error(error?.data?.message || "An unexpected error occurred. Please try again later.")
       }
     }
-  };
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Clear the specific error when input changes
+    if (validationErrors[name as keyof ValidationErrors]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name as keyof ValidationErrors]
+        return newErrors
+      })
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    const file = e.target.files?.[0]
+    setFormData((prev) => ({ ...prev, [fieldName]: file }))
+
+    // Clear the specific error when file changes
+    if (validationErrors[fieldName as keyof ValidationErrors]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[fieldName as keyof ValidationErrors]
+        return newErrors
+      })
+    }
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/30 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4"
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-md bg-white/95 backdrop-blur rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl my-8 overflow-hidden"
       >
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-t from-pink-100/20 to-transparent rounded-full -translate-x-16 translate-y-16" />
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+          <h2 className="text-2xl font-bold">Create New Branch</h2>
+          <p className="text-purple-100 mt-1">Add a new location to your clinic network</p>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-        <div className="relative p-4 sm:p-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3">
-              <Layers className="w-6 h-6 text-purple-500" />
-              <h2 className="text-2xl font-serif tracking-wide text-gray-800">Create Branch</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+        <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
+          {/* Validation Errors */}
+          {Object.entries(validationErrors).filter(([_, message]) => message).length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 rounded-lg border border-red-200 overflow-hidden"
             >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-
-          {/* Error Messages */}
-          <AnimatePresence>
-            {Object.keys(validationErrors).length > 0 && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="mb-6 max-h-32 overflow-y-auto"
-              >
-                {Object.entries(validationErrors).map(([field, message], index) => (
-                  message && (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      <p className="text-sm">{message}</p>
+              <div className="flex items-center gap-2 p-4 bg-red-50 border-b border-red-200">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <p className="text-red-700 font-medium">Please fix the following errors:</p>
+              </div>
+              <div className="p-4 bg-white space-y-2">
+                {Object.entries(validationErrors)
+                  .filter(([_, message]) => message)
+                  .map(([field, message]) => (
+                    <div key={field} className="flex items-start gap-2 text-sm text-red-600">
+                      <span className="mt-0.5">•</span>
+                      <span>{message}</span>
                     </div>
-                  )
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  ))}
+              </div>
+            </motion.div>
+          )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Branch Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter branch name"
-                required
-              />
-              {validationErrors.name && <p className="text-red-500 text-sm">{validationErrors.name}</p>}
+            {/* Basic Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-purple-500" />
+                <span>Basic Information</span>
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Branch Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.name
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      placeholder="Enter branch name"
+                      required
+                    />
+                  </div>
+                  {validationErrors.name && <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.email
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      placeholder="Enter email"
+                      required
+                    />
+                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.email && <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.phoneNumber
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      placeholder="Enter phone number"
+                      required
+                    />
+                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.phoneNumber && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.phoneNumber}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter email"
-                required
-              />
-              {validationErrors.email && <p className="text-red-500 text-sm">{validationErrors.email}</p>}
+            {/* Address Section */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-purple-500" />
+                <span>Address Details</span>
+              </h3>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Province Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Province/City <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="provinceId"
+                    value={addressDetail.provinceId}
+                    onChange={handleAddressChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.city
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
+                    required
+                  >
+                    <option value="">Select Province/City</option>
+                    {isLoadingProvinces ? (
+                      <option disabled>Loading provinces...</option>
+                    ) : (
+                      provinces?.data.map((province) => (
+                        <option key={province.id} value={province.id}>
+                          {province.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  {validationErrors.city && <p className="text-red-500 text-xs mt-1">{validationErrors.city}</p>}
+                </div>
+
+                {/* District Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    District <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="districtId"
+                    value={addressDetail.districtId}
+                    onChange={handleAddressChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.district
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
+                    required
+                    disabled={!addressDetail.provinceId || isLoadingDistricts}
+                  >
+                    <option value="">
+                      {!addressDetail.provinceId
+                        ? "Select province first"
+                        : isLoadingDistricts
+                          ? "Loading districts..."
+                          : "Select District"}
+                    </option>
+                    {districts?.data.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                  {validationErrors.district && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.district}</p>
+                  )}
+                </div>
+
+                {/* Ward Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Ward <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="wardId"
+                    value={addressDetail.wardId}
+                    onChange={handleAddressChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.ward
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 bg-white`}
+                    required
+                    disabled={!addressDetail.districtId || isLoadingWards}
+                  >
+                    <option value="">
+                      {!addressDetail.districtId
+                        ? "Select district first"
+                        : isLoadingWards
+                          ? "Loading wards..."
+                          : "Select Ward"}
+                    </option>
+                    {wards?.data.map((ward) => (
+                      <option key={ward.id} value={ward.id}>
+                        {ward.name}
+                      </option>
+                    ))}
+                  </select>
+                  {validationErrors.ward && <p className="text-red-500 text-xs mt-1">{validationErrors.ward}</p>}
+                </div>
+
+                {/* Street Address */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Street Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="streetAddress"
+                    value={addressDetail.streetAddress}
+                    onChange={handleAddressChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      validationErrors.address
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                    placeholder="Enter street address"
+                    required
+                  />
+                  {validationErrors.address && <p className="text-red-500 text-xs mt-1">{validationErrors.address}</p>}
+                </div>
+              </div>
+
+              {/* Preview Full Address */}
+              {(addressDetail.provinceName || addressDetail.provinceId) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100"
+                >
+                  <p className="text-sm text-gray-600 font-medium">Full Address:</p>
+                  <p className="text-sm text-gray-800 mt-1">{getFullAddress()}</p>
+                </motion.div>
+              )}
             </div>
 
-            {/* Phone Number */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Phone Number</label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter phone number"
-                required
-              />
-              {validationErrors.phoneNumber && <p className="text-red-500 text-sm">{validationErrors.phoneNumber}</p>}
-            </div>
+            {/* Documents Section */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-purple-500" />
+                <span>Documents & Media</span>
+              </h3>
 
-            {/* Address */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Address</label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                placeholder="Enter address"
-                required
-              />
-              {validationErrors.address && <p className="text-red-500 text-sm">{validationErrors.address}</p>}
-            </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Operating License <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      name="operatingLicense"
+                      onChange={(e) => handleFileChange(e, "operatingLicense")}
+                      className={`w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 px-4 py-3 rounded-lg border ${
+                        validationErrors.operatingLicense
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      accept=".pdf, .jpg, .jpeg, .png"
+                      required
+                    />
+                  </div>
+                  {validationErrors.operatingLicense && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.operatingLicense}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Accepted formats: PDF, JPG, PNG</p>
+                </div>
 
-            {/* Operating License (File Upload) */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Operating License</label>
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(e, "operatingLicense")}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                accept="application/pdf,image/*"
-              />
-              {validationErrors.operatingLicense && <p className="text-red-500 text-sm">{validationErrors.operatingLicense}</p>}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Operating License Expiry Date <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      name="operatingLicenseExpiryDate"
+                      value={formData.operatingLicenseExpiryDate}
+                      onChange={handleInputChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border ${
+                        validationErrors.operatingLicenseExpiryDate
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      required
+                    />
+                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.operatingLicenseExpiryDate && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.operatingLicenseExpiryDate}</p>
+                  )}
+                </div>
 
-            {/* Operating License Expiry Date */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Operating License Expiry Date</label>
-              <input
-                type="date"
-                name="operatingLicenseExpiryDate"
-                value={formData.operatingLicenseExpiryDate}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                required
-              />
-              {validationErrors.operatingLicenseExpiryDate && <p className="text-red-500 text-sm">{validationErrors.operatingLicenseExpiryDate}</p>}
-            </div>
-
-            {/* Profile Picture (File Upload) */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Profile Picture</label>
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(e, "profilePictureUrl")}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                accept="image/*"
-              />
-              {validationErrors.profilePictureUrl && <p className="text-red-500 text-sm">{validationErrors.profilePictureUrl}</p>}
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                    Profile Picture <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      name="profilePictureUrl"
+                      onChange={(e) => handleFileChange(e, "profilePictureUrl")}
+                      className={`w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 px-4 py-3 rounded-lg border ${
+                        validationErrors.profilePictureUrl
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                          : "border-gray-200 focus:border-purple-400 focus:ring-purple-200"
+                      } focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                      accept=".jpg, .jpeg, .png"
+                    />
+                    <ImageIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  {validationErrors.profilePictureUrl && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.profilePictureUrl}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Accepted formats: JPG, PNG (max 5MB)</p>
+                </div>
+              </div>
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
+                className="px-6 py-3 text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition-all duration-200 flex items-center gap-2"
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
-                  </div>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Creating...</span>
+                  </>
                 ) : (
-                  "Create Branch"
+                  <span>Create Branch</span>
                 )}
               </button>
             </div>
@@ -285,5 +616,6 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
         </div>
       </motion.div>
     </motion.div>
-  );
+  )
 }
+

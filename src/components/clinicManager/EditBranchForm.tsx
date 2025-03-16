@@ -28,7 +28,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: value,
     }));
@@ -40,7 +40,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: checked,
     }));
@@ -52,7 +52,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         profilePicture: e.target.files![0],
       }));

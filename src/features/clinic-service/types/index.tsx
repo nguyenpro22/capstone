@@ -10,7 +10,7 @@ export interface Service {
     description : string;
     maxPrice: number;
     minPrice: number,
-    discountPercent: string;
+    discountPercent: number;
     coverImage?: string[] | undefined; // Danh sách ảnh
     descriptionImages: string[];
     category: Category; // Thông tin danh mục dịch vụ
@@ -26,7 +26,7 @@ export interface Service {
     description?: string;
     stepIndex: number;
     coverImage?: string[];
-    procedurePriceTypes?: ProcedurePriceType[];
+    procedurePriceTypes?: ProcedurePriceType[] | undefined;
   }
   
   

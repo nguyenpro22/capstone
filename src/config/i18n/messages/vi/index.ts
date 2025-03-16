@@ -6,6 +6,7 @@ import { homeMessages } from "./home";
 import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
 import { voucherMessages } from "./voucher";
+import { branchMessages } from './branch';
 
 const vi = {
   home: homeMessages,
@@ -16,6 +17,7 @@ const vi = {
   api: apiMessages,
   clinic: clinicMessages,
   service: serviceMessages,
+  branch: branchMessages,
 };
 
 export default vi;

@@ -1,3 +1,5 @@
+const privateAdminPath = "/admin";
+const privateSystemAdminPath = "/system-admin";
 const privateClinicAdminPath = "/clinicAdmin";
 
 export const adminRoutes = {

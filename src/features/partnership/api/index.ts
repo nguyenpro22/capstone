@@ -6,12 +6,12 @@ export const partnershipRequestApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'http://160.187.240.214:3000/api/v1' }),
   endpoints: (builder) => ({
     getPartnershipRequests: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/clinics/apply?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
+      query: ({ pageIndex, pageSize, searchTerm }) => `/clinics/application?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
     }),
     updatePartnershipRequest: builder.mutation({
       // Custom fetchBaseQuery for the update request (port 4000)
       query: ({ requestId, action, rejectReason }) => ({
-        url: `http://160.187.240.214:4000/api/v1/clinics/apply/${requestId}`, // Port 4000
+        url: `http://160.187.240.214:4000/api/v1/clinics/application/${requestId}`, // Port 4000
         method: 'PUT',
         body: { requestId, action, rejectReason },
       }),

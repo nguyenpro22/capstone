@@ -2,6 +2,9 @@
 import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
 import authReducer from "@/features/auth/slice";
+import { addressApi } from "@/features/address/api";
+import { paymentsApi } from "@/features/payment/api";
+
 import { clinicsQueryApi, clinicsCommandApi } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api"; // Đảm bảo đường dẫn đúng
 import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm bảo đường dẫn đúng
@@ -30,7 +33,7 @@ const store = configureStore({
     [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
 
-    // [clinicsApi.reducerPath]: clinicsApi.reducer,
+    [clinicsApi.reducerPath]: clinicsApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
@@ -39,6 +42,8 @@ const store = configureStore({
     [categoryCommandApi.reducerPath]: categoryCommandApi.reducer,
     [serviceCommandApi.reducerPath]: serviceCommandApi.reducer,
     [serviceQueryApi.reducerPath]: serviceQueryApi.reducer,
+    [addressApi.reducerPath]: addressApi.reducer,
+    [paymentsApi.reducerPath]: paymentsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     // getDefaultMiddleware().concat(ExampleAPI.middleware),
@@ -48,7 +53,7 @@ const store = configureStore({
       packageCreateApi.middleware, // Thêm middleware cho packageCreateApi
       partnershipRequestApi.middleware,
 
-      // clinicsApi.middleware,
+      clinicsApi.middleware,
       serviceApi.middleware,
       categoryApi.middleware,
       clinicsQueryApi.middleware,
@@ -56,7 +61,9 @@ const store = configureStore({
       categoryQueryApi.middleware,
       categoryCommandApi.middleware,
       serviceCommandApi.middleware,
-      serviceQueryApi.middleware
+      serviceQueryApi.middleware,
+      addressApi.middleware,
+      paymentsApi.middleware
     ), // ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 
