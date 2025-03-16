@@ -1,152 +1,224 @@
+"use client";
+
+import type React from "react";
+
+import { useState } from "react";
+import { Video, Calendar, ImageIcon, Lock, Globe } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useLivestream } from "./livestream/context";
 
-interface LiveStreamFormProps {
-  formValues: { id: string; image: string };
-  onSubmit: (formValues: { id: string; image: string }) => void;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onCancel: () => void;
-}
+export default function LivestreamForm() {
+  const { submitForm } = useLivestream();
 
-const LiveStreamForm: React.FC<LiveStreamFormProps> = ({ onSubmit, onCancel }) => {
-  const [formValues, setFormValues] = useState({ id: "", image: "" });
-  const [preview, setPreview] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Skincare Tutorial");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [isScheduled, setIsScheduled] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormValues({ ...formValues, [e.target.name]: e.target.value });
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPreview(URL.createObjectURL(file)); // Display image preview
-      setFormValues({ ...formValues, image: file.name }); // Store file name
-    }
-  };
-
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formValues); // Submit data to the parent component
-    setFormValues({ id: "", image: "" }); // Reset form fields
-    setPreview(null); // Reset image preview
-  };
 
-  const handleCancel = () => {
-    setFormValues({ id: "", image: "" }); // Reset form values
-    setPreview(null); // Reset image preview
-    onCancel(); // Close the form
+    submitForm({
+      title,
+      description,
+      category,
+      isPrivate,
+      thumbnailUrl: thumbnailUrl || undefined,
+      scheduledTime:
+        isScheduled && scheduledTime ? new Date(scheduledTime) : undefined,
+    });
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 flex">
-        {/* Sidebar Left */}
-        <div className="w-1/4 border-r border-gray-300 pr-4">
-          <h3 className="text-lg font-bold mb-4">Điều khiển cơ bản</h3>
-          <ul className="space-y-4">
-            <li className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                <Image src="/path-to-image.png" alt="icon" className="w-6 h-6" />
-              </div>
-              <span>Hình ảnh trang</span>
-            </li>
-          </ul>
+    <div className="bg-white rounded-xl shadow-lg p-6 max-w-3xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+          <Video className="mr-3 text-rose-600" />
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-pink-600">
+            Tạo Livestream Mới
+          </span>
+        </h2>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Title */}
+        <div>
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Tiêu đề Livestream *
+          </label>
+          <input
+            id="title"
+            type="text"
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Nhập tiêu đề cho buổi livestream của bạn"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-rose-500 focus:border-rose-500"
+          />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 px-6">
-          <h2 className="text-xl font-semibold mb-4">Tạo luồng trực tiếp</h2>
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            {/* Upload Image */}
-            <div>
-              <label className="block font-semibold mb-2">Tải ảnh lên:</label>
-              <div className="flex items-center space-x-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  id="fileInput"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-                <label
-                  htmlFor="fileInput"
-                  className="border border-gray-300 rounded-md w-full p-2 flex items-center justify-center cursor-pointer text-blue-500 hover:underline"
-                >
-                  {formValues.image || "Chọn hình ảnh"}
-                </label>
-              </div>
-              {preview && (
-                <div className="mt-4">
-                  <p className="text-gray-700 font-semibold mb-2">Preview:</p>
+        {/* Description */}
+        <div>
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Mô tả
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Mô tả ngắn về nội dung livestream"
+            rows={3}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-rose-500 focus:border-rose-500"
+          />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Danh mục
+          </label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-rose-500 focus:border-rose-500"
+          >
+            <option value="Skincare Tutorial">Hướng dẫn chăm sóc da</option>
+            <option value="Makeup Masterclass">Lớp học trang điểm</option>
+            <option value="Spa Treatment Demo">Demo điều trị spa</option>
+            <option value="Product Launch">Ra mắt sản phẩm mới</option>
+            <option value="Q&A Session">Phiên hỏi đáp</option>
+          </select>
+        </div>
+
+        {/* Privacy */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Quyền riêng tư
+          </label>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={() => setIsPrivate(false)}
+              className={`flex items-center px-4 py-2 rounded-lg border ${
+                !isPrivate
+                  ? "border-rose-500 bg-rose-50 text-rose-700"
+                  : "border-gray-300 text-gray-700"
+              }`}
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              Công khai
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPrivate(true)}
+              className={`flex items-center px-4 py-2 rounded-lg border ${
+                isPrivate
+                  ? "border-rose-500 bg-rose-50 text-rose-700"
+                  : "border-gray-300 text-gray-700"
+              }`}
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Riêng tư
+            </button>
+          </div>
+        </div>
+
+        {/* Thumbnail */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Ảnh thumbnail
+          </label>
+          <div className="flex items-center space-x-4">
+            <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+              {thumbnailUrl ? (
+                <div className="relative w-full h-full">
                   <Image
-                    src={preview}
-                    alt="Preview"
-                    className="w-32 h-32 object-cover border rounded-md"
-                    width={96} // Thay đổi kích thước phù hợp
-                    height={96}
+                    src={thumbnailUrl || "/placeholder.svg"}
+                    alt="Thumbnail"
+                    fill
+                    className="object-cover"
                   />
                 </div>
+              ) : (
+                <ImageIcon className="w-8 h-8 text-gray-400" />
               )}
             </div>
-
-            {/* Stream Title */}
             <div>
-              <label className="block font-semibold mb-2">Tiêu đề:</label>
               <input
                 type="text"
-                name="id"
-                value={formValues.id}
-                onChange={handleInputChange}
-                className="border border-gray-300 rounded-md w-full p-2"
-                placeholder="Nhập tiêu đề luồng phát"
+                value={thumbnailUrl}
+                onChange={(e) => setThumbnailUrl(e.target.value)}
+                placeholder="Nhập URL hình ảnh"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-rose-500 focus:border-rose-500"
               />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4">
-              <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-              >
-                Phát
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel} // Trigger handleCancel function
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Sidebar Right */}
-        <div className="w-1/4 border-l border-gray-300 pl-4">
-          <h3 className="text-lg font-bold mb-4">Thuộc tính cơ bản</h3>
-          <div>
-            <label className="block font-semibold mb-2">Tải ảnh lên:</label>
-            <div className="border border-gray-300 rounded-md w-full p-2 flex items-center justify-center">
-              <span className="text-gray-500">+ Thêm ảnh</span>
-            </div>
-            <div className="mt-4">
-              <label className="block font-semibold mb-2">Vị trí hiển thị:</label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="position"
-                  value="in-page"
-                  defaultChecked
-                  className="form-radio"
-                />
-                <span>Trong trang</span>
-              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Nhập URL hình ảnh hoặc để trống để sử dụng ảnh mặc định
+              </p>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Schedule */}
+        <div>
+          <div className="flex items-center mb-2">
+            <input
+              id="schedule"
+              type="checkbox"
+              checked={isScheduled}
+              onChange={() => setIsScheduled(!isScheduled)}
+              className="h-4 w-4 text-rose-600 focus:ring-rose-500 border-gray-300 rounded"
+            />
+            <label
+              htmlFor="schedule"
+              className="ml-2 block text-sm font-medium text-gray-700"
+            >
+              Lên lịch livestream
+            </label>
+          </div>
+
+          {isScheduled && (
+            <div className="flex items-center">
+              <Calendar className="w-5 h-5 text-gray-400 mr-2" />
+              <input
+                type="datetime-local"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-rose-500 focus:border-rose-500"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-lg hover:from-rose-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500"
+          >
+            Bắt đầu Livestream
+          </button>
+        </div>
+      </form>
     </div>
   );
-};
-
-export default LiveStreamForm;
+}

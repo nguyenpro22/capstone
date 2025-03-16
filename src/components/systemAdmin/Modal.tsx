@@ -7,9 +7,14 @@ import { motion, AnimatePresence } from "framer-motion"
 interface ModalProps {
   onClose: () => void
   children: ReactNode
+  /**
+   * Set to false to disable scrolling in the modal content
+   * Useful when the child component has its own scrolling container
+   */
+  scrollable?: boolean
 }
 
-export default function Modal({ onClose, children }: ModalProps) {
+export default function Modal({ onClose, children, scrollable = true }: ModalProps) {
   return (
     <AnimatePresence>
       <motion.div
@@ -39,7 +44,13 @@ export default function Modal({ onClose, children }: ModalProps) {
             <X className="w-5 h-5 text-gray-600 group-hover:rotate-90 transition-transform duration-300" />
           </button>
 
-          <div className="relative p-8 max-h-[85vh] overflow-y-auto custom-scrollbar">{children}</div>
+          <div
+            className={`relative p-8 ${
+              scrollable ? "max-h-[85vh] overflow-y-auto" : "overflow-visible"
+            } custom-scrollbar`}
+          >
+            {children}
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

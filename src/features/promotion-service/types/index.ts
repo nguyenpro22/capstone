@@ -7,7 +7,7 @@ export interface ServicePromotion {
     isDeleted: boolean;
   }
   
-export interface ServicePromotionDetailResponse {
+export interface PromotionDetailResponse {
   value: ServicePromotion;
   isSuccess: boolean;
 }

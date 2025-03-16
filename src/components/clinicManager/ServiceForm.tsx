@@ -12,6 +12,8 @@ import {  useGetBranchesQuery } from "@/features/clinic/api";
 import Select from "react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, X, ImageIcon, Check, AlertCircle } from "lucide-react";
+import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+import { Branch } from "@/features/clinic/types";
 
 interface ServiceFormProps {
   onClose: () => void;
@@ -34,11 +36,10 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
     pageSize: 100,
     searchTerm: "",
   });
-  const { data: branchesData, isLoading: isBranchesLoading } = useGetBranchesQuery({
-    pageIndex: 1,
-    pageSize: 100,
-    searchTerm: "",
-  });
+  const token = getAccessToken() as string
+    const { clinicId } = GetDataByToken(token) as TokenData
+  
+    const { data: branchesData, isLoading: isLoadingBranches, error, refetch } = useGetBranchesQuery(clinicId || '')
 
   const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : [];
   const categoryOptions = categories.map((cat: any) => ({
@@ -46,8 +47,9 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
     label: cat.name,
   }));
 
-  const branches = Array.isArray(branchesData?.value?.items) ? branchesData.value.items : [];
-  const branchOptions = branches.map((branch: any) => ({
+  const branches = Array.isArray(branchesData?.value.branches) ? branchesData.value.branches : [];
+  console.log("data branches: " , branchesData)
+  const branchOptions = branches.map((branch: Branch) => ({
     value: branch.id,
     label: branch.name,
   }));
@@ -235,7 +237,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 value={selectedBranches}
                 onChange={(selected) => setSelectedBranches(selected as { value: string; label: string }[])}
                 options={branchOptions}
-                isDisabled={isBranchesLoading}
+                isDisabled={isLoadingBranches}
                 isSearchable
                 placeholder="Select Branches"
                 styles={selectStyles}

@@ -3,10 +3,16 @@ export interface Clinic {
   name: string;
   email: string;
   address: string;
+  city: string;
+  district: string;
+  ward: string;
   phoneNumber: string;
   totalBranches: number;
   profilePictureUrl: string;
+  bankName: string;
+  bankAccountNumber: string;
   isActivated: boolean;
+  
 }
 
 export interface ClinicsResponse {
@@ -42,6 +48,7 @@ export interface Branch {
   operatingLicenseExpiryDate: string;
   profilePictureUrl: string;
   isActivated: boolean;
+  branches: Branch[];
 }
 
 export interface BranchDetailResponse {
@@ -59,4 +66,22 @@ export interface BranchDetailResponse {
     code: string;
     message: string;
   };
+}
+
+export interface SubscriptionResponse {
+  documentId: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: number;
+  isActivated: boolean;
+}
+
+export interface TransactionDetails {
+  transactionId: string;
+  bankNumber: string;
+  bankGateway: string;
+  amount: number;
+  orderDescription: string;
+  qrUrl: string;
 }

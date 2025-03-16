@@ -121,7 +121,7 @@ export default function PromotionForm({ serviceId, onClose }: PromotionFormProps
         
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-serif tracking-wide text-gray-800">Tạo Khuyến Mãi Mới</h2>
+            <h2 className="text-2xl tracking-wide text-gray-800">Tạo Khuyến Mãi Mới</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"

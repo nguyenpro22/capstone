@@ -1,4 +1,5 @@
 const privateAdminPath = "/admin";
+const privateSystemAdminPath = "/system-admin";
 
 export const adminRoutes = {
   DASHBOARD: `${privateAdminPath}/dashboard`,

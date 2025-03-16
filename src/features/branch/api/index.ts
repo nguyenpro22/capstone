@@ -1,6 +1,7 @@
-import { reAuthQuery } from '@/lib/api';
+import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
 import { BranchDetailResponse } from './../types/index';
 import { createApi } from '@reduxjs/toolkit/query/react';
+import { Branch } from '@/features/clinic/types';
 
 
 // API GET chạy trên port 3000
@@ -8,11 +9,14 @@ export const branchQueryApi = createApi({
   reducerPath: 'branchQueryApi',
   baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
-    getBranches: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/branches?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
+    getBranches: builder.query<
+    IResCommon<IListResponse<Branch>>,
+    { pageIndex?: number; pageSize?: number; serchTerm?: string }
+  >({
+    query: ({ pageIndex = 1, pageSize = 10, serchTerm=""}) => `/clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${serchTerm}&sortOrder=desc`,
     }),
-    getBranchById: builder.query<BranchDetailResponse, string>({
-      query: (id) => `branches/${id}?id=${id}`,
+    getBranchById: builder.query<IResCommon<Branch>, string>({
+      query: (id) => `clinic/${id}?id=${id}`,
     }),
   }),
 });

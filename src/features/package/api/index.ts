@@ -30,10 +30,10 @@ export const packageCreateApi = createApi({
       }),
     }),
     updatePackage: builder.mutation({
-      query: ({ documentId, ...rest }) => ({
-        url: `/subscriptions/${documentId}`, // Sử dụng documentId trong URL nếu cần
+      query: ({ id, ...rest }) => ({
+        url: `/subscriptions/${id}`, // Sử dụng documentId trong URL nếu cần
         method: "PUT",
-        body: { id: documentId, ...rest }, // Chuyển documentId thành id trong request body
+        body: { id: id, ...rest }, // Chuyển documentId thành id trong request body
       }),
     }),
     deletePackage: builder.mutation({
