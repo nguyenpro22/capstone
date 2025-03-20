@@ -7,6 +7,8 @@ import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/
 import { toast } from "react-toastify"
 import { motion } from "framer-motion"
 import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, ImageIcon, Loader2 } from "lucide-react"
+import { nullable } from "zod"
+import { getAccessToken, GetDataByToken, TokenData } from "@/utils"
 
 // Interfaces
 interface BranchFormProps {
@@ -35,6 +37,8 @@ interface AddressDetail {
   wardId: string
   wardName: string
   streetAddress: string
+  bankAccountNumber: string
+  bankName: string
 }
 
 export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) {
@@ -46,6 +50,11 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     operatingLicenseExpiryDate: "",
     profilePictureUrl: null as File | null,
   })
+   // Get the token and extract clinicId
+    const token = getAccessToken()
+    // Add null check for token
+    const tokenData = token ? (GetDataByToken(token) as TokenData) : null
+    const clinicId = tokenData?.clinicId || ""
 
   const [addressDetail, setAddressDetail] = useState<AddressDetail>({
     provinceId: "",
@@ -55,6 +64,8 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     wardId: "",
     wardName: "",
     streetAddress: "",
+    bankAccountNumber: "",
+    bankName: "",
   })
 
   // RTK Query hooks
@@ -148,6 +159,10 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     formDataToSend.append("city", addressDetail.provinceName)
     formDataToSend.append("district", addressDetail.districtName)
     formDataToSend.append("ward", addressDetail.wardName)
+    formDataToSend.append("bankName", addressDetail.bankName)
+    formDataToSend.append("bankAccountNumber", addressDetail.bankAccountNumber)
+
+
 
     // Also include the full address for backward compatibility if needed
     // formDataToSend.append("fullAddress", getFullAddress())
@@ -161,7 +176,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     }
 
     try {
-      await createBranch({ data: formDataToSend }).unwrap()
+      await createBranch({ clinicId, data: formDataToSend }).unwrap()
       toast.success("Branch created successfully!")
       onSaveSuccess()
       onClose()

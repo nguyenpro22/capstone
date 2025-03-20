@@ -1,3 +1,4 @@
+import { Clinic } from "@/features/clinic/types";
 
 export interface Category {
     id: string;
@@ -14,6 +15,20 @@ export interface Service {
     coverImage?: string[] | undefined; // Danh sách ảnh
     descriptionImages: string[];
     category: Category; // Thông tin danh mục dịch vụ
+  }
+
+  export interface ServiceDetail {
+    id: string;
+    name: string;
+    description : string;
+    maxPrice: number;
+    minPrice: number,
+    discountPercent: number;
+    coverImage?: string[] | undefined; // Danh sách ảnh
+    descriptionImages: string[];
+    category: Category; // Thông tin danh mục dịch vụ
+    procedures: Procedure[];
+    clinics: Clinic[];
   }
   export interface ProcedurePriceType {
     id: number;

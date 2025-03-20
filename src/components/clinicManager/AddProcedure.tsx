@@ -4,8 +4,24 @@ import type React from "react"
 import { useState } from "react"
 import { useAddProcedureMutation } from "@/features/clinic-service/api"
 import { toast } from "react-toastify"
-import { X, Plus, ImageIcon, Clock, DollarSign, Trash2 } from "lucide-react"
+import { X, Plus, ImageIcon, Clock, DollarSign, Trash2, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
+import Image from "next/image"
+
+// Define error types based on the API response
+interface ValidationError {
+  code: string
+  message: string
+}
+
+// Update the ApiError interface to handle cases where errors might be null
+interface ApiError {
+  type: string
+  title: string
+  status: number
+  detail: string
+  errors: ValidationError[] | null
+}
 
 const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clinicServiceId: string }) => {
   const [name, setName] = useState("")
@@ -14,6 +30,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   const [procedureCoverImage, setProcedureCoverImage] = useState<File | null>(null)
   const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0 }])
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const [addProcedure, { isLoading }] = useAddProcedureMutation()
 
@@ -33,8 +50,14 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     setProcedureCoverImage(file)
-
+    // Clear any previous image validation error
     if (file) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.ProcedureCoverImage
+        return newErrors
+      })
+
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result as string)
@@ -45,18 +68,44 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     }
   }
 
+  // Helper function to display field error
+  const getFieldError = (fieldName: string) => {
+    return validationErrors[fieldName] || ""
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Clear previous validation errors
+    setValidationErrors({})
+
+    // Client-side validation
+    const errors: Record<string, string> = {}
+
     if (!name.trim()) {
-      toast.error("Tên thủ tục không được để trống!")
-      return
+      errors.Name = "Tên thủ tục không được để trống!"
+    } else if (name.trim().length < 2) {
+      errors.Name = "Tên thủ tục phải có ít nhất 2 ký tự!"
     }
+
     if (!description.trim()) {
-      toast.error("Mô tả không được để trống!")
-      return
+      errors.Description = "Mô tả không được để trống!"
+    } else if (description.trim().length < 2) {
+      errors.Description = "Mô tả phải có ít nhất 2 ký tự!"
     }
+
+    if (!procedureCoverImage) {
+      errors.ProcedureCoverImage = "Hình ảnh không được để trống!"
+    }
+
     if (priceTypes.length === 0) {
-      toast.error("Phải có ít nhất một loại giá!")
+      errors.PriceTypes = "Phải có ít nhất một loại giá!"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
+      // Show the first error as a toast
+      const firstError = Object.values(errors)[0]
+      toast.error(firstError)
       return
     }
 
@@ -76,13 +125,52 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     }
     formData.append("procedurePriceTypes", JSON.stringify(procedurePriceTypes))
 
+    // Update the handleSubmit function's catch block to handle the case where errors is null
     try {
       await addProcedure({ data: formData }).unwrap()
       toast.success("Thêm thủ tục thành công!")
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi khi thêm Procedure:", error)
-      toast.error("Thêm thất bại, vui lòng thử lại.")
+
+      if (error.data) {
+        const apiError = error.data as ApiError
+
+        // Handle case where there are specific field errors
+        if (apiError.errors) {
+          const newErrors: Record<string, string> = {}
+
+          apiError.errors.forEach((err) => {
+            newErrors[err.code] = err.message
+          })
+
+          setValidationErrors(newErrors)
+
+          // Show the first error as a toast
+          if (apiError.errors.length > 0) {
+            toast.error(apiError.errors[0].message)
+          } else {
+            toast.error("Thêm thất bại, vui lòng thử lại.")
+          }
+        }
+        // Handle case where there's a general error message but no specific field errors
+        else if (apiError.detail) {
+          // For step index already exists error
+          if (apiError.detail.includes("Step Index Exist")) {
+            setValidationErrors((prev) => ({
+              ...prev,
+              StepIndex: "Thứ tự bước này đã tồn tại!",
+            }))
+            toast.error("Thứ tự bước này đã tồn tại!")
+          } else {
+            toast.error(apiError.detail)
+          }
+        } else {
+          toast.error("Thêm thất bại, vui lòng thử lại.")
+        }
+      } else {
+        toast.error("Thêm thất bại, vui lòng thử lại.")
+      }
     }
   }
 
@@ -94,7 +182,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]"
       >
         {/* Header with gradient - Fixed at top */}
-        <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 p-5 rounded-t-xl sticky top-0 z-10">
+        <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 p-5 rounded-t-xl top-0 z-10">
           <h2 className="text-2xl font-bold text-white">Thêm Giai Đoạn</h2>
           <button
             onClick={onClose}
@@ -111,64 +199,132 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
               <label className="block text-sm font-medium text-gray-700">Tên Thủ Tục</label>
               <input
                 type="text"
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all ${
+                  getFieldError("Name") ? "border-red-500 bg-red-50" : "border-gray-300"
+                }`}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (e.target.value.trim().length >= 2) {
+                    setValidationErrors((prev) => {
+                      const newErrors = { ...prev }
+                      delete newErrors.Name
+                      return newErrors
+                    })
+                  }
+                }}
                 placeholder="Nhập tên thủ tục"
                 required
               />
+              {getFieldError("Name") && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {getFieldError("Name")}
+                </p>
+              )}
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">Mô Tả</label>
               <textarea
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all min-h-[100px]"
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all min-h-[100px] ${
+                  getFieldError("Description") ? "border-red-500 bg-red-50" : "border-gray-300"
+                }`}
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  setDescription(e.target.value)
+                  if (e.target.value.trim().length >= 2) {
+                    setValidationErrors((prev) => {
+                      const newErrors = { ...prev }
+                      delete newErrors.Description
+                      return newErrors
+                    })
+                  }
+                }}
                 placeholder="Nhập mô tả chi tiết về thủ tục"
                 required
               />
+              {getFieldError("Description") && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {getFieldError("Description")}
+                </p>
+              )}
             </div>
-
+     
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">Thứ tự bước</label>
               <input
                 type="number"
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all ${
+                  getFieldError("StepIndex") ? "border-red-500 bg-red-50" : "border-gray-300"
+                }`}
                 value={stepIndex}
-                onChange={(e) => setStepIndex(Number(e.target.value))}
+                onChange={(e) => {
+                  setStepIndex(Number(e.target.value))
+                  // Clear the step index error when the user changes the value
+                  if (getFieldError("StepIndex")) {
+                    setValidationErrors((prev) => {
+                      const newErrors = { ...prev }
+                      delete newErrors.StepIndex
+                      return newErrors
+                    })
+                  }
+                }}
                 min="0"
                 required
               />
+              {getFieldError("StepIndex") && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {getFieldError("StepIndex")}
+                </p>
+              )}
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">Hình Ảnh</label>
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <label
+                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors ${
+                      getFieldError("ProcedureCoverImage") ? "border-red-500 bg-red-50" : "border-gray-300"
+                    }`}
+                  >
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon className="w-8 h-8 mb-2 text-gray-400" />
+                      <ImageIcon
+                        className={`w-8 h-8 mb-2 ${getFieldError("ProcedureCoverImage") ? "text-red-400" : "text-gray-400"}`}
+                      />
                       <p className="text-sm text-gray-500">
                         <span className="font-medium">Nhấp để tải lên</span> hoặc kéo thả
                       </p>
                     </div>
                     <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
                   </label>
+                  {getFieldError("ProcedureCoverImage") && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle size={14} className="mr-1" />
+                      {getFieldError("ProcedureCoverImage")}
+                    </p>
+                  )}
                 </div>
 
                 {imagePreview && (
                   <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200">
-                    <img
+                    <Image
                       src={imagePreview || "/placeholder.svg"}
                       alt="Preview"
                       className="w-full h-full object-cover"
+                      width={100}
+                      height={100}
                     />
                     <button
                       type="button"
                       onClick={() => {
                         setProcedureCoverImage(null)
                         setImagePreview(null)
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          ProcedureCoverImage: "Hình ảnh không được để trống!",
+                        }))
                       }}
                       className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white"
                     >
@@ -178,7 +334,6 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 )}
               </div>
             </div>
-
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700">Loại Giá Dịch Vụ</label>
@@ -258,8 +413,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                   </div>
                 ))}
               </div>
+              {getFieldError("PriceTypes") && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {getFieldError("PriceTypes")}
+                </p>
+              )}
             </div>
-
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <button
                 type="button"

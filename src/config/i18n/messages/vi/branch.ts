@@ -3,9 +3,11 @@ import { Messages } from "../types";
 export const branchMessages: Messages["branch"] = {
   createNewBranch: "Tạo Chi Nhánh Mới",
   branchesList: "Danh Sách Chi Nhánh",
-  fullName: "Họ ̃& Tên",
+  branchName: "Họ ̃& Tên",
   email: "Email",
   address: "Địa Chỉ",
+  phoneNumber: "SĐT",
+  taxCode: "Mã Số Thuế",
   operatingLicenseExpiryDate: "Ngày Hết Hạn Giấy Phép Hoạt Động",
   status: "Trạng Thái",
   action: "Hành Động",
@@ -17,5 +19,12 @@ export const branchMessages: Messages["branch"] = {
   editBranch : "Chỉnh sửa chi nhánh",
   deleteBranch: "Xóa chi nhánh",
   previous: "Trước",
-  next: "Tiếp theo"
+  next: "Tiếp theo",
+  viewBusinessLicense: "Xem Giấy phép kinh doanh",
+  viewOperatingLicense: "Xem Giấy phép hoạt động",
+  profilePicture: "Ảnh đại diện",
+  licenses: "Giấy phép",
+  close: "Đóng",
+  branchDetails: "Chi tiết chi nhánh",
+  loading: "Đang tải"
 };

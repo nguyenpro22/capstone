@@ -3,9 +3,11 @@ import { Messages } from "../types";
 export const branchMessages: Messages["branch"] = {
   createNewBranch: "Create New Branch",
   branchesList: "Branches List",
-  fullName: "Full Name",
+  branchName: "Branch Name",
   email: "Email",
   address: "Address",
+  phoneNumber: "Phone Number",
+  taxCode: "Tax Code",
   operatingLicenseExpiryDate: "Operating License Expiry Date",
   status: "Status",
   action: "Action",
@@ -17,5 +19,12 @@ export const branchMessages: Messages["branch"] = {
   editBranch : "Edit branch",
   deleteBranch: "Delete branch",
   previous: "Previous",
-  next: "Next"
+  next: "Next",
+  viewBusinessLicense: "View Business License",
+  viewOperatingLicense: "View Operating License",
+  profilePicture: "Profile Picture",
+  licenses: "Licenses",
+  close: "Close",
+  branchDetails: "Branch Details",
+  loading: "Loading"
 };

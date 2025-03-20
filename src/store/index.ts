@@ -5,7 +5,7 @@ import authReducer from "@/features/auth/slice";
 import { addressApi  } from "@/features/address/api";
 import { paymentsApi  } from "@/features/payment/api";
 
-import { clinicsQueryApi, clinicsCommandApi  } from "@/features/clinic/api";
+import { clinicsQueryApi, clinicsCommandApi, staffCommandApi, staffQueryApi, doctorCommandApi, doctorQueryApi  } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api"; // Đảm bảo đường dẫn đúng
 import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm bảo đường dẫn đúng
 
@@ -36,6 +36,10 @@ const store = configureStore({
     [serviceQueryApi.reducerPath]: serviceQueryApi.reducer,
     [addressApi.reducerPath]: addressApi.reducer,
     [paymentsApi.reducerPath]: paymentsApi.reducer,
+    [staffCommandApi.reducerPath]: staffCommandApi.reducer,
+    [staffQueryApi.reducerPath]: staffQueryApi.reducer,
+    [doctorCommandApi.reducerPath]: doctorCommandApi.reducer,
+    [doctorQueryApi.reducerPath]: doctorQueryApi.reducer,
 
   },
   middleware: (getDefaultMiddleware) =>
@@ -55,6 +59,10 @@ const store = configureStore({
       serviceQueryApi.middleware,
       addressApi.middleware,
       paymentsApi.middleware,
+      staffCommandApi.middleware,
+      staffQueryApi.middleware,
+      doctorCommandApi.middleware,
+      doctorQueryApi.middleware,
     ),// ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 

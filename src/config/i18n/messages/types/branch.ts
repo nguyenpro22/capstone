@@ -1,9 +1,11 @@
 export type branchMessages = {
     createNewBranch: string;
     branchesList: string;
-    fullName: string;
+    branchName: string;
     email: string;
+    phoneNumber: string;
     address: string;
+    taxCode: string;
     operatingLicenseExpiryDate: string;
     status: string;
     action: string;
@@ -16,5 +18,12 @@ export type branchMessages = {
     deleteBranch : string;
     previous: string;
     next: string;
+    viewBusinessLicense: string;
+    viewOperatingLicense: string;
+    profilePicture: string;
+    licenses: string;
+    close: string;
+    branchDetails: string;
+    loading: string;
   };
   
