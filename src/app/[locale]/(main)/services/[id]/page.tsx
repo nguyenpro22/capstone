@@ -42,7 +42,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { AnimatedGradientBackground } from "@/components/ui/animated-gradient-background";
-import { BookingFlow } from "@/components/services/booking";
+import { BookingFlow } from "@/components/services/booking/booking/booking-flow";
 
 // Constants
 const BENEFITS = [

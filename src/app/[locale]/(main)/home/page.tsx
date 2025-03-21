@@ -8,12 +8,19 @@ import SiteHeader from "@/components/home/Header";
 import { HeroSection } from "@/components/home/hero-section";
 import { OffersSection } from "@/components/home/offers-section";
 import { FloatingQuizButton } from "@/components/home/quiz-modal";
-import { ServicesSection } from "@/components/home/services-section";
+import dynamic from "next/dynamic";
 import { TestimonialsSection } from "@/components/home/testimonials-section";
 import { WhyChooseUsSection } from "@/components/home/why-choose-us";
 import { QuizItem } from "@/features/quiz/types";
 import { IListResponse, IResCommon } from "@/lib/api";
 
+const ServicesSection = dynamic(
+  () =>
+    import("@/components/home/services-section").then(
+      (mod) => mod.ServicesSection
+    ),
+  { ssr: false }
+);
 async function getQuizData(): Promise<IResCommon<IListResponse<QuizItem>>> {
   // For demo purposes, we're using the data from the provided JSON
   return {
@@ -167,6 +174,7 @@ async function getQuizData(): Promise<IResCommon<IListResponse<QuizItem>>> {
 
 export default async function Home() {
   const quizData = await getQuizData();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-gray-900 dark:to-gray-950">
       <SiteHeader />

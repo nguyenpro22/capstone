@@ -7,8 +7,21 @@ import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, LogOut, Settings } from "lucide-react";
 import { useGetAllcategoriesQuery } from "@/features/home/api";
+import logo from "@/../public/images/logo.png";
+import { useRouter } from "next/navigation";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -75,7 +88,11 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [allServices, setAllServices] = useState<ServiceItem[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [userData, setUserData] = useState<TokenData | null>(null);
   const t = useTranslations("home");
+  const router = useRouter();
+
+  const token = getAccessToken() as string;
 
   // Fetch first page
   const {
@@ -133,6 +150,21 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
     };
   }, []);
 
+  // Get user data from token
+  useEffect(() => {
+    if (token) {
+      try {
+        const data = GetDataByToken(token) as TokenData;
+        setUserData(data);
+      } catch (error) {
+        console.error("Error parsing token:", error);
+        setUserData(null);
+      }
+    } else {
+      setUserData(null);
+    }
+  }, [token]);
+
   // Organize services into a hierarchical structure
   const organizedServices = useMemo(() => {
     const mainCategories = allServices.filter(
@@ -180,10 +212,40 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
     }
   };
 
+  const handleLogin = () => {
+    router.push("/login");
+  };
+
+  const handleLogout = () => {
+    // Implement logout logic here
+    // For example: removeAccessToken();
+    router.push("/login");
+  };
+
+  const handleProfile = () => {
+    router.push("/user/profile");
+  };
+
+  const handleBookings = () => {
+    router.push("/user/bookings");
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!userData || !userData.role) return "U";
+
+    return userData.role
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-500 ease-in-out",
+        "sticky top-0 z-50 w-full transition-all h-[60px] duration-500 ease-in-out",
         isScrolled
           ? "bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:bg-gray-900/80 dark:border-gray-800"
           : "bg-white dark:bg-gray-900"
@@ -194,14 +256,14 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
           <div className="flex items-center gap-8">
             <Link
               href="/"
-              className="flex items-center transition-all duration-300 hover:scale-105 transform"
+              className="flex items-center transition-all mt-3 duration-300 hover:scale-105 transform"
             >
               <Image
-                src="/placeholder.svg?height=40&width=120"
+                src={logo || "/placeholder.svg"}
                 alt="Logo"
                 width={120}
-                height={40}
-                className="h-8 w-auto"
+                height={120}
+                className=""
               />
             </Link>
 
@@ -314,9 +376,62 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
 
           <div className="flex items-center gap-6">
             {children}
-            <button className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-              Login
-            </button>
+
+            {!token ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogin}
+                className="h-9 px-4 font-medium"
+              >
+                Đăng nhập
+              </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full"
+                  >
+                    <Avatar className="h-9 w-9 border-2 border-primary/10">
+                      <AvatarImage
+                        src={userData?.role || undefined}
+                        alt={userData?.role || "User"}
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {userData?.role || "User"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {userData?.role || ""}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleProfile}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Hồ sơ</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleBookings}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Lịch hẹn</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Đăng xuất</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
