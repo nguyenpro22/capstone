@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ContactSection } from "@/components/home/contact-section";
 import { ExpertsSection } from "@/components/home/experts-section";
 import { FooterSection } from "@/components/home/Footer";
@@ -8,20 +9,14 @@ import SiteHeader from "@/components/home/Header";
 import { HeroSection } from "@/components/home/hero-section";
 import { OffersSection } from "@/components/home/offers-section";
 import { FloatingQuizButton } from "@/components/home/quiz-modal";
-import dynamic from "next/dynamic";
 import { TestimonialsSection } from "@/components/home/testimonials-section";
 import { WhyChooseUsSection } from "@/components/home/why-choose-us";
-import { QuizItem } from "@/features/quiz/types";
-import { IListResponse, IResCommon } from "@/lib/api";
+import type { QuizItem } from "@/features/quiz/types";
+import type { IListResponse, IResCommon } from "@/lib/api";
+import { ServicesSection } from "@/components/home/services-section";
 
-const ServicesSection = dynamic(
-  () =>
-    import("@/components/home/services-section").then(
-      (mod) => mod.ServicesSection
-    ),
-  { ssr: false }
-);
-async function getQuizData(): Promise<IResCommon<IListResponse<QuizItem>>> {
+// Move the data fetching function outside the component
+function getQuizData(): IResCommon<IListResponse<QuizItem>> {
   // For demo purposes, we're using the data from the provided JSON
   return {
     value: {
@@ -172,8 +167,21 @@ async function getQuizData(): Promise<IResCommon<IListResponse<QuizItem>>> {
   };
 }
 
-export default async function Home() {
-  const quizData = await getQuizData();
+export default function Home() {
+  const [quizData, setQuizData] = useState<IResCommon<
+    IListResponse<QuizItem>
+  > | null>(null);
+
+  useEffect(() => {
+    // Get the quiz data when the component mounts
+    const data = getQuizData();
+    setQuizData(data);
+  }, []);
+
+  // Show loading state while fetching data
+  if (!quizData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-gray-900 dark:to-gray-950">
