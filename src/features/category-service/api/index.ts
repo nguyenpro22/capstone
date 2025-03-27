@@ -1,5 +1,5 @@
-import { reAuthQuery } from '@/lib/api';
-import { CategoryDetailResponse } from './../types/index';
+import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
+import { CategoryDetail, CategoryDetailResponse } from './../types/index';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 
@@ -8,10 +8,18 @@ export const categoryQueryApi = createApi({
   reducerPath: 'categoryQueryApi',
   baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
-    getCategories: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
+    getCategories: builder.query<
+      IResCommon<IListResponse<CategoryDetail>>,
+      { pageIndex?: number; pageSize?: number; searchTerm?: string }
+    >({
+      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "" }) =>
+        `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
     }),
-    getCategoryById: builder.query<CategoryDetailResponse, string>({
+    getAllCategories: builder.query<IResCommon<IListResponse<CategoryDetail>>, void>({
+      query: () => `/categories?pageIndex=1&pageSize=1000&sortOrder=desc`,
+    }),
+    
+    getCategoryById: builder.query<IResCommon<CategoryDetail>, string>({
       query: (id) => `categories/${id}?id=${id}`,
     }),
   }),
@@ -30,10 +38,10 @@ export const categoryCommandApi = createApi({
       }),
     }),
     updateCategory: builder.mutation({
-      query: ({ documentId, ...rest }) => ({
-        url: `/categories/${documentId}`, // Sử dụng documentId trong URL nếu cần
+      query: ({ data }) => ({
+        url: `/categories/${data.id}?id=${data.id}`,
         method: "PUT",
-        body: { id: documentId, ...rest }, // Chuyển documentId thành id trong request body
+        body: data, 
       }),
     }),
     deleteCategory: builder.mutation({
@@ -43,12 +51,24 @@ export const categoryCommandApi = createApi({
         body: { id }, // Gửi ID trong body
       }),
     }),
+    moveCategory: builder.mutation({
+      query: ({ subCategoryId, categoryId }) => ({
+        url: `/categories/${subCategoryId}`,
+        method: "PATCH",
+        body: {
+          categoryId,
+        },
+      }),
+    }),
 
   }),
 });
 
-export const { useGetCategoriesQuery, useLazyGetCategoryByIdQuery } = categoryQueryApi;
+export const { useGetCategoriesQuery, useLazyGetCategoryByIdQuery,
+  useGetAllCategoriesQuery,
+ } = categoryQueryApi;
 export const { useCreateCategoryMutation,
               useUpdateCategoryMutation, // Thêm API cập nhật gói
               useDeleteCategoryMutation,
+              useMoveCategoryMutation,
               } = categoryCommandApi;

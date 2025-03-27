@@ -1,231 +1,451 @@
-"use client";
-import Image from "next/image";
-import React, { useState } from "react";
+"use client"
 
-const BranchsList: React.FC = () => {
-  const [clinics, setClinics] = useState([
-    {
-      id: 1,
-      image: "https://via.placeholder.com/40",
-      name: "Apple Watch Series 4",
-      email: "user1@gmail.com",
-      phone: "123456789",
-      totalBranch: 5,
-      status: true,
-    },
-    {
-      id: 2,
-      image: "https://via.placeholder.com/40",
-      name: "Microsoft Headsquare",
-      email: "user1@gmail.com",
-      phone: "123456789",
-      totalBranch: 5,
-      status: true,
-    },
-    {
-      id: 3,
-      image: "https://via.placeholder.com/40",
-      name: "Women's Dress",
-      email: "user1@gmail.com",
-      phone: "123456789",
-      totalBranch: 5,
-      status: true,
-    },
-    {
-      id: 4,
-      image: "https://via.placeholder.com/40",
-      name: "Samsung A50",
-      email: "user1@gmail.com",
-      phone: "123456789",
-      totalBranch: 5,
-      status: true,
-    },
-  ]);
+import type React from "react"
+import { useState } from "react"
+import { Clock, CheckCircle2, XCircle, FileText, Layers, MoreVertical } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useGetBranchesQuery, useLazyGetBranchByIdQuery, useUpdateBranchMutation } from "@/features/clinic/api"
+import { useTranslations } from "next-intl"
+import * as XLSX from "xlsx"
+import { toast } from "react-toastify"
+import Modal from "@/components/systemStaff/Modal"
+import BranchForm from "@/components/clinicManager/BranchForm"
+import EditBranchForm from "@/components/clinicManager/EditBranchForm"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+import type { Branch } from "@/features/clinic/types"
 
-  const [editingClinic, setEditingClinic] = useState<any | null>(null); // Clinic đang được chỉnh sửa
+const BranchesList: React.FC = () => {
+  const t = useTranslations("branch")
 
-  const handleToggleStatus = (id: number) => {
-    setClinics((prevClinics) =>
-      prevClinics.map((clinic) =>
-        clinic.id === id ? { ...clinic, status: !clinic.status } : clinic
+  const [pageIndex, setPageIndex] = useState(1)
+  const pageSize = 5
+  const [searchTerm, setSearchTerm] = useState("")
+  const [viewBranch, setViewBranch] = useState<Branch | null>(null)
+  const [editBranch, setEditBranch] = useState<Branch | null>(null)
+  const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const token = getAccessToken() as string
+  const { clinicId } = GetDataByToken(token) as TokenData
+
+  const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || '')
+
+  const [updateBranch] = useUpdateBranchMutation()
+  const [fetchBranchById] = useLazyGetBranchByIdQuery()
+
+  const branches = data?.value?.branches || []
+  const totalCount = branches.length || 0
+  // const hasNextPage = false
+  // const hasPreviousPage = false
+
+  const handleToggleMenu = (branchId: string) => {
+    setMenuOpen(menuOpen === branchId ? null : branchId)
+  }
+
+  const handleMenuAction = async (action: string, branchId: string) => {
+    if (action === "view") {
+      try {
+        const result = await fetchBranchById(branchId).unwrap()
+        setViewBranch(result.value)
+      } catch (error) {
+        toast.error(t("fetchBranchError"))
+        setViewBranch(null)
+      }
+    }
+
+    if (action === "edit") {
+      try {
+        const result = await fetchBranchById(branchId).unwrap()
+        setEditBranch(result.value)
+        setShowEditForm(true)
+      } catch (error) {
+        toast.error(t("fetchBranchError"))
+        setEditBranch(null)
+      }
+    }
+
+    setMenuOpen(null)
+  }
+
+  const handleDeleteBranch = async (branchId: string) => {
+    if (window.confirm(t("confirmDelete"))) {
+      try {
+        // await deleteBranch(branchId).unwrap();
+        toast.success(t("deleteSuccess"))
+        refetch()
+      } catch (error) {
+        console.error(error)
+        toast.error(t("deleteFailed"))
+      }
+    }
+  }
+
+  const handleCloseForm = () => {
+    setViewBranch(null)
+    setShowEditForm(false)
+    setEditBranch(null)
+    setShowCreateForm(false)
+  }
+
+  const handleToggleStatus = async (id: string) => {
+    const branch = branches.find((branch: Branch) => branch.id === id)
+    if (!branch) return
+
+    try {
+      const updatedFormData = new FormData()
+      updatedFormData.append("branchId", branch.id || "")
+      updatedFormData.append("isActivated", (!branch.isActivated).toString())
+
+      await updateBranch({ data: updatedFormData }).unwrap()
+      toast.success(t("statusUpdated"))
+      refetch()
+    } catch (error) {
+      console.error("Failed to update status", error)
+      toast.error(t("statusUpdateFailed"))
+    }
+  }
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(branches)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Branches")
+    XLSX.writeFile(workbook, "Branches.xlsx")
+  }
+
+  if (isLoading) return <div className="text-center text-gray-600">{t("loading")}</div>
+  if (error) return <div className="text-center text-red-600">{t("errorFetching")}</div>
+
+  const filteredBranches = searchTerm
+    ? branches.filter(
+        (branch: Branch) =>
+          branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          branch.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          branch.address.toLowerCase().includes(searchTerm.toLowerCase()),
       )
-    );
-  };
-
-  const handleEditClinic = (id: number) => {
-    const clinic = clinics.find((clinic) => clinic.id === id);
-    setEditingClinic(clinic); // Gán clinic đang chỉnh sửa vào state
-  };
-
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setEditingClinic((prev: any) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSaveChanges = () => {
-    setClinics((prevClinics) =>
-      prevClinics.map((clinic) =>
-        clinic.id === editingClinic.id ? editingClinic : clinic
-      )
-    );
-    setEditingClinic(null); // Đóng form chỉnh sửa
-  };
+    : branches
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold mb-4">Clinics List</h1>
+    <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 shadow-xl rounded-xl">
+      <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 tracking-wide">{t("branchesList")}</h1>
 
-      <div className="container mx-auto p-6 bg-white shadow-lg rounded-md">
-        <div className="flex justify-between items-center mb-4">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-            Export
-          </button>
+      {/* Buttons and Search */}
+      <div className="flex items-center justify-between mb-6">
+        {/* Export Excel Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+          onClick={exportToExcel}
+        >
+          <span className="flex items-center gap-2">
+            📥 <span className="font-medium">{t("exportExcel")}</span>
+          </span>
+        </motion.button>
+
+        {/* Search Input and Create Button */}
+        <div className="flex items-center gap-4">
           <input
             type="text"
-            placeholder="Search By Phone/Email"
-            className="border px-4 py-2 rounded-md w-1/3"
+            placeholder={t("searchByName")}
+            className="w-full max-w-md px-5 py-3 bg-white/80 border border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all duration-200 text-gray-700 placeholder-gray-400"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-            Add User
-          </button>
+          <div className="w-full flex justify-start">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCreateForm(true)}
+              className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 whitespace-nowrap"
+            >
+              <span className="font-medium">{t("createNewBranch")}</span>
+            </motion.button>
+          </div>
         </div>
+      </div>
 
-        <table className="table-auto w-full border-collapse">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 text-left">
-                <input type="checkbox" />
-              </th>
-              <th className="p-3 text-left">Image</th>
-              <th className="p-3 text-left">Full Name</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Phone</th>
-              <th className="p-3 text-left">Total Branch</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clinics.map((clinic) => (
-              <tr key={clinic.id} className="border-t">
-                <td className="p-3">
-                  <input type="checkbox" />
-                </td>
-                <td className="p-3">
-                  <Image
-                    src={clinic.image}
-                    alt={clinic.name}
-                    className="w-10 h-10 rounded-full"
+      {/* Table */}
+      <table className="table-auto w-full border-collapse">
+        <thead className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700">
+          <tr>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("fullName")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("email")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("address")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">
+              {t("operatingLicenseExpiryDate")}
+            </th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("status")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("action")}</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {filteredBranches.map((branch: Branch) => (
+            <motion.tr
+              key={branch.id}
+              whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.5)" }}
+              className="transition-colors duration-200"
+            >
+              <td className="p-4 text-gray-800 font-serif">{branch.name}</td>
+              <td className="p-4 text-gray-600">{branch.email}</td>
+              <td className="p-4 text-gray-600">{branch.address}</td>
+              <td className="p-4 text-gray-600">
+                {branch.operatingLicenseExpiryDate
+                  ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })
+                  : "N/A"}
+              </td>
+              <td className="p-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={branch.isActivated}
+                    onChange={() => handleToggleStatus(branch.id)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                   />
-                </td>
-                <td className="p-3">{clinic.name}</td>
-                <td className="p-3">{clinic.email}</td>
-                <td className="p-3">{clinic.phone}</td>
-                <td className="p-3">{clinic.totalBranch}</td>
-                <td className="p-3">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={clinic.status}
-                      className="toggle-checkbox"
-                      onChange={() => handleToggleStatus(clinic.id)}
-                    />
-                    <span>{clinic.status ? "Active" : "Inactive"}</span>
-                  </label>
-                </td>
-                <td className="p-3 flex space-x-2">
-                  <button
-                    className="text-blue-500 hover:text-blue-700"
-                    onClick={() => handleEditClinic(clinic.id)}
+                  <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600" : "text-red-600"}`}>
+                    {branch.isActivated ? t("active") : t("inactive")}
+                  </span>
+                </div>
+              </td>
+              <td className="p-4 relative">
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleMenu(branch.id)
+                    }}
                   >
-                    ✏️
-                  </button>
-                  <button className="text-gray-500 hover:text-gray-700">
-                    ...
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                  </motion.button>
 
-        <div className="flex justify-between items-center mt-4">
-          <div>
-            Rows per page:
-            <select className="border ml-2 px-2 py-1 rounded-md">
-              <option>5</option>
-              <option>10</option>
-              <option>15</option>
-            </select>
-          </div>
-          <div>1-5 of 6</div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border rounded-md">❮</button>
-            <button className="px-3 py-1 border rounded-md">❯</button>
-          </div>
-        </div>
+                  <AnimatePresence>
+                    {menuOpen === branch.id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg text-sm py-2 z-[100]"
+                        style={{ top: "100%" }}
+                      >
+                        <button
+                          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
+                          onClick={() => handleMenuAction("view", branch.id)}
+                        >
+                          {t("viewBranchDetail")}
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
+                          onClick={() => handleMenuAction("edit", branch.id)}
+                        >
+                          {t("editBranch")}
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-150"
+                          onClick={() => handleDeleteBranch(branch.id)}
+                        >
+                          {t("deleteBranch")}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </td>
+            </motion.tr>
+          ))}
+        </tbody>
+      </table>
 
-        {editingClinic && (
-          <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-md shadow-lg w-1/3">
-              <h2 className="text-xl font-semibold mb-4">Edit Clinic</h2>
+      {/* Pagination */}
+      {/* 
+<Pagination
+  pageIndex={pageIndex}
+  pageSize={pageSize}
+  totalCount={totalCount}
+  hasNextPage={hasNextPage}
+  hasPreviousPage={hasPreviousPage}
+  onPageChange={setPageIndex}
+/> 
+*/}
+
+      {/* View Branch Modal */}
+      {viewBranch && (
+        <Modal onClose={() => setViewBranch(null)}>
+          <div className="max-w-2xl mx-auto p-6 bg-white/95 backdrop-blur rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="text-center space-y-2 mb-6">
+              <h2 className="text-xl font-serif tracking-wide text-gray-800">{t("branchDetails")}</h2>
+              <div className="w-16 h-1 mx-auto bg-gradient-to-r from-pink-200 to-purple-200 rounded-full" />
+            </div>
+
+            {/* Content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column */}
               <div className="space-y-4">
-                <input
-                  type="text"
-                  name="name"
-                  value={editingClinic.name}
-                  onChange={handleFormChange}
-                  placeholder="Name"
-                  className="w-full border px-4 py-2 rounded-md"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  value={editingClinic.email}
-                  onChange={handleFormChange}
-                  placeholder="Email"
-                  className="w-full border px-4 py-2 rounded-md"
-                />
-                <input
-                  type="text"
-                  name="phone"
-                  value={editingClinic.phone}
-                  onChange={handleFormChange}
-                  placeholder="Phone"
-                  className="w-full border px-4 py-2 rounded-md"
-                />
-                <input
-                  type="number"
-                  name="totalBranch"
-                  value={editingClinic.totalBranch}
-                  onChange={handleFormChange}
-                  placeholder="Total Branch"
-                  className="w-full border px-4 py-2 rounded-md"
-                />
+                {/* Branch Name */}
+                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
+                  <Layers className="w-5 h-5 text-pink-400 mt-1" />
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">{t("branchName")}</div>
+                    <div className="text-base font-medium text-gray-800">{viewBranch.name}</div>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
+                  <FileText className="w-5 h-5 text-pink-400 mt-1" />
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">{t("email")}</div>
+                    <div className="text-gray-700">{viewBranch.email}</div>
+                  </div>
+                </div>
+
+                {/* Phone Number */}
+                {/* <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
+                  <CreditCard className="w-5 h-5 text-pink-400 mt-1" />
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">{t("phoneNumber")}</div>
+                    <div className="text-gray-700">{viewBranch.phoneNumber}</div>
+                  </div>
+                </div> */}
               </div>
-              <div className="flex justify-end mt-4 space-x-2">
-                <button
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-                  onClick={() => setEditingClinic(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                  onClick={handleSaveChanges}
-                >
-                  Save
-                </button>
+
+              {/* Right Column */}
+              <div className="space-y-4">
+                {/* Address */}
+                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
+                  <Clock className="w-5 h-5 text-pink-400 mt-1" />
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">{t("address")}</div>
+                    <div className="text-gray-700">{viewBranch.address}</div>
+                  </div>
+                </div>
+
+                {/* Profile Picture */}
+                {viewBranch.profilePictureUrl && (
+                  <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
+                    <FileText className="w-5 h-5 text-pink-400 mt-1" />
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">{t("profilePicture")}</div>
+                      <a
+                        href={viewBranch.profilePictureUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 hover:underline"
+                      >
+                        {t("viewProfilePicture")}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status */}
+                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
+                  {viewBranch.isActivated ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-1" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-400 mt-1" />
+                  )}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">{t("status")}</div>
+                    <div
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                        viewBranch.isActivated
+                          ? "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700"
+                          : "bg-gradient-to-r from-red-50 to-red-100 text-red-700"
+                      }`}
+                    >
+                      {viewBranch.isActivated ? t("active") : t("inactive")}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
-export default BranchsList;
+            {/* Footer */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setViewBranch(null)}
+                className="px-6 py-2 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 text-white hover:from-pink-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-purple-200 hover:shadow-purple-300 font-medium tracking-wide"
+              >
+                {t("close")}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Branch Form */}
+      {showEditForm && editBranch && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={handleCloseForm}
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="relative z-10 w-full max-w-md mx-4"
+          >
+            <EditBranchForm
+              initialData={editBranch}
+              onClose={handleCloseForm}
+              onSaveSuccess={() => {
+                handleCloseForm()
+                refetch()
+              }}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Create Branch Form */}
+      {showCreateForm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={handleCloseForm}
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="relative z-10 w-full max-w-md mx-4"
+          >
+            <BranchForm
+              onClose={handleCloseForm}
+              onSaveSuccess={() => {
+                handleCloseForm()
+                refetch()
+              }}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
+export default BranchesList
+

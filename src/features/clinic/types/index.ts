@@ -3,9 +3,33 @@ export interface Clinic {
   name: string;
   email: string;
   address: string;
+  city: string;
+  district: string;
+  ward: string;
   phoneNumber: string;
   totalBranches: number;
+  profilePictureUrl: string;
+  bankName: string;
+  bankAccountNumber: string;
   isActivated: boolean;
+  
+}
+
+export interface ClinicsResponse {
+  value: {
+    items: Clinic[];
+    pageIndex: number;
+    pageSize: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
 }
 
 export interface ClinicDetailResponse {
@@ -13,7 +37,51 @@ export interface ClinicDetailResponse {
   isSuccess: boolean;
 }
 
-export interface ClinicsResponse {
-  value: Clinic[];
+export interface Branch {
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  taxCode: string;
+  businessLicenseUrl: string;
+  operatingLicenseUrl: string;
+  operatingLicenseExpiryDate: string;
+  profilePictureUrl: string;
+  isActivated: boolean;
+  branches: Branch[];
+}
+
+export interface BranchDetailResponse {
+  value: {
+    items: Branch[]; // Array of branches
+    pageIndex: number;
+    pageSize: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
   isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
+}
+
+export interface SubscriptionResponse {
+  documentId: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: number;
+  isActivated: boolean;
+}
+
+export interface TransactionDetails {
+  transactionId: string;
+  bankNumber: string;
+  bankGateway: string;
+  amount: number;
+  orderDescription: string;
+  qrUrl: string;
 }

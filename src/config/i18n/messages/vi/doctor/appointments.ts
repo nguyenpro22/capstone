@@ -1,0 +1,91 @@
+import { Messages } from "../../types";
+
+export const appointments: Messages["doctorAppointments"] = {
+  title: "Cuộc Hẹn",
+  subtitle: "Quản lý cuộc hẹn của bệnh nhân",
+  details: {
+    title: "Chi Tiết Cuộc Hẹn",
+    goBack: "Quay Lại",
+    notFound: "Không tìm thấy cuộc hẹn",
+    notFoundDesc: "Cuộc hẹn bạn đang tìm kiếm không tồn tại.",
+  },
+  patient: {
+    information: "Thông Tin Bệnh Nhân",
+    details: "Chi tiết về bệnh nhân",
+    id: "ID Bệnh Nhân: {id}",
+    dateOfBirth: "Ngày Sinh: {date}",
+  },
+  appointment: {
+    information: "Thông Tin Cuộc Hẹn",
+    details: "Chi tiết về cuộc hẹn",
+    date: "Ngày: {date}",
+    time: "Giờ: {time}",
+    service: "Dịch Vụ: {service}",
+    notes: "Ghi Chú",
+    noNotes: "Không có ghi chú",
+    markCompleted: "Đánh Dấu Hoàn Thành",
+  },
+  tabs: {
+    details: "Chi Tiết Cuộc Hẹn",
+    history: "Lịch Sử Bệnh Nhân",
+    treatment: "Kết Quả Điều Trị",
+  },
+  appointmentDetails: {
+    title: "Thông Tin Chi Tiết",
+    description: "Chi tiết đầy đủ về cuộc hẹn này",
+    serviceDetails: "Chi Tiết Dịch Vụ",
+    duration: "Thời Gian",
+    price: "Giá",
+    appointmentHistory: "Lịch Sử Cuộc Hẹn",
+    created: "Đã Tạo",
+    lastUpdated: "Cập Nhật Lần Cuối",
+    statusChanges: "Thay Đổi Trạng Thái",
+    createdWithStatus: "Đã tạo với trạng thái",
+    changedTo: "Đã thay đổi thành",
+    additionalNotes: "Ghi Chú Bổ Sung",
+    noAdditionalNotes: "Không có ghi chú bổ sung cho cuộc hẹn này.",
+  },
+  patientHistory: {
+    title: "Lịch Sử Bệnh Nhân",
+    description: "Lịch sử điều trị và cuộc hẹn sắp tới",
+    treatmentHistory: "Lịch Sử Điều Trị",
+    upcomingAppointments: "Cuộc Hẹn Sắp Tới",
+    noTreatmentHistory: "Không có lịch sử điều trị",
+    noUpcomingAppointments: "Không có cuộc hẹn sắp tới",
+    viewDetails: "Xem Chi Tiết",
+    treatmentNotes: "Ghi Chú Điều Trị",
+    noTreatmentNotes: "Không có ghi chú điều trị",
+    recommendations: "Khuyến Nghị",
+    treatmentImages: "Hình Ảnh Điều Trị",
+  },
+  treatmentForm: {
+    title: "Kết Quả Điều Trị",
+    description: "Ghi lại kết quả của quá trình điều trị",
+    notes: {
+      label: "Ghi Chú Điều Trị",
+      placeholder: "Nhập ghi chú chi tiết về quá trình điều trị đã thực hiện",
+      description:
+        "Bao gồm thông tin về quy trình, sản phẩm sử dụng và phản ứng của bệnh nhân.",
+    },
+    recommendations: {
+      label: "Khuyến Nghị",
+      placeholder: "Nhập khuyến nghị cho bệnh nhân",
+      description:
+        "Bao gồm hướng dẫn chăm sóc tại nhà, khuyến nghị về lối sống và sản phẩm nên sử dụng.",
+    },
+    followUpDate: {
+      label: "Ngày Tái Khám",
+      description: "Ngày được khuyến nghị cho cuộc hẹn tái khám tiếp theo.",
+    },
+    images: {
+      label: "Hình Ảnh Điều Trị",
+      addImages: "Thêm Hình Ảnh",
+      uploading: "Đang tải lên...",
+      description: "Tải lên hình ảnh trước và sau khi điều trị.",
+    },
+    saveButton: "Lưu Kết Quả Điều Trị",
+    saving: "Đang lưu...",
+    successTitle: "Đã lưu kết quả điều trị",
+    successMessage: "Kết quả điều trị đã được lưu thành công.",
+  },
+};

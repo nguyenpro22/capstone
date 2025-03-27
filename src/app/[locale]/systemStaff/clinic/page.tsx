@@ -1,262 +1,580 @@
-"use client";
-import React, { useState } from "react";
+"use client"
+import type React from "react"
+import { useState } from "react"
 import {
-  useGetClinicsQuery,
-  useLazyGetClinicByIdQuery,
-  useUpdateClinicMutation,
-} from "@/features/clinic/api";
-import * as XLSX from "xlsx";
-import { MoreVertical } from "lucide-react";
-import { toast } from "react-toastify";
-import Modal from "@/components/systemStaff/Modal";
-import EditClinicForm from "@/components/systemStaff/EditClinicForm";
-import Pagination from "@/components/common/Pagination/Pagination";
+  Clock,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Layers,
+  Search,
+  Download,
+  MoreVertical,
+  Trash2,
+  Edit,
+  Eye,
+  Loader2,
+} from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useGetClinicsQuery, useLazyGetClinicByIdQuery, useUpdateClinicMutation } from "@/features/clinic/api"
+import { useTranslations } from "next-intl"
+import * as XLSX from "xlsx"
+import { toast } from "react-toastify"
+import Modal from "@/components/systemStaff/Modal"
+import EditClinicForm from "@/components/systemStaff/EditClinicForm"
+import Pagination from "@/components/common/Pagination/Pagination"
+import type { Clinic } from "@/features/clinic/types"
 
 const ClinicsList: React.FC = () => {
-  // const [pageIndex, setPageIndex] = useState(1);
-  // const pageSize = 5;
-  // const [searchTerm, setSearchTerm] = useState("");
-  // const [viewClinic, setViewClinic] = useState<any | null>(null); // Cho popup "Xem thông tin"
-  // const [editClinic, setEditClinic] = useState<any | null>(null);
-  // const [menuOpen, setMenuOpen] = useState<string | null>(null);
-  // const [showEditForm, setShowEditForm] = useState(false);
+  const t = useTranslations("clinic")
 
-  // const { data, isLoading, error, refetch } = useGetClinicsQuery({
-  //   pageIndex,
-  //   pageSize,
-  //   searchTerm,
-  // });
-  // const [updateClinic] = useUpdateClinicMutation();
+  const [pageIndex, setPageIndex] = useState(1)
+  const pageSize = 5
+  const [searchTerm, setSearchTerm] = useState("")
+  const [viewClinic, setViewClinic] = useState<any | null>(null)
+  const [editClinic, setEditClinic] = useState<any | null>(null)
+  const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [showEditForm, setShowEditForm] = useState(false)
 
-  // const clinics = data?.value.items || [];
-  // const totalCount = data?.value.totalCount || 0;
-  // const hasNextPage = data?.value.hasNextPage || false;
-  // const hasPreviousPage = data?.value.hasPreviousPage || false;
+  const { data, isLoading, error, refetch } = useGetClinicsQuery({
+    pageIndex,
+    pageSize,
+    searchTerm,
+  })
+  const [updateClinic] = useUpdateClinicMutation()
 
-  // // const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
-  // const [fetchClinicById] = useLazyGetClinicByIdQuery();
+  const clinics = data?.value.items || []
+  const totalCount = data?.value.totalCount || 0
+  const hasNextPage = data?.value.hasNextPage || false
+  const hasPreviousPage = data?.value.hasPreviousPage || false
 
-  // // const clinicDetail = clinicDataDetail?.value; // Lấy đúng dữ liệu
+  const [fetchClinicById] = useLazyGetClinicByIdQuery()
 
-  // const handleToggleMenu = (clinicId: string) => {
-  //   setMenuOpen(menuOpen === clinicId ? null : clinicId);
-  // };
+  const handleToggleMenu = (clinicId: string) => {
+    setMenuOpen(menuOpen === clinicId ? null : clinicId)
+  }
 
-  // const handleMenuAction = async (action: string, clinicId: string) => {
-  //   if (action === "view") {
-  //     try {
-  //       const result = await fetchClinicById(clinicId).unwrap();
-  //       setViewClinic(result.value); // Chỉ đặt giá trị cho View
-  //     } catch (error) {
-  //       toast.error("Không thể lấy thông tin phòng khám!");
-  //       setViewClinic(null);
-  //     }
-  //   }
+  const handleMenuAction = async (action: string, clinicId: string) => {
+    if (action === "view") {
+      try {
+        const result = await fetchClinicById(clinicId).unwrap()
+        setViewClinic(result.value)
+      } catch (error) {
+        toast.error("Không thể lấy thông tin phòng khám!" + error)
+        setViewClinic(null)
+      }
+    }
 
-  //   if (action === "edit") {
-  //     try {
-  //       const result = await fetchClinicById(clinicId).unwrap();
-  //       setEditClinic(result.value); // Chỉ đặt giá trị cho Edit
-  //     } catch (error) {
-  //       toast.error("Không thể lấy thông tin phòng khám!");
-  //       setEditClinic(null);
-  //     }
-  //     setShowEditForm(true); // Chỉ mở form, không mở popup
-  //   }
+    if (action === "edit") {
+      try {
+        const result = await fetchClinicById(clinicId).unwrap()
+        setEditClinic(result.value)
+      } catch (error) {
+        toast.error("Không thể lấy thông tin phòng khám!" + error)
+        setEditClinic(null)
+      }
+      setShowEditForm(true)
+    }
 
-  //   setMenuOpen(null);
-  // };
+    setMenuOpen(null)
+  }
 
-  // const handleCloseEditForm = () => {
-  //   setViewClinic(null);
-  //   setShowEditForm(false);
-  //   setEditClinic(null);
-  //   console.log(
-  //     "After Update - showEditForm:",
-  //     showEditForm,
-  //     "viewClinic:",
-  //     viewClinic
-  //   );
-  // };
+  const handleDeleteClinic = async (clinicId: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
+      try {
+        // await deleteClinic(clinicId).unwrap();
+        toast.success("Gói đã được xóa thành công!" + clinicId)
+        refetch()
+      } catch (error) {
+        console.error(error)
+        toast.error("Xóa gói thất bại!")
+      }
+    }
+  }
 
-  // const handleToggleStatus = async (id: string) => {
-  //   const clinic = clinics.find((clinic: any) => clinic.id === id);
-  //   if (!clinic) return;
+  const handleCloseEditForm = () => {
+    setViewClinic(null)
+    setShowEditForm(false)
+    setEditClinic(null)
+  }
 
-  //   try {
-  //     const updatedFormData = new FormData();
-  //     updatedFormData.append("clinicId", clinic.id || "");
-  //     updatedFormData.append("isActivated", (!clinic.isActivated).toString());
+  const handleToggleStatus = async (id: string) => {
+    const clinic = clinics.find((clinic) => clinic.id === id)
+    if (!clinic) return
 
-  //     await updateClinic({ clinicId: id, data: updatedFormData }).unwrap();
-  //     // alert("Clinic status updated successfully!");
-  //     refetch(); // Refresh danh sách
-  //   } catch (error) {
-  //     console.error("Failed to update status", error);
-  //     alert("Failed to update status!");
-  //   }
-  // };
+    try {
+      const updatedFormData = new FormData()
+      updatedFormData.append("clinicId", clinic.id || "")
+      updatedFormData.append("isActivated", (!clinic.isActivated).toString())
 
-  // const exportToExcel = () => {
-  //   const worksheet = XLSX.utils.json_to_sheet(clinics);
-  //   const workbook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Clinics");
-  //   XLSX.writeFile(workbook, "Clinics.xlsx");
-  // };
+      await updateClinic({ clinicId: id, data: updatedFormData }).unwrap()
+      toast.success("Trạng thái phòng khám đã được cập nhật!")
+      refetch()
+    } catch (error) {
+      console.error("Failed to update status", error)
+      toast.error("Cập nhật trạng thái thất bại!")
+    }
+  }
 
-  // if (isLoading) return <div>Loading...</div>;
-  // if (error) return <div>Error fetching data</div>;
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(clinics)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clinics")
+    XLSX.writeFile(workbook, "Clinics.xlsx")
+  }
 
-  // return (
-  //   <div className="container mx-auto p-6 bg-white shadow-lg rounded-md">
-  //     <h1 className="text-2xl font-semibold mb-4">Clinics List</h1>
+  return (
+    <div className="container mx-auto p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50 shadow-xl rounded-2xl border border-indigo-100/50">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2 text-indigo-950 tracking-tight">{t("clinicsList")}</h1>
+          <p className="text-slate-500">
+            {totalCount} {totalCount === 1 ? "clinic" : "clinics"} found
+          </p>
+        </div>
 
-  //     {/* 🔥 Export Excel */}
-  //     <button
-  //       className="mb-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-  //       onClick={exportToExcel}
-  //     >
-  //       📥 Export Excel
-  //     </button>
-  //     <input
-  //       type="text"
-  //       placeholder="Search By Package Name"
-  //       className="border px-4 py-2 rounded-md w-1/3"
-  //       value={searchTerm}
-  //       onChange={(e) => {
-  //         setSearchTerm(e.target.value);
-  //       }}
-  //     />
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder={t("searchByName")}
+              className="pl-10 pr-4 py-2.5 w-full sm:w-64 bg-white border border-slate-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-  //     <table className="table-auto w-full border-collapse">
-  //       <thead className="bg-gray-100">
-  //         <tr>
-  //           <th className="p-3 text-left">Full Name</th>
-  //           <th className="p-3 text-left">Email</th>
-  //           <th className="p-3 text-left">Address</th>
-  //           <th className="p-3 text-left">Total Branches</th>
-  //           <th className="p-3 text-left">Status</th>
-  //           <th className="p-3 text-left">Action</th>
-  //         </tr>
-  //       </thead>
-  //       <tbody>
-  //         {clinics.map((clinic: any) => (
-  //           <tr key={clinic.id} className="border-t">
-  //             <td className="p-3">{clinic.name}</td>
-  //             <td className="p-3">{clinic.email}</td>
-  //             <td className="p-3">{clinic.address}</td>
-  //             <td className="p-3">{clinic.totalBranches}</td>
-  //             <td className="p-3">
-  //               <label className="flex items-center space-x-2">
-  //                 <input
-  //                   type="checkbox"
-  //                   checked={clinic.isActivated}
-  //                   className="toggle-checkbox"
-  //                   onChange={() => handleToggleStatus(clinic.id)}
-  //                 />
-  //                 <span>{clinic.isActivated ? "Active" : "Inactive"}</span>
-  //               </label>
-  //             </td>
+          {/* Export Excel Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+            onClick={exportToExcel}
+          >
+            <Download className="h-5 w-5" />
+            <span>{t("exportExcel")}</span>
+          </motion.button>
+        </div>
+      </div>
 
-  //             <td className="p-3 border relative">
-  //               <button
-  //                 className="p-2 rounded-full hover:bg-gray-200"
-  //                 onClick={(e) => {
-  //                   e.stopPropagation();
-  //                   handleToggleMenu(clinic.id);
-  //                 }}
-  //               >
-  //                 <MoreVertical className="w-5 h-5" />
-  //               </button>
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-20">
+          <div className="flex flex-col items-center">
+            <Loader2 className="h-10 w-10 text-indigo-500 animate-spin mb-4" />
+            <p className="text-slate-500 font-medium">Loading clinics...</p>
+          </div>
+        </div>
+      )}
 
-  //               {menuOpen === clinic.id && (
-  //                 <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
-  //                   <li
-  //                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-  //                     onClick={() => handleMenuAction("view", clinic.id)}
-  //                   >
-  //                     Xem thông tin gói
-  //                   </li>
-  //                   <li
-  //                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-  //                     onClick={() => handleMenuAction("edit", clinic.id)}
-  //                   >
-  //                     Chỉnh sửa thông tin gói
-  //                   </li>
-  //                   <li
-  //                     className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-  //                     // onClick={() => handleDeletePackage(clinic.id)}
-  //                   >
-  //                     Xóa gói
-  //                   </li>
-  //                 </ul>
-  //               )}
-  //             </td>
-  //           </tr>
-  //         ))}
-  //       </tbody>
-  //     </table>
+      {/* Error State */}
+      {error && (
+        <div className="flex justify-center items-center py-20">
+          <div className="flex flex-col items-center text-red-500">
+            <XCircle className="h-10 w-10 mb-4" />
+            <p className="text-lg font-medium">Error fetching data</p>
+            <button
+              onClick={() => refetch()}
+              className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
 
-  //     {/* 🔥 PHÂN TRANG */}
-  //     <Pagination
-  //       pageIndex={pageIndex}
-  //       pageSize={pageSize}
-  //       totalCount={totalCount}
-  //       hasNextPage={hasNextPage}
-  //       hasPreviousPage={hasPreviousPage}
-  //       onPageChange={setPageIndex}
-  //     />
+      {/* Table Section */}
+      {!isLoading && !error && (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gradient-to-r from-slate-50 to-indigo-50 text-slate-700">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                    {t("fullName")}
+                  </th>
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                    {t("email")}
+                  </th>
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                    {t("address")}
+                  </th>
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                    {t("totalBranches")}
+                  </th>
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                    {t("status")}
+                  </th>
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                    {t("action")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {clinics.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                      No clinics found
+                    </td>
+                  </tr>
+                ) : (
+                  clinics.map((clinic: Clinic) => (
+                    <motion.tr
+                      key={clinic.id}
+                      whileHover={{ backgroundColor: "rgba(238, 242, 255, 0.5)" }}
+                      className="transition-colors duration-200"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-slate-800">{clinic.name}</div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">{clinic.email}</td>
+                      <td className="px-6 py-4 text-slate-600 max-w-xs truncate">{clinic.address}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          {clinic.totalBranches}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={clinic.isActivated}
+                              className="sr-only peer"
+                              onChange={() => handleToggleStatus(clinic.id)}
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                          </label>
+                          <span
+                            className={`text-sm font-medium ${clinic.isActivated ? "text-emerald-600" : "text-slate-500"}`}
+                          >
+                            {clinic.isActivated ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 relative">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          className="p-2 rounded-full hover:bg-indigo-50 transition-colors duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleToggleMenu(clinic.id)
+                          }}
+                        >
+                          <MoreVertical className="w-5 h-5 text-slate-600" />
+                        </motion.button>
 
-  //     {/* 🔥 FORM CHỈNH SỬA */}
+                        <AnimatePresence>
+                          {menuOpen === clinic.id && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 shadow-lg rounded-lg text-sm py-1 z-50"
+                            >
+                              <button
+                                className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors duration-150"
+                                onClick={() => handleMenuAction("view", clinic.id)}
+                              >
+                                <Eye className="w-4 h-4" />
+                                {t("viewClinicDetail")}
+                              </button>
+                              <button
+                                className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors duration-150"
+                                onClick={() => handleMenuAction("edit", clinic.id)}
+                              >
+                                <Edit className="w-4 h-4" />
+                                {t("editClinic")}
+                              </button>
+                              <button
+                                className="w-full px-4 py-2.5 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors duration-150"
+                                onClick={() => handleDeleteClinic(clinic.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                {t("deleteClinic")}
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-  //     {viewClinic && (
-  //       <Modal onClose={() => setViewClinic(null)}>
-  //         <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
-  //         <p>
-  //           <strong>Tên gói:</strong> {viewClinic.name}
-  //         </p>
-  //         <p>
-  //           <strong>Mô tả:</strong> {viewClinic.description}
-  //         </p>
-  //         <p>
-  //           <strong>Giá:</strong>{" "}
-  //           {new Intl.NumberFormat("vi-VN").format(
-  //             Number(viewClinic?.price || 0)
-  //           )}{" "}
-  //           đ
-  //         </p>
-  //         <p>
-  //           <strong>Thời gian:</strong> {viewClinic.duration} tháng
-  //         </p>
-  //         <p>
-  //           <strong>Trạng thái:</strong>{" "}
-  //           <span
-  //             className={
-  //               viewClinic.isActivated ? "text-green-600" : "text-red-600"
-  //             }
-  //           >
-  //             {viewClinic.isActivated ? "Active" : "Inactive"}
-  //           </span>
-  //         </p>
-  //       </Modal>
-  //     )}
+      {/* Pagination */}
+      {!isLoading && !error && clinics.length > 0 && (
+        <div className="mt-6">
+          <Pagination
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            hasNextPage={hasNextPage}
+            hasPreviousPage={hasPreviousPage}
+            onPageChange={setPageIndex}
+          />
+        </div>
+      )}
 
-  //     {showEditForm && editClinic && (
-  //       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-  //         <EditClinicForm
-  //           initialData={editClinic}
-  //           onClose={handleCloseEditForm}
-  //           onSaveSuccess={() => {
-  //             handleCloseEditForm();
-  //             refetch();
-  //           }}
-  //         />
-  //       </div>
-  //     )}
-  //   </div>
-  // );
+      {/* View Clinic Modal */}
+      {viewClinic && (
+        <Modal onClose={() => setViewClinic(null)}>
+          <div className="max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-indigo-900">Chi Tiết Phòng Khám</h2>
+              <div className="w-16 h-1 mx-auto bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full mt-2" />
+            </div>
 
-  return <>1</>;
-};
+            {/* Content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-5">
+                {/* Clinic Name */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <Layers className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Tên phòng khám</div>
+                      <div className="text-base font-medium text-slate-800">{viewClinic.name}</div>
+                    </div>
+                  </div>
+                </div>
 
-export default ClinicsList;
+                {/* Email */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Email</div>
+                      <div className="text-slate-700">{viewClinic.email}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phone Number */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <CreditCard className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Số điện thoại</div>
+                      <div className="text-slate-700">{viewClinic.phoneNumber}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <Clock className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Địa chỉ</div>
+                      <div className="text-slate-700">{viewClinic.address}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tax Code */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Mã số thuế</div>
+                      <div className="text-slate-700">{viewClinic.taxCode}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-5">
+                {/* Business License */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Giấy phép kinh doanh</div>
+                      <a
+                        href={viewClinic.businessLicenseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                      >
+                        Xem giấy phép
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operating License */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Giấy phép hoạt động</div>
+                      <a
+                        href={viewClinic.operatingLicenseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                      >
+                        Xem giấy phép
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operating License Expiry Date */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <Clock className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Ngày hết hạn giấy phép</div>
+                      <div className="text-slate-700">
+                        {new Intl.DateTimeFormat("vi-VN").format(new Date(viewClinic.operatingLicenseExpiryDate))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile Picture */}
+                {viewClinic.profilePictureUrl && (
+                  <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-indigo-100 rounded-lg">
+                        <FileText className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-slate-500 mb-1">Ảnh đại diện</div>
+                        <a
+                          href={viewClinic.profilePictureUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                        >
+                          Xem ảnh đại diện
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Total Branches */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <Layers className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Tổng số chi nhánh</div>
+                      <div className="text-slate-700">{viewClinic.totalBranches}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${viewClinic.isActivated ? "bg-emerald-100" : "bg-red-100"}`}>
+                      {viewClinic.isActivated ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Trạng thái</div>
+                      <div
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${
+                          viewClinic.isActivated ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {viewClinic.isActivated ? "Đang hoạt động" : "Ngừng hoạt động"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-8 text-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setViewClinic(null)}
+                className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+              >
+                Đóng
+              </motion.button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Clinic Form */}
+      {showEditForm && editClinic && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+        >
+          {/* Backdrop with blur effect */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={handleCloseEditForm}
+          />
+
+          {/* Modal Content */}
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="relative z-10 w-full max-w-4xl mx-4"
+          >
+            <EditClinicForm
+              initialData={editClinic}
+              onClose={handleCloseEditForm}
+              onSaveSuccess={() => {
+                handleCloseEditForm()
+                refetch()
+              }}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
+export default ClinicsList
+

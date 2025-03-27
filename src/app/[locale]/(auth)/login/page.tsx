@@ -11,19 +11,50 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLoginMutation } from "@/features/auth/api";
 import { createLoginSchema, LoginFormValues } from "@/validations";
-import { z } from "zod";
 import {
+  GetDataByToken,
   setAccessToken,
   setRefreshToken,
   showError,
   showSuccess,
+  TokenData,
 } from "@/utils";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { ROLE } from "@/constants";
+
+const handleRedirect = (token: string, router: any) => {
+  const { role } = GetDataByToken(token) as TokenData;
+  switch (role) {
+    case ROLE.CLINIC_ADMIN:
+      router.push("/clinicManager/dashboard");
+      break;
+    case ROLE.CLINIC_STAFF:
+      router.push("/clinicStaff/dashboard");
+      break;
+    case ROLE.SYSTEM_ADMIN:
+      router.push("/systemAdmin/dashboard");
+      break;
+    case ROLE.SYSTEM_STAFF:
+      router.push("/systemStaff/dashboard");
+      break;
+    case ROLE.CUSTOMER:
+      router.push("/customer/dashboard");
+      break;
+    case ROLE.DOCTOR:
+      router.push("/doctor/dashboard");
+      break;
+
+    default:
+      break;
+  }
+};
 
 export default function LoginPage() {
   const [login] = useLoginMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const { signInWithProvider } = useAuth();
 
   // ✅ Sử dụng react-hook-form với Zod validation
   const {
@@ -34,6 +65,9 @@ export default function LoginPage() {
     resolver: zodResolver(createLoginSchema),
   });
 
+  const handleLoginGoogle = () => {
+    signInWithProvider("google");
+  };
   // ✅ Hàm xử lý đăng nhập
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -44,8 +78,7 @@ export default function LoginPage() {
       setAccessToken(response.value.accessToken);
       setRefreshToken(response.value.refreshToken);
       showSuccess("Login success");
-      // ✅ Nếu đăng nhập thành công, chuyển hướng đến dashboard
-      router.push("/home");
+      handleRedirect(response.value.accessToken, router);
     } catch (error: any) {
       if (error?.data?.status === 500) {
         showError("Invalid email or password");
@@ -173,15 +206,9 @@ export default function LoginPage() {
           type="button"
           variant="outline"
           className="h-14 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gray-50"
+          onClick={handleLoginGoogle}
         >
           Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-14 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gray-50"
-        >
-          Github
         </Button>
       </div>
 

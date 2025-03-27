@@ -8,10 +8,25 @@ export interface Service {
     id: string;
     name: string;
     description : string;
-    price: number;
-    coverImage: string[] | undefined; // Danh sách ảnh
+    maxPrice: number;
+    minPrice: number,
+    discountPercent: number;
+    coverImage?: string[] | undefined; // Danh sách ảnh
     descriptionImages: string[];
     category: Category; // Thông tin danh mục dịch vụ
+  }
+  export interface ProcedurePriceType {
+    id: number;
+    name: string;
+    price: number;
+  }
+  export interface Procedure {
+    id: number;
+    name: string;
+    description?: string;
+    stepIndex: number;
+    coverImage?: string[];
+    procedurePriceTypes?: ProcedurePriceType[] | undefined;
   }
   
   

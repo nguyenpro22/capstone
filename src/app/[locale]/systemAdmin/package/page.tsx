@@ -1,4 +1,5 @@
 "use client";
+import { Clock, CreditCard, Building2, Video, Eye } from "lucide-react"
 
 import { useState } from "react";
 import {
@@ -7,16 +8,22 @@ import {
   useLazyGetPackagesByIdQuery,
   useDeletePackageMutation, 
 } from "@/features/package/api";
+
+import { motion } from "framer-motion";
 import PackageForm from "@/components/systemAdmin/PackageForm";
 import EditPackageForm from "@/components/systemAdmin/EditPackageForm";
 import Pagination from "@/components/common/Pagination/Pagination";
+import { useTranslations } from 'next-intl';
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
 import Modal from "@/components/systemAdmin/Modal"; // Component popup để hiển thị thông tin gói
+import { Package } from "@/features/package/types";
 
 export default function Voucher() {
+  const t = useTranslations('package'); // Sử dụng namespace "dashboard"
+
   const [viewPackage, setViewPackage] = useState<any | null>(null); // Cho popup "Xem thông tin"
 const [editPackage, setEditPackage] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +52,7 @@ console.log("API Response:", data);
 
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   // const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
+  const [localPackages, setLocalPackages] = useState<any[]>([])
 
   const handleToggleMenu = (packageId: string) => {
     setMenuOpen(menuOpen === packageId ? null : packageId);
@@ -52,10 +60,24 @@ console.log("API Response:", data);
 
   const handleToggleStatus = async (packageId: string) => {
     try {
-      await changeStatusPackage({ packageId}).unwrap(); // Đảo trạng thái
-      console.log("Package Data:", { packageId }); // Debug
-      toast.success("Trạng thái gói đã được cập nhật!");
-      refetch();
+      // Find the package in the current list
+      const packageToUpdate = packages.find((pkg : Package) => pkg.id === packageId)
+      if (!packageToUpdate) return
+
+      // Optimistically update the UI
+      const updatedPackages = packages.map((pkg: Package) =>
+        pkg.id === packageId ? { ...pkg, isActivated: !pkg.isActivated } : pkg,
+      )
+
+      // Update the local state (this requires adding a new state variable)
+      setLocalPackages(updatedPackages)
+
+      // Make the API call
+      await changeStatusPackage({ packageId }).unwrap()
+      toast.success("Trạng thái gói đã được cập nhật!")
+
+      // Refetch to ensure server and client are in sync
+      refetch()
     } catch (error) {
       console.error(error);
       toast.error("Có lỗi xảy ra, vui lòng thử lại!");
@@ -132,12 +154,14 @@ console.log("API Response:", data);
             setSearchTerm(e.target.value);
           }}
         />
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300"
         >
-          Add new Package
-        </button>
+          <span className="font-medium tracking-wide">Add New Package</span>
+        </motion.button>
       </div>
 
       <div className="bg-white p-4 shadow rounded-lg relative">
@@ -159,7 +183,7 @@ console.log("API Response:", data);
             <tbody>
               
               {packages.map((pkg: any, index: number) => (
-                <tr key={pkg.documentId} className="border-t">
+                <tr key={pkg.id} className="border-t">
                   <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
                   <td className="p-3 border">{pkg.name}</td>
                   <td className="p-3 border">{pkg.description}</td>
@@ -170,7 +194,7 @@ console.log("API Response:", data);
                       type="checkbox"
                       checked={pkg.isActivated}
                       className="toggle-checkbox"
-                      onChange={() => handleToggleStatus(pkg.documentId)}
+                      onChange={() => handleToggleStatus(pkg.id)}
                     />
                   
                     <span className={pkg.isActivated ? "text-green-600" : "text-red-600"}>
@@ -182,26 +206,26 @@ console.log("API Response:", data);
                       className="p-2 rounded-full hover:bg-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleMenu(pkg.documentId);
+                        handleToggleMenu(pkg.id);
                       }}
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
 
-                    {menuOpen === pkg.documentId && (
+                    {menuOpen === pkg.id && (
                       <ul className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-md text-sm py-2 z-50">
                         <li
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleMenuAction("view", pkg.documentId)}
+                          onClick={() => handleMenuAction("view", pkg.id)}
                         >
                           Xem thông tin gói
                         </li>
                         <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" 
-                        onClick={() => handleMenuAction("edit", pkg.documentId)}>
+                        onClick={() => handleMenuAction("edit", pkg.id)}>
                           Chỉnh sửa thông tin gói
                         </li>
                         <li className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-                        onClick={()=> handleDeletePackage(pkg.documentId)}>
+                        onClick={()=> handleDeletePackage(pkg.id)}>
                           Xóa gói</li>
                       </ul>
                     )}
@@ -242,30 +266,6 @@ console.log("API Response:", data);
         </div>
       )}
 
-
-
-      {/* <div className="flex items-center justify-between mt-4">
-        <button
-          disabled={!hasPreviousPage}
-          onClick={() => setPageIndex((prev) => prev - 1)}
-          className="px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900"
-        >
-          Prev
-        </button>
-
-        <span className="text-sm text-gray-500">
-          Page {pageIndex} - {Math.ceil(totalCount / pageSize)}
-        </span>
-
-        <button
-          disabled={!hasNextPage}
-          onClick={() => setPageIndex((prev) => prev + 1)}
-          className="px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900"
-        >
-          Next
-        </button>
-      </div> */}
-
       <Pagination
         pageIndex={pageIndex}
         pageSize={pageSize}
@@ -275,21 +275,107 @@ console.log("API Response:", data);
         onPageChange={setPageIndex}
       />
 
-  {viewPackage  && (
-  <Modal onClose={() => setViewPackage(null)}>
-    <h2 className="text-xl font-bold mb-4">Thông tin gói</h2>
-    <p><strong>Tên gói:</strong> {viewPackage .name}</p>
-    <p><strong>Mô tả:</strong> {viewPackage .description}</p>
-    <p><strong>Giá:</strong> {new Intl.NumberFormat("vi-VN").format(Number(viewPackage?.price || 0))} đ</p>
-    <p><strong>Thời gian:</strong> {viewPackage .duration} tháng</p>
-    <p>
-      <strong>Trạng thái:</strong>{" "}
-      <span className={viewPackage .isActivated ? "text-green-600" : "text-red-600"}>
-        {viewPackage .isActivated ? "Active" : "Inactive"}
-      </span>
-    </p>
-  </Modal>
-  )}
+  {/* View Package Modal */}
+  {viewPackage && (
+        <Modal onClose={() => setViewPackage(null)}>
+        <div className="bg-white rounded-lg">
+          <div className="mb-6">
+            <h2 className="text-3xl font-serif font-semibold text-gray-800 mb-2">{viewPackage.name}</h2>
+            <div className="flex items-center">
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  viewPackage.isActivated ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                <span
+                  className={`mr-1.5 h-2 w-2 rounded-full ${viewPackage.isActivated ? "bg-emerald-400" : "bg-gray-400"}`}
+                ></span>
+                {viewPackage.isActivated ? "Active" : "Inactive"}
+              </span>
+            </div>
+          </div>
+  
+          <p className="text-gray-600 mb-8 text-lg">{viewPackage.description}</p>
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-purple-100 p-3 rounded-lg">
+                  <CreditCard className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                    {new Intl.NumberFormat("vi-VN").format(Number(viewPackage.price || 0))} đ
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Duration</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                    {viewPackage.duration} {viewPackage.duration === 1 ? "month" : "months"}
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-pink-100 p-3 rounded-lg">
+                  <Building2 className="h-6 w-6 text-pink-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Branch Limit</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                    {viewPackage.limitBranch} {viewPackage.limitBranch === 1 ? "branch" : "branches"}
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-amber-100 p-3 rounded-lg">
+                  <Video className="h-6 w-6 text-amber-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Live Stream Limit</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.limitLiveStream} streams</p>
+                </div>
+              </div>
+            </div>
+  
+            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md md:col-span-2">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-emerald-100 p-3 rounded-lg">
+                  <Eye className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Enhanced Viewer Capacity</h3>
+                  <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.enhancedViewer} viewers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={() => setViewPackage(null)}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
+      )}
 
     </div>
   );
