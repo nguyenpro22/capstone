@@ -7,6 +7,13 @@ import { voucherMessages } from "./voucher";
 import { clinicMessages } from "./clinic";
 import { serviceMessages } from "./service";
 import { branchMessages } from "./branch";
+import { serviceMessages as doctorServiceMessage } from "./doctor/service";
+import { AppointmentMessages } from "./doctor/appointments";
+import { CalendarMessages } from "./doctor/calendar";
+import { DashboardMessages } from "./doctor/dashboard";
+import { PatientMessages } from "./doctor/patients";
+import { ProfileMessages } from "./doctor/profile";
+import { CommonMessages } from "./doctor/common";
 
 export type Messages = {
   home: homeMessages;
@@ -18,4 +25,11 @@ export type Messages = {
   clinic: clinicMessages;
   service: serviceMessages;
   branch: branchMessages;
+  doctorService: doctorServiceMessage;
+  doctorAppointments: AppointmentMessages;
+  doctorCalendar: CalendarMessages;
+  doctorDashboard: DashboardMessages;
+  doctorPatients: PatientMessages;
+  doctorProfile: ProfileMessages;
+  doctorCommon: CommonMessages;
 };

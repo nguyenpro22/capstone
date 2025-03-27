@@ -49,8 +49,7 @@ export function AnimatedText({
     <motion.div
       className={cn(
         "flex flex-wrap",
-        variant === "h1" &&
-          "text-4xl md:text-6xl lg:text-7xl font-serif font-bold",
+        variant === "h1" && "text-4xl md:text-6xl lg:text-7xl font-bold",
         variant === "h2" && "text-3xl md:text-5xl font-serif font-bold",
         variant === "h3" && "text-2xl md:text-4xl font-serif font-bold",
         className

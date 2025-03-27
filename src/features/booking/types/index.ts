@@ -61,3 +61,9 @@ export interface TimeSlot {
   end: string; // Định dạng HH:mm:ss
   date: string; // Định dạng YYYY-MM-DD
 }
+export enum OrderStatus {
+  PENDING = "Pending",
+  IN_PROGRESS = "In Progress",
+  COMPLETED = "Completed",
+  UNCOMPLETED = "Uncompleted",
+}

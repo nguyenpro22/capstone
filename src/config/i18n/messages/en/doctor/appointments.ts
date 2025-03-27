@@ -1,0 +1,91 @@
+import { Messages } from "../../types";
+
+export const appointments: Messages["doctorAppointments"] = {
+  title: "Appointments",
+  subtitle: "Manage your patient appointments",
+  details: {
+    title: "Appointment Details",
+    goBack: "Go Back",
+    notFound: "Appointment not found",
+    notFoundDesc: "The appointment you are looking for does not exist.",
+  },
+  patient: {
+    information: "Patient Information",
+    details: "Details about the patient",
+    id: "Patient ID: {id}",
+    dateOfBirth: "Date of Birth: {date}",
+  },
+  appointment: {
+    information: "Appointment Information",
+    details: "Details about the appointment",
+    date: "Date: {date}",
+    time: "Time: {time}",
+    service: "Service: {service}",
+    notes: "Notes",
+    noNotes: "No notes available",
+    markCompleted: "Mark as Completed",
+  },
+  tabs: {
+    details: "Appointment Details",
+    history: "Patient History",
+    treatment: "Treatment Results",
+  },
+  appointmentDetails: {
+    title: "Detailed Information",
+    description: "Complete details about this appointment",
+    serviceDetails: "Service Details",
+    duration: "Duration",
+    price: "Price",
+    appointmentHistory: "Appointment History",
+    created: "Created",
+    lastUpdated: "Last Updated",
+    statusChanges: "Status Changes",
+    createdWithStatus: "Created with status",
+    changedTo: "Changed to",
+    additionalNotes: "Additional Notes",
+    noAdditionalNotes: "No additional notes available for this appointment.",
+  },
+  patientHistory: {
+    title: "Patient History",
+    description: "Treatment history and upcoming appointments",
+    treatmentHistory: "Treatment History",
+    upcomingAppointments: "Upcoming Appointments",
+    noTreatmentHistory: "No treatment history available",
+    noUpcomingAppointments: "No upcoming appointments",
+    viewDetails: "View Details",
+    treatmentNotes: "Treatment Notes",
+    noTreatmentNotes: "No treatment notes available",
+    recommendations: "Recommendations",
+    treatmentImages: "Treatment Images",
+  },
+  treatmentForm: {
+    title: "Treatment Results",
+    description: "Record the results of the treatment",
+    notes: {
+      label: "Treatment Notes",
+      placeholder: "Enter detailed notes about the treatment performed",
+      description:
+        "Include information about procedures, products used, and patient's response.",
+    },
+    recommendations: {
+      label: "Recommendations",
+      placeholder: "Enter recommendations for the patient",
+      description:
+        "Include home care instructions, lifestyle recommendations, and products to use.",
+    },
+    followUpDate: {
+      label: "Follow-up Date",
+      description: "Recommended date for the next follow-up appointment.",
+    },
+    images: {
+      label: "Treatment Images",
+      addImages: "Add Images",
+      uploading: "Uploading...",
+      description: "Upload before and after images of the treatment.",
+    },
+    saveButton: "Save Treatment Results",
+    saving: "Saving...",
+    successTitle: "Treatment results saved",
+    successMessage: "The treatment results have been saved successfully.",
+  },
+};

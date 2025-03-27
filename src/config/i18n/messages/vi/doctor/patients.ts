@@ -1,0 +1,33 @@
+import type { Messages } from "../../types";
+
+export const patientMessages: Messages["doctorPatients"] = {
+  title: "Bệnh nhân",
+  patientsList: "Danh sách bệnh nhân",
+  addNewPatient: "Thêm bệnh nhân mới",
+  patientName: "Tên bệnh nhân",
+  email: "Email",
+  phone: "Số điện thoại",
+  dateOfBirth: "Ngày sinh",
+  address: "Địa chỉ",
+  medicalHistory: "Tiền sử bệnh",
+  lastVisit: "Lần khám gần nhất",
+  upcomingAppointment: "Cuộc hẹn sắp tới",
+  searchByName: "Tìm kiếm theo tên",
+  viewPatientDetails: "Xem chi tiết bệnh nhân",
+  editPatient: "Chỉnh sửa bệnh nhân",
+  deletePatient: "Xóa bệnh nhân",
+  patientDetails: "Chi tiết bệnh nhân",
+  personalInformation: "Thông tin cá nhân",
+  appointmentHistory: "Lịch sử cuộc hẹn",
+  treatmentHistory: "Lịch sử điều trị",
+  noPatients: "Không tìm thấy bệnh nhân",
+  noAppointmentHistory: "Không có lịch sử cuộc hẹn",
+  noTreatmentHistory: "Không có lịch sử điều trị",
+  saveChanges: "Lưu thay đổi",
+  patientSaved: "Thông tin bệnh nhân đã được lưu thành công",
+  confirmDelete: "Xác nhận xóa",
+  deleteConfirmation:
+    "Bạn có chắc chắn muốn xóa bệnh nhân này? Hành động này không thể hoàn tác.",
+  cancel: "Hủy",
+  delete: "Xóa",
+};
