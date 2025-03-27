@@ -2,16 +2,19 @@
 
 import type React from "react";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { Loader2, User, LogOut, Settings } from "lucide-react";
-import { useGetAllcategoriesQuery } from "@/features/home/api";
+import { User, LogOut, Settings } from "lucide-react";
 import logo from "@/../public/images/logo.png";
 import { useRouter } from "next/navigation";
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import {
+  clearToken,
+  getAccessToken,
+  GetDataByToken,
+  type TokenData,
+} from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -94,45 +98,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
 
   const token = getAccessToken() as string;
 
-  // Fetch first page
-  const {
-    data: initialData,
-    error,
-    isLoading: isLoadingInitial,
-  } = useGetAllcategoriesQuery({
-    pageIndex: 1,
-    pageSize: 10,
-  });
-
   // Fetch subsequent pages
-  const fetchNextPage = async () => {
-    if (!initialData?.value.hasNextPage || isLoadingMore) return;
-
-    setIsLoadingMore(true);
-    try {
-      const nextPage = currentPage + 1;
-      const response = await fetch(
-        `/api/categories?pageIndex=${nextPage}&pageSize=10`
-      );
-      const data: ApiResponse = await response.json();
-
-      if (data.isSuccess) {
-        setAllServices((prev) => [...prev, ...data.value.items]);
-        setCurrentPage(nextPage);
-      }
-    } catch (error) {
-      console.error("Error fetching more services:", error);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
-  // Initialize allServices with first page data
-  useEffect(() => {
-    if (initialData?.value.items) {
-      setAllServices(initialData?.value.items);
-    }
-  }, [initialData]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
@@ -208,7 +174,6 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const handleMenuScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight * 1.5) {
-      fetchNextPage();
     }
   };
 
@@ -219,7 +184,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const handleLogout = () => {
     // Implement logout logic here
     // For example: removeAccessToken();
-    router.push("/login");
+    clearToken();
   };
 
   const handleProfile = () => {
@@ -232,9 +197,9 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
 
   // Get user initials for avatar
   const getUserInitials = () => {
-    if (!userData || !userData.role) return "U";
+    if (!userData || !userData.name) return "U";
 
-    return userData.role
+    return userData?.name
       .split(" ")
       .map((part) => part[0])
       .join("")
@@ -269,89 +234,13 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
 
             <nav className="hidden md:flex items-center gap-8">
               <div className="relative group">
-                <Link
-                  href="#"
-                  className="text-base font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white relative py-6 transition-all duration-300 hover:translate-y-[-2px] transform"
+                <button
+                  onClick={() => router.push("/services")}
+                  className="text-base font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white relative py-6 transition-all duration-300 hover:translate-y-[-2px] transform bg-transparent border-none cursor-pointer"
                 >
                   {t("footer.services.title")}
                   <span className="absolute inset-x-0 bottom-5 h-0.5 bg-primary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
-                </Link>
-
-                <div
-                  className="absolute left-0 mt-0 w-[800px] max-h-[80vh] bg-white dark:bg-gray-800 opacity-0 invisible transform -translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-out shadow-lg border-t dark:border-gray-700 overflow-y-auto scrollbar-thin scrollbar-always-visible"
-                  onScroll={handleMenuScroll}
-                >
-                  {isLoadingInitial ? (
-                    <div className="p-8 text-center">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                      <p className="mt-2">Loading services...</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-6 p-8">
-                      {organizedServices.map((category) => (
-                        <div key={category.id} className="space-y-4">
-                          <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                              {category.name}
-                            </h3>
-                            {category.description && (
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {category.description}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Direct services under main category */}
-                          {category.directServices.length > 0 && (
-                            <div className="pl-4">
-                              <ul className="space-y-2">
-                                {category.directServices.map((service) => (
-                                  <li key={service.id}>
-                                    <Link
-                                      href={`/services/${service.id}`}
-                                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
-                                    >
-                                      {service.name}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Subcategories */}
-                          {category.subCategories.map((subCategory) => (
-                            <div key={subCategory.id} className="pl-4">
-                              <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
-                                {subCategory.name}
-                              </h4>
-                              {subCategory.services.length > 0 && (
-                                <ul className="space-y-2 pl-4">
-                                  {subCategory.services.map((service) => (
-                                    <li key={service.id}>
-                                      <Link
-                                        href={`/services/${service.id}`}
-                                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
-                                      >
-                                        {service.name}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {isLoadingMore && (
-                    <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700">
-                      <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                    </div>
-                  )}
-                </div>
+                </button>
               </div>
 
               {[
@@ -362,14 +251,14 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                 },
                 { label: t("footer.quickLinks.links.1.label"), href: "#about" },
               ].map((link) => (
-                <Link
+                <button
                   key={link.label}
-                  href={link.href}
-                  className="text-base font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white relative group py-6 transition-all duration-300 hover:translate-y-[-2px] transform"
+                  onClick={() => router.push(link.href)}
+                  className="text-base font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white relative group py-6 transition-all duration-300 hover:translate-y-[-2px] transform bg-transparent border-none cursor-pointer"
                 >
                   {link.label}
                   <span className="absolute inset-x-0 bottom-5 h-0.5 bg-primary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
-                </Link>
+                </button>
               ))}
             </nav>
           </div>
@@ -408,10 +297,10 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {userData?.role || "User"}
+                        {userData?.name || "User"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {userData?.role || ""}
+                        {userData?.email || ""}
                       </p>
                     </div>
                   </DropdownMenuLabel>

@@ -24,6 +24,7 @@ import { ROLE } from "@/constants";
 
 const handleRedirect = (token: string, router: any) => {
   const { role } = GetDataByToken(token) as TokenData;
+
   switch (role) {
     case ROLE.CLINIC_ADMIN:
       router.push("/clinicManager/dashboard");
@@ -38,7 +39,7 @@ const handleRedirect = (token: string, router: any) => {
       router.push("/systemStaff/dashboard");
       break;
     case ROLE.CUSTOMER:
-      router.push("/customer/dashboard");
+      router.push("/");
       break;
     case ROLE.DOCTOR:
       router.push("/doctor/dashboard");
