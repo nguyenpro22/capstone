@@ -2,7 +2,7 @@ export type staffMessages = {
     // Page titles and general
     staffList: string
   addNewStaff: string
-  noStaffsAvailable: string
+  noStaffAvailable: string
   addYourFirstStaff: string
 
   // Table headers

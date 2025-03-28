@@ -1,10 +1,12 @@
 "use client"
 import { motion } from "framer-motion"
-import { X, Mail, MapPin, Building2, FileText, Phone, Calendar, ExternalLink, Info } from "lucide-react"
+import type React from "react"
+
+import { X, Mail, MapPin, Building2, FileText, Phone, Calendar, Info, ExternalLink } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { Certificate, Doctor } from "@/features/clinic/types"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useRef } from "react"
 
 interface ViewDoctorModalProps {
   viewDoctor: Doctor
@@ -15,6 +17,7 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
   const t = useTranslations("doctor")
   const [expandedCertificates, setExpandedCertificates] = useState(false)
   const [hoveredCertificate, setHoveredCertificate] = useState<Certificate | null>(null)
+  const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   // Format date for display
   const formatDate = (dateString: string): string => {
@@ -31,7 +34,8 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
   }
 
   // Open certificate in new tab
-  const openCertificate = (url: string) => {
+  const openCertificateUrl = (url: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     window.open(url, "_blank")
   }
 
@@ -42,11 +46,11 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col relative"
         style={{ maxHeight: "90vh" }}
       >
         {/* Header with gradient background */}
-        <div className="relative h-32 bg-gradient-to-r from-purple-600 to-pink-600 flex-shrink-0">
+        <div className="relative h-24 bg-gradient-to-r from-purple-600 to-pink-600 flex-shrink-0">
           <button
             onClick={onClose}
             className="absolute right-4 top-4 text-white hover:bg-white/20 p-1.5 rounded-full transition-colors"
@@ -173,40 +177,63 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="ml-14 mt-2 space-y-3 overflow-hidden"
+                    className="ml-14 mt-2 space-y-3"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {viewDoctor.doctorCertificates.map((cert: Certificate) => (
-                        <motion.div
+                        <div
                           key={cert.id}
-                          className="relative p-3 rounded-lg border border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer group"
-                          whileHover={{ y: -2, x: 2 }}
-                          onMouseEnter={() => setHoveredCertificate(cert)}
-                          onMouseLeave={() => setHoveredCertificate(null)}
-                          onClick={() => openCertificate(cert.certificateUrl)}
+                          className="relative"
+                          ref={(el) => {
+                            if (el) certificateRefs.current[cert.id] = el
+                          }}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-indigo-600" />
-                              <span className="font-medium text-indigo-700">{cert.certificateName}</span>
+                          <div
+                            className="p-3 rounded-lg border border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer group"
+                            onMouseEnter={() => setHoveredCertificate(cert)}
+                            onMouseLeave={() => setHoveredCertificate(null)}
+                            onClick={(e) => openCertificateUrl(cert.certificateUrl, e)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-indigo-600" />
+                                <span className="font-medium text-indigo-700">{cert.certificateName}</span>
+                              </div>
+                              <ExternalLink className="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <ExternalLink className="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                            <div className="mt-1 flex items-center gap-2 text-xs text-indigo-600">
+                              <Calendar className="w-3 h-3" />
+                              <span>
+                                {t("expiryDate") || "Expiry Date"}: {formatDate(cert.expiryDate)}
+                              </span>
+                            </div>
                           </div>
 
-                          <div className="mt-1 flex items-center gap-2 text-xs text-indigo-600">
-                            <Calendar className="w-3 h-3" />
-                            <span>
-                              {t("expiryDate") || "Expiry Date"}: {formatDate(cert.expiryDate)}
-                            </span>
-                          </div>
-
-                          {/* Hover Detail Card */}
-                          {hoveredCertificate?.id === cert.id && cert.note && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="absolute left-0 right-0 top-full mt-2 p-3 bg-white rounded-lg shadow-lg border border-indigo-100 z-10"
+                          {/* Certificate Preview Popup - Positioned above the certificate */}
+                          {hoveredCertificate && hoveredCertificate.id === cert.id && (
+                            <div
+                              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 bg-white rounded-lg shadow-2xl border border-gray-200 p-2"
+                              style={{ width: "200px", height: "200px" }}
                             >
+                              {/* Triangle pointer */}
+                              <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200"></div>
+
+                              <div className="w-full h-full flex items-center justify-center bg-gray-50 overflow-hidden">
+                                <Image
+                                  src={cert.certificateUrl || "/placeholder.svg"}
+                                  alt={cert.certificateName}
+                                  className="max-w-full max-h-full object-contain"
+                                  width={100}
+                                  height={100}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Note on Hover */}
+                          {hoveredCertificate && hoveredCertificate.id === cert.id && cert.note && (
+                            <div className="absolute left-0 right-0 top-full mt-2 p-3 bg-white rounded-lg shadow-lg border border-indigo-100 z-10">
                               <div className="flex items-start gap-2">
                                 <Info className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                                 <div>
@@ -214,9 +241,9 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
                                   <p className="text-sm text-gray-600 mt-1">{cert.note}</p>
                                 </div>
                               </div>
-                            </motion.div>
+                            </div>
                           )}
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
                   </motion.div>

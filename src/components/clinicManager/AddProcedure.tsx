@@ -27,9 +27,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [stepIndex, setStepIndex] = useState(0)
-  const [procedureCoverImage, setProcedureCoverImage] = useState<File | null>(null)
+  const [procedureCoverImages, setProcedureCoverImages] = useState<File[]>([])
   const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0 }])
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string[]>([])
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const [addProcedure, { isLoading }] = useAddProcedureMutation()
@@ -48,23 +48,40 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    setProcedureCoverImage(file)
-    // Clear any previous image validation error
-    if (file) {
-      setValidationErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors.ProcedureCoverImage
-        return newErrors
-      })
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
+    // Clear any previous image validation error
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev }
+      delete newErrors.ProcedureCoverImage
+      return newErrors
+    })
+
+    // Convert FileList to array and append to existing images
+    const newFiles = Array.from(files)
+    setProcedureCoverImages((prevImages) => [...prevImages, ...newFiles])
+
+    // Create previews for all new files
+    newFiles.forEach((file) => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        setImagePreview((prevPreviews) => [...prevPreviews, reader.result as string])
       }
       reader.readAsDataURL(file)
-    } else {
-      setImagePreview(null)
+    })
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setProcedureCoverImages((prevImages) => prevImages.filter((_, i) => i !== index))
+    setImagePreview((prevPreviews) => prevPreviews.filter((_, i) => i !== index))
+
+    // If no images left, set validation error
+    if (procedureCoverImages.length <= 1) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        ProcedureCoverImage: "Hình ảnh không được để trống!",
+      }))
     }
   }
 
@@ -93,7 +110,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
       errors.Description = "Mô tả phải có ít nhất 2 ký tự!"
     }
 
-    if (!procedureCoverImage) {
+    if (procedureCoverImages.length === 0) {
       errors.ProcedureCoverImage = "Hình ảnh không được để trống!"
     }
 
@@ -120,9 +137,10 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     formData.append("name", name)
     formData.append("description", description)
     formData.append("stepIndex", stepIndex.toString())
-    if (procedureCoverImage) {
-      formData.append("procedureCoverImage", procedureCoverImage)
-    }
+    // Replace the single image append with multiple image appends
+    procedureCoverImages.forEach((image) => {
+      formData.append("procedureCoverImage", image)
+    })
     formData.append("procedurePriceTypes", JSON.stringify(procedurePriceTypes))
 
     // Update the handleSubmit function's catch block to handle the case where errors is null
@@ -250,7 +268,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 </p>
               )}
             </div>
-     
+
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">Thứ tự bước</label>
               <input
@@ -297,7 +315,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         <span className="font-medium">Nhấp để tải lên</span> hoặc kéo thả
                       </p>
                     </div>
-                    <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                    <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" multiple />
                   </label>
                   {getFieldError("ProcedureCoverImage") && (
                     <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -307,29 +325,26 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                   )}
                 </div>
 
-                {imagePreview && (
-                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200">
-                    <Image
-                      src={imagePreview || "/placeholder.svg"}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      width={100}
-                      height={100}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProcedureCoverImage(null)
-                        setImagePreview(null)
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          ProcedureCoverImage: "Hình ảnh không được để trống!",
-                        }))
-                      }}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white"
-                    >
-                      <X size={14} />
-                    </button>
+                {imagePreview.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {imagePreview.map((preview, index) => (
+                      <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                        <Image
+                          src={preview || "/placeholder.svg"}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          width={100}
+                          height={100}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

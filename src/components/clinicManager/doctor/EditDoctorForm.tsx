@@ -27,6 +27,7 @@ import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Staff } from "@/features/clinic/types"
 import Image from "next/image"
+import { AddressDetail } from "@/features/address/types"
 
 // Define certificate type
 interface Certificate {
@@ -57,15 +58,7 @@ interface EditDoctorFormProps {
   onSaveSuccess: () => void
 }
 
-interface AddressDetail {
-  provinceId: string
-  provinceName: string
-  districtId: string
-  districtName: string
-  wardId: string
-  wardName: string
-  streetAddress: string
-}
+
 
 export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: EditDoctorFormProps) {
   const t = useTranslations("doctor")

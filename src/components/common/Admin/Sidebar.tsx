@@ -22,6 +22,8 @@ import {
   Users,
   Stethoscope,
   UserCircle,
+  Calendar,
+  Clock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -35,7 +37,7 @@ import {
 } from "@/components/ui/sidebar"
 
 type SidebarProps = {
-  role: "systemAdmin" | "user" | "systemStaff" | "clinicManager"
+  role: "systemAdmin" | "user" | "systemStaff" | "clinicManager" | "clinicStaff"
   onClose?: () => void
 }
 
@@ -95,6 +97,34 @@ const menuItems = {
     { label: "Live Stream", path: "/clinicManager/live-stream", icon: Video },
     { label: "Profile", path: "/clinicManager/profile", icon: UserCircle },
     { label: "Settings", path: "/clinicManager/settings", icon: Settings },
+    { label: "Logout", path: "/logout", icon: LogOut },
+  ],
+  clinicStaff: [
+    {
+      label: "Dashboard",
+      path: "/clinicStaff/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Customer Schedules",
+      path: "/clinicStaff/customer-schedule",
+      icon: Calendar,
+    },
+    {
+      label: "Appointments",
+      path: "/clinicStaff/appointment",
+      icon: Clock,
+    },
+    {
+      label: "Branch Doctors",
+      path: "/clinicStaff/doctor",
+      icon: Stethoscope,
+    },
+    { label: "Service", path: "/clinicStaff/service", icon: Ticket },
+    { label: "Order", path: "/clinicStaff/order", icon: ClipboardList },
+    { label: "Inbox", path: "/clinicStaff/inbox", icon: Inbox },
+    { label: "Profile", path: "/clinicStaff/profile", icon: UserCircle },
+    { label: "Settings", path: "/clinicStaff/setting", icon: Settings },
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
   user: [

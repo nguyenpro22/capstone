@@ -55,7 +55,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
       email: "",
       firstName: "",
       lastName: "",
-      roleType: 2, // Fixed to Clinic Staff (2) as requested
+      roleType: 1, // Fixed to Clinic Staff (2) as requested
       branchId: "",
     },
   })
@@ -84,7 +84,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
       formData.append("email", data.email)
       formData.append("firstName", data.firstName)
       formData.append("lastName", data.lastName)
-      formData.append("roleType", "2") // Fixed to Clinic Staff (2)
+      formData.append("roleType", "1") // Fixed to Clinic Staff (2)
       formData.append("clinicId", data.branchId) // Use selected branchId as clinicId
 
       await addDoctor({

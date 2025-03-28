@@ -4,7 +4,7 @@ export const staffMessages: Messages["staff"] = {
   // Page titles and general
   staffList: "Staff List",
   addNewStaff: "Add New Staff",
-  noStaffsAvailable: "No staffs available",
+  noStaffAvailable: "No staffs available",
   addYourFirstStaff: "Add your first staff",
 
   // Table headers

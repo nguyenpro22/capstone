@@ -85,7 +85,7 @@ export default function StaffForm({ onClose, onSaveSuccess }: StaffFormProps) {
       formData.append("email", data.email)
       formData.append("firstName", data.firstName)
       formData.append("lastName", data.lastName)
-      formData.append("roleType", "1") // Fixed to Doctor (1)
+      formData.append("roleType", "2") // Fixed to Doctor (1)
       formData.append("clinicId", data.branchId) // Use selected branchId as clinicId
 
       await addStaff({

@@ -1,18 +1,19 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type React from "react"
 
 import { motion } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { X, Upload, User, Mail, Phone, MapPin, Building, Check } from "lucide-react"
+import { X, Upload, User, Mail, Phone, MapPin, Check } from "lucide-react"
 import { useUpdateStaffMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
 import { toast } from "react-toastify"
 import { useTranslations } from "next-intl"
-import { Staff } from "@/features/clinic/types"
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils"
+import type { Staff } from "@/features/clinic/types"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+import type { AddressDetail } from "@/features/address/types"
 
 // Define the form schema with additional fields
 const staffSchema = z.object({
@@ -21,7 +22,7 @@ const staffSchema = z.object({
   email: z.string().email("Invalid email format"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  roleType: z.number().min(1, "Role is required"),
+  roleType: z.number().optional(), // Changed from min(1) to optional
   // Additional fields from API
   phoneNumber: z.string().optional(),
   address: z.string().optional(),
@@ -35,23 +36,13 @@ interface EditStaffFormProps {
   onSaveSuccess: () => void
 }
 
-interface AddressDetail {
-  provinceId: string
-  provinceName: string
-  districtId: string
-  districtName: string
-  wardId: string
-  wardName: string
-  streetAddress: string
-}
-
 export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: EditStaffFormProps) {
   const t = useTranslations("staff")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [updateStaff] = useUpdateStaffMutation()
+  const [updateStaff, { isLoading: isUpdating, error: updateError }] = useUpdateStaffMutation()
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
   const [activeSection, setActiveSection] = useState<string>("basic")
-// Get the token and extract clinicId
+  // Get the token and extract clinicId
   const token = getAccessToken()
   // Add null check for token
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
@@ -80,6 +71,7 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<StaffFormValues>({
     resolver: zodResolver(staffSchema),
     defaultValues: {
@@ -92,6 +84,13 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
       address: initialData.address || "",
     },
   })
+
+  // Log any errors from the mutation
+  useEffect(() => {
+    if (updateError) {
+      console.error("Update staff mutation error:", updateError)
+    }
+  }, [updateError])
 
   // Handle address selection changes
   const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
@@ -152,7 +151,9 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
 
   // Updated to use FormData with all fields
   const onSubmit = async (data: StaffFormValues) => {
+    console.log("Form submission started", data)
     setIsSubmitting(true)
+
     try {
       // Create FormData object
       const formData = new FormData()
@@ -173,11 +174,18 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
         formData.append("profilePicture", profilePicture)
       }
 
-      await updateStaff({
+      console.log("FormData prepared, sending to API", {
+        clinicId,
+        employeeId: initialData.employeeId,
+        formDataEntries: [...formData.entries()].map((entry) => ({ key: entry[0], value: entry[1] })),
+      })
+
+      const result = await updateStaff({
         id: clinicId,
         data: formData,
       }).unwrap()
 
+      console.log("API call successful", result)
       toast.success(t("staffUpdatedSuccess") || "Staff updated successfully!")
       onSaveSuccess()
     } catch (error) {
@@ -186,6 +194,12 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Direct submit handler for testing
+  const handleDirectSubmit = () => {
+    console.log("Direct submit button clicked")
+    handleSubmit(onSubmit)()
   }
 
   return (
@@ -249,7 +263,7 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
 
         {/* Form Content - Scrollable */}
         <div className="overflow-y-auto flex-1 p-6">
-          <form id="staff-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form id="staff-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6" encType="multipart/form-data">
             <input type="hidden" {...register("id")} />
             <input type="hidden" {...register("clinicId")} />
 
@@ -322,7 +336,16 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
                   </div>
                 </div>
 
-                
+                {/* Add direct submit button for testing */}
+                <div className="mt-4 pt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={handleDirectSubmit}
+                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors text-sm"
+                  >
+                    Test Submit (Basic Info Only)
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -509,8 +532,8 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
                 {t("cancel") || "Cancel"}
               </button>
               <button
-                type="submit"
-                form="staff-form"
+                type="button"
+                onClick={handleDirectSubmit}
                 disabled={isSubmitting}
                 className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-md hover:from-purple-600 hover:to-pink-700 transition-colors disabled:opacity-50 flex items-center"
               >

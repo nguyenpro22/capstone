@@ -90,7 +90,7 @@ export const staffQueryApi = createApi({
       { clinicId: string; pageIndex: number; pageSize: number; searchTerm: string, role: number }
     >({
       query: ({ clinicId, pageIndex, pageSize, searchTerm,role }) =>
-        `clinics/${clinicId}/employees?role=${role}`,
+        `clinics/${clinicId}/employees?role=${role}&pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
       providesTags: ["Staff"],
     }),
     getStaffById: builder.query<IResCommon<Staff>, { clinicId: string; staffId: string }>({

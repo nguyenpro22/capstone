@@ -421,7 +421,7 @@ export default function ServicePage() {
 
       {/* Hiển thị PromotionForm khi click */}
       {modalType === "promotion" && selectedServiceId && (
-        <PromotionForm serviceId={selectedServiceId} onClose={() => setModalType(null)} />
+        <PromotionForm serviceId={selectedServiceId} onClose={() => setModalType(null)} onSuccess={() => refetch()} />
       )}
 
       {modalType === "procedure" && selectedServiceId && (

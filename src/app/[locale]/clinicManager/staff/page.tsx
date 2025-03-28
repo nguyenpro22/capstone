@@ -17,10 +17,10 @@ import { MenuPortal } from "@/components/ui/menu-portal"
 
 // Add the import for getAccessToken and GetDataByToken
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import type { Staff } from "@/features/clinic/types"
+import type { Branch, Staff } from "@/features/clinic/types"
 
 interface BranchViewModalProps {
-  branches: Array<{ id: string; name: string }>
+  branches: Array<{ id: string; name: string; fullAddress?: string }>
   onClose: () => void
 }
 
@@ -41,9 +41,12 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
         <div className="max-h-60 overflow-y-auto">
           {branches.map((branch, index) => (
             <div key={branch.id} className="p-3 border-b border-gray-100 last:border-b-0">
-              <div className="flex items-center">
-                <Building2 className="w-4 h-4 text-purple-500 mr-2" />
-                <span className="font-medium">{branch.name}</span>
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <Building2 className="w-4 h-4 text-purple-500 mr-2" />
+                  <span className="font-medium">{branch.name}</span>
+                </div>
+                {branch.fullAddress && <div className="mt-1 ml-6 text-xs text-gray-500">{branch.fullAddress}</div>}
               </div>
             </div>
           ))}
@@ -73,7 +76,14 @@ export default function StaffPage() {
   const [viewStaff, setViewStaff] = useState<Staff | null>(null)
   const [editStaff, setEditStaff] = useState<Staff | null>(null)
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null)
-  const [viewingBranches, setViewingBranches] = useState<Array<{ id: string; name: string }> | null>(null)
+  const [viewingBranches, setViewingBranches] = useState<Array<{
+    id: string
+    name: string
+    fullAddress?: string
+  }> | null>(null)
+
+  // State to track which branch is being hovered
+  const [hoveredBranchId, setHoveredBranchId] = useState<string | null>(null)
 
   const [showForm, setShowForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -109,8 +119,15 @@ export default function StaffPage() {
     setMenuOpen(null)
   }
 
-  const handleViewAllBranches = (branches: Array<{ id: string; name: string }>) => {
-    setViewingBranches(branches)
+  const handleViewAllBranches = (branches: Branch[]) => {
+    // Map the branches to match the expected type
+    const mappedBranches = branches.map((branch) => ({
+      id: branch.id,
+      name: branch.name,
+      fullAddress: branch.fullAddress || undefined, // Convert null to undefined
+    }))
+
+    setViewingBranches(mappedBranches)
   }
 
   const handleMenuAction = async (action: string, staffId: string) => {
@@ -284,13 +301,23 @@ export default function StaffPage() {
                 {staffList.map((staff: Staff, index: number) => (
                   <tr key={staff.employeeId} className="border-t hover:bg-gray-50 transition-colors duration-150">
                     <td className="p-3 border border-gray-200">{(pageIndex - 1) * pageSize + index + 1}</td>
-                    <td className="p-3 border border-gray-200 font-medium">{staff.fullName}</td>
-                    <td className="p-3 border border-gray-200">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 font-medium">
-                        {staff.email}
-                      </span>
+                    <td className="p-3 border border-gray-200 font-medium">
+                      <div className="max-w-[150px] truncate" title={staff.fullName}>
+                        {staff.fullName}
+                      </div>
                     </td>
-                    <td className="p-3 border border-gray-200">{staff.phoneNumber || "-"}</td>
+                    <td className="p-3 border border-gray-200">
+                      <div className="max-w-[180px] truncate" title={staff.email}>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 font-medium">
+                          {staff.email}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-3 border border-gray-200">
+                      <div className="max-w-[120px] truncate" title={staff.phoneNumber || "-"}>
+                        {staff.phoneNumber || "-"}
+                      </div>
+                    </td>
                     <td className="p-3 border border-gray-200">
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
                         {staff.role}
@@ -299,16 +326,31 @@ export default function StaffPage() {
                     <td className="p-3 border border-gray-200">
                       {staff.branchs && staff.branchs.length > 0 ? (
                         <div>
-                          <div className="flex flex-wrap gap-1 mb-1">
+                          <div className="flex flex-wrap gap-1 mb-1 relative">
                             {staff.branchs.slice(0, 2).map((branch, idx) => (
-                              <span key={idx} className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
-                                {branch.name}
-                              </span>
+                              <div key={idx} className="relative">
+                                <span
+                                  className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full cursor-pointer hover:bg-blue-100 transition-colors max-w-[100px] inline-block truncate align-bottom"
+                                  onMouseEnter={() => setHoveredBranchId(branch.id)}
+                                  onMouseLeave={() => setHoveredBranchId(null)}
+                                  title={branch.name}
+                                >
+                                  {branch.name}
+                                </span>
+
+                                {/* Tooltip for branch address */}
+                                {hoveredBranchId === branch.id && branch.fullAddress && (
+                                  <div className="absolute z-10 top-full left-0 mt-1 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg">
+                                    <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                                    {branch.fullAddress}
+                                  </div>
+                                )}
+                              </div>
                             ))}
                           </div>
                           {staff.branchs.length > 2 && (
                             <button
-                              onClick={() => handleViewAllBranches(staff.branchs|| [])}
+                              onClick={() => handleViewAllBranches(staff.branchs || [])}
                               className="text-xs text-purple-600 flex items-center hover:text-purple-800 transition-colors"
                             >
                               View all ({staff.branchs.length})
