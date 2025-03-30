@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ClientProvider from "@/components/common/Provider";
 import logo from "@/../public/images/logo.png";
+import { ThemeProvider } from "@/components/ui/theme-provider"
 
 export const metadata: Metadata = {
   title: "Beautify Clinic - Premium Beauty & Aesthetic Center",
@@ -18,7 +19,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ClientProvider>{children}</ClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClientProvider>{children}</ClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

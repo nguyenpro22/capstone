@@ -113,7 +113,8 @@ export default function LoginPage() {
             {...register("email")}
             id="email"
             type="email"
-            className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl"
+            className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl
+             dark:bg-gray-800 dark:border-gray-600 dark:text-white"
             placeholder="Enter your email"
           />
           {errors.email && (
@@ -134,7 +135,8 @@ export default function LoginPage() {
               {...register("password")}
               id="password"
               type={showPassword ? "text" : "password"}
-              className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl"
+              className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl
+             dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               placeholder="Enter your password"
             />
             <button
