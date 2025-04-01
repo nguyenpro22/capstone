@@ -15,6 +15,7 @@ export const branchMessages: Messages["branch"] = {
   searchByName: "Tìm kiếm theo tên",
   active: "Hoạt động",
   inactive: "Ngưng hoạt động",
+  statusUpdated:"Trạng thái đã được cập nhật",
   viewBranchDetail: "Xem chi tiết chi nhánh",
   editBranch : "Chỉnh sửa chi nhánh",
   deleteBranch: "Xóa chi nhánh",

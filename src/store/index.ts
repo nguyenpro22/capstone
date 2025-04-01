@@ -17,6 +17,9 @@ import { categoryApi } from "@/features/home/api";
 import { categoryQueryApi, categoryCommandApi } from "@/features/category-service/api";
 import { serviceCommandApi, serviceQueryApi } from "@/features/clinic-service/api";
 import {  customerScheduleCommandApi, customerScheduleQueryApi } from "@/features/customer-schedule/api";
+import { doctorServiceCommandApi, doctorServiceQueryApi } from "@/features/doctor-service/api";
+import { promotionCommandApi } from "@/features/promotion-service/api";
+import { bookingQueryApi } from "@/features/booking/api";
 const store = configureStore({
   reducer: {
     // [ExampleAPI.reducerPath]: ExampleAPI.reducer,
@@ -26,7 +29,7 @@ const store = configureStore({
     [packageApi.reducerPath]: packageApi.reducer, // ✅ Thêm reducer của RTK Query
     [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
-
+    [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
@@ -43,6 +46,9 @@ const store = configureStore({
     [doctorQueryApi.reducerPath]: doctorQueryApi.reducer,
     [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
     [customerScheduleQueryApi.reducerPath]: customerScheduleQueryApi.reducer,
+    [doctorServiceCommandApi.reducerPath]: doctorServiceCommandApi.reducer,
+    [doctorServiceQueryApi.reducerPath]: doctorServiceQueryApi.reducer,
+    [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
 
 
 
@@ -70,6 +76,11 @@ const store = configureStore({
       doctorQueryApi.middleware,
       customerScheduleCommandApi.middleware,
       customerScheduleQueryApi.middleware,
+      doctorServiceQueryApi.middleware,
+      doctorServiceCommandApi.middleware,
+      promotionCommandApi.middleware,
+      bookingQueryApi.middleware,
+
     ),// ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 

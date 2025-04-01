@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 
 // Dynamic import for LangToggle
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
@@ -22,6 +23,14 @@ const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
 })
 
 export default function Navbar({ children }: { children?: React.ReactNode }) {
+  // Get the token and extract user data
+  const token = getAccessToken()
+  // Add null check for token
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
+  console.log("hehe", tokenData)
+  const name = tokenData?.name || "User"
+  const role = tokenData?.roleName || "Guest"
+
   const notifications = [
     {
       id: 1,
@@ -112,12 +121,12 @@ export default function Navbar({ children }: { children?: React.ReactNode }) {
                 className="relative h-12 w-fit space-x-3 hover:bg-pink-50 transition-colors duration-200"
               >
                 <Avatar className="h-9 w-9 border-2 border-pink-200">
-                  <AvatarImage src="https://via.placeholder.com/40" alt="Moni Roy" />
-                  <AvatarFallback>MR</AvatarFallback>
+                  <AvatarImage src="https://via.placeholder.com/40" alt={name} />
+                  <AvatarFallback>{name.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium text-foreground">Moni Roy</span>
-                  <span className="text-xs text-muted-foreground">Admin</span>
+                  <span className="text-sm font-medium text-foreground">{name}</span>
+                  <span className="text-xs text-muted-foreground">{role}</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>

@@ -15,17 +15,17 @@ export const paymentsApi = createApi({
     }),
     
     createOrderPayment: builder.mutation<PaymentResponse, { id: string;
-amount: number
-paymentMethod: string
-}>(
-{
-  query: ({ id, amount, paymentMethod }) => ({
-        url: `payments/order/${id}/${amount}/${paymentMethod}`,
-        method: "POST",
-      }),
-}
-),
-  }),
+      amount: number
+      paymentMethod: string
+      }>(
+      {
+        query: ({ id, amount, paymentMethod }) => ({
+              url: `payments/order/${id}/${amount}/${paymentMethod}`,
+              method: "POST",
+            }),
+      }
+      ),
+    }),
 })
 
 export const { useCreatePaymentMutation, useCreateOrderPaymentMutation } = paymentsApi

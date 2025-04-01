@@ -56,12 +56,24 @@ export const serviceCommandApi = createApi({
         body: data, // Truyền trực tiếp FormData
       }),
     }),
+    
+    deleteProcedure: builder.mutation<any, { id: string }>({
+      query: ({ id }) => ({
+        url: `/procedures/${id}`,
+        method: "DELETE",
+        body: { id }, // Truyền id trong request body theo yêu cầu API
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
   }),
 });
 
 export const { useGetServicesQuery, useLazyGetServiceByIdQuery } = serviceQueryApi;
 export const { useCreateServiceMutation,
-              useUpdateServiceMutation, // Thêm API cập nhật gói
+              useUpdateServiceMutation, 
               useDeleteServiceMutation,
-              useAddProcedureMutation, // Hook để gọi API thêm Procedure
+              useAddProcedureMutation, 
+              useDeleteProcedureMutation, 
               } = serviceCommandApi;

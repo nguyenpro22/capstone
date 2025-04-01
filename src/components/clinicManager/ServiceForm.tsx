@@ -1,110 +1,125 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState } from "react";
-import {
-  useCreateServiceMutation,
-  useGetServicesQuery,
-} from "@/features/clinic-service/api";
-import { useGetCategoriesQuery } from "@/features/category-service/api";
-import {  useGetBranchesQuery } from "@/features/clinic/api";
+import type React from "react"
+import { useState } from "react"
+import { useCreateServiceMutation, useGetServicesQuery } from "@/features/clinic-service/api"
+import { useGetCategoriesQuery } from "@/features/category-service/api"
+import { useGetBranchesQuery } from "@/features/clinic/api"
 
-import Select from "react-select";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, ImageIcon, Check, AlertCircle } from "lucide-react";
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
-import { Branch } from "@/features/clinic/types";
+import Select from "react-select"
+import { motion, AnimatePresence } from "framer-motion"
+import { Upload, X, ImageIcon, Check, AlertCircle } from "lucide-react"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 
 interface ServiceFormProps {
-  onClose: () => void;
-  onSaveSuccess: () => void;
+  onClose: () => void
+  onSaveSuccess: () => void
 }
 
 export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [descriptionImages, setDescriptionImages] = useState<File[]>([]);
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([]);
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [categoryId, setCategoryId] = useState("")
+  const [coverImage, setCoverImage] = useState<File | null>(null)
+  const [descriptionImages, setDescriptionImages] = useState<File[]>([])
+  const [errorMessages, setErrorMessages] = useState<string[]>([])
+  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([])
 
-  const [createService, { isLoading }] = useCreateServiceMutation();
-  const { refetch: refetchServices } = useGetServicesQuery(undefined);
+  const [createService, { isLoading }] = useCreateServiceMutation()
+  const { refetch: refetchServices } = useGetServicesQuery(undefined)
   const { data: categoryData, isLoading: isCategoriesLoading } = useGetCategoriesQuery({
     pageIndex: 1,
     pageSize: 100,
     searchTerm: "",
-  });
+  })
   const token = getAccessToken() as string
-    const { clinicId } = GetDataByToken(token) as TokenData
-  
-    const { data: branchesData, isLoading: isLoadingBranches, error, refetch } = useGetBranchesQuery(clinicId || '')
+  const { clinicId } = GetDataByToken(token) as TokenData
 
-  const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : [];
+  const { data: branchesData, isLoading: isLoadingBranches, error, refetch } = useGetBranchesQuery(clinicId || "")
+
+  const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : []
   const categoryOptions = categories.map((cat: any) => ({
     value: cat.id,
     label: cat.name,
-  }));
+  }))
 
-  const branches = Array.isArray(branchesData?.value.branches) ? branchesData.value.branches : [];
-  console.log("data branches: " , branchesData)
-  const branchOptions = branches.map((branch: Branch) => ({
+  // Extract branches from the response, handling both possible structures
+  const getBranchesFromResponse = () => {
+    if (!branchesData) return []
+
+    // Check if the response has branches in the nested structure
+    if (branchesData.value?.branches?.items && Array.isArray(branchesData.value.branches.items)) {
+      return branchesData.value.branches.items
+    }
+
+    // If we have a single branch with nested branches
+    if (branchesData.value?.id && branchesData.value?.branches?.items) {
+      return branchesData.value.branches.items
+    }
+
+    return []
+  }
+
+  const branches = getBranchesFromResponse()
+  console.log("data branches: ", branchesData)
+  console.log("extracted branches: ", branches)
+
+  const branchOptions = branches.map((branch) => ({
     value: branch.id,
     label: branch.name,
-  }));
+  }))
 
   const handleCoverFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setCoverImage(e.target.files[0]);
+      setCoverImage(e.target.files[0])
     }
-  };
+  }
 
   const handleDescriptionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setDescriptionImages(Array.from(e.target.files));
+      setDescriptionImages(Array.from(e.target.files))
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessages([]);
+    e.preventDefault()
+    setErrorMessages([])
 
     if (!name.trim() || !description.trim() || !categoryId || selectedBranches.length === 0) {
-      setErrorMessages(["Please fill in all required fields, including at least one branch"]);
-      return;
+      setErrorMessages(["Please fill in all required fields, including at least one branch"])
+      return
     }
 
-    const formData = new FormData();
-    formData.append("clinicId", JSON.stringify(selectedBranches.map((branch) => branch.value)));
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("categoryId", categoryId);
+    const formData = new FormData()
+    formData.append("clinicId", JSON.stringify(selectedBranches.map((branch) => branch.value)))
+    formData.append("name", name)
+    formData.append("description", description)
+    formData.append("categoryId", categoryId)
 
     if (coverImage) {
-      formData.append("coverImages", coverImage);
+      formData.append("coverImages", coverImage)
     }
 
     descriptionImages.forEach((file) => {
-      formData.append("descriptionImages", file);
-    });
+      formData.append("descriptionImages", file)
+    })
 
     try {
-      const response = await createService({ data: formData }).unwrap();
+      const response = await createService({ data: formData }).unwrap()
       if (response.isSuccess) {
-        await refetchServices();
-        onSaveSuccess();
-        onClose();
+        await refetchServices()
+        onSaveSuccess()
+        onClose()
       }
     } catch (err: any) {
       if (err?.data?.status === 422 && err?.data?.errors) {
-        const messages = err.data.errors.map((error: any) => error.message);
-        setErrorMessages(messages);
+        const messages = err.data.errors.map((error: any) => error.message)
+        setErrorMessages(messages)
       } else {
-        setErrorMessages(["An unexpected error occurred"]);
+        setErrorMessages(["An unexpected error occurred"])
       }
     }
-  };
+  }
 
   const selectStyles = {
     control: (base: any) => ({
@@ -142,7 +157,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
         backgroundColor: "#e2e8f0",
       },
     }),
-  };
+  }
 
   return (
     <motion.div
@@ -244,6 +259,9 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 className="react-select-container"
                 classNamePrefix="react-select"
               />
+              {branchOptions.length === 0 && !isLoadingBranches && (
+                <p className="text-sm text-amber-600">No branches available. Please create a branch first.</p>
+              )}
             </div>
 
             {/* File Upload Section */}
@@ -344,5 +362,6 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
         </div>
       </motion.div>
     </motion.div>
-  );
+  )
 }
+

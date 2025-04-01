@@ -42,7 +42,13 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
   const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery(clinicId)
 
   // Extract branches from the response structure using useMemo
-  const branches = useMemo(() => branchesData?.value?.branches || [], [branchesData])
+  const branches = useMemo(() => {
+    // Check if data exists and has the expected structure
+    if (branchesData?.value?.branches?.items) {
+      return branchesData.value.branches.items || []
+    }
+    return []
+  }, [branchesData])
 
   const {
     register,
@@ -62,7 +68,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
 
   // Set default branch if only one branch is available
   useEffect(() => {
-    if (branches.length === 1) {
+    if (Array.isArray(branches) && branches.length === 1) {
       setValue("branchId", branches[0].id)
     }
   }, [branches, setValue])
@@ -92,7 +98,6 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
         data: formData,
       }).unwrap()
 
-      toast.success(t("doctorAddedSuccess") || "Doctor added successfully!")
       onSaveSuccess()
     } catch (error) {
       console.error("Failed to add doctor:", error)
@@ -163,11 +168,12 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
               disabled={isLoadingBranches}
             >
               <option value="">{isLoadingBranches ? "Loading branches..." : "Select branch"}</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
+              {Array.isArray(branches) &&
+                branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
               <svg

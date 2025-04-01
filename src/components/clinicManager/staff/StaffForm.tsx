@@ -4,12 +4,11 @@ import { motion } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { X, Building2 } from 'lucide-react'
+import { X, Building2 } from "lucide-react"
 import { useAddStaffMutation, useGetBranchesQuery } from "@/features/clinic/api"
 import { toast } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import type { Branch } from "@/features/clinic/types"
 
 // Define the form schema
 const staffSchema = z.object({
@@ -41,9 +40,15 @@ export default function StaffForm({ onClose, onSaveSuccess }: StaffFormProps) {
 
   // Fetch branches
   const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery(clinicId)
-  
+
   // Extract branches from the response structure
-  const branches = useMemo(() => branchesData?.value?.branches || [], [branchesData])
+  const branches = useMemo(() => {
+    // Check if data exists and has the expected structure
+    if (branchesData?.value?.branches?.items) {
+      return branchesData.value.branches.items || []
+    }
+    return []
+  }, [branchesData])
 
   const {
     register,
@@ -63,10 +68,10 @@ export default function StaffForm({ onClose, onSaveSuccess }: StaffFormProps) {
 
   // Set default branch if only one branch is available
   useEffect(() => {
-    if (branches.length === 1) {
-      setValue("branchId", branches[0].id);
+    if (Array.isArray(branches) && branches.length === 1) {
+      setValue("branchId", branches[0].id)
     }
-  }, [branches, setValue]);
+  }, [branches, setValue])
 
   // Updated to use FormData like createBranch
   const onSubmit = async (data: StaffFormValues) => {
@@ -164,15 +169,26 @@ export default function StaffForm({ onClose, onSaveSuccess }: StaffFormProps) {
               disabled={isLoadingBranches}
             >
               <option value="">{isLoadingBranches ? "Loading branches..." : "Select branch"}</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
+              {Array.isArray(branches) &&
+                branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
           </div>
@@ -202,3 +218,4 @@ export default function StaffForm({ onClose, onSaveSuccess }: StaffFormProps) {
     </motion.div>
   )
 }
+

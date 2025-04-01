@@ -8,18 +8,18 @@ import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/
 import { toast } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Layers,
   X,
   AlertCircle,
   MapPin,
   Phone,
   FileCode,
   Building2,
-  ImageIcon,
   Check,
   FileText,
   Mail,
   CreditCard,
+  Upload,
+  User,
 } from "lucide-react"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import Image from "next/image"
@@ -68,6 +68,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [activeSection, setActiveSection] = useState<string>("basic")
 
   // Add these state variables after the existing useState declarations
   const [selectedBusinessLicense, setSelectedBusinessLicense] = useState<File | null>(null)
@@ -153,15 +154,17 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
       ...prev,
       [name]: value,
     }))
-    setValidationErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }))
+
+    // Clear all validation errors when user types
+    setValidationErrors({})
   }
 
   // Handle address selection changes
   const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target
+
+    // Clear all validation errors when user makes any change
+    setValidationErrors({})
 
     if (name === "provinceId" && provinces) {
       const province = provinces.data.find((p) => p.id === value)
@@ -204,19 +207,15 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
       ...prev,
       [name]: checked,
     }))
-    setValidationErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }))
+
+    // Clear all validation errors when user makes any change
+    setValidationErrors({})
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFile(e.target.files[0])
-      setValidationErrors((prev) => ({
-        ...prev,
-        profilePicture: "",
-      }))
+      setValidationErrors({})
     }
   }
 
@@ -225,10 +224,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
     if (e.target.files && e.target.files.length > 0) {
       setSelectedBusinessLicense(e.target.files[0])
       setSendEmptyBusinessLicense(false)
-      setValidationErrors((prev) => ({
-        ...prev,
-        businessLicense: "",
-      }))
+      setValidationErrors({})
     }
   }
 
@@ -236,29 +232,43 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
     if (e.target.files && e.target.files.length > 0) {
       setSelectedOperatingLicense(e.target.files[0])
       setSendEmptyOperatingLicense(false)
-      setValidationErrors((prev) => ({
-        ...prev,
-        operatingLicense: "",
-      }))
+      setValidationErrors({})
     }
   }
 
   const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOperatingLicenseExpiryDate(e.target.value)
     setSendEmptyExpiryDate(false)
-    setValidationErrors((prev) => ({
-      ...prev,
-      operatingLicenseExpiryDate: "",
-    }))
+    setValidationErrors({})
+  }
+
+  // Get full address for display purposes
+  const getFullAddress = (): string => {
+    const parts: string[] = []
+
+    if (addressDetail.streetAddress) parts.push(addressDetail.streetAddress)
+    if (addressDetail.wardName) parts.push(addressDetail.wardName)
+    if (addressDetail.districtName) parts.push(addressDetail.districtName)
+    if (addressDetail.provinceName) parts.push(addressDetail.provinceName)
+
+    return parts.join(", ")
+  }
+
+  // Add this function after your other handler functions
+  const clearAllValidationErrors = () => {
+    setValidationErrors({})
+  }
+
+  // Modify the setActiveSection function to clear errors when switching tabs
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section)
+    setValidationErrors({})
   }
 
   // Update the handleSubmit function to include the new fields
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const formDataToSend = new FormData()
-
-    // Không cần thêm clinicId và branchId vào FormData nữa
-    // vì chúng sẽ được sử dụng trong URL
 
     // Add basic branch information
     formDataToSend.append("name", formData.name)
@@ -315,7 +325,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
           data: formDataToSend,
         }).unwrap()
 
-        toast.success("Branch updated successfully!")
+        // toast.success("Branch updated successfully!")
         onSaveSuccess()
         onClose()
       } else {
@@ -323,12 +333,24 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
       }
     } catch (error: any) {
       console.error("Error response:", error)
+
+      // Reset validation errors first
+      setValidationErrors({})
+
       if (error?.status === 400 || error?.status === 422) {
         const validationErrors = error?.data?.errors || []
         const newErrors: ValidationErrors = {}
+
+        // Log the errors to see their format
+        console.log("API validation errors:", validationErrors)
+
         validationErrors.forEach((err: { code: string; message: string }) => {
-          newErrors[err.code.toLowerCase() as keyof ValidationErrors] = err.message
+          // Convert the error code to lowercase for consistency
+          const errorKey = err.code.toLowerCase()
+          console.log(`Processing error: ${errorKey} - ${err.message}`)
+          newErrors[errorKey as keyof ValidationErrors] = err.message
         })
+
         setValidationErrors(newErrors)
         toast.error(error?.data?.detail || "Invalid data provided!")
       } else {
@@ -337,40 +359,95 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
     }
   }
 
+  // Add this near your other useEffect hooks
+  useEffect(() => {
+    // Clear validation errors when component mounts
+    setValidationErrors({})
+  }, [])
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/30 backdrop-blur-sm overflow-y-auto"
-    >
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden"
+        style={{ maxHeight: "90vh" }}
       >
-        {/* Decorative header with gradient */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-6 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Building2 className="w-7 h-7 text-white/90" />
-              <div>
-                <h2 className="text-2xl font-bold">Edit Branch</h2>
-                <p className="text-purple-100 text-sm mt-1">Update branch information and settings</p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white relative">
+          <h2 className="text-2xl font-bold">Edit Branch</h2>
+          <p className="text-purple-100 mt-1">Update branch information and settings</p>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-gray-200 bg-gray-50 px-4 overflow-x-auto">
+          <button
+            onClick={() => handleSectionChange("basic")}
+            className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeSection === "basic"
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <User className="w-4 h-4" />
+            Basic Info
+          </button>
+          <button
+            onClick={() => handleSectionChange("address")}
+            className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeSection === "address"
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            Address
+          </button>
+          <button
+            onClick={() => handleSectionChange("photo")}
+            className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeSection === "photo"
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <Upload className="w-4 h-4" />
+            Photo
+          </button>
+          <button
+            onClick={() => handleSectionChange("license")}
+            className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeSection === "license"
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            Licenses
+          </button>
+          <button
+            onClick={() => handleSectionChange("bank")}
+            className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeSection === "bank"
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            Bank Info
+          </button>
+        </div>
+
+        {/* Form Content - Scrollable */}
+        <div className="overflow-y-auto flex-1 p-6">
           {/* Error Messages */}
           <AnimatePresence>
             {Object.keys(validationErrors).length > 0 && (
@@ -399,96 +476,85 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
             )}
           </AnimatePresence>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pb-2 border-b border-gray-100">
-                <Layers className="h-5 w-5 text-purple-500" />
-                <span>Basic Information</span>
-              </h3>
+            {activeSection === "basic" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Branch ID */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Branch ID</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="id"
+                        value={formData.id}
+                        className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 border-gray-300"
+                        readOnly
+                      />
+                      <FileCode className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    </div>
+                  </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Branch ID */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Branch ID <span className="text-gray-400 text-xs font-normal">(Read only)</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="id"
-                      value={formData.id}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      readOnly
-                    />
-                    <FileCode className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Branch Name</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          validationErrors.name ? "border-red-300" : "border-gray-300"
+                        }`}
+                        placeholder="Enter branch name"
+                        required
+                      />
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    </div>
+                    {validationErrors.name && <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>}
                   </div>
                 </div>
 
-                {/* Name */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Branch Name <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      placeholder="Enter branch name"
-                      required
-                    />
-                    <Building2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  </div>
-                  {validationErrors.name && <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>}
-                </div>
-
-                {/* Email - Read Only */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Email <span className="text-gray-400 text-xs font-normal">(Read only)</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
                   <div className="relative">
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 border-gray-300"
                       readOnly
                     />
-                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
 
-                {/* Phone Number */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
                   <div className="relative">
                     <input
                       type="text"
                       name="phoneNumber"
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                        validationErrors.phoneNumber ? "border-red-300" : "border-gray-300"
+                      }`}
                       placeholder="Enter phone number"
                       required
                     />
-                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   </div>
                   {validationErrors.phoneNumber && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.phoneNumber}</p>
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.phoneNumber}</p>
                   )}
                 </div>
 
-                {/* Status */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Branch Status</label>
-                  <div className="flex items-center h-[50px] px-4 rounded-lg border border-gray-200 bg-white">
+                  <label className="block text-sm font-medium text-gray-700">Branch Status</label>
+                  <div className="flex items-center h-[50px] px-4 rounded-md border border-gray-300 bg-white">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <div className="relative">
                         <input
@@ -511,269 +577,187 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                     </label>
                   </div>
                   {validationErrors.isActivated && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.isActivated}</p>
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.isActivated}</p>
                   )}
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            )}
 
             {/* Address Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pb-2 border-b border-gray-100">
-                <MapPin className="h-5 w-5 text-purple-500" />
-                <span>Address Details</span>
-              </h3>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Province Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Province/City <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    {isLoadingProvinces ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                        <span>Loading provinces...</span>
-                      </div>
-                    ) : (
-                      <select
-                        name="provinceId"
-                        value={addressDetail.provinceId}
-                        onChange={handleAddressChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200 bg-white appearance-none"
-                        required
-                        style={{
-                          backgroundImage:
-                            "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")",
-                          backgroundPosition: "right 0.5rem center",
-                          backgroundRepeat: "no-repeat",
-                          backgroundSize: "1.5em 1.5em",
-                          paddingRight: "2.5rem",
-                        }}
-                      >
-                        <option value="">Select Province/City</option>
-                        {provinces?.data.map((province) => (
-                          <option
-                            key={province.id}
-                            value={province.id}
-                            selected={province.name === addressDetail.provinceName}
-                          >
+            {activeSection === "address" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Province Selection */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Province/City</label>
+                    <select
+                      name="provinceId"
+                      value={addressDetail.provinceId}
+                      onChange={handleAddressChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    >
+                      <option value="">{addressDetail.provinceName || "Select Province/City"}</option>
+                      {isLoadingProvinces ? (
+                        <option disabled>Loading provinces...</option>
+                      ) : (
+                        provinces?.data.map((province) => (
+                          <option key={province.id} value={province.id}>
                             {province.name}
                           </option>
-                        ))}
-                      </select>
-                    )}
-                    {!addressDetail.provinceId && addressDetail.provinceName && (
-                      <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>Current: {addressDetail.provinceName}</span>
-                      </div>
-                    )}
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  {/* District Selection */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">District</label>
+                    <select
+                      name="districtId"
+                      value={addressDetail.districtId}
+                      onChange={handleAddressChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      disabled={!addressDetail.provinceId || isLoadingDistricts}
+                    >
+                      <option value="">
+                        {addressDetail.districtName ||
+                          (!addressDetail.provinceId
+                            ? "Select province first"
+                            : isLoadingDistricts
+                              ? "Loading districts..."
+                              : "Select District")}
+                      </option>
+                      {districts?.data.map((district) => (
+                        <option key={district.id} value={district.id}>
+                          {district.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                {/* District Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    District <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    {!addressDetail.provinceId ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
-                        Select province first
-                      </div>
-                    ) : isLoadingDistricts ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                        <span>Loading districts...</span>
-                      </div>
-                    ) : (
-                      <select
-                        name="districtId"
-                        value={addressDetail.districtId}
-                        onChange={handleAddressChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200 bg-white appearance-none"
-                        required
-                        style={{
-                          backgroundImage:
-                            "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")",
-                          backgroundPosition: "right 0.5rem center",
-                          backgroundRepeat: "no-repeat",
-                          backgroundSize: "1.5em 1.5em",
-                          paddingRight: "2.5rem",
-                        }}
-                      >
-                        <option value="">Select District</option>
-                        {districts?.data.map((district) => (
-                          <option
-                            key={district.id}
-                            value={district.id}
-                            selected={district.name === addressDetail.districtName}
-                          >
-                            {district.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    {!addressDetail.districtId && addressDetail.districtName && (
-                      <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>Current: {addressDetail.districtName}</span>
-                      </div>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Ward Selection */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Ward</label>
+                    <select
+                      name="wardId"
+                      value={addressDetail.wardId}
+                      onChange={handleAddressChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      disabled={!addressDetail.districtId || isLoadingWards}
+                    >
+                      <option value="">
+                        {addressDetail.wardName ||
+                          (!addressDetail.districtId
+                            ? "Select district first"
+                            : isLoadingWards
+                              ? "Loading wards..."
+                              : "Select Ward")}
+                      </option>
+                      {wards?.data.map((ward) => (
+                        <option key={ward.id} value={ward.id}>
+                          {ward.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
 
-                {/* Ward Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Ward <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    {!addressDetail.districtId ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
-                        Select district first
-                      </div>
-                    ) : isLoadingWards ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                        <span>Loading wards...</span>
-                      </div>
-                    ) : (
-                      <select
-                        name="wardId"
-                        value={addressDetail.wardId}
-                        onChange={handleAddressChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200 bg-white appearance-none"
-                        required
-                        style={{
-                          backgroundImage:
-                            "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")",
-                          backgroundPosition: "right 0.5rem center",
-                          backgroundRepeat: "no-repeat",
-                          backgroundSize: "1.5em 1.5em",
-                          paddingRight: "2.5rem",
-                        }}
-                      >
-                        <option value="">Select Ward</option>
-                        {wards?.data.map((ward) => (
-                          <option key={ward.id} value={ward.id} selected={ward.name === addressDetail.wardName}>
-                            {ward.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    {!addressDetail.wardId && addressDetail.wardName && (
-                      <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>Current: {addressDetail.wardName}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Street Address */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Street Address <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
+                  {/* Street Address */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Street Address</label>
                     <input
                       type="text"
                       name="streetAddress"
                       value={addressDetail.streetAddress}
                       onChange={handleAddressChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      placeholder="Enter street address"
-                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="123 Main St"
                     />
-                    <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
-              </div>
 
-              {/* Preview Full Address */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100"
-              >
-                <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-purple-500" />
-                  <span>Full Address:</span>
-                </p>
-                <p className="text-sm text-gray-800 mt-2 pl-6">
-                  {addressDetail.streetAddress && `${addressDetail.streetAddress}, `}
-                  {addressDetail.wardName && `${addressDetail.wardName}, `}
-                  {addressDetail.districtName && `${addressDetail.districtName}, `}
-                  {addressDetail.provinceName}
-                </p>
+                {/* Preview Full Address */}
+                {(addressDetail.provinceName || addressDetail.provinceId || addressDetail.streetAddress) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100"
+                  >
+                    <p className="text-sm text-gray-600 font-medium">Full Address:</p>
+                    <p className="text-sm text-gray-800 mt-1">{getFullAddress()}</p>
+                  </motion.div>
+                )}
               </motion.div>
-            </div>
+            )}
 
             {/* Profile Picture Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pb-2 border-b border-gray-100">
-                <ImageIcon className="h-5 w-5 text-purple-500" />
-                <span>Profile Picture</span>
-              </h3>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Upload Image <span className="text-gray-400 text-xs font-normal">(Optional)</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      accept="image/*"
-                    />
+            {activeSection === "photo" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="mb-6 text-center">
+                    <h3 className="text-lg font-medium mb-2">Profile Picture</h3>
+                    <p className="text-sm text-gray-500">Upload a profile picture for this branch</p>
                   </div>
-                  <p className="text-xs text-gray-500">Accepted formats: JPG, PNG (max 5MB)</p>
-                  {validationErrors.profilePicture && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.profilePicture}</p>
+
+                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 rounded-full cursor-pointer hover:border-purple-500 transition-colors bg-gray-50">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                    <div className="flex flex-col items-center">
+                      {selectedFile || previewUrl || formData.profilePictureUrl ? (
+                        <div className="relative w-full h-full">
+                          {selectedFile ? (
+                            <>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Check className="w-10 h-10 text-green-500" />
+                              </div>
+                              <p className="text-sm text-gray-600 mt-2 text-center">
+                                {selectedFile.name.length > 20
+                                  ? selectedFile.name.substring(0, 20) + "..."
+                                  : selectedFile.name}
+                              </p>
+                            </>
+                          ) : (
+                            <div className="w-full h-full overflow-hidden rounded-full">
+                              <Image
+                                src={previewUrl || formData.profilePictureUrl || "/placeholder.svg"}
+                                alt="Profile Preview"
+                                className="w-full h-full object-cover"
+                                width={160}
+                                height={160}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-10 h-10 text-gray-400" />
+                          <span className="mt-2 text-sm text-gray-500">Upload Image</span>
+                        </>
+                      )}
+                    </div>
+                  </label>
+
+                  {selectedFile && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="mt-4 px-3 py-1 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                    >
+                      Remove
+                    </motion.button>
                   )}
                 </div>
-
-                <div className="flex items-center justify-center">
-                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
-                    {previewUrl || formData.profilePictureUrl ? (
-                      <Image
-                        src={previewUrl || formData.profilePictureUrl || "/placeholder.svg"}
-                        alt="Profile Preview"
-                        className="w-full h-full object-cover"
-                        width="100"
-                        height="100"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                        <ImageIcon className="w-12 h-12" />
-                      </div>
-                    )}
-                    {selectedFile && (
-                      <div className="absolute bottom-0 right-0 bg-green-500 text-white p-1 rounded-tl-lg">
-                        <Check className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+              </motion.div>
+            )}
 
             {/* License Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pb-2 border-b border-gray-100">
-                <FileText className="h-5 w-5 text-purple-500" />
-                <span>License Information</span>
-              </h3>
-
-              <div className="space-y-6">
+            {activeSection === "license" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                 {/* Business License */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Business License</label>
+                  <label className="block text-sm font-medium text-gray-700">Business License</label>
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center">
                       <input
@@ -815,7 +799,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
                 {/* Operating License */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Operating License</label>
+                  <label className="block text-sm font-medium text-gray-700">Operating License</label>
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center">
                       <input
@@ -857,7 +841,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
                 {/* Operating License Expiry Date */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Operating License Expiry Date</label>
+                  <label className="block text-sm font-medium text-gray-700">Operating License Expiry Date</label>
                   <div className="flex flex-col space-y-2">
                     <input
                       type="datetime-local"
@@ -882,87 +866,124 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                     <p className="text-red-500 text-sm mt-1">{validationErrors.operatingLicenseExpiryDate}</p>
                   )}
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            )}
 
             {/* Bank Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pb-2 border-b border-gray-100">
-                <CreditCard className="h-5 w-5 text-purple-500" />
-                <span>Bank Information</span>
-              </h3>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Bank Name */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">Bank Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="bankName"
-                      value={formData.bankName || ""}
-                      onChange={handleInputChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      placeholder="Enter bank name"
-                    />
-                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            {activeSection === "bank" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Bank Name */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Bank Name</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="bankName"
+                        value={formData.bankName || ""}
+                        onChange={handleInputChange}
+                        className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          validationErrors.bankName ? "border-red-300" : "border-gray-300"
+                        }`}
+                        placeholder="Enter bank name"
+                      />
+                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    </div>
+                    {validationErrors.bankName && (
+                      <p className="mt-1 text-sm text-red-600">{validationErrors.bankName}</p>
+                    )}
                   </div>
-                  {validationErrors.bankName && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.bankName}</p>
-                  )}
-                </div>
 
-                {/* Bank Account Number */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                    Bank Account Number
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="bankAccountNumber"
-                      value={formData.bankAccountNumber || ""}
-                      onChange={handleInputChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      placeholder="Enter bank account number"
-                    />
-                    <FileText className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  {/* Bank Account Number */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Bank Account Number</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="bankAccountNumber"
+                        value={formData.bankAccountNumber || ""}
+                        onChange={handleInputChange}
+                        className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          validationErrors.bankAccountNumber ? "border-red-300" : "border-gray-300"
+                        }`}
+                        placeholder="Enter bank account number"
+                      />
+                      <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    </div>
+                    {validationErrors.bankAccountNumber && (
+                      <p className="mt-1 text-sm text-red-600">{validationErrors.bankAccountNumber}</p>
+                    )}
                   </div>
-                  {validationErrors.bankAccountNumber && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.bankAccountNumber}</p>
-                  )}
                 </div>
-              </div>
+              </motion.div>
+            )}
+          </form>
+        </div>
+
+        {/* Footer with Actions */}
+        <div className="p-6 border-t border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-purple-500 mr-2"></div>
+              <span className="text-sm text-gray-500">
+                {activeSection === "basic"
+                  ? "Editing basic information"
+                  : activeSection === "address"
+                    ? "Editing address information"
+                    : activeSection === "photo"
+                      ? "Editing profile photo"
+                      : activeSection === "license"
+                        ? "Editing license information"
+                        : "Editing bank information"}
+              </span>
             </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+            <div className="flex space-x-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={isLoading}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200/50 font-medium"
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-md hover:from-purple-600 hover:to-pink-700 transition-colors disabled:opacity-50 flex items-center"
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
-                  </div>
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Saving...
+                  </>
                 ) : (
-                  "Save Changes"
+                  "Save"
                 )}
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
 

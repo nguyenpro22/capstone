@@ -2,7 +2,7 @@
 import { MdEditSquare } from "react-icons/md"
 
 import { useState } from "react"
-import { ImageIcon } from "lucide-react"
+import { ImageIcon } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import {
   useGetServicesQuery,
@@ -19,15 +19,15 @@ import { useTranslations } from "next-intl"
 
 import Pagination from "@/components/common/Pagination/Pagination"
 import ImageModal from "@/components/clinicManager/ImageModal"
-import type { Service } from "@/features/clinic-service/types"
+import type { Service, ImageObject } from "@/features/clinic-service/types"
 
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { MoreVertical } from "lucide-react" // Import icon ba chấm và icon đóng
+import { MoreVertical } from 'lucide-react' // Import icon ba chấm và icon đóng
 import Image from "next/image"
 // Thêm import cho component ViewServiceModal
 import ViewServiceModal from "@/components/clinicManager/service/view-service-modal"
-import {MenuPortal} from "@/components/ui/menu-portal"
+import { MenuPortal } from "@/components/ui/menu-portal"
 
 export default function ServicePage() {
   const t = useTranslations("service") // Sử dụng namespace "dashboard"
@@ -84,8 +84,10 @@ export default function ServicePage() {
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleOpenModal = (images: string[]) => {
-    setSelectedImages(images)
+  const handleOpenModal = (images: ImageObject[]) => {
+    // Convert ImageObject array to string array of URLs
+    const imageUrls = images.map((img) => img.url)
+    setSelectedImages(imageUrls)
     setIsModalOpen(true)
   }
 
@@ -163,7 +165,20 @@ export default function ServicePage() {
     }
   }
 
-  
+  // Hàm để refetch dữ liệu service khi cần thiết (ví dụ: sau khi thêm/xóa bác sĩ)
+  const refetchServiceData = async () => {
+    if (viewService && viewService.id) {
+      try {
+        // Refetch dữ liệu service
+        const result = await fetchServiceById(viewService.id).unwrap()
+        // Cập nhật state với dữ liệu mới
+        setViewService(result.value)
+      } catch (error) {
+        console.error("Error refreshing service data:", error)
+        toast.error("Không thể cập nhật thông tin dịch vụ!")
+      }
+    }
+  }
 
   // Thêm state để lưu trữ vị trí của button
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
@@ -255,7 +270,7 @@ export default function ServicePage() {
                         {service.coverImage && service.coverImage.length > 0 && (
                           <div className="relative w-12 h-12 rounded-md overflow-hidden shadow-sm">
                             <Image
-                              src={service.coverImage[0] || "/placeholder.svg"}
+                              src={service.coverImage[0].url || "/placeholder.svg"}
                               alt="Cover"
                               className="object-cover"
                               width={100}
@@ -280,13 +295,11 @@ export default function ServicePage() {
                     </td>
                     <td className="p-3 border border-gray-200">
                       <div className="flex items-center space-x-2">
-                        {service.discountPercent > 0 ? (
+                         
                           <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">
                             {service.discountPercent}%
                           </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
+                        
                         <button
                           onClick={() => openPromotionForm(service.id)}
                           className="p-1.5 rounded-full hover:bg-purple-50 text-purple-500 transition-colors"
@@ -459,8 +472,14 @@ export default function ServicePage() {
         />
       </div>
 
-      {viewService && <ViewServiceModal viewService={viewService} onClose={() => setViewService(null)} />}
+      {/* Truyền refetchService vào ViewServiceModal */}
+      {viewService && (
+        <ViewServiceModal 
+          viewService={viewService} 
+          onClose={() => setViewService(null)} 
+          refetchService={refetchServiceData}
+        />
+      )}
     </div>
   )
 }
-

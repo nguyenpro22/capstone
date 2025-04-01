@@ -1,9 +1,11 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
+import type React from "react"
 import { Stethoscope, Building2, ChevronRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { useGetDoctorsQuery, useLazyGetDoctorByIdQuery, useDeleteDoctorMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 import Pagination from "@/components/common/Pagination/Pagination"
 import DoctorForm from "@/components/clinicManager/doctor/DoctorForm"
@@ -21,7 +23,7 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Doctor } from "@/features/clinic/types"
 
 interface BranchViewModalProps {
-  branches: Array<{ id: string; name: string }>
+  branches: Array<{ id: string; name: string; fullAddress?: string }>
   onClose: () => void
 }
 
@@ -42,9 +44,12 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
         <div className="max-h-60 overflow-y-auto">
           {branches.map((branch, index) => (
             <div key={branch.id} className="p-3 border-b border-gray-100 last:border-b-0">
-              <div className="flex items-center">
-                <Building2 className="w-4 h-4 text-purple-500 mr-2" />
-                <span className="font-medium">{branch.name}</span>
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <Building2 className="w-4 h-4 text-purple-500 mr-2" />
+                  <span className="font-medium">{branch.name}</span>
+                </div>
+                {branch.fullAddress && <div className="mt-1 ml-6 text-xs text-gray-500">{branch.fullAddress}</div>}
               </div>
             </div>
           ))}
@@ -76,7 +81,16 @@ export default function DoctorPage() {
   const [editDoctor, setEditDoctor] = useState<Doctor | null>(null)
   const [changeBranchDoctor, setChangeBranchDoctor] = useState<Doctor | null>(null)
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
-  const [viewingBranches, setViewingBranches] = useState<Array<{ id: string; name: string }> | null>(null)
+  const [viewingBranches, setViewingBranches] = useState<Array<{
+    id: string
+    name: string
+    fullAddress?: string
+  }> | null>(null)
+
+  // State to track which branch is being hovered
+  const [hoveredBranchId, setHoveredBranchId] = useState<string | null>(null)
+  // Ref to store tooltip position
+  const tooltipPositionRef = useRef<{ x: number; y: number; targetElement?: HTMLElement } | null>(null)
 
   const [showForm, setShowForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -94,6 +108,9 @@ export default function DoctorPage() {
     searchTerm,
     role: 1, // Use role=1 for doctors
   })
+
+  // Use the delayed refetch hook
+  const delayedRefetch = useDelayedRefetch(refetch)
 
   const [fetchDoctorById] = useLazyGetDoctorByIdQuery()
   const [deleteDoctor] = useDeleteDoctorMutation()
@@ -113,8 +130,19 @@ export default function DoctorPage() {
     setMenuOpen(null)
   }
 
-  const handleViewAllBranches = (branches: Array<{ id: string; name: string }> = []) => {
+  const handleViewAllBranches = (branches: Array<{ id: string; name: string; fullAddress?: string }> = []) => {
     setViewingBranches(branches)
+  }
+
+  // Handle mouse enter on branch with position capture
+  const handleBranchMouseEnter = (branchId: string, e: React.MouseEvent) => {
+    // Store the target element for tooltip positioning
+    tooltipPositionRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      targetElement: e.currentTarget as HTMLElement,
+    }
+    setHoveredBranchId(branchId)
   }
 
   const handleMenuAction = async (action: string, doctorId: string) => {
@@ -235,7 +263,7 @@ export default function DoctorPage() {
         }).unwrap()
 
         toast.success("Bác sĩ đã được xóa thành công!")
-        refetch()
+        delayedRefetch() // Use delayed refetch instead of immediate refetch
       } catch (error) {
         console.error(error)
         toast.error("Xóa bác sĩ thất bại!")
@@ -336,20 +364,19 @@ export default function DoctorPage() {
                         <div>
                           <div className="flex flex-wrap gap-1 mb-1">
                             {doctor.branchs.slice(0, 2).map((branch, idx) => (
-                              <span key={idx} className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
-                                {branch.name}
-                              </span>
+                              <div key={idx} className="relative">
+                                <span
+                                  className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full cursor-pointer hover:bg-blue-100 transition-colors max-w-[100px] inline-block truncate align-bottom"
+                                  onMouseEnter={(e) => handleBranchMouseEnter(branch.id, e)}
+                                  onMouseLeave={() => setHoveredBranchId(null)}
+                                
+                                >
+                                  {branch.name}
+                                </span>
+                              </div>
                             ))}
                           </div>
-                          {doctor.branchs.length > 2 && (
-                            <button
-                              onClick={() => handleViewAllBranches(doctor.branchs || [])}
-                              className="text-xs text-purple-600 flex items-center hover:text-purple-800 transition-colors"
-                            >
-                              View all ({doctor.branchs.length})
-                              <ChevronRight className="w-3 h-3 ml-1" />
-                            </button>
-                          )}
+                          
                         </div>
                       ) : (
                         <span className="text-gray-400 text-sm">No branches</span>
@@ -391,6 +418,31 @@ export default function DoctorPage() {
           </div>
         )}
       </div>
+
+      {/* Tooltip for branch addresses - positioned below each branch with arrow */}
+      {hoveredBranchId &&
+        doctorList.some((doctor) =>
+          doctor.branchs?.some((branch) => branch.id === hoveredBranchId && branch.fullAddress),
+        ) && (
+          <div
+            className="fixed z-[9999] p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+            style={{
+              top: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().bottom || 0) + 5 + "px",
+              left: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().left || 0) + "px",
+              maxWidth: "250px",
+              pointerEvents: "none", // Prevents the tooltip from interfering with mouse events
+            }}
+          >
+            {/* Arrow pointing up */}
+            <div className="absolute -top-2 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-gray-800" />
+
+            {/* Only show the address */}
+            {
+              doctorList.flatMap((doctor) => doctor.branchs || []).find((branch) => branch.id === hoveredBranchId)
+                ?.fullAddress
+            }
+          </div>
+        )}
 
       {/* Menu Portal */}
       {doctorList.map(
@@ -476,7 +528,7 @@ export default function DoctorPage() {
             onClose={() => setShowForm(false)}
             onSaveSuccess={() => {
               setShowForm(false)
-              refetch()
+              delayedRefetch() // Use delayed refetch instead of immediate refetch
               toast.success("Doctor added successfully!")
             }}
           />
@@ -495,7 +547,7 @@ export default function DoctorPage() {
             onSaveSuccess={() => {
               setShowEditForm(false)
               setEditDoctor(null)
-              refetch()
+              delayedRefetch() // Use delayed refetch instead of immediate refetch
             }}
           />
         </div>
@@ -513,7 +565,7 @@ export default function DoctorPage() {
             onSaveSuccess={() => {
               setShowChangeBranchForm(false)
               setChangeBranchDoctor(null)
-              refetch()
+              delayedRefetch() // Use delayed refetch instead of immediate refetch
             }}
           />
         </div>

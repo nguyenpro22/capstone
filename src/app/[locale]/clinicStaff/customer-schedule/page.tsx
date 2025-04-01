@@ -45,6 +45,7 @@ import { toast } from "react-toastify"
 import type { CustomerSchedule } from "@/features/customer-schedule/types"
 import ScheduleDetailsModal from "@/components/clinicStaff/customer-schedule/schedule-details-modal"
 import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/schedule-payment-modal"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 // Define error response type
 interface ErrorResponse {
@@ -96,6 +97,10 @@ export default function SchedulesPage() {
     useLazyGetClinicSchedulesQuery()
 
   const [updateScheduleStatus, { isLoading: isUpdatingStatus }] = useUpdateScheduleStatusMutation()
+
+  // Create delayed refetch functions
+  const delayedGetCustomerSchedules = useDelayedRefetch(getCustomerSchedules)
+  const delayedGetClinicSchedules = useDelayedRefetch(getClinicSchedules)
 
   // Format date for API
   const formatDateForApi = (date: Date | undefined) => {
@@ -150,7 +155,7 @@ export default function SchedulesPage() {
     setErrorResponse(null)
 
     try {
-      // Call the RTK Query hook
+      // Call the RTK Query hook with delayed refetch
       const result = await getCustomerSchedules({ customerName, customerPhone })
 
       if ("error" in result) {
@@ -217,7 +222,7 @@ export default function SchedulesPage() {
       searchTerm = createDateRangeSearchTerm(fromDate, toDate)
     }
 
-    getClinicSchedules({
+    delayedGetClinicSchedules({
       pageIndex: currentPage,
       pageSize,
       searchTerm,
@@ -267,8 +272,8 @@ export default function SchedulesPage() {
         sortOrder = "desc" // Most recent dates first
       }
 
-      // Call API with the correct parameters
-      getClinicSchedules({
+      // Call API with the correct parameters using delayed refetch
+      delayedGetClinicSchedules({
         pageIndex: 1,
         pageSize,
         searchTerm,
@@ -305,12 +310,12 @@ export default function SchedulesPage() {
 
       toast.success("The customer has been checked in successfully.")
 
-      // Refresh the clinic schedules list
+      // Refresh the clinic schedules list with delay
       fetchClinicSchedules()
 
-      // If a customer search has been performed, refresh those results too
+      // If a customer search has been performed, refresh those results too with delay
       if (searchPerformed && (customerName || customerPhone)) {
-        getCustomerSchedules({ customerName, customerPhone })
+        delayedGetCustomerSchedules({ customerName, customerPhone })
       }
     } catch (error) {
       console.error("Failed to check in:", error)

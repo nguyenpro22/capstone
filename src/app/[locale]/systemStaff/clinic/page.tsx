@@ -11,20 +11,23 @@ import {
   Search,
   Download,
   MoreVertical,
-  Trash2,
-  Edit,
-  Eye,
   Loader2,
+  Eye,
+  Edit,
+  Trash2,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGetClinicsQuery, useLazyGetClinicByIdQuery, useUpdateClinicMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import * as XLSX from "xlsx"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 import Modal from "@/components/systemStaff/Modal"
 import EditClinicForm from "@/components/systemStaff/EditClinicForm"
 import Pagination from "@/components/common/Pagination/Pagination"
 import type { Clinic } from "@/features/clinic/types"
+import { MenuPortal } from "@/components/ui/menu-portal"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 const ClinicsList: React.FC = () => {
   const t = useTranslations("clinic")
@@ -36,12 +39,17 @@ const ClinicsList: React.FC = () => {
   const [editClinic, setEditClinic] = useState<any | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
 
   const { data, isLoading, error, refetch } = useGetClinicsQuery({
     pageIndex,
     pageSize,
     searchTerm,
   })
+
+  // Use the delayed refetch hook
+  const delayedRefetch = useDelayedRefetch(refetch)
+
   const [updateClinic] = useUpdateClinicMutation()
 
   const clinics = data?.value.items || []
@@ -51,7 +59,15 @@ const ClinicsList: React.FC = () => {
 
   const [fetchClinicById] = useLazyGetClinicByIdQuery()
 
-  const handleToggleMenu = (clinicId: string) => {
+  const handleCloseMenu = () => {
+    setMenuOpen(null)
+  }
+
+  const handleToggleMenu = (clinicId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.nativeEvent.stopImmediatePropagation()
+    // Store the position of the button
+    setTriggerRect(e.currentTarget.getBoundingClientRect())
     setMenuOpen(menuOpen === clinicId ? null : clinicId)
   }
 
@@ -85,7 +101,7 @@ const ClinicsList: React.FC = () => {
       try {
         // await deleteClinic(clinicId).unwrap();
         toast.success("Gói đã được xóa thành công!" + clinicId)
-        refetch()
+        delayedRefetch() // Use delayed refetch instead of immediate refetch
       } catch (error) {
         console.error(error)
         toast.error("Xóa gói thất bại!")
@@ -99,6 +115,12 @@ const ClinicsList: React.FC = () => {
     setEditClinic(null)
   }
 
+  const handleSaveSuccess = () => {
+    // Thêm hàm này để xử lý khi lưu thành công
+    delayedRefetch() // Use delayed refetch instead of immediate refetch
+    handleCloseEditForm()
+  }
+
   const handleToggleStatus = async (id: string) => {
     const clinic = clinics.find((clinic) => clinic.id === id)
     if (!clinic) return
@@ -110,7 +132,7 @@ const ClinicsList: React.FC = () => {
 
       await updateClinic({ clinicId: id, data: updatedFormData }).unwrap()
       toast.success("Trạng thái phòng khám đã được cập nhật!")
-      refetch()
+      delayedRefetch() // Use delayed refetch instead of immediate refetch
     } catch (error) {
       console.error("Failed to update status", error)
       toast.error("Cập nhật trạng thái thất bại!")
@@ -125,7 +147,13 @@ const ClinicsList: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50 shadow-xl rounded-2xl border border-indigo-100/50">
+    <div
+      className="container mx-auto p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50 shadow-xl rounded-2xl border border-indigo-100/50"
+      onClick={handleCloseMenu}
+    >
+      {/* Toast Container */}
+      <ToastContainer position="top-right" autoClose={3000} />
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
@@ -178,7 +206,7 @@ const ClinicsList: React.FC = () => {
             <XCircle className="h-10 w-10 mb-4" />
             <p className="text-lg font-medium">Error fetching data</p>
             <button
-              onClick={() => refetch()}
+              onClick={() => delayedRefetch()} // Use delayed refetch instead of immediate refetch
               className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
             >
               Try Again
@@ -226,20 +254,30 @@ const ClinicsList: React.FC = () => {
                     <motion.tr
                       key={clinic.id}
                       whileHover={{ backgroundColor: "rgba(238, 242, 255, 0.5)" }}
-                      className="transition-colors duration-200"
+                      className="transition-colors duration-200 h-16"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-slate-800">{clinic.name}</div>
+                        <div className="font-medium text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                          {clinic.name}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600">{clinic.email}</td>
-                      <td className="px-6 py-4 text-slate-600 max-w-xs truncate">{clinic.address}</td>
+                      <td className="px-6 py-4">
+                        <div className="text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                          {clinic.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                          {clinic.fullAddress || clinic.address}
+                        </div>
+                      </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                           {clinic.totalBranches}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 whitespace-nowrap">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -260,45 +298,49 @@ const ClinicsList: React.FC = () => {
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           className="p-2 rounded-full hover:bg-indigo-50 transition-colors duration-200"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleToggleMenu(clinic.id)
-                          }}
+                          onClick={(e) => handleToggleMenu(clinic.id, e)}
                         >
                           <MoreVertical className="w-5 h-5 text-slate-600" />
                         </motion.button>
 
                         <AnimatePresence>
                           {menuOpen === clinic.id && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.15 }}
-                              className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 shadow-lg rounded-lg text-sm py-1 z-50"
+                            <MenuPortal
+                              isOpen={menuOpen === clinic.id}
+                              onClose={() => setMenuOpen(null)}
+                              triggerRect={triggerRect}
                             >
-                              <button
-                                className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors duration-150"
-                                onClick={() => handleMenuAction("view", clinic.id)}
+                              <li
+                                className="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleMenuAction("view", clinic.id)
+                                }}
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-4 h-4 text-indigo-600" />
                                 {t("viewClinicDetail")}
-                              </button>
-                              <button
-                                className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors duration-150"
-                                onClick={() => handleMenuAction("edit", clinic.id)}
+                              </li>
+                              <li
+                                className="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleMenuAction("edit", clinic.id)
+                                }}
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-4 h-4 text-blue-600" />
                                 {t("editClinic")}
-                              </button>
-                              <button
-                                className="w-full px-4 py-2.5 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors duration-150"
-                                onClick={() => handleDeleteClinic(clinic.id)}
+                              </li>
+                              <li
+                                className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteClinic(clinic.id)
+                                }}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4 text-red-600" />
                                 {t("deleteClinic")}
-                              </button>
-                            </motion.div>
+                              </li>
+                            </MenuPortal>
                           )}
                         </AnimatePresence>
                       </td>
@@ -561,14 +603,7 @@ const ClinicsList: React.FC = () => {
             exit={{ scale: 0.95, opacity: 0 }}
             className="relative z-10 w-full max-w-4xl mx-4"
           >
-            <EditClinicForm
-              initialData={editClinic}
-              onClose={handleCloseEditForm}
-              onSaveSuccess={() => {
-                handleCloseEditForm()
-                refetch()
-              }}
-            />
+            <EditClinicForm initialData={editClinic} onClose={handleCloseEditForm} onSaveSuccess={handleSaveSuccess} />
           </motion.div>
         </motion.div>
       )}

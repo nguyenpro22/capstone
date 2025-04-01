@@ -13,6 +13,7 @@ export type branchMessages = {
     searchByName: string;
     active: string;
     inactive: string;
+    statusUpdated: string;
     viewBranchDetail: string;
     editBranch: string;
     deleteBranch : string;

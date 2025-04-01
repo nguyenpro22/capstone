@@ -1,67 +1,73 @@
-"use client";
+"use client"
 import { Clock, CreditCard, Building2, Video, Eye } from "lucide-react"
 
-import { useState } from "react";
+import { useState } from "react"
 import {
   useGetPackagesQuery,
   useChangeStatusPackageMutation,
   useLazyGetPackagesByIdQuery,
-  useDeletePackageMutation, 
-} from "@/features/package/api";
+  useDeletePackageMutation,
+} from "@/features/package/api"
 
-import { motion } from "framer-motion";
-import PackageForm from "@/components/systemAdmin/PackageForm";
-import EditPackageForm from "@/components/systemAdmin/EditPackageForm";
-import Pagination from "@/components/common/Pagination/Pagination";
-import { useTranslations } from 'next-intl';
+import { motion } from "framer-motion"
+import PackageForm from "@/components/systemAdmin/PackageForm"
+import EditPackageForm from "@/components/systemAdmin/EditPackageForm"
+import Pagination from "@/components/common/Pagination/Pagination"
+import { useTranslations } from "next-intl"
 
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { MoreVertical } from "lucide-react"; // Import icon ba chấm và icon đóng
-import Modal from "@/components/systemAdmin/Modal"; // Component popup để hiển thị thông tin gói
-import { Package } from "@/features/package/types";
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import { MoreVertical } from "lucide-react" // Import icon ba chấm và icon đóng
+import Modal from "@/components/systemAdmin/Modal" // Component popup để hiển thị thông tin gói
+import type { Package } from "@/features/package/types"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch" // Import the custom hook
 
-export default function Voucher() {
-  const t = useTranslations('package'); // Sử dụng namespace "dashboard"
+export default function PackagePage() {
+  const t = useTranslations("package") // Sử dụng namespace "dashboard"
 
-  const [viewPackage, setViewPackage] = useState<any | null>(null); // Cho popup "Xem thông tin"
-const [editPackage, setEditPackage] = useState<any | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
+  const [viewPackage, setViewPackage] = useState<any | null>(null) // Cho popup "Xem thông tin"
+  const [editPackage, setEditPackage] = useState<any | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("")
 
-  const [pageIndex, setPageIndex] = useState(1);
-  const pageSize = 5;
+  const [pageIndex, setPageIndex] = useState(1)
+  const pageSize = 5
 
-  const { data, error, isLoading, refetch } = useGetPackagesQuery({ 
-                                                                pageIndex, 
-                                                                pageSize,
-                                                                searchTerm });
-console.log("API Response:", data);
-  const [changeStatusPackage] = useChangeStatusPackageMutation();
-  const [fetchPackageById] = useLazyGetPackagesByIdQuery();
-  const [deletePackage] = useDeletePackageMutation();
+  const { data, error, isLoading, refetch } = useGetPackagesQuery({
+    pageIndex,
+    pageSize,
+    searchTerm,
+  })
+  console.log("API Response:", data)
 
-  const packages = data?.value?.items || [];
-  console.log("Package Data:", packages); // Debug
+  // Use the custom hook to create a delayed refetch function
+  const delayedRefetch = useDelayedRefetch(refetch)
 
-  const totalCount = data?.value?.totalCount || 0;
-  const hasNextPage = data?.value?.hasNextPage;
-  const hasPreviousPage = data?.value?.hasPreviousPage;
+  const [changeStatusPackage] = useChangeStatusPackageMutation()
+  const [fetchPackageById] = useLazyGetPackagesByIdQuery()
+  const [deletePackage] = useDeletePackageMutation()
 
-  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const packages = data?.value?.items || []
+  console.log("Package Data:", packages) // Debug
+
+  const totalCount = data?.value?.totalCount || 0
+  const hasNextPage = data?.value?.hasNextPage
+  const hasPreviousPage = data?.value?.hasPreviousPage
+
+  const [menuOpen, setMenuOpen] = useState<string | null>(null)
   // const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
   const [localPackages, setLocalPackages] = useState<any[]>([])
 
   const handleToggleMenu = (packageId: string) => {
-    setMenuOpen(menuOpen === packageId ? null : packageId);
-  };
+    setMenuOpen(menuOpen === packageId ? null : packageId)
+  }
 
   const handleToggleStatus = async (packageId: string) => {
     try {
       // Find the package in the current list
-      const packageToUpdate = packages.find((pkg : Package) => pkg.id === packageId)
+      const packageToUpdate = packages.find((pkg: Package) => pkg.id === packageId)
       if (!packageToUpdate) return
 
       // Optimistically update the UI
@@ -76,69 +82,70 @@ console.log("API Response:", data);
       await changeStatusPackage({ packageId }).unwrap()
       toast.success("Trạng thái gói đã được cập nhật!")
 
-      // Refetch to ensure server and client are in sync
-      refetch()
+      // Use delayed refetch
+      delayedRefetch()
     } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+      console.error(error)
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!")
     }
-  };
+  }
 
   const handleCloseMenu = () => {
-    setMenuOpen(null);
-  };
+    setMenuOpen(null)
+  }
 
   const handleMenuAction = async (action: string, pkgId: string) => {
     if (action === "view") {
       try {
-        const result = await fetchPackageById(pkgId).unwrap();
-        setViewPackage(result.value); // Chỉ đặt giá trị cho View
+        const result = await fetchPackageById(pkgId).unwrap()
+        setViewPackage(result.value) // Chỉ đặt giá trị cho View
       } catch (error) {
-        console.error(error);
-        toast.error("Không thể lấy thông tin gói!");
+        console.error(error)
+        toast.error("Không thể lấy thông tin gói!")
         setViewPackage({
           name: "",
           description: "",
           price: "0",
           duration: "",
           isActivated: false,
-        });
+        })
       }
     }
-  
+
     if (action === "edit") {
       try {
-        const result = await fetchPackageById(pkgId).unwrap();
-        setEditPackage(result.value); // Chỉ đặt giá trị cho Edit
+        const result = await fetchPackageById(pkgId).unwrap()
+        setEditPackage(result.value) // Chỉ đặt giá trị cho Edit
       } catch (error) {
-        console.error(error);
-        toast.error("Không thể lấy thông tin gói!");
+        console.error(error)
+        toast.error("Không thể lấy thông tin gói!")
         setEditPackage({
           name: "",
           description: "",
           price: "0",
           duration: "",
           isActivated: false,
-        });
+        })
       }
-      setShowEditForm(true); // Chỉ mở form, không mở popup
+      setShowEditForm(true) // Chỉ mở form, không mở popup
     }
-  
-    setMenuOpen(null);
-  };
-  
+
+    setMenuOpen(null)
+  }
+
   const handleDeletePackage = async (packageId: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
       try {
-        await deletePackage(packageId).unwrap();
-        toast.success("Gói đã được xóa thành công!");
-        refetch();
+        await deletePackage(packageId).unwrap()
+        toast.success("Gói đã được xóa thành công!")
+        // Use delayed refetch
+        delayedRefetch()
       } catch (error) {
-        console.error(error);
-        toast.error("Xóa gói thất bại!");
+        console.error(error)
+        toast.error("Xóa gói thất bại!")
       }
     }
-  };
+  }
 
   return (
     <div className="p-6" onClick={handleCloseMenu}>
@@ -151,7 +158,7 @@ console.log("API Response:", data);
           className="border px-4 py-2 rounded-md w-1/3"
           value={searchTerm}
           onChange={(e) => {
-            setSearchTerm(e.target.value);
+            setSearchTerm(e.target.value)
           }}
         />
         <motion.button
@@ -181,7 +188,6 @@ console.log("API Response:", data);
               </tr>
             </thead>
             <tbody>
-              
               {packages.map((pkg: any, index: number) => (
                 <tr key={pkg.id} className="border-t">
                   <td className="p-3 border">{(pageIndex - 1) * pageSize + index + 1}</td>
@@ -196,7 +202,7 @@ console.log("API Response:", data);
                       className="toggle-checkbox"
                       onChange={() => handleToggleStatus(pkg.id)}
                     />
-                  
+
                     <span className={pkg.isActivated ? "text-green-600" : "text-red-600"}>
                       {pkg.isActivated ? "Active" : "Inactive"}
                     </span>
@@ -205,8 +211,8 @@ console.log("API Response:", data);
                     <button
                       className="p-2 rounded-full hover:bg-gray-200"
                       onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleMenu(pkg.id);
+                        e.stopPropagation()
+                        handleToggleMenu(pkg.id)
                       }}
                     >
                       <MoreVertical className="w-5 h-5" />
@@ -220,13 +226,18 @@ console.log("API Response:", data);
                         >
                           Xem thông tin gói
                         </li>
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" 
-                        onClick={() => handleMenuAction("edit", pkg.id)}>
+                        <li
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleMenuAction("edit", pkg.id)}
+                        >
                           Chỉnh sửa thông tin gói
                         </li>
-                        <li className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
-                        onClick={()=> handleDeletePackage(pkg.id)}>
-                          Xóa gói</li>
+                        <li
+                          className="px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
+                          onClick={() => handleDeletePackage(pkg.id)}
+                        >
+                          Xóa gói
+                        </li>
                       </ul>
                     )}
                   </td>
@@ -243,9 +254,10 @@ console.log("API Response:", data);
         <PackageForm
           onClose={() => setShowForm(false)}
           onSaveSuccess={() => {
-            setShowForm(false);
-            refetch();
-            toast.success(" Package added successfully!");
+            setShowForm(false)
+            // Use delayed refetch
+            delayedRefetch()
+            toast.success(" Package added successfully!")
           }}
         />
       )}
@@ -254,13 +266,14 @@ console.log("API Response:", data);
           <EditPackageForm
             initialData={editPackage}
             onClose={() => {
-              setShowEditForm(false);
-              setEditPackage(null);
+              setShowEditForm(false)
+              setEditPackage(null)
             }}
             onSaveSuccess={() => {
-              setShowEditForm(false);
-              setEditPackage(null);
-              refetch();
+              setShowEditForm(false)
+              setEditPackage(null)
+              // Use delayed refetch
+              delayedRefetch()
             }}
           />
         </div>
@@ -275,108 +288,108 @@ console.log("API Response:", data);
         onPageChange={setPageIndex}
       />
 
-  {/* View Package Modal */}
-  {viewPackage && (
+      {/* View Package Modal */}
+      {viewPackage && (
         <Modal onClose={() => setViewPackage(null)}>
-        <div className="bg-white rounded-lg">
-          <div className="mb-6">
-            <h2 className="text-3xl font-serif font-semibold text-gray-800 mb-2">{viewPackage.name}</h2>
-            <div className="flex items-center">
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  viewPackage.isActivated ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"
-                }`}
-              >
+          <div className="bg-white rounded-lg">
+            <div className="mb-6">
+              <h2 className="text-3xl font-serif font-semibold text-gray-800 mb-2">{viewPackage.name}</h2>
+              <div className="flex items-center">
                 <span
-                  className={`mr-1.5 h-2 w-2 rounded-full ${viewPackage.isActivated ? "bg-emerald-400" : "bg-gray-400"}`}
-                ></span>
-                {viewPackage.isActivated ? "Active" : "Inactive"}
-              </span>
-            </div>
-          </div>
-  
-          <p className="text-gray-600 mb-8 text-lg">{viewPackage.description}</p>
-  
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-purple-100 p-3 rounded-lg">
-                  <CreditCard className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Price</h3>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
-                    {new Intl.NumberFormat("vi-VN").format(Number(viewPackage.price || 0))} đ
-                  </p>
-                </div>
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    viewPackage.isActivated ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  <span
+                    className={`mr-1.5 h-2 w-2 rounded-full ${viewPackage.isActivated ? "bg-emerald-400" : "bg-gray-400"}`}
+                  ></span>
+                  {viewPackage.isActivated ? "Active" : "Inactive"}
+                </span>
               </div>
             </div>
-  
-            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
-                  <Clock className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Duration</h3>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
-                    {viewPackage.duration} {viewPackage.duration === 1 ? "month" : "months"}
-                  </p>
-                </div>
-              </div>
-            </div>
-  
-            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-pink-100 p-3 rounded-lg">
-                  <Building2 className="h-6 w-6 text-pink-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Branch Limit</h3>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
-                    {viewPackage.limitBranch} {viewPackage.limitBranch === 1 ? "branch" : "branches"}
-                  </p>
-                </div>
-              </div>
-            </div>
-  
-            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-amber-100 p-3 rounded-lg">
-                  <Video className="h-6 w-6 text-amber-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Live Stream Limit</h3>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.limitLiveStream} streams</p>
-                </div>
-              </div>
-            </div>
-  
-            <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md md:col-span-2">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-emerald-100 p-3 rounded-lg">
-                  <Eye className="h-6 w-6 text-emerald-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Enhanced Viewer Capacity</h3>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.enhancedViewer} viewers</p>
-                </div>
-              </div>
-            </div>
-          </div>
-  
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={() => setViewPackage(null)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </Modal>
-      )}
 
+            <p className="text-gray-600 mb-8 text-lg">{viewPackage.description}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-purple-100 p-3 rounded-lg">
+                    <CreditCard className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                    <p className="mt-1 text-xl font-semibold text-gray-900">
+                      {new Intl.NumberFormat("vi-VN").format(Number(viewPackage.price || 0))} đ
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                    <Clock className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Duration</h3>
+                    <p className="mt-1 text-xl font-semibold text-gray-900">
+                      {viewPackage.duration} {viewPackage.duration === 1 ? "month" : "months"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-pink-100 p-3 rounded-lg">
+                    <Building2 className="h-6 w-6 text-pink-600" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Branch Limit</h3>
+                    <p className="mt-1 text-xl font-semibold text-gray-900">
+                      {viewPackage.limitBranch} {viewPackage.limitBranch === 1 ? "branch" : "branches"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-amber-100 p-3 rounded-lg">
+                    <Video className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Live Stream Limit</h3>
+                    <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.limitLiveStream} streams</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-5 shadow-sm transition-all hover:shadow-md md:col-span-2">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-emerald-100 p-3 rounded-lg">
+                    <Eye className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Enhanced Viewer Capacity</h3>
+                    <p className="mt-1 text-xl font-semibold text-gray-900">{viewPackage.enhancedViewer} viewers</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setViewPackage(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
-  );
+  )
 }
+

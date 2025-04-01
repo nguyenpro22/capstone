@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useUpdatePackageMutation } from "@/features/package/api"
 import { toast } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
@@ -30,12 +30,44 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
   const [updatePackage, { isLoading }] = useUpdatePackageMutation()
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
 
+  // Ref to track the currently focused input
+  const focusedInputRef = useRef<string | null>(null)
+  const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({})
+  const inputTypes = useRef<Record<string, string>>({})
+
+  // Effect to restore focus after re-render
+  useEffect(() => {
+    if (focusedInputRef.current && inputRefs.current[focusedInputRef.current]) {
+      const input = inputRefs.current[focusedInputRef.current]
+      if (input) {
+        // Just focus the input without trying to set selection range
+        input.focus()
+
+        // Only set selection range for text inputs and textareas
+        const inputType = inputTypes.current[focusedInputRef.current]
+        if (input instanceof HTMLTextAreaElement || (input instanceof HTMLInputElement && inputType === "text")) {
+          const length = input.value.length
+          try {
+            input.setSelectionRange(length, length)
+          } catch (error) {
+            console.log("Could not set selection range for this input type")
+          }
+        }
+      }
+    }
+  }, [formData])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
+
+    // Store the name of the input being edited
+    focusedInputRef.current = name
+
     setFormData((prev: any) => ({
       ...prev,
       [name]: value,
     }))
+
     setValidationErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -66,6 +98,11 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
     }
   }
 
+  // Prevent modal from closing when clicking inside
+  const handleModalClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
+
   // Input field with icon component
   const InputField = ({
     label,
@@ -87,31 +124,44 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
     readOnly?: boolean
     required?: boolean
     error?: string
-  }) => (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <Icon className="w-5 h-5 text-gray-400" />
+  }) => {
+    // Store the input type for later reference
+    useEffect(() => {
+      inputTypes.current[name] = type
+    }, [name, type])
+
+    return (
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Icon className="w-5 h-5 text-gray-400" />
+          </div>
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={handleChange}
+            className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+              error ? "border-red-300 bg-red-50" : "border-gray-200"
+            } ${
+              readOnly ? "bg-gray-50" : ""
+            } focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200`}
+            placeholder={placeholder}
+            readOnly={readOnly}
+            required={required}
+            ref={(el) => {
+              inputRefs.current[name] = el
+            }}
+            onFocus={() => {
+              focusedInputRef.current = name
+            }}
+          />
         </div>
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-            error ? "border-red-300 bg-red-50" : "border-gray-200"
-          } ${
-            readOnly ? "bg-gray-50" : ""
-          } focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200`}
-          placeholder={placeholder}
-          readOnly={readOnly}
-          required={required}
-        />
+        {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-    </div>
-  )
+    )
+  }
 
   return (
     <motion.div
@@ -132,7 +182,7 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
           stiffness: 300,
         }}
         className="relative w-full max-w-2xl bg-white/95 backdrop-blur rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleModalClick}
       >
         {/* Enhanced Decorative Elements */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
@@ -212,6 +262,12 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                   } focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200`}
                   placeholder="Enter package description"
                   required
+                  ref={(el) => {
+                    inputRefs.current["description"] = el
+                  }}
+                  onFocus={() => {
+                    focusedInputRef.current = "description"
+                  }}
                 />
               </div>
               {validationErrors.description && <p className="text-red-500 text-sm">{validationErrors.description}</p>}

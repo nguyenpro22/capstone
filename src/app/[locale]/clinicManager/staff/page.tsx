@@ -1,9 +1,12 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
+import type React from "react"
+
 import { UserIcon, Building2, ChevronRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGetStaffQuery, useLazyGetStaffByIdQuery, useDeleteStaffMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 import Pagination from "@/components/common/Pagination/Pagination"
 import StaffForm from "@/components/clinicManager/staff/StaffForm"
@@ -84,6 +87,8 @@ export default function StaffPage() {
 
   // State to track which branch is being hovered
   const [hoveredBranchId, setHoveredBranchId] = useState<string | null>(null)
+  // Ref to store tooltip position
+  const tooltipPositionRef = useRef<{ x: number; y: number; targetElement?: HTMLElement } | null>(null)
 
   const [showForm, setShowForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -100,6 +105,9 @@ export default function StaffPage() {
     searchTerm,
     role: 2, // Add role parameter with value 2 for Staff
   })
+
+  // Use the delayed refetch hook
+  const delayedRefetch = useDelayedRefetch(refetch)
 
   const [fetchStaffById] = useLazyGetStaffByIdQuery()
   const [deleteStaff] = useDeleteStaffMutation()
@@ -217,12 +225,23 @@ export default function StaffPage() {
         }).unwrap()
 
         toast.success("Nhân viên đã được xóa thành công!")
-        refetch()
+        delayedRefetch()
       } catch (error) {
         console.error(error)
         toast.error("Xóa nhân viên thất bại!")
       }
     }
+  }
+
+  // Handle mouse enter on branch with position capture
+  const handleBranchMouseEnter = (branchId: string, e: React.MouseEvent) => {
+    // Store the target element for tooltip positioning
+    tooltipPositionRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      targetElement: e.currentTarget as HTMLElement,
+    }
+    setHoveredBranchId(branchId)
   }
 
   return (
@@ -326,25 +345,17 @@ export default function StaffPage() {
                     <td className="p-3 border border-gray-200">
                       {staff.branchs && staff.branchs.length > 0 ? (
                         <div>
-                          <div className="flex flex-wrap gap-1 mb-1 relative">
+                          <div className="flex flex-wrap gap-1 mb-1">
                             {staff.branchs.slice(0, 2).map((branch, idx) => (
                               <div key={idx} className="relative">
                                 <span
                                   className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full cursor-pointer hover:bg-blue-100 transition-colors max-w-[100px] inline-block truncate align-bottom"
-                                  onMouseEnter={() => setHoveredBranchId(branch.id)}
+                                  onMouseEnter={(e) => handleBranchMouseEnter(branch.id, e)}
                                   onMouseLeave={() => setHoveredBranchId(null)}
-                                  title={branch.name}
+                                  
                                 >
                                   {branch.name}
                                 </span>
-
-                                {/* Tooltip for branch address */}
-                                {hoveredBranchId === branch.id && branch.fullAddress && (
-                                  <div className="absolute z-10 top-full left-0 mt-1 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg">
-                                    <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
-                                    {branch.fullAddress}
-                                  </div>
-                                )}
                               </div>
                             ))}
                           </div>
@@ -444,6 +455,31 @@ export default function StaffPage() {
         )}
       </div>
 
+      {/* Tooltip for branch addresses - positioned below each branch with arrow */}
+      {hoveredBranchId &&
+        staffList.some((staff) =>
+          staff.branchs?.some((branch) => branch.id === hoveredBranchId && branch.fullAddress),
+        ) && (
+          <div
+            className="fixed z-[9999] p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+            style={{
+              top: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().bottom || 0) + 5 + "px",
+              left: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().left || 0) + "px",
+              maxWidth: "250px",
+              pointerEvents: "none", // Prevents the tooltip from interfering with mouse events
+            }}
+          >
+            {/* Arrow pointing up */}
+            <div className="absolute -top-2 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-gray-800" />
+
+            {/* Only show the address */}
+            {
+              staffList.flatMap((staff) => staff.branchs || []).find((branch) => branch.id === hoveredBranchId)
+                ?.fullAddress
+            }
+          </div>
+        )}
+
       {/* Add Staff Form */}
       {showForm && (
         <div
@@ -464,7 +500,7 @@ export default function StaffPage() {
             onClose={() => setShowForm(false)}
             onSaveSuccess={() => {
               setShowForm(false)
-              refetch()
+              delayedRefetch()
               toast.success("Staff added successfully!")
             }}
           />
@@ -483,7 +519,7 @@ export default function StaffPage() {
             onSaveSuccess={() => {
               setShowEditForm(false)
               setEditStaff(null)
-              refetch()
+              delayedRefetch()
             }}
           />
         </div>

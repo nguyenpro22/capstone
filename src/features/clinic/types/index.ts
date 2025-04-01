@@ -3,6 +3,7 @@ export interface Clinic {
   name: string;
   email: string;
   address: string;
+  fullAddress: string;
   city: string;
   district: string;
   ward: string;

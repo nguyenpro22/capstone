@@ -1,19 +1,41 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useCreatePromotionMutation } from "@/features/promotion-service/api"
 import Image from "next/image"
 import { toast } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
-import { Calendar, Percent, X, Upload } from "lucide-react"
-import { useRef } from "react"
+import { Calendar, Percent, X, Upload, AlertCircle } from "lucide-react"
+
+// Validation error interfaces
+interface ValidationErrorItem {
+  code: string
+  message: string
+}
+
+interface ValidationErrorResponse {
+  type: string
+  title: string
+  status: number
+  detail: string
+  errors: ValidationErrorItem[]
+}
 
 interface PromotionFormProps {
   serviceId: string
   onClose: () => void
   onSuccess?: () => void
+}
+
+// Interface for field errors
+interface FieldErrors {
+  name?: string
+  discountPercent?: string
+  image?: string
+  startDay?: string
+  endDate?: string
+  general?: string
 }
 
 export default function PromotionForm({ serviceId, onClose, onSuccess }: PromotionFormProps) {
@@ -26,13 +48,20 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
   const [startDay, setStartDay] = useState("")
   const [endDate, setEndDate] = useState("")
   const [isDragging, setIsDragging] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
-  const [createPromotion, { isLoading, error }] = useCreatePromotionMutation()
+  const [createPromotion, { isLoading }] = useCreatePromotionMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFieldErrors({})
 
+    // Client-side validation
     if (new Date(endDate) < new Date(startDay)) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        endDate: "Ngày kết thúc phải sau ngày bắt đầu!",
+      }))
       toast.error("Ngày kết thúc phải sau ngày bắt đầu!", {
         position: "top-right",
         theme: "light",
@@ -58,9 +87,85 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
       })
       resetForm()
       onClose()
-      if (onSuccess) onSuccess()
-    } catch (err) {
-      console.error("Lỗi khi tạo khuyến mãi:", err)
+      // Add a delay before calling onSuccess (refetch)
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess()
+        }, 400) // 400ms delay
+      }
+    } catch (err: any) {
+      console.error("Complete error object:", err)
+
+      // Handle validation errors
+      if (err && err.data) {
+        console.log("Error data:", err.data)
+
+        // Check if it's a validation error with the expected structure
+        if (err.data.errors && Array.isArray(err.data.errors) && err.data.errors.length > 0) {
+          console.log("Validation errors:", err.data.errors)
+
+          // Create a new errors object
+          const newErrors: FieldErrors = {}
+
+          // Map validation errors to specific fields
+          err.data.errors.forEach((validationError: ValidationErrorItem) => {
+            const errorMsg = validationError.message
+            const errorCode = validationError.code.toLowerCase()
+
+            // Map error code to field name
+            if (errorCode.includes("name")) {
+              newErrors.name = errorMsg
+            } else if (errorCode.includes("discount") || errorCode.includes("percent")) {
+              newErrors.discountPercent = errorMsg
+            } else if (errorCode.includes("image")) {
+              newErrors.image = errorMsg
+            } else if (errorCode.includes("start")) {
+              newErrors.startDay = errorMsg
+            } else if (errorCode.includes("end")) {
+              newErrors.endDate = errorMsg
+            } else {
+              // If we can't map to a specific field, set as general error
+              newErrors.general = errorMsg
+            }
+
+            // Also show as toast for visibility
+            toast.error(errorMsg, {
+              position: "top-right",
+              theme: "light",
+              className: "bg-white border border-red-100 text-red-600",
+            })
+          })
+
+          // Update field errors state
+          setFieldErrors(newErrors)
+          return
+        }
+
+        // If we have a detail message but no specific errors
+        if (err.data.detail) {
+          setFieldErrors({ general: err.data.detail })
+          toast.error(err.data.detail, {
+            position: "top-right",
+            theme: "light",
+            className: "bg-white border border-red-100 text-red-600",
+          })
+          return
+        }
+      }
+
+      // If we have a message property
+      if (err && err.message) {
+        setFieldErrors({ general: err.message })
+        toast.error(err.message, {
+          position: "top-right",
+          theme: "light",
+          className: "bg-white border border-red-100 text-red-600",
+        })
+        return
+      }
+
+      // Fallback generic error message
+      setFieldErrors({ general: "Tạo khuyến mãi thất bại, vui lòng thử lại!" })
       toast.error("Tạo khuyến mãi thất bại, vui lòng thử lại!", {
         position: "top-right",
         theme: "light",
@@ -104,6 +209,19 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
     setPreviewImage(null)
     setStartDay("")
     setEndDate("")
+    setFieldErrors({})
+  }
+
+  // Helper component for field error message
+  const FieldError = ({ message }: { message?: string }) => {
+    if (!message) return null
+
+    return (
+      <div className="flex items-center gap-1.5 mt-1.5 text-red-500 text-sm">
+        <AlertCircle className="w-3.5 h-3.5" />
+        <span>{message}</span>
+      </div>
+    )
   }
 
   return (
@@ -117,20 +235,24 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
       >
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
 
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-8">
+        {/* Header - Fixed at top */}
+        <div className="p-6 pb-0">
+          <div className="flex justify-between items-center">
             <h2 className="text-2xl tracking-wide text-gray-800">Tạo Khuyến Mãi Mới</h2>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
+        </div>
 
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Promotion Name */}
             <div className="space-y-2">
@@ -139,10 +261,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                         focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.name ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
+                         focus:ring focus:ring-opacity-50 transition-all duration-200`}
                 required
               />
+              <FieldError message={fieldErrors.name} />
             </div>
 
             {/* Discount Percentage */}
@@ -155,12 +278,13 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                   max="100"
                   value={discountPercent}
                   onChange={(e) => setDiscountPercent(Math.max(0, Number(e.target.value)))}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                           focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.discountPercent ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
+                           focus:ring focus:ring-opacity-50 transition-all duration-200`}
                   required
                 />
                 <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
+              <FieldError message={fieldErrors.discountPercent} />
             </div>
 
             {/* Image Upload */}
@@ -168,7 +292,13 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
               <label className="text-sm font-medium text-gray-700">Hình Ảnh Khuyến Mãi</label>
               <div
                 className={`relative border-2 border-dashed rounded-lg p-4 transition-all duration-200
-                  ${isDragging ? "border-purple-400 bg-purple-50" : "border-gray-200 hover:border-purple-300"}`}
+                  ${
+                    fieldErrors.image
+                      ? "border-red-300 bg-red-50/30"
+                      : isDragging
+                        ? "border-purple-400 bg-purple-50"
+                        : "border-gray-200 hover:border-purple-300"
+                  }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -192,12 +322,13 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2 py-8">
-                      <Upload className="w-8 h-8 text-purple-400" />
+                      <Upload className={`w-8 h-8 ${fieldErrors.image ? "text-red-400" : "text-purple-400"}`} />
                       <p className="text-sm text-gray-500">Kéo thả hoặc click để tải ảnh lên</p>
                     </div>
                   )}
                 </label>
               </div>
+              <FieldError message={fieldErrors.image} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -210,8 +341,8 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                     type="datetime-local"
                     value={startDay}
                     onChange={(e) => setStartDay(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                     focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.startDay ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
+                     focus:ring focus:ring-opacity-50 transition-all duration-200`}
                     required
                     onFocus={(e) => e.target.showPicker()} // Opens date picker when focused
                   />
@@ -220,6 +351,7 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                     onClick={() => startRef.current?.showPicker()} // Uses ref instead of querySelector
                   />
                 </div>
+                <FieldError message={fieldErrors.startDay} />
               </div>
 
               {/* End Date */}
@@ -231,8 +363,8 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                     focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.endDate ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
+                     focus:ring focus:ring-opacity-50 transition-all duration-200`}
                     required
                     onFocus={(e) => e.target.showPicker()} // Opens date picker when focused
                   />
@@ -241,51 +373,60 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                     onClick={() => endRef.current?.showPicker()} // Uses ref instead of querySelector
                   />
                 </div>
+                <FieldError message={fieldErrors.endDate} />
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 
-                         hover:bg-gray-50 transition-colors duration-200"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white
-                         hover:from-pink-600 hover:to-purple-600 transition-all duration-200 
-                         disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Đang tạo...</span>
-                  </div>
-                ) : (
-                  "Tạo Khuyến Mãi"
-                )}
-              </button>
-            </div>
+            {/* General Error Message */}
+            <AnimatePresence>
+              {fieldErrors.general && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="p-4 rounded-lg bg-red-50 text-red-600 text-sm flex items-start gap-2"
+                >
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>{fieldErrors.general}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </form>
+        </div>
 
-          {/* Error Message */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="mt-4 p-4 rounded-lg bg-red-50 text-red-600 text-sm"
-              >
-                {(error as any)?.data?.message || "Có lỗi xảy ra, vui lòng thử lại"}
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Footer with buttons - Fixed at bottom */}
+        <div className="p-6 border-t border-gray-100">
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 
+                       hover:bg-gray-50 transition-colors duration-200"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              onClick={(e) => {
+                e.preventDefault()
+                const form = document.querySelector("form")
+                if (form) form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }))
+              }}
+              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white
+                       hover:from-pink-600 hover:to-purple-600 transition-all duration-200 
+                       disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <span>Đang tạo...</span>
+                </div>
+              ) : (
+                "Tạo Khuyến Mãi"
+              )}
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

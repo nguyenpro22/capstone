@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { X, Check, Building, ArrowRight, Loader2 } from "lucide-react"
+import { X, Check, Building, ArrowRight, Loader2 } from 'lucide-react'
 import { useChangeDoctorBranchMutation, useGetBranchesQuery } from "@/features/clinic/api"
 import { toast } from "react-toastify"
 import { useTranslations } from "next-intl"
@@ -40,7 +40,13 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
   const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery(clinicId)
 
   // Fix the typing issue by ensuring branches is always an array
-  const branches = useMemo(() => branchesData?.value?.branches || [], [branchesData])
+  const branches = useMemo(() => {
+    // Check if data exists and has the expected structure
+    if (branchesData?.value?.branches?.items) {
+      return branchesData.value.branches.items || [];
+    }
+    return [];
+  }, [branchesData]);
 
   const {
     register,
@@ -157,7 +163,7 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
                 disabled={isLoadingBranches}
               >
                 <option value="">{t("selectBranch") || "Select branch"}</option>
-                {branches.map((branch: Branch) => (
+                {Array.isArray(branches) && branches.map((branch: Branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.name}
                   </option>
@@ -265,4 +271,3 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
     </div>
   )
 }
-

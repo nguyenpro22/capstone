@@ -15,6 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+       <head>
+        {/* Load Quill CSS from CDN */}
+        <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css" crossOrigin="anonymous" />
+      </head>
       <body>
         <ClientProvider>{children}</ClientProvider>
       </body>

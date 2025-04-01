@@ -177,7 +177,8 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
       console.log("FormData prepared, sending to API", {
         clinicId,
         employeeId: initialData.employeeId,
-        formDataEntries: [...formData.entries()].map((entry) => ({ key: entry[0], value: entry[1] })),
+        // Fix the TypeScript error by not using spread operator on FormData entries
+        formDataEntries: Array.from(formData.entries()).map((entry) => ({ key: entry[0], value: entry[1] })),
       })
 
       const result = await updateStaff({

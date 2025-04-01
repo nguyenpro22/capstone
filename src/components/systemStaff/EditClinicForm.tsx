@@ -191,7 +191,9 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
     try {
       await updateClinic({ clinicId: formData.id, data: updatedFormData }).unwrap()
       toast.success("Clinic updated successfully!")
+      // Gọi onSaveSuccess trước khi đóng form
       onSaveSuccess()
+      // Sau đó mới đóng form
       onClose()
     } catch (error: any) {
       console.error("Update failed:", error)
@@ -210,6 +212,12 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4"
+      onClick={(e) => {
+        // Chỉ đóng modal khi click vào backdrop, không phải khi click vào nội dung
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -217,6 +225,7 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
         className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl my-8 overflow-hidden"
+        onClick={(e) => e.stopPropagation()} // Ngăn sự kiện click lan truyền
       >
         {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">

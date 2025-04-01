@@ -109,6 +109,12 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                   .unwrap()
                   .then(() => {
                     console.log("Schedule status updated to Completed")
+
+                    // Automatically close the modal after 2 seconds on successful payment
+                    setTimeout(() => {
+                      onClose()
+                      router.push("/schedules")
+                    }, 2000)
                   })
                   .catch((error: any) => {
                     console.error("Failed to update schedule status:", error)
@@ -119,6 +125,12 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                     // If the error is "Order already completed", we can still show success
                     if (errorDetail.includes("already completed")) {
                       toast.info("This order was already marked as completed")
+
+                      // Automatically close the modal after 2 seconds even if already completed
+                      setTimeout(() => {
+                        onClose()
+                        router.push("/schedules")
+                      }, 2000)
                     } else {
                       toast.error(errorDetail)
                     }
@@ -148,7 +160,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
         PaymentService.leavePaymentSession(transactionId)
       }
     }
-  }, [transactionId, schedule, updateScheduleStatus])
+  }, [transactionId, schedule, updateScheduleStatus, onClose, router])
 
   // Keep the countdown effect, but simplify it to use the existing method:
   useEffect(() => {
@@ -221,7 +233,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
         }
 
         setShowQR(true)
-        setCountdown(15) // Reset countdown to 30 seconds
+        setCountdown(59) // Reset countdown to 30 seconds
         setIsTimedOut(false)
       } else if (paymentMethod === "cash") {
         // For cash payments, show success immediately
@@ -237,6 +249,12 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
               status: "Completed",
             }).unwrap()
             console.log("Schedule status updated to Completed")
+
+            // Automatically close the modal after 2 seconds for cash payments
+            setTimeout(() => {
+              onClose()
+              router.push("/schedules")
+            }, 2000)
           } catch (error: any) {
             console.error("Failed to update schedule status:", error)
             // Extract error detail if available
@@ -246,6 +264,12 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
             // If the error is "Order already completed", we can still show success
             if (errorDetail.includes("already completed")) {
               toast.info("This order was already marked as completed")
+
+              // Automatically close the modal after 2 seconds even if already completed
+              setTimeout(() => {
+                onClose()
+                router.push("/schedules")
+              }, 2000)
             } else {
               toast.error(errorDetail)
             }
@@ -290,7 +314,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
         onClose()
       }}
     >
-      <DialogContent className="sm:max-w-md md:max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl min-h-[500px] h-[calc(100vh-80px)] max-h-[800px] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-serif">Schedule Payment</DialogTitle>
           <DialogDescription>Complete your payment for the scheduled service</DialogDescription>
@@ -484,17 +508,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                         Transaction time: {new Date(paymentDetails.timestamp).toLocaleString()}
                       </p>
                     )}
-                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
-                      <Button onClick={onClose} variant="outline" className="flex-1">
-                        Close
-                      </Button>
-                      <Button
-                        onClick={() => router.push("/schedules")}
-                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                      >
-                        View Schedules <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
+                    <p className="text-sm text-green-600 animate-pulse">Redirecting to schedules...</p>
                   </div>
                 </CardContent>
               </Card>

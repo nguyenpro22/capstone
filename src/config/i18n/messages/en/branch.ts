@@ -15,6 +15,7 @@ export const branchMessages: Messages["branch"] = {
   searchByName: "Search by name",
   active: "Active",
   inactive: "Inactive",
+  statusUpdated: "Status Updated",
   viewBranchDetail: "View branch detail",
   editBranch : "Edit branch",
   deleteBranch: "Delete branch",

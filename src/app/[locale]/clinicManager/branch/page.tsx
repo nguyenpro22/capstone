@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useState } from "react"
-import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from 'lucide-react'
+import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   useGetBranchesQuery,
@@ -13,7 +13,8 @@ import {
 } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import * as XLSX from "xlsx"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 import BranchForm from "@/components/clinicManager/BranchForm"
 import EditBranchForm from "@/components/clinicManager/EditBranchForm"
 import EditStaffForm from "@/components/clinicManager/staff/EditStaffForm"
@@ -21,6 +22,8 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Branch, Staff } from "@/features/clinic/types"
 import ViewBranchModal from "@/components/clinicManager/branch/view-branch-modal"
 import Pagination from "@/components/common/Pagination/Pagination"
+import { MenuPortal } from "@/components/ui/menu-portal"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 const BranchesList: React.FC = () => {
   const t = useTranslations("branch")
@@ -42,10 +45,10 @@ const BranchesList: React.FC = () => {
   const [expandedBranch, setExpandedBranch] = useState<string | null>(null)
   const [editStaff, setEditStaff] = useState<Staff | null>(null)
   const [showEditStaffForm, setShowEditStaffForm] = useState(false)
-  // Remove this line:
-  // const [staffMenuOpen, setStaffMenuOpen] = useState<string | null>(null)
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
 
   const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || "")
+  const delayedRefetch = useDelayedRefetch(refetch)
 
   const [changeStatusBranch] = useChangeStatusBranchMutation()
   const [fetchBranchById] = useLazyGetBranchByIdQuery()
@@ -79,14 +82,13 @@ const BranchesList: React.FC = () => {
     return allStaff.filter((staff) => staff.branchs && staff.branchs.some((branch) => branch.id === branchId))
   }
 
-  const handleToggleMenu = (branchId: string) => {
+  const handleToggleMenu = (branchId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.nativeEvent.stopImmediatePropagation()
+    // Store the position of the button
+    setTriggerRect(e.currentTarget.getBoundingClientRect())
     setMenuOpen(menuOpen === branchId ? null : branchId)
   }
-
-  // Remove this function:
-  // const handleToggleStaffMenu = (staffId: string) => {
-  //   setStaffMenuOpen(staffMenuOpen === staffId ? null : staffId)
-  // }
 
   const handleMenuAction = async (action: string, branchId: string) => {
     if (action === "view") {
@@ -134,7 +136,7 @@ const BranchesList: React.FC = () => {
       try {
         // await deleteBranch(branchId).unwrap();
         toast.success(t("deleteSuccess"))
-        refetch()
+        delayedRefetch()
       } catch (error) {
         console.error(error)
         toast.error(t("deleteFailed"))
@@ -159,7 +161,7 @@ const BranchesList: React.FC = () => {
       // Simply call the API with the branch ID - no body needed
       await changeStatusBranch({ id: branch.id }).unwrap()
       toast.success(t("statusUpdated"))
-      refetch()
+      delayedRefetch()
     } catch (error) {
       console.error("Failed to update status", error)
       toast.error(t("statusUpdateFailed"))
@@ -192,6 +194,8 @@ const BranchesList: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 shadow-xl rounded-xl">
+      {/* Toast Container */}
+      <ToastContainer />
       <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 tracking-wide">{t("branchesList")}</h1>
 
       {/* Buttons and Search */}
@@ -317,42 +321,55 @@ const BranchesList: React.FC = () => {
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleToggleMenu(branch.id)
-                      }}
+                      onClick={(e) => handleToggleMenu(branch.id, e)}
                     >
                       <MoreVertical className="w-5 h-5 text-gray-600" />
                     </motion.button>
 
                     <AnimatePresence>
                       {menuOpen === branch.id && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg text-sm py-2 z-[100]"
-                          style={{ top: "100%" }}
+                        <MenuPortal
+                          isOpen={menuOpen === branch.id}
+                          onClose={() => setMenuOpen(null)}
+                          triggerRect={triggerRect}
                         >
-                          <button
-                            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
-                            onClick={() => handleMenuAction("view", branch.id)}
+                          <li
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMenuAction("view", branch.id)
+                            }}
                           >
+                            <span className="w-4 h-4 rounded-full bg-purple-100 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                            </span>
                             {t("viewBranchDetail")}
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
-                            onClick={() => handleMenuAction("edit", branch.id)}
+                          </li>
+                          <li
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMenuAction("edit", branch.id)
+                            }}
                           >
+                            <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            </span>
                             {t("editBranch")}
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-150"
-                            onClick={() => handleDeleteBranch(branch.id)}
+                          </li>
+                          <li
+                            className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteBranch(branch.id)
+                            }}
                           >
+                            <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            </span>
                             {t("deleteBranch")}
-                          </button>
-                        </motion.div>
+                          </li>
+                        </MenuPortal>
                       )}
                     </AnimatePresence>
                   </div>
@@ -495,8 +512,9 @@ const BranchesList: React.FC = () => {
               initialData={editBranch}
               onClose={handleCloseForm}
               onSaveSuccess={() => {
+                toast.success(t("branchUpdatedSuccess") || "Branch updated successfully!")
                 handleCloseForm()
-                refetch()
+                delayedRefetch()
               }}
             />
           </motion.div>
@@ -528,7 +546,7 @@ const BranchesList: React.FC = () => {
               onClose={handleCloseForm}
               onSaveSuccess={() => {
                 handleCloseForm()
-                refetch()
+                delayedRefetch()
               }}
             />
           </motion.div>
@@ -561,7 +579,7 @@ const BranchesList: React.FC = () => {
               onClose={handleCloseForm}
               onSaveSuccess={() => {
                 handleCloseForm()
-                refetch()
+                delayedRefetch()
               }}
             />
           </motion.div>
@@ -572,3 +590,4 @@ const BranchesList: React.FC = () => {
 }
 
 export default BranchesList
+
