@@ -383,7 +383,13 @@ export default function ServicesPage(): JSX.Element {
   };
 
   // Filter services based on current filters
-  const filteredServices = filterServices(services, filters);
+  const filteredServices = filterServices(
+    services.map((service) => ({
+      ...service,
+      discountPercent: Number(service.discountPercent),
+    })),
+    filters
+  );
 
   // Handle pagination
   const handlePreviousPage = (): void => {
@@ -425,7 +431,6 @@ export default function ServicesPage(): JSX.Element {
           />
           <div className="flex items-center justify-center gap-2 text-sm">
             <Link href="/" className="hover:text-primary transition-colors">
-
               Trang chủ
             </Link>
             <span>/</span>
@@ -645,7 +650,7 @@ export default function ServicesPage(): JSX.Element {
                               )}
                           </div>
                           <div className="p-6">
-                            <h3 className="text-lg font-serif font-semibold mb-2">
+                            <h3 className="text-lg font-semibold mb-2">
                               {service.name}
                             </h3>
                             <div className="flex items-center gap-2 mb-2">

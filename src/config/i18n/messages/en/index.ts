@@ -21,6 +21,7 @@ const en = {
   clinic: clinicMessages,
   service: serviceMessages,
   branch: branchMessages,
+
   doctor: doctorMessages,
   staff: staffMessages
 };

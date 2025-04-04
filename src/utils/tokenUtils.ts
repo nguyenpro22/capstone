@@ -50,6 +50,7 @@ export const decodeJwt = (token: string | null) => {
 
 export const GetDataByToken = (token: string): TokenData | null => {
   const decoded = decodeJwt(token);
+
   const roleName = decoded?.RoleName;
   const name = decoded?.Name;
   const roleId = decoded?.RoleId;
@@ -63,6 +64,7 @@ export type TokenData = {
   roleId: string;
   userId: string;
   clinicId?: string;
+
   name: string;
 };
 

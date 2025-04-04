@@ -7,8 +7,10 @@ import { voucherMessages } from "./voucher";
 import { clinicMessages } from "./clinic";
 import { serviceMessages } from "./service";
 import { branchMessages } from "./branch";
+
 import { doctorMessages } from "./doctor";
 import { staffMessages } from "./staff";
+
 
 export type Messages = {
   home: homeMessages;
@@ -20,6 +22,8 @@ export type Messages = {
   clinic: clinicMessages;
   service: serviceMessages;
   branch: branchMessages;
+
   doctor: doctorMessages;
   staff: staffMessages;
+
 };

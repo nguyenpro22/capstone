@@ -11,14 +11,44 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLoginMutation } from "@/features/auth/api";
 import { createLoginSchema, LoginFormValues } from "@/validations";
-import { z } from "zod";
 import {
+  GetDataByToken,
   setAccessToken,
   setRefreshToken,
   showError,
   showSuccess,
+  TokenData,
 } from "@/utils";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { ROLE } from "@/constants";
+
+const handleRedirect = (token: string, router: any) => {
+  const { role } = GetDataByToken(token) as TokenData;
+
+  switch (role) {
+    case ROLE.CLINIC_ADMIN:
+      router.push("/clinicManager/dashboard");
+      break;
+    case ROLE.CLINIC_STAFF:
+      router.push("/clinicStaff/dashboard");
+      break;
+    case ROLE.SYSTEM_ADMIN:
+      router.push("/systemAdmin/dashboard");
+      break;
+    case ROLE.SYSTEM_STAFF:
+      router.push("/systemStaff/dashboard");
+      break;
+    case ROLE.CUSTOMER:
+      router.push("/");
+      break;
+    case ROLE.DOCTOR:
+      router.push("/doctor/dashboard");
+      break;
+
+    default:
+      break;
+  }
+};
 
 export default function LoginPage() {
   const [login] = useLoginMutation();
@@ -49,8 +79,7 @@ export default function LoginPage() {
       setAccessToken(response.value.accessToken);
       setRefreshToken(response.value.refreshToken);
       showSuccess("Login success");
-      // ✅ Nếu đăng nhập thành công, chuyển hướng đến dashboard
-      router.push("/home");
+      handleRedirect(response.value.accessToken, router);
     } catch (error: any) {
       if (error?.data?.status === 500) {
         showError("Invalid email or password");
@@ -84,7 +113,8 @@ export default function LoginPage() {
             {...register("email")}
             id="email"
             type="email"
-            className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl"
+            className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl
+             dark:bg-gray-800 dark:border-gray-600 dark:text-white"
             placeholder="Enter your email"
           />
           {errors.email && (
@@ -105,7 +135,8 @@ export default function LoginPage() {
               {...register("password")}
               id="password"
               type={showPassword ? "text" : "password"}
-              className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl"
+              className="h-14 px-4 text-lg bg-white border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 rounded-xl
+             dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               placeholder="Enter your password"
             />
             <button

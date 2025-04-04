@@ -1,322 +1,194 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronRight, Filter, Search } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Plus, RefreshCw } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
-export default function OrderHistoryPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+import type { BookingStatus } from "@/features/booking/types";
+import { useGetBookingsQuery } from "@/features/booking/api";
+import { BookingCard } from "@/components/services/booking/bookingList/booking-card";
+import { Pagination } from "@/components/services/user/pagination";
 
-  // Mock data - would be fetched from API in real implementation
-  const orders = [
-    {
-      id: "ORD001",
-      packageName: "Premium Facial Treatment Package",
-      clinic: "Beauty Clinic Saigon",
-      date: "15/05/2023",
-      price: 1800000,
-      status: "completed",
-    },
-    {
-      id: "ORD002",
-      packageName: "Advanced Skin Rejuvenation",
-      clinic: "Glow Spa Center",
-      date: "22/06/2023",
-      price: 2500000,
-      status: "processing",
-    },
-    {
-      id: "ORD003",
-      packageName: "Hair Removal Package",
-      clinic: "Beauty Clinic Saigon",
-      date: "10/07/2023",
-      price: 3200000,
-      status: "pending",
-    },
-    {
-      id: "ORD004",
-      packageName: "Body Massage Therapy",
-      clinic: "Wellness Center",
-      date: "05/08/2023",
-      price: 1200000,
-      status: "cancelled",
-    },
-  ];
+export default function UserBookingsPage() {
+  const [activeTab, setActiveTab] = useState<BookingStatus | "All">("All");
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            Hoàn thành
-          </Badge>
-        );
-      case "processing":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            Đang xử lý
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-            Chờ xác nhận
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-            Đã hủy
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">Không xác định</Badge>;
-    }
-  };
-
-  const filteredOrders = orders.filter((order) => {
-    if (activeTab !== "all" && order.status !== activeTab) return false;
-    if (
-      searchQuery &&
-      !order.packageName.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-      return false;
-    return true;
+  // Use RTK Query hook with the current filters
+  const { data, isLoading, refetch } = useGetBookingsQuery({
+    pageIndex: pageIndex,
+    pageSize: pageSize,
   });
 
+  // Extract data from the query response
+  const bookings = data?.value?.items || [];
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = data?.value?.hasNextPage || false;
+  const hasPreviousPage = data?.value?.hasPreviousPage || false;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as BookingStatus | "All");
+    setPageIndex(1); // Reset to first page when changing tabs
+  };
+
+  const handlePageChange = (page: number) => {
+    setPageIndex(page);
+  };
+
+  const handleStatusChange = () => {
+    refetch();
+  };
+
+  // Count bookings by status
+  const pendingCount = bookings.filter((b) => b.status === "Pending").length;
+  const successCount = bookings.filter((b) => b.status === "Success").length;
+  const canceledCount = bookings.filter((b) => b.status === "Canceled").length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-gray-900 dark:to-gray-950">
-      <div className="sticky top-0 z-10 bg-rose-50/80 dark:bg-gray-900/80 backdrop-blur-sm pt-4 pb-2">
-        <div className="container flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Lịch hẹn của tôi
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Quản lý các dịch vụ bạn đã đặt lịch
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="h-9 px-4"
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Làm mới
           </Button>
-          <h1 className="text-xl font-semibold">Lịch sử đơn hàng</h1>
+          <Button
+            size="sm"
+            onClick={() => (window.location.href = "/booking/new")}
+            className="h-9 px-4 bg-primary hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Đặt lịch mới
+          </Button>
         </div>
       </div>
 
-      <div className="container pb-6">
-        <div className="flex items-center gap-2 mt-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Tìm kiếm đơn hàng..."
-              className="pl-8 border-primary/10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <Card className="border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl overflow-hidden">
+        <Tabs
+          defaultValue="All"
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
+          <div className="bg-muted/30 border-b border-gray-200 dark:border-gray-800 px-4 py-2">
+            <TabsList className="grid grid-cols-4 h-10">
+              <TabsTrigger
+                value="All"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800"
+              >
+                Tất cả
+                <span className="ml-2 bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
+                  {totalCount}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="Pending"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800"
+              >
+                Đang xử lý
+                <span className="ml-2 bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5 text-xs">
+                  {pendingCount}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="Success"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800"
+              >
+                Hoàn thành
+                <span className="ml-2 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">
+                  {successCount}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="Canceled"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800"
+              >
+                Đã hủy
+                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
+                  {canceledCount}
+                </span>
+              </TabsTrigger>
+            </TabsList>
           </div>
-          <Button variant="outline" size="icon" className="rounded-full">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-            <TabsTrigger value="all">Tất cả</TabsTrigger>
-            <TabsTrigger value="pending">Chờ xác nhận</TabsTrigger>
-            <TabsTrigger value="processing">Đang xử lý</TabsTrigger>
-            <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="mt-4">
-            <div className="space-y-3">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <Card
-                    key={order.id}
-                    className="overflow-hidden border-primary/10 dark:bg-gray-800/50"
-                  >
-                    <CardContent className="p-0">
-                      <Link href={`/orders/${order.id}`} className="block">
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium">{order.packageName}</p>
-                            {getStatusBadge(order.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {order.clinic}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-sm text-muted-foreground">
-                              {order.date}
-                            </p>
-                            <p className="font-bold text-primary">
-                              {formatPrice(order.price)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="bg-muted px-4 py-2 flex items-center justify-between">
-                          <p className="text-sm">Xem chi tiết</p>
-                          <ChevronRight className="h-4 w-4" />
-                        </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Không tìm thấy đơn hàng nào
-                  </p>
+          <TabsContent value={activeTab} className="p-4 pt-6">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-16">
+                <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-3 text-lg">Đang tải dữ liệu...</span>
+              </div>
+            ) : bookings.length > 0 ? (
+              <>
+                <div className="space-y-6">
+                  {bookings.map((booking) => (
+                    <BookingCard
+                      key={booking.id}
+                      booking={booking}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
                 </div>
-              )}
-            </div>
-          </TabsContent>
 
-          <TabsContent value="pending" className="mt-4">
-            <div className="space-y-3">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <Card
-                    key={order.id}
-                    className="overflow-hidden border-primary/10 dark:bg-gray-800/50"
-                  >
-                    <CardContent className="p-0">
-                      <Link href={`/orders/${order.id}`} className="block">
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium">{order.packageName}</p>
-                            {getStatusBadge(order.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {order.clinic}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-sm text-muted-foreground">
-                              {order.date}
-                            </p>
-                            <p className="font-bold text-primary">
-                              {formatPrice(order.price)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="bg-muted px-4 py-2 flex items-center justify-between">
-                          <p className="text-sm">Xem chi tiết</p>
-                          <ChevronRight className="h-4 w-4" />
-                        </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Không tìm thấy đơn hàng nào
-                  </p>
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={pageIndex}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    hasNextPage={hasNextPage}
+                    hasPreviousPage={hasPreviousPage}
+                  />
                 </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="processing" className="mt-4">
-            <div className="space-y-3">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <Card
-                    key={order.id}
-                    className="overflow-hidden border-primary/10 dark:bg-gray-800/50"
+              </>
+            ) : (
+              <div className="text-center py-16 bg-muted/10 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                <div className="text-5xl mb-4">🔍</div>
+                <h3 className="text-xl font-medium mb-2">
+                  Không tìm thấy lịch hẹn nào
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {activeTab === "All"
+                    ? "Bạn chưa có lịch hẹn nào. Hãy đặt lịch ngay để trải nghiệm dịch vụ của chúng tôi!"
+                    : `Bạn không có lịch hẹn nào ở trạng thái ${
+                        activeTab === "Pending"
+                          ? "đang xử lý"
+                          : activeTab === "Success"
+                          ? "hoàn thành"
+                          : "đã hủy"
+                      }`}
+                </p>
+                {activeTab === "All" && (
+                  <Button
+                    className="mt-6"
+                    onClick={() => (window.location.href = "/booking/new")}
                   >
-                    <CardContent className="p-0">
-                      <Link href={`/orders/${order.id}`} className="block">
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium">{order.packageName}</p>
-                            {getStatusBadge(order.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {order.clinic}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-sm text-muted-foreground">
-                              {order.date}
-                            </p>
-                            <p className="font-bold text-primary">
-                              {formatPrice(order.price)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="bg-muted px-4 py-2 flex items-center justify-between">
-                          <p className="text-sm">Xem chi tiết</p>
-                          <ChevronRight className="h-4 w-4" />
-                        </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Không tìm thấy đơn hàng nào
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="completed" className="mt-4">
-            <div className="space-y-3">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <Card
-                    key={order.id}
-                    className="overflow-hidden border-primary/10 dark:bg-gray-800/50"
-                  >
-                    <CardContent className="p-0">
-                      <Link href={`/orders/${order.id}`} className="block">
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium">{order.packageName}</p>
-                            {getStatusBadge(order.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {order.clinic}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-sm text-muted-foreground">
-                              {order.date}
-                            </p>
-                            <p className="font-bold text-primary">
-                              {formatPrice(order.price)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="bg-muted px-4 py-2 flex items-center justify-between">
-                          <p className="text-sm">Xem chi tiết</p>
-                          <ChevronRight className="h-4 w-4" />
-                        </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Không tìm thấy đơn hàng nào
-                  </p>
-                </div>
-              )}
-            </div>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Đặt lịch ngay
+                  </Button>
+                )}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
-      </div>
+      </Card>
     </div>
   );
 }

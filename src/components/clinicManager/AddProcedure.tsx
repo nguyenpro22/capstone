@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -37,7 +38,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [editorLoaded, setEditorLoaded] = useState(false)
 
-  const [addProcedure, { isLoading }] = useAddProcedureMutation()
+  const [addProcedure, { isLoading }] = useAddProcedureMutation();
 
   // Ensure editor is loaded
   useEffect(() => {
@@ -45,17 +46,20 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   }, [])
 
   const handleAddPriceType = () => {
-    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }])
-  }
+    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }]);
+  };
 
   const handleRemovePriceType = (index: number) => {
-    setPriceTypes(priceTypes.filter((_, i) => i !== index))
-  }
+    setPriceTypes(priceTypes.filter((_, i) => i !== index));
+  };
 
   const handlePriceTypeChange = (index: number, field: string, value: any) => {
-    const updatedPriceTypes = priceTypes.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    setPriceTypes(updatedPriceTypes)
-  }
+    const updatedPriceTypes = priceTypes.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    );
+    setPriceTypes(updatedPriceTypes);
+  };
+
 
   const handleDescriptionChange = (value: string) => {
     setDescription(value)
@@ -66,7 +70,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         return newErrors
       })
     }
-  }
+  };
 
   // Helper function to display field error
   const getFieldError = (fieldName: string) => {
@@ -75,6 +79,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
 
   // Update the handleSubmit function to use JSON request body instead of FormData
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault()
     // Clear previous validation errors
     setValidationErrors({})
@@ -89,12 +94,15 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     }
 
     if (!description.trim()) {
+
       errors.Description = "Mô tả không được để trống!"
     } else if (description.trim().length < 2) {
       errors.Description = "Mô tả phải có ít nhất 2 ký tự!"
+
     }
 
     if (priceTypes.length === 0) {
+
       errors.PriceTypes = "Phải có ít nhất một loại giá!"
     }
 
@@ -169,7 +177,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         toast.error("Thêm thất bại, vui lòng thử lại.")
       }
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
@@ -193,7 +201,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         <div className="overflow-y-auto flex-1">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="space-y-1.5">
+
               <label className="block text-sm font-medium text-gray-700">Tên Giai Đoạn</label>
+
               <input
                 type="text"
                 className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all ${
@@ -223,6 +233,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
 
             {/* Description - Quill Editor */}
             <div className="space-y-1.5">
+
               <label className="block text-sm font-medium text-gray-700 flex items-center gap-1">
                 <FileText className="h-4 w-4" />
                 Mô Tả
@@ -256,6 +267,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
             {/* Step Index */}
             <div className="space-y-1.5 relative z-20 bg-white pt-4">
               <label className="block text-sm font-medium text-gray-700 bg-white relative z-20">Thứ tự bước</label>
+
               <input
                 type="number"
                 className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all relative z-20 ${
@@ -284,9 +296,12 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
               )}
             </div>
 
+
             <div className="space-y-3 relative z-20 bg-white">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">Loại Giá Dịch Vụ</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Loại Giá Dịch Vụ
+                </label>
                 <button
                   type="button"
                   onClick={handleAddPriceType}
@@ -313,7 +328,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="VD: Cơ bản"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.name}
-                        onChange={(e) => handlePriceTypeChange(index, "name", e.target.value)}
+                        onChange={(e) =>
+                          handlePriceTypeChange(index, "name", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -328,7 +345,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="30"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.duration}
-                        onChange={(e) => handlePriceTypeChange(index, "duration", Number(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "duration",
+                            Number(e.target.value)
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -344,7 +367,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="100,000"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.price}
-                        onChange={(e) => handlePriceTypeChange(index, "price", Number(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "price",
+                            Number(e.target.value)
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -418,8 +447,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default AddProcedure
-
+export default AddProcedure;
