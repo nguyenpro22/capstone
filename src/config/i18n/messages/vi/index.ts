@@ -1,4 +1,7 @@
-import { serviceMessages } from "./service";
+
+import { staffMessages } from './staff';
+import { serviceMessages } from './service';
+
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
@@ -6,14 +9,11 @@ import { homeMessages } from "./home";
 import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
 import { voucherMessages } from "./voucher";
-import { branchMessages } from "./branch";
-import { serviceMessages as doctorServiceMessage } from "./doctor/service";
-import { appointments as doctorAppointments } from "./doctor/appointments";
-import { calendar as doctorCalendar } from "./doctor/calendar";
-import { dashboard as doctorDashboard } from "./doctor/dashboard";
-import { patientMessages as doctorPatients } from "./doctor/patients";
-import { profile as doctorProfile } from "./doctor/profile";
-import { common as doctorCommon } from "./doctor/common";
+
+import { branchMessages } from './branch';
+import { doctorMessages } from './doctor';
+
+
 const vi = {
   home: homeMessages,
   navbar: navbarMessages,
@@ -24,13 +24,10 @@ const vi = {
   clinic: clinicMessages,
   service: serviceMessages,
   branch: branchMessages,
-  doctorService: doctorServiceMessage,
-  doctorAppointments: doctorAppointments,
-  doctorCalendar: doctorCalendar,
-  doctorDashboard: doctorDashboard,
-  doctorPatients: doctorPatients,
-  doctorProfile: doctorProfile,
-  doctorCommon: doctorCommon,
+
+  doctor: doctorMessages,
+  staff: staffMessages
+
 };
 
 export default vi;

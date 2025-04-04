@@ -31,7 +31,7 @@ export default function OrderDetailPage({
     sessions: 5,
     completedSessions: 3,
     nextAppointment: "25/08/2023 15:00",
-    notes: "Vui lòng đến trước 15 phút để làm thủ tục.",
+    notes: "Vui lòng đến trước 15 phút để làm giai đoạn.",
   };
 
   const formatPrice = (price: number) => {

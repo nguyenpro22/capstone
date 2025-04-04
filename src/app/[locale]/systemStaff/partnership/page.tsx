@@ -1,100 +1,95 @@
-"use client";
-import React, { useState } from "react";
-import {
-  useGetPartnershipRequestsQuery,
-  useUpdatePartnershipRequestMutation,
-} from "@/features/partnership/api";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Pagination from "@/components/common/Pagination/Pagination";
-import { RequestItem } from "@/features/partnership/types";
-import { Filter, Search, CheckCircle, XCircle, Ban, MoreHorizontal, Calendar, RefreshCw, X, AlertCircle, Loader2 } from 'lucide-react';
+"use client"
+import type React from "react"
+import { useState } from "react"
+import { useGetPartnershipRequestsQuery, useUpdatePartnershipRequestMutation } from "@/features/partnership/api"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import Pagination from "@/components/common/Pagination/Pagination"
+import type { RequestItem } from "@/features/partnership/types"
+import { Filter, Search, CheckCircle, XCircle, Ban, Calendar, RefreshCw, X, AlertCircle, Loader2 } from "lucide-react"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 const PartnershipRequest: React.FC = () => {
-  const [pageIndex, setPageIndex] = useState(1);
-  const pageSize = 5;
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [actionType, setActionType] = useState<"reject" | "ban" | null>(null);
+  const [pageIndex, setPageIndex] = useState(1)
+  const pageSize = 5
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState<string>("")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [actionType, setActionType] = useState<"reject" | "ban" | null>(null)
 
   const { data, isLoading, isError, refetch } = useGetPartnershipRequestsQuery({
     pageIndex,
     pageSize,
     searchTerm,
-  });
+  })
 
-  const [updatePartnershipRequest, { isLoading: isUpdating }] =
-    useUpdatePartnershipRequestMutation();
+  // Use the delayed refetch hook
+  const delayedRefetch = useDelayedRefetch(refetch)
 
-  const handleAction = async (
-    id: string,
-    action: "accept" | "reject" | "ban"
-  ) => {
+  const [updatePartnershipRequest, { isLoading: isUpdating }] = useUpdatePartnershipRequestMutation()
+
+  const handleAction = async (id: string, action: "accept" | "reject" | "ban") => {
     try {
       if (action === "accept") {
-        await updatePartnershipRequest({ requestId: id, action: 0 }).unwrap();
-        toast.success(`Partnership request accepted successfully`);
-        refetch();
+        await updatePartnershipRequest({ requestId: id, action: 0 }).unwrap()
+        toast.success(`Partnership request accepted successfully`)
+        delayedRefetch() // Use delayed refetch instead of immediate refetch
       } else {
-        setSelectedRequestId(id);
-        setActionType(action);
+        setSelectedRequestId(id)
+        setActionType(action)
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Failed to update the request");
+      console.log(error)
+      toast.error("Failed to update the request")
     }
-  };
+  }
 
   const handleConfirmReject = async () => {
-    if (!selectedRequestId || !actionType) return;
+    if (!selectedRequestId || !actionType) return
 
-    const actionNumber = actionType === "reject" ? 1 : 2;
+    const actionNumber = actionType === "reject" ? 1 : 2
     const reason =
       rejectReason.trim() ||
-      (actionType === "reject"
-        ? "Your request has been rejected"
-        : "Your request has been banned");
-    
-    setIsSubmitting(true);
+      (actionType === "reject" ? "Your request has been rejected" : "Your request has been banned")
+
+    setIsSubmitting(true)
 
     try {
       await updatePartnershipRequest({
         requestId: selectedRequestId,
         action: actionNumber,
         rejectReason: reason,
-      });
+      })
 
-      toast.success(
-        `Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`
-      );
-      refetch();
+      toast.success(`Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`)
+      delayedRefetch() // Use delayed refetch instead of immediate refetch
     } catch (error) {
-      console.log(error);
-      toast.error("Failed to update the request");
+      console.log(error)
+      toast.error("Failed to update the request")
     }
 
-    setSelectedRequestId(null);
-    setRejectReason("");
-    setActionType(null);
-    setIsSubmitting(false);
-  };
+    setSelectedRequestId(null)
+    setRejectReason("")
+    setActionType(null)
+    setIsSubmitting(false)
+  }
 
-  const requests: RequestItem[] = data?.value?.items?.filter(
-    (request: RequestItem) =>
-      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-  
-  const totalCount = data?.value?.totalCount || 0;
-  const hasNextPage = data?.value?.hasNextPage || false;
-  const hasPreviousPage = data?.value?.hasPreviousPage || false;
+  const requests: RequestItem[] =
+    data?.value?.items?.filter(
+      (request: RequestItem) =>
+        request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.email.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) || []
+
+  const totalCount = data?.value?.totalCount || 0
+  const hasNextPage = data?.value?.hasNextPage || false
+  const hasPreviousPage = data?.value?.hasPreviousPage || false
 
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-xl border border-gray-100">
       <ToastContainer />
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
@@ -103,7 +98,7 @@ const PartnershipRequest: React.FC = () => {
             {totalCount} Total
           </span>
         </h1>
-        
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <input
@@ -123,7 +118,7 @@ const PartnershipRequest: React.FC = () => {
             <Filter className="mr-2 h-4 w-4 text-gray-500" />
             <span>Filter By</span>
           </button>
-          
+
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <select className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-700 appearance-none focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200">
@@ -132,7 +127,7 @@ const PartnershipRequest: React.FC = () => {
               <option>16 Feb 2019</option>
             </select>
           </div>
-          
+
           <button className="flex items-center px-4 py-2.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors duration-200">
             <RefreshCw className="mr-2 h-4 w-4" />
             <span>Reset Filter</span>
@@ -156,8 +151,8 @@ const PartnershipRequest: React.FC = () => {
           <div className="flex flex-col items-center text-red-500">
             <AlertCircle className="h-8 w-8 mb-4" />
             <p>Error loading data. Please try again later.</p>
-            <button 
-              onClick={() => refetch()}
+            <button
+              onClick={() => delayedRefetch()} // Use delayed refetch instead of immediate refetch
               className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
             >
               Retry
@@ -257,13 +252,11 @@ const PartnershipRequest: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">
-                  {actionType === "reject" ? "Reject Request" : "Ban Request"}
-                </h2>
-                <button 
+                <h2 className="text-xl font-semibold">{actionType === "reject" ? "Reject Request" : "Ban Request"}</h2>
+                <button
                   onClick={() => {
-                    setSelectedRequestId(null);
-                    setActionType(null);
+                    setSelectedRequestId(null)
+                    setActionType(null)
                   }}
                   className="p-1 rounded-full hover:bg-white/20 transition-colors duration-200"
                   disabled={isSubmitting}
@@ -272,12 +265,13 @@ const PartnershipRequest: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6">
               <p className="text-gray-600 mb-4">
-                Please provide a reason for {actionType === "reject" ? "rejecting" : "banning"} this partnership request:
+                Please provide a reason for {actionType === "reject" ? "rejecting" : "banning"} this partnership
+                request:
               </p>
-              
+
               <textarea
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
                 rows={4}
@@ -286,13 +280,13 @@ const PartnershipRequest: React.FC = () => {
                 onChange={(e) => setRejectReason(e.target.value)}
                 disabled={isSubmitting}
               />
-              
+
               <div className="flex justify-end mt-6 gap-3">
                 <button
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                   onClick={() => {
-                    setSelectedRequestId(null);
-                    setActionType(null);
+                    setSelectedRequestId(null)
+                    setActionType(null)
                   }}
                   disabled={isSubmitting}
                 >
@@ -300,9 +294,7 @@ const PartnershipRequest: React.FC = () => {
                 </button>
                 <button
                   className={`px-4 py-2 rounded-lg text-white flex items-center ${
-                    isSubmitting
-                      ? "bg-blue-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
+                    isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                   } transition-colors duration-200`}
                   onClick={handleConfirmReject}
                   disabled={isSubmitting}
@@ -313,9 +305,7 @@ const PartnershipRequest: React.FC = () => {
                       Processing...
                     </>
                   ) : (
-                    <>
-                      {actionType === "reject" ? "Reject" : "Ban"} Request
-                    </>
+                    <>{actionType === "reject" ? "Reject" : "Ban"} Request</>
                   )}
                 </button>
               </div>
@@ -324,7 +314,8 @@ const PartnershipRequest: React.FC = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default PartnershipRequest;
+export default PartnershipRequest
+

@@ -48,25 +48,24 @@ export const decodeJwt = (token: string | null) => {
   return JSON.parse(atob(base64));
 };
 
-export const GetDataByToken = (token: string): unknown | null => {
+export const GetDataByToken = (token: string): TokenData | null => {
   const decoded = decodeJwt(token);
-  const role =
-    decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+  const roleName = decoded?.RoleName;
+  const name = decoded?.Name;
   const roleId = decoded?.RoleId;
   const userId = decoded?.UserId;
   const clinicId = decoded?.ClinicId;
-  const name = decoded?.Name;
-  const email = decoded?.Email;
-  return { role, roleId, userId, clinicId, name, email };
+  return { roleName,name, roleId, userId, clinicId };
 };
 
 export type TokenData = {
-  role: string;
+  roleName: string;
   roleId: string;
   userId: string;
   clinicId?: string;
-  name?: string;
-  email?: string;
+
+  name: string;
 };
 
 export const rememberMe = (token: string, refreshToken: string): void => {

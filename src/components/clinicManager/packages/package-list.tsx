@@ -159,7 +159,8 @@ export default function PackageList() {
       setSelectedPackage(pkg);
       setPaymentStatus("pending");
 
-      const result = await createPayment({ subscriptionId: pkg.id }).unwrap();
+
+      const result = await createPayment({ subscriptionId: pkg.id }).unwrap()
       if (result.isSuccess && result.value.qrUrl) {
         setQrUrl(result.value.qrUrl);
         // Store the transaction ID for SignalR connection
@@ -183,9 +184,8 @@ export default function PackageList() {
     setPaymentStatus("pending");
 
     try {
-      const result = await createPayment({
-        subscriptionId: selectedPackage.id,
-      }).unwrap();
+
+      const result = await createPayment({ subscriptionId: selectedPackage.id }).unwrap()
       if (result.isSuccess && result.value.qrUrl) {
         setQrUrl(result.value.qrUrl);
         if (result.value.transactionId) {
