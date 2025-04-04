@@ -2,7 +2,7 @@
 import { MdEditSquare } from "react-icons/md"
 
 import { useState } from "react"
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   useGetServicesQuery,
@@ -23,11 +23,12 @@ import type { Service, ImageObject } from "@/features/clinic-service/types"
 
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { MoreVertical } from 'lucide-react' // Import icon ba chấm và icon đóng
+import { MoreVertical } from "lucide-react" // Import icon ba chấm và icon đóng
 import Image from "next/image"
 // Thêm import cho component ViewServiceModal
 import ViewServiceModal from "@/components/clinicManager/service/view-service-modal"
 import { MenuPortal } from "@/components/ui/menu-portal"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 export default function ServicePage() {
   const t = useTranslations("service") // Sử dụng namespace "dashboard"
@@ -56,6 +57,8 @@ export default function ServicePage() {
     pageSize,
     searchTerm,
   })
+  // Use the delayed refetch hook
+  const delayedRefetch = useDelayedRefetch(refetch)
   const { data: categoriesData } = useGetCategoriesQuery({
     pageIndex: 1,
     pageSize: 100,
@@ -157,7 +160,7 @@ export default function ServicePage() {
       try {
         await deleteService({ id: ServiceId }).unwrap()
         toast.success("Gói đã được xóa thành công!")
-        refetch()
+        delayedRefetch()
       } catch (error) {
         console.error(error)
         toast.error("Xóa gói thất bại!")
@@ -295,11 +298,10 @@ export default function ServicePage() {
                     </td>
                     <td className="p-3 border border-gray-200">
                       <div className="flex items-center space-x-2">
-                         
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">
-                            {service.discountPercent}%
-                          </span>
-                        
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">
+                          {service.discountPercent}%
+                        </span>
+
                         <button
                           onClick={() => openPromotionForm(service.id)}
                           className="p-1.5 rounded-full hover:bg-purple-50 text-purple-500 transition-colors"
@@ -425,7 +427,7 @@ export default function ServicePage() {
             onClose={() => setShowForm(false)}
             onSaveSuccess={() => {
               setShowForm(false)
-              refetch()
+              delayedRefetch()
               toast.success("Service added successfully!")
             }}
           />
@@ -434,7 +436,11 @@ export default function ServicePage() {
 
       {/* Hiển thị PromotionForm khi click */}
       {modalType === "promotion" && selectedServiceId && (
-        <PromotionForm serviceId={selectedServiceId} onClose={() => setModalType(null)} onSuccess={() => refetch()} />
+        <PromotionForm
+          serviceId={selectedServiceId}
+          onClose={() => setModalType(null)}
+          onSuccess={() => delayedRefetch()}
+        />
       )}
 
       {modalType === "procedure" && selectedServiceId && (
@@ -455,7 +461,7 @@ export default function ServicePage() {
             onSaveSuccess={() => {
               setShowEditForm(false)
               setEditService(null)
-              refetch()
+              delayedRefetch()
             }}
           />
         </div>
@@ -474,12 +480,13 @@ export default function ServicePage() {
 
       {/* Truyền refetchService vào ViewServiceModal */}
       {viewService && (
-        <ViewServiceModal 
-          viewService={viewService} 
-          onClose={() => setViewService(null)} 
+        <ViewServiceModal
+          viewService={viewService}
+          onClose={() => setViewService(null)}
           refetchService={refetchServiceData}
         />
       )}
     </div>
   )
 }
+

@@ -36,10 +36,19 @@ export interface UpdateService extends Partial<Service> {
 }
 
 export interface ProcedurePriceType {
-  id: number
-  name: string
-  price: number
+  id: string;
+  name: string;
+  duration: number;
+  price: number;
+  isDefault: boolean;
 }
+export interface PriceType {
+  name: string;
+  duration: number;
+  price: number;
+  isDefault: boolean;
+}
+
 
 export interface Procedure {
   id: string
@@ -77,3 +86,22 @@ export interface UpdateServiceRequest {
   data: FormData
 }
 
+
+export interface ProcedureRequest {
+  clinicServiceId: string;
+  name: string;
+  description: string;
+  stepIndex: number;
+  procedurePriceTypes: PriceType[];
+}
+
+
+// Add the new interface for updating procedures
+export interface UpdateProcedureRequest {
+  serviceId: string;
+  procedureId: string;
+  name: string;
+  description: string;
+  stepIndex: number;
+  procedurePriceTypes: ProcedurePriceType[];
+}

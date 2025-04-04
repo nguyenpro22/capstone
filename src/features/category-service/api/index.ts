@@ -12,11 +12,19 @@ export const categoryQueryApi = createApi({
       IResCommon<IListResponse<CategoryDetail>>,
       { pageIndex?: number; pageSize?: number; searchTerm?: string }
     >({
-      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "" }) =>
-        `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
+      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "" }) => {
+        // Prepare the search term with the fixed filter
+        const baseSearchTerm = "IsParent==true and name="
+        const fullSearchTerm = searchTerm ? `${baseSearchTerm}${searchTerm}` : baseSearchTerm
+
+        // Encode the search term to handle special characters
+        const encodedSearchTerm = encodeURIComponent(fullSearchTerm)
+
+        return `/categories?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${encodedSearchTerm}&sortOrder=desc`
+      },
     }),
     getAllCategories: builder.query<IResCommon<IListResponse<CategoryDetail>>, void>({
-      query: () => `/categories?pageIndex=1&pageSize=1000&sortOrder=desc`,
+      query: () => `/categories?pageIndex=1&pageSize=1000&sortOrder=desc&searchTerm=IsParent==true`,
     }),
     
     getCategoryById: builder.query<IResCommon<CategoryDetail>, string>({
@@ -53,11 +61,9 @@ export const categoryCommandApi = createApi({
     }),
     moveCategory: builder.mutation({
       query: ({ subCategoryId, categoryId }) => ({
-        url: `/categories/${subCategoryId}`,
-        method: "PATCH",
-        body: {
-          categoryId,
-        },
+        url: `/categories/${categoryId}/${subCategoryId}`,
+        method: "PATCH"
+       
       }),
     }),
 

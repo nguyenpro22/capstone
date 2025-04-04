@@ -16,5 +16,5 @@ export const serviceMessages: Messages["service"] = {
   viewServiceDetail: "Xem chi tiết dịch vụ",
   editService : "Chỉnh sửa thông tin dịch vụ",
   deleteService: "Xóa phòng dịch vụ",
-  addProcedure:" Thêm thủ tục"
+  addProcedure:" Thêm giai đoạn"
 };

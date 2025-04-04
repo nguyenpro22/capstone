@@ -1,5 +1,5 @@
 import { reAuthQuery } from '@/lib/api';
-import { ServiceDetailResponse } from './../types/index';
+import { ProcedureRequest, ServiceDetailResponse, UpdateProcedureRequest } from './../types/index';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 
@@ -49,11 +49,14 @@ export const serviceCommandApi = createApi({
     }),
     
     
-    addProcedure: builder.mutation<any, { data: FormData }>({
+    addProcedure: builder.mutation<any, { data: ProcedureRequest }>({
       query: ({ data }) => ({
         url: "/procedures",
         method: "POST",
-        body: data, // Truyền trực tiếp FormData
+        body: data,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }),
     }),
     
@@ -67,6 +70,16 @@ export const serviceCommandApi = createApi({
         },
       }),
     }),
+    updateProcedure: builder.mutation<any, { id: string; data: UpdateProcedureRequest }>({
+      query: ({ id, data }) => ({
+        url: `/procedures/${id}`,
+        method: "PUT",
+        body: data,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
   }),
 });
 
@@ -75,5 +88,6 @@ export const { useCreateServiceMutation,
               useUpdateServiceMutation, 
               useDeleteServiceMutation,
               useAddProcedureMutation, 
+              useUpdateProcedureMutation,
               useDeleteProcedureMutation, 
               } = serviceCommandApi;

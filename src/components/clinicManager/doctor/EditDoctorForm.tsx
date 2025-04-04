@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type React from "react"
 
 import { motion } from "framer-motion"
@@ -27,7 +27,7 @@ import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Staff } from "@/features/clinic/types"
 import Image from "next/image"
-import { AddressDetail } from "@/features/address/types"
+import type { AddressDetail } from "@/features/address/types"
 
 // Define certificate type
 interface Certificate {
@@ -58,13 +58,12 @@ interface EditDoctorFormProps {
   onSaveSuccess: () => void
 }
 
-
-
 export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: EditDoctorFormProps) {
   const t = useTranslations("doctor")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [updateDoctor] = useUpdateDoctorMutation()
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string>("basic")
 
   // Get the token and extract clinicId
@@ -151,9 +150,23 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0])
+      const file = e.target.files[0]
+      setProfilePicture(file)
+
+      // Create a preview URL for the selected image
+      const objectUrl = URL.createObjectURL(file)
+      setPreviewUrl(objectUrl)
     }
   }
+
+  // Clean up the preview URL when component unmounts or when a new file is selected
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
 
   // Get full address for display purposes
   const getFullAddress = (): string => {
@@ -604,30 +617,36 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                     </p>
                   </div>
 
-                  {initialData.profilePictureUrl && (
+                  {initialData.profilePictureUrl && !profilePicture && (
                     <div className="mb-6">
                       <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
                         <Image
                           src={initialData.profilePictureUrl || "/placeholder.svg"}
                           alt={initialData.fullName || "Doctor"}
                           className="w-full h-full object-cover"
-                          width={100}
-                          height={100}
+                          width={160}
+                          height={160}
                         />
                       </div>
                       <p className="mt-2 text-sm text-gray-500 text-center">{t("currentPhoto") || "Current photo"}</p>
                     </div>
                   )}
 
-                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 rounded-full cursor-pointer hover:border-purple-500 transition-colors bg-gray-50">
+                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 rounded-full cursor-pointer hover:border-purple-500 transition-colors bg-gray-50 overflow-hidden relative">
                     <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center justify-center h-full w-full">
                       {profilePicture ? (
-                        <div className="relative w-full h-full">
-                          <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          {previewUrl ? (
+                            <img
+                              src={previewUrl || "/placeholder.svg"}
+                              alt="Profile preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
                             <Check className="w-10 h-10 text-green-500" />
-                          </div>
-                          <p className="text-sm text-gray-600 mt-2 text-center">
+                          )}
+                          <p className="text-sm text-gray-600 mt-2 text-center absolute bottom-2 bg-white bg-opacity-70 w-full py-1">
                             {profilePicture.name.length > 20
                               ? profilePicture.name.substring(0, 20) + "..."
                               : profilePicture.name}
@@ -647,7 +666,13 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       type="button"
-                      onClick={() => setProfilePicture(null)}
+                      onClick={() => {
+                        setProfilePicture(null)
+                        if (previewUrl) {
+                          URL.revokeObjectURL(previewUrl)
+                          setPreviewUrl(null)
+                        }
+                      }}
                       className="mt-4 px-3 py-1 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
                     >
                       {t("remove") || "Remove"}

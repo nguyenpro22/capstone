@@ -1,12 +1,18 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAddProcedureMutation } from "@/features/clinic-service/api"
 import { toast } from "react-toastify"
-import { X, Plus, ImageIcon, Clock, DollarSign, Trash2, AlertCircle } from "lucide-react"
+import { X, Plus, Clock, DollarSign, Trash2, AlertCircle, FileText } from "lucide-react"
 import { motion } from "framer-motion"
-import Image from "next/image"
+import dynamic from "next/dynamic"
+
+// Dynamically import QuillEditor to avoid SSR issues
+const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
+  ssr: false,
+  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 animate-pulse" />,
+})
 
 // Define error types based on the API response
 interface ValidationError {
@@ -27,12 +33,16 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [stepIndex, setStepIndex] = useState(0)
-  const [procedureCoverImages, setProcedureCoverImages] = useState<File[]>([])
   const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0 }])
-  const [imagePreview, setImagePreview] = useState<string[]>([])
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [editorLoaded, setEditorLoaded] = useState(false)
 
   const [addProcedure, { isLoading }] = useAddProcedureMutation()
+
+  // Ensure editor is loaded
+  useEffect(() => {
+    setEditorLoaded(true)
+  }, [])
 
   const handleAddPriceType = () => {
     setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }])
@@ -47,41 +57,14 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     setPriceTypes(updatedPriceTypes)
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-
-    // Clear any previous image validation error
-    setValidationErrors((prev) => {
-      const newErrors = { ...prev }
-      delete newErrors.ProcedureCoverImage
-      return newErrors
-    })
-
-    // Convert FileList to array and append to existing images
-    const newFiles = Array.from(files)
-    setProcedureCoverImages((prevImages) => [...prevImages, ...newFiles])
-
-    // Create previews for all new files
-    newFiles.forEach((file) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview((prevPreviews) => [...prevPreviews, reader.result as string])
-      }
-      reader.readAsDataURL(file)
-    })
-  }
-
-  const handleRemoveImage = (index: number) => {
-    setProcedureCoverImages((prevImages) => prevImages.filter((_, i) => i !== index))
-    setImagePreview((prevPreviews) => prevPreviews.filter((_, i) => i !== index))
-
-    // If no images left, set validation error
-    if (procedureCoverImages.length <= 1) {
-      setValidationErrors((prev) => ({
-        ...prev,
-        ProcedureCoverImage: "Hình ảnh không được để trống!",
-      }))
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value)
+    if (value.trim().length >= 2) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.Description
+        return newErrors
+      })
     }
   }
 
@@ -90,6 +73,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     return validationErrors[fieldName] || ""
   }
 
+  // Update the handleSubmit function to use JSON request body instead of FormData
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     // Clear previous validation errors
@@ -99,19 +83,15 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     const errors: Record<string, string> = {}
 
     if (!name.trim()) {
-      errors.Name = "Tên thủ tục không được để trống!"
+      errors.Name = "Tên giai đoạn không được để trống!"
     } else if (name.trim().length < 2) {
-      errors.Name = "Tên thủ tục phải có ít nhất 2 ký tự!"
+      errors.Name = "Tên giai đoạn phải có ít nhất 2 ký tự!"
     }
 
     if (!description.trim()) {
       errors.Description = "Mô tả không được để trống!"
     } else if (description.trim().length < 2) {
       errors.Description = "Mô tả phải có ít nhất 2 ký tự!"
-    }
-
-    if (procedureCoverImages.length === 0) {
-      errors.ProcedureCoverImage = "Hình ảnh không được để trống!"
     }
 
     if (priceTypes.length === 0) {
@@ -126,27 +106,26 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
       return
     }
 
-    // Chuyển đổi format đúng theo API yêu cầu
-    const procedurePriceTypes = priceTypes.map((item) => ({
-      Name: item.name,
-      Duration: item.duration,
-      Price: item.price,
+    // Format the data according to the API requirements
+    const procedurePriceTypes = priceTypes.map((item, index) => ({
+      name: item.name,
+      duration: item.duration,
+      price: item.price,
+      isDefault: index === 0, // Set the first price type as default
     }))
-    const formData = new FormData()
-    formData.append("clinicServiceId", clinicServiceId)
-    formData.append("name", name)
-    formData.append("description", description)
-    formData.append("stepIndex", stepIndex.toString())
-    // Replace the single image append with multiple image appends
-    procedureCoverImages.forEach((image) => {
-      formData.append("procedureCoverImage", image)
-    })
-    formData.append("procedurePriceTypes", JSON.stringify(procedurePriceTypes))
 
-    // Update the handleSubmit function's catch block to handle the case where errors is null
+    // Create the request body as a JSON object
+    const requestBody = {
+      clinicServiceId: clinicServiceId,
+      name: name,
+      description: description,
+      stepIndex: stepIndex,
+      procedurePriceTypes: procedurePriceTypes,
+    }
+
     try {
-      await addProcedure({ data: formData }).unwrap()
-      toast.success("Thêm thủ tục thành công!")
+      await addProcedure({ data: requestBody }).unwrap()
+      toast.success("Thêm giai đoạn thành công!")
       onClose()
     } catch (error: any) {
       console.error("Lỗi khi thêm Procedure:", error)
@@ -214,7 +193,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         <div className="overflow-y-auto flex-1">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Tên Thủ Tục</label>
+              <label className="block text-sm font-medium text-gray-700">Tên Giai Đoạn</label>
               <input
                 type="text"
                 className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all ${
@@ -231,7 +210,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                     })
                   }
                 }}
-                placeholder="Nhập tên thủ tục"
+                placeholder="Nhập tên giai đoạn"
                 required
               />
               {getFieldError("Name") && (
@@ -241,26 +220,28 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 </p>
               )}
             </div>
+
+            {/* Description - Quill Editor */}
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Mô Tả</label>
-              <textarea
-                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all min-h-[100px] ${
-                  getFieldError("Description") ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value)
-                  if (e.target.value.trim().length >= 2) {
-                    setValidationErrors((prev) => {
-                      const newErrors = { ...prev }
-                      delete newErrors.Description
-                      return newErrors
-                    })
-                  }
-                }}
-                placeholder="Nhập mô tả chi tiết về thủ tục"
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 flex items-center gap-1">
+                <FileText className="h-4 w-4" />
+                Mô Tả
+              </label>
+              <div className="quill-editor-container">
+                {editorLoaded && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className={getFieldError("Description") ? "quill-error" : ""}
+                  >
+                    <QuillEditor
+                      value={description}
+                      onChange={handleDescriptionChange}
+                      placeholder="Nhập mô tả chi tiết về giai đoạn"
+                      error={!!getFieldError("Description")}
+                    />
+                  </div>
+                )}
+              </div>
               {getFieldError("Description") && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
@@ -269,11 +250,15 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Thứ tự bước</label>
+            {/* Clear div to prevent overlap */}
+            <div className="clear-both h-16"></div>
+
+            {/* Step Index */}
+            <div className="space-y-1.5 relative z-20 bg-white pt-4">
+              <label className="block text-sm font-medium text-gray-700 bg-white relative z-20">Thứ tự bước</label>
               <input
                 type="number"
-                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all ${
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all relative z-20 ${
                   getFieldError("StepIndex") ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}
                 value={stepIndex}
@@ -292,64 +277,14 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 required
               />
               {getFieldError("StepIndex") && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
+                <p className="mt-1 text-sm text-red-600 flex items-center relative z-20">
                   <AlertCircle size={14} className="mr-1" />
                   {getFieldError("StepIndex")}
                 </p>
               )}
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Hình Ảnh</label>
-              <div className="flex items-center space-x-4">
-                <div className="flex-1">
-                  <label
-                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors ${
-                      getFieldError("ProcedureCoverImage") ? "border-red-500 bg-red-50" : "border-gray-300"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon
-                        className={`w-8 h-8 mb-2 ${getFieldError("ProcedureCoverImage") ? "text-red-400" : "text-gray-400"}`}
-                      />
-                      <p className="text-sm text-gray-500">
-                        <span className="font-medium">Nhấp để tải lên</span> hoặc kéo thả
-                      </p>
-                    </div>
-                    <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" multiple />
-                  </label>
-                  {getFieldError("ProcedureCoverImage") && (
-                    <p className="mt-1 text-sm text-red-600 flex items-center">
-                      <AlertCircle size={14} className="mr-1" />
-                      {getFieldError("ProcedureCoverImage")}
-                    </p>
-                  )}
-                </div>
 
-                {imagePreview.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {imagePreview.map((preview, index) => (
-                      <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
-                        <Image
-                          src={preview || "/placeholder.svg"}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          width={100}
-                          height={100}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                          className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="space-y-3">
+            <div className="space-y-3 relative z-20 bg-white">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700">Loại Giá Dịch Vụ</label>
                 <button
@@ -448,12 +383,40 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 disabled={isLoading}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Đang thêm..." : "Thêm thủ tục"}
+                {isLoading ? "Đang thêm..." : "Thêm giai đoạn"}
               </button>
             </div>
           </form>
         </div>
       </motion.div>
+
+      {/* Global styles to fix the QuillEditor overlap issue */}
+      <style jsx global>{`
+        .quill-editor-container {
+          position: relative;
+          z-index: 10;
+          margin-bottom: 60px; /* Add extra space below the editor */
+        }
+        
+        .ql-toolbar.ql-snow,
+        .ql-container.ql-snow {
+          position: relative;
+          z-index: 10;
+        }
+        
+        /* Fix for the Quill editor to not extend beyond its bounds */
+        .ql-editor {
+          max-height: 150px;
+          overflow-y: auto;
+        }
+        
+        /* Clear float to prevent overlap */
+        .clear-both {
+          clear: both;
+          display: block;
+          width: 100%;
+        }
+      `}</style>
     </div>
   )
 }
