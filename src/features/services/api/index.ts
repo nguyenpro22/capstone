@@ -1,14 +1,14 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { IListResponse, IResCommon } from "@/lib/api";
-import { ServiceDetail } from "../types";
+import { ServiceDetail, ServiceItem } from "../types";
 
 export const serviceApi = createApi({
   reducerPath: "serviceApi",
   baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
     getAllServices: builder.query<
-      IResCommon<IListResponse<ServiceDetail>>,
+      IResCommon<IListResponse<ServiceItem>>,
       { pageIndex?: number; pageSize?: number }
     >({
       query: ({ pageIndex = 1, pageSize = 10 }) => ({

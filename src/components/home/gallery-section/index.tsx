@@ -52,7 +52,7 @@ export function GallerySection() {
                     <div className="grid grid-cols-2">
                       <div className="relative h-64">
                         <Image
-                          src="/placeholder.svg?height=300&width=200"
+                          src="https://placehold.co/200x300.png"
                           alt="Before Treatment"
                           fill
                           className="object-cover"
@@ -63,7 +63,7 @@ export function GallerySection() {
                       </div>
                       <div className="relative h-64">
                         <Image
-                          src="/placeholder.svg?height=300&width=200"
+                          src="https://placehold.co/200x300.png"
                           alt="After Treatment"
                           fill
                           className="object-cover"
@@ -93,7 +93,7 @@ export function GallerySection() {
                     <div className="grid grid-cols-2">
                       <div className="relative h-64">
                         <Image
-                          src="/placeholder.svg?height=300&width=200"
+                          src="https://placehold.co/200x300.png"
                           alt="Before Treatment"
                           fill
                           className="object-cover"
@@ -104,7 +104,7 @@ export function GallerySection() {
                       </div>
                       <div className="relative h-64">
                         <Image
-                          src="/placeholder.svg?height=300&width=200"
+                          src="https://placehold.co/200x300.png"
                           alt="After Treatment"
                           fill
                           className="object-cover"
@@ -134,7 +134,7 @@ export function GallerySection() {
                     <div className="grid grid-cols-2">
                       <div className="relative h-64">
                         <Image
-                          src="/placeholder.svg?height=300&width=200"
+                          src="https://placehold.co/200x300.png"
                           alt="Before Treatment"
                           fill
                           className="object-cover"
@@ -145,7 +145,7 @@ export function GallerySection() {
                       </div>
                       <div className="relative h-64">
                         <Image
-                          src="/placeholder.svg?height=300&width=200"
+                          src="https://placehold.co/200x300.png"
                           alt="After Treatment"
                           fill
                           className="object-cover"

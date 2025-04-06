@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -45,17 +45,19 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   }, [])
 
   const handleAddPriceType = () => {
-    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }])
-  }
+    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }]);
+  };
 
   const handleRemovePriceType = (index: number) => {
-    setPriceTypes(priceTypes.filter((_, i) => i !== index))
-  }
+    setPriceTypes(priceTypes.filter((_, i) => i !== index));
+  };
 
   const handlePriceTypeChange = (index: number, field: string, value: any) => {
-    const updatedPriceTypes = priceTypes.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    setPriceTypes(updatedPriceTypes)
-  }
+    const updatedPriceTypes = priceTypes.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    );
+    setPriceTypes(updatedPriceTypes);
+  };
 
   const handleDescriptionChange = (value: string) => {
     setDescription(value)
@@ -169,7 +171,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         toast.error("Thêm thất bại, vui lòng thử lại.")
       }
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
@@ -286,7 +288,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
 
             <div className="space-y-3 relative z-20 bg-white">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">Loại Giá Dịch Vụ</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Loại Giá Dịch Vụ
+                </label>
                 <button
                   type="button"
                   onClick={handleAddPriceType}
@@ -313,7 +317,9 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="VD: Cơ bản"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.name}
-                        onChange={(e) => handlePriceTypeChange(index, "name", e.target.value)}
+                        onChange={(e) =>
+                          handlePriceTypeChange(index, "name", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -328,7 +334,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="30"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.duration}
-                        onChange={(e) => handlePriceTypeChange(index, "duration", Number(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "duration",
+                            Number(e.target.value)
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -344,7 +356,13 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                         placeholder="100,000"
                         className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
                         value={item.price}
-                        onChange={(e) => handlePriceTypeChange(index, "price", Number(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "price",
+                            Number(e.target.value)
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -421,5 +439,4 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   )
 }
 
-export default AddProcedure
-
+export default AddProcedure;

@@ -9,9 +9,23 @@ import {
   useEffect,
   useRef,
   type ReactNode,
+  useCallback,
 } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useRouter } from "next/navigation";
+
+// Thêm các interface và state mới cho thiết bị đầu vào và chất lượng video
+interface MediaDevice {
+  deviceId: string;
+  label: string;
+}
+
+interface VideoQualityOption {
+  label: string;
+  width: number;
+  height: number;
+  frameRate: number;
+}
 
 interface RoomCreatedAndJoinedData {
   roomGuid: string;
@@ -33,6 +47,7 @@ interface LivestreamFormData {
   thumbnailUrl?: string;
 }
 
+// Thêm vào interface LivestreamContextType
 interface LivestreamContextType {
   // Form data
   formData: LivestreamFormData | null;
@@ -63,10 +78,28 @@ interface LivestreamContextType {
   endLive: () => void;
   resetLivestream: () => void;
   checkCamera: () => Promise<boolean>;
+  joinRoom: (roomId: string) => Promise<void>;
+  leaveRoom: () => void;
 
   // Error handling
   error: string | null;
   clearError: () => void;
+
+  // Devices
+  availableCameras: MediaDevice[];
+  availableMicrophones: MediaDevice[];
+  selectedCamera: string | null;
+  selectedMicrophone: string | null;
+  videoQualityOptions: VideoQualityOption[];
+  selectedVideoQuality: VideoQualityOption;
+  isLoadingDevices: boolean;
+
+  // Functions
+  getMediaDevices: () => Promise<void>;
+  setSelectedCamera: (deviceId: string) => void;
+  setSelectedMicrophone: (deviceId: string) => void;
+  setSelectedVideoQuality: (quality: VideoQualityOption) => void;
+  applyMediaSettings: () => Promise<void>;
 }
 
 const defaultFormData: LivestreamFormData = {
@@ -115,14 +148,187 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
   const isPublishingRef = useRef(false);
   const publishTimeoutIdsRef = useRef<number[]>([]);
 
+  // Thêm ref để theo dõi xem đã gọi joinRoom chưa
+  const isJoiningRoomRef = useRef(false);
+
   // Data
   const [viewerCount, setViewerCount] = useState<number>(0);
+
+  // Thêm vào LivestreamProvider
+  // Định nghĩa các tùy chọn chất lượng video
+  const defaultVideoQualityOptions: VideoQualityOption[] = [
+    {
+      label: "Cao (1080p)",
+      width: 1920,
+      height: 1080,
+      frameRate: 30,
+    },
+    {
+      label: "Trung bình (720p)",
+      width: 1280,
+      height: 720,
+      frameRate: 30,
+    },
+    {
+      label: "Thấp (480p)",
+      width: 854,
+      height: 480,
+      frameRate: 30,
+    },
+    {
+      label: "Tiết kiệm dữ liệu (360p)",
+      width: 640,
+      height: 360,
+      frameRate: 24,
+    },
+  ];
+
+  // Thêm các state mới
+  const [availableCameras, setAvailableCameras] = useState<MediaDevice[]>([]);
+  const [availableMicrophones, setAvailableMicrophones] = useState<
+    MediaDevice[]
+  >([]);
+  const [selectedCamera, setSelectedCamera] = useState<string | null>(null);
+  const [selectedMicrophone, setSelectedMicrophone] = useState<string | null>(
+    null
+  );
+  const [videoQualityOptions] = useState<VideoQualityOption[]>(
+    defaultVideoQualityOptions
+  );
+  const [selectedVideoQuality, setSelectedVideoQuality] =
+    useState<VideoQualityOption>(defaultVideoQualityOptions[1]); // Mặc định 720p
+  const [isLoadingDevices, setIsLoadingDevices] = useState<boolean>(false);
 
   // Xóa lỗi
   const clearError = () => setError(null);
 
   const setFormData = (data: LivestreamFormData) => {
     setFormDataState(data);
+  };
+
+  // Thêm hàm để lấy danh sách thiết bị
+  const getMediaDevices = async (): Promise<void> => {
+    setIsLoadingDevices(true);
+    try {
+      // Yêu cầu quyền truy cập để có thể lấy tên thiết bị
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+
+      // Lấy danh sách thiết bị
+      const devices = await navigator.mediaDevices.enumerateDevices();
+
+      // Lọc camera
+      const cameras = devices
+        .filter((device) => device.kind === "videoinput")
+        .map((device) => ({
+          deviceId: device.deviceId,
+          label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`,
+        }));
+
+      // Lọc microphone
+      const microphones = devices
+        .filter((device) => device.kind === "audioinput")
+        .map((device) => ({
+          deviceId: device.deviceId,
+          label: device.label || `Microphone ${device.deviceId.slice(0, 5)}...`,
+        }));
+
+      setAvailableCameras(cameras);
+      setAvailableMicrophones(microphones);
+
+      // Nếu chưa chọn thiết bị, chọn thiết bị đầu tiên
+      if (!selectedCamera && cameras.length > 0) {
+        setSelectedCamera(cameras[0].deviceId);
+      }
+
+      if (!selectedMicrophone && microphones.length > 0) {
+        setSelectedMicrophone(microphones[0].deviceId);
+      }
+
+      // Dừng stream sau khi đã lấy danh sách thiết bị
+      stream.getTracks().forEach((track) => track.stop());
+    } catch (error) {
+      console.error("Error getting media devices:", error);
+      setError(
+        "Không thể lấy danh sách thiết bị. Vui lòng đảm bảo bạn đã cấp quyền truy cập camera và microphone."
+      );
+    } finally {
+      setIsLoadingDevices(false);
+    }
+  };
+
+  // Thêm hàm để áp dụng cài đặt media
+  const applyMediaSettings = async (): Promise<void> => {
+    if (!localVideoRef.current) return;
+
+    // Dừng tất cả các track hiện tại nếu có
+    if (localVideoRef.current.srcObject) {
+      const currentStream = localVideoRef.current.srcObject as MediaStream;
+      currentStream.getTracks().forEach((track) => track.stop());
+    }
+
+    try {
+      // Tạo constraints dựa trên thiết bị và chất lượng đã chọn
+      const constraints: MediaStreamConstraints = {
+        video: selectedCamera
+          ? {
+              deviceId: { exact: selectedCamera },
+              width: { ideal: selectedVideoQuality.width },
+              height: { ideal: selectedVideoQuality.height },
+              frameRate: { ideal: selectedVideoQuality.frameRate },
+            }
+          : false,
+        audio: selectedMicrophone
+          ? {
+              deviceId: { exact: selectedMicrophone },
+            }
+          : false,
+      };
+
+      // Lấy stream mới với cài đặt đã chọn
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      // Áp dụng stream mới vào video element
+      localVideoRef.current.srcObject = newStream;
+
+      // Nếu đang phát sóng, cần cập nhật peerConnection
+      if (isPublish && peerConnectionRef.current) {
+        // Xóa tất cả các senders hiện tại
+        const senders = peerConnectionRef.current.getSenders();
+        senders.forEach((sender) => {
+          peerConnectionRef.current?.removeTrack(sender);
+        });
+
+        // Thêm các track mới
+        newStream.getTracks().forEach((track) => {
+          peerConnectionRef.current?.addTrack(track, newStream);
+        });
+
+        // Tạo offer mới
+        const offer = await peerConnectionRef.current.createOffer();
+        await peerConnectionRef.current.setLocalDescription(offer);
+
+        // Gửi offer mới đến server
+        if (
+          signalRConnectionRef.current?.state ===
+          signalR.HubConnectionState.Connected
+        ) {
+          await signalRConnectionRef.current.invoke(
+            "UpdatePublish",
+            roomGuid,
+            offer.type,
+            offer.sdp
+          );
+        }
+      }
+
+      clearError();
+    } catch (error) {
+      console.error("Error applying media settings:", error);
+      setError(`Không thể áp dụng cài đặt media: ${(error as Error).message}`);
+    }
   };
 
   const submitForm = (data: LivestreamFormData) => {
@@ -145,6 +351,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
     setError(null);
     isCreatingRoomRef.current = false;
     isPublishingRef.current = false;
+    isJoiningRoomRef.current = false;
 
     // Clean up connections
     if (
@@ -209,89 +416,43 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
 
   // Đăng ký các event handler cho SignalR
   const registerSignalRHandlers = (connection: signalR.HubConnection) => {
+    console.log("Registering SignalR handlers");
+
     // Xóa tất cả các handler hiện có để tránh đăng ký nhiều lần
     connection.off("RoomCreatedAndJoined");
     connection.off("PublishStarted");
     connection.off("ListenerCountUpdated");
     connection.off("LivestreamEnded");
     connection.off("JanusError");
+    connection.off("JoinRoomResponse");
+    connection.off("ReceiveMessage"); // Thêm dòng này
+    connection.off("ReceiveReaction"); // Thêm dòng này
 
-    // Đăng ký lại các handler
-    connection.on(
-      "RoomCreatedAndJoined",
-      ({ roomGuid, janusRoomId, sessionId }: RoomCreatedAndJoinedData) => {
-        console.log("✅ RoomCreatedAndJoined:", roomGuid, janusRoomId);
-        setSessionId(sessionId);
-        setRoomGuid(roomGuid);
-        setJanusRoomId(janusRoomId);
-        setIsCreateRoom(true);
-        setIsConnecting(false);
-        isCreatingRoomRef.current = false; // Reset flag sau khi tạo phòng thành công
-      }
-    );
-
-    signalRConnectionRef?.current?.on(
-      "PublishStarted",
-      async ({ sessionId, jsep }: PublishStartedData) => {
-        console.log("✅ PublishStarted event received", sessionId);
-
-        // Xóa tất cả các timeout đang chờ
-        publishTimeoutIdsRef.current.forEach((id) => clearTimeout(id));
-        publishTimeoutIdsRef.current = [];
-
-        // Sử dụng peerConnectionRef.current thay vì peerConnection
-        if (peerConnectionRef.current) {
-          setSessionId(sessionId);
-          try {
-            await peerConnectionRef.current.setRemoteDescription(
-              new RTCSessionDescription({
-                type: "answer",
-                sdp: jsep,
-              })
-            );
-            console.log("✅ Remote description set successfully");
-            setIsPublish(true);
-            clearError(); // Xóa bất kỳ lỗi nào đang hiển thị
-            console.log("✅ isPublish set to true");
-          } catch (error) {
-            console.error("❌ Error setting remote description:", error);
-            setError("Không thể thiết lập kết nối media. Vui lòng thử lại.");
-          }
-        } else {
-          console.error(
-            "❌ No peer connection available for PublishStarted event"
-          );
-          setError("Không có kết nối peer. Vui lòng làm mới trang và thử lại.");
-        }
-      }
-    );
-
-    connection.on("ListenerCountUpdated", (count: number) => {
-      setViewerCount(count);
-    });
-
-    connection.on("LivestreamEnded", () => {
-      console.log("🚨 Livestream has ended");
-      alert("Livestream đã kết thúc");
-      resetLivestream();
-    });
-
-    connection.on("JanusError", (message: string) => {
-      console.error("🚨 Janus Error:", message);
-      setError(message);
-      setIsConnecting(false);
-      isCreatingRoomRef.current = false; // Reset flag khi có lỗi
-      isPublishingRef.current = false; // Reset flag khi có lỗi
-    });
+    // Tiếp tục đăng ký các handler như bình thường...
   };
 
   // Sửa lại hàm initializeConnection để không tự động gọi HostCreateRoom
   const initializeConnection = async () => {
-    if (!formData) {
-      setError(
-        "Không tìm thấy dữ liệu livestream. Vui lòng tạo livestream trước."
-      );
-      return null;
+    console.log(
+      "initializeConnection called, current state:",
+      signalRConnectionRef.current?.state
+    );
+
+    // If connection exists but is in Disconnected state, try to restart it
+    if (
+      signalRConnectionRef.current?.state ===
+      signalR.HubConnectionState.Disconnected
+    ) {
+      console.log("Trying to restart disconnected connection");
+      try {
+        await signalRConnectionRef.current.start();
+        console.log("✅ Reconnected to SignalR");
+        setIsConnected(true);
+        return signalRConnectionRef.current;
+      } catch (error) {
+        console.error("Failed to restart SignalR connection:", error);
+        // Fall through to create a new connection
+      }
     }
 
     // Nếu đã có kết nối, trả về kết nối hiện tại
@@ -334,6 +495,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
       setIsConnected(false);
       isCreatingRoomRef.current = false; // Reset flag khi có lỗi
       isPublishingRef.current = false; // Reset flag khi có lỗi
+      isJoiningRoomRef.current = false; // Reset flag khi có lỗi
       return null;
     }
   };
@@ -396,6 +558,97 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Thêm hàm joinRoom cho khách hàng và sử dụng useCallback để tránh vòng lặp vô hạn
+  const joinRoom = useCallback(
+    async (roomId: string) => {
+      console.log("joinRoom called with roomId:", roomId);
+      if (!roomId) {
+        setError("Room ID is required");
+        return;
+      }
+
+      // Nếu đang tham gia phòng hoặc đã tham gia phòng này rồi, không làm gì cả
+      if (isJoiningRoomRef.current || roomId === roomGuid) {
+        console.log(
+          "Đã đang tham gia phòng hoặc đã tham gia phòng này rồi, bỏ qua lệnh gọi trùng lặp"
+        );
+        return;
+      }
+
+      // Đánh dấu đang tham gia phòng
+      isJoiningRoomRef.current = true;
+      setRoomGuid(roomId);
+      setIsConnecting(true);
+      setError(null);
+
+      try {
+        // Đảm bảo có kết nối
+        const connection =
+          signalRConnectionRef.current?.state ===
+          signalR.HubConnectionState.Connected
+            ? signalRConnectionRef.current
+            : await initializeConnection();
+
+        if (!connection) {
+          throw new Error("Không thể thiết lập kết nối");
+        }
+
+        // Gọi JoinAsListener
+        console.log("Calling JoinAsListener for room:", roomId);
+        await connection.invoke("JoinAsListener", roomId);
+        console.log("Join room request sent");
+
+        // Thiết lập timeout để kiểm tra nếu không nhận được phản hồi
+        setTimeout(() => {
+          if (isConnecting && isJoiningRoomRef.current) {
+            console.log(
+              "⚠️ No JoinRoomResponse event received after 10 seconds"
+            );
+            setError(
+              "Không nhận được phản hồi từ máy chủ sau 10 giây. Vui lòng thử lại."
+            );
+            setIsConnecting(false);
+            isJoiningRoomRef.current = false;
+          }
+        }, 10000);
+      } catch (error) {
+        console.error("Error joining room:", error);
+        setError(`Không thể tham gia phòng: ${(error as Error).message}`);
+        setIsConnecting(false);
+        isJoiningRoomRef.current = false;
+      }
+    },
+    [roomGuid, isConnecting]
+  );
+
+  // Thêm hàm leaveRoom cho khách hàng
+  const leaveRoom = useCallback(() => {
+    console.log("CustomerPageStreamScreen unmounting, calling leaveRoom");
+    // Dọn dẹp kết nối
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+      setPeerConnection(null);
+    }
+
+    // Dọn dẹp video stream
+    if (localVideoRef.current?.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      localVideoRef.current.srcObject = null;
+    }
+
+    // Reset các state
+    setSessionId(null);
+    setRoomGuid(null);
+    setJanusRoomId(null);
+    setViewerCount(0);
+    setError(null);
+    isJoiningRoomRef.current = false;
+
+    // Không đóng kết nối SignalR vì có thể sẽ tham gia phòng khác
+  }, []);
+
   // Sửa lại hàm startPublishing để lưu peerConnection vào cả ref và state
   const startPublishing = async () => {
     console.log("Starting publishing process...");
@@ -420,16 +673,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
         // Thử với các constraints khác nhau, bắt đầu với chất lượng cao nhất
         // và giảm dần nếu không thành công
         const constraints = [
-          // Chất lượng cao (1080p)
-          {
-            video: {
-              width: { ideal: 1920 },
-              height: { ideal: 1080 },
-              frameRate: { ideal: 30 },
-            },
-            audio: true,
-          },
-          // Chất lượng trung bình (720p)
+          // Chất lượng trung bình (720p) - start with this instead of 1080p
           {
             video: {
               width: { ideal: 1280 },
@@ -677,8 +921,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
         sessionId &&
         signalRConnectionRef.current &&
         signalRConnectionRef.current.state ===
-          signalR.HubConnectionState.Connected &&
-        isCreateRoom
+          signalR.HubConnectionState.Connected
       ) {
         console.log("Sending keep alive signal");
         signalRConnectionRef.current
@@ -697,7 +940,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
     }, 25000);
 
     return () => clearInterval(keepAliveInterval);
-  }, [isCreateRoom, sessionId]);
+  }, [sessionId]);
 
   // Theo dõi khi isPublish thay đổi để cập nhật isPublishingRef
   useEffect(() => {
@@ -764,10 +1007,28 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
     endLive,
     resetLivestream,
     checkCamera,
+    joinRoom,
+    leaveRoom,
 
     // Error handling
     error,
     clearError,
+
+    // Devices
+    availableCameras,
+    availableMicrophones,
+    selectedCamera,
+    selectedMicrophone,
+    videoQualityOptions,
+    selectedVideoQuality,
+    isLoadingDevices,
+
+    // Functions
+    getMediaDevices,
+    setSelectedCamera,
+    setSelectedMicrophone,
+    setSelectedVideoQuality,
+    applyMediaSettings,
   };
 
   return (

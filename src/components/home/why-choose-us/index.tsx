@@ -19,7 +19,7 @@ export function WhyChooseUsSection() {
           <div className="relative">
             <div className="relative h-[500px] w-full rounded-2xl overflow-hidden">
               <Image
-                src="/placeholder.svg?height=500&width=600"
+                src="/images/why-choose-us.jpeg"
                 alt="Luxury Spa Environment"
                 fill
                 className="object-cover"

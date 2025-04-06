@@ -36,6 +36,7 @@ export interface homeMessages {
       price: string;
     }>;
     learnMore: string;
+    viewAll: string;
   };
   whyChooseUs: {
     badge: string;

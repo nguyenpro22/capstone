@@ -7,13 +7,16 @@ import store from "@/store";
 
 import { ThemeProvider } from "next-themes";
 import { LivestreamProvider } from "@/components/clinicManager/livestream/context";
+import { QuizProvider } from "@/components/home/quiz/context";
 
 const ClientProvider: React.FC<{ children: React.ReactNode }> = React.memo(
   ({ children }) => {
     return (
       <Provider store={store}>
         <ThemeProvider attribute="class">
-          <LivestreamProvider>{children}</LivestreamProvider>
+          <LivestreamProvider>
+            <QuizProvider>{children}</QuizProvider>
+          </LivestreamProvider>
           <Toaster
             position="top-center"
             reverseOrder={false}

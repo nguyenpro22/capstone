@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
   // Handle root and locale-specific root paths
   if (pathname === "/" || pathname === "/vi" || pathname === "/en") {
     // Determine the locale
-    const locale = pathname === "/vi" ? "vi" : "en";
+    const locale = pathname === "/en" ? "en" : "vi";
     // Redirect to the home page with the appropriate locale
     return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
   }

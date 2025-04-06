@@ -9,6 +9,12 @@ import { serviceMessages } from "./service";
 import { branchMessages } from "./branch";
 import { doctorMessages } from "./doctor";
 import { staffMessages } from "./staff";
+import { LoginTranslations } from "./login";
+import { PasswordResetTranslations } from "./forgot-password";
+import { RegistrationTranslations } from "./register";
+import { doctor } from "./doctor";
+import { serviceDetail } from "./serivceDetail";
+import { registerClinic } from "./registerClinic";
 
 export type Messages = {
   home: homeMessages;
@@ -22,4 +28,10 @@ export type Messages = {
   branch: branchMessages;
   doctor: doctorMessages;
   staff: staffMessages;
+  doctorService: doctor;
+  login: LoginTranslations;
+  forgotPassword: PasswordResetTranslations;
+  register: RegistrationTranslations;
+  serviceDetail: serviceDetail;
+  registerClinic: registerClinic;
 };

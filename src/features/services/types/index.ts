@@ -1,53 +1,106 @@
-export interface ServiceImage {
+// types.ts
+
+export type CoverImage = {
   id: string;
   index: number;
   url: string;
-}
+};
 
-export interface Clinic {
+export type Clinic = {
   id: string;
   name: string;
   email: string;
   address: string;
   phoneNumber: string;
-  profilePictureUrl: string;
+  profilePictureUrl: string | null;
   isParent: boolean;
-  parentId: string | null;
-}
+  parentId: string;
+};
 
-export interface Category {
+export type Category = {
   id: string;
   name: string;
   description: string;
-}
+};
 
-export interface ProcedurePriceType {
+export type ProcedurePriceType = {
   id: string;
   name: string;
+  duration: number;
   price: number;
-}
+  isDefault: boolean;
+};
 
-export interface Procedure {
+export type Procedure = {
   id: string;
   name: string;
   description: string;
   stepIndex: number;
-  coverImage: string[];
   procedurePriceTypes: ProcedurePriceType[];
-}
+};
 
-export interface ServiceDetail {
+export type DoctorCertificate = {
+  id: string;
+  certificateUrl: string;
+  certificateName: string;
+  expiryDate: string;
+  note: string;
+};
+
+export type Doctor = {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string | null;
+  profilePictureUrl: string | null;
+  doctorCertificates: DoctorCertificate[];
+};
+
+export type DoctorService = {
+  id: string;
+  serviceId: string;
+  doctor: Doctor;
+};
+
+// Type dùng cho danh sách services
+export type ServiceItem = {
+  id: string;
+  name: string;
+  maxPrice: number;
+  minPrice: number;
+  discountPercent: string;
+  discountMaxPrice: number;
+  discountMinPrice: number;
+  coverImage: CoverImage[];
+  clinics: Clinic[];
+  category: Category;
+  doctorServices: DoctorService[];
+};
+
+// Type dùng cho chi tiết 1 service
+export type ServiceDetailResponse = {
+  value: ServiceDetail;
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
+};
+
+export type ServiceDetail = {
   id: string;
   name: string;
   description: string;
   maxPrice: number;
   minPrice: number;
-  discountPercent: number;
+  discountPercent: string;
   discountMaxPrice: number;
   discountMinPrice: number;
-  coverImage: ServiceImage[];
-  descriptionImage: ServiceImage[];
+  coverImage: CoverImage[];
   clinics: Clinic[];
   category: Category;
   procedures: Procedure[];
-}
+  promotions: any; // Nếu có schema rõ ràng thì thay `any`
+  doctorServices: DoctorService[];
+};

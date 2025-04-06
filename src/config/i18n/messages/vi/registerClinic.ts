@@ -1,0 +1,86 @@
+import { Messages } from "../types";
+
+export const registerClinic: Messages["registerClinic"] = {
+  title: "Đăng Ký Phòng Khám",
+  description:
+    "Hoàn thành biểu mẫu dưới đây để đăng ký phòng khám của bạn trên nền tảng của chúng tôi",
+  form: {
+    sections: {
+      clinicInfo: "Thông Tin Phòng Khám",
+      contactInfo: "Thông Tin Liên Hệ",
+      address: "Địa Chỉ",
+      bankInfo: "Thông Tin Ngân Hàng",
+      licenseInfo: "Thông Tin Giấy Phép",
+      documents: "Tài Liệu",
+    },
+    fields: {
+      name: "Tên Phòng Khám",
+      email: "Email",
+      phoneNumber: "Số Điện Thoại",
+      taxCode: "Mã Số Thuế",
+      address: "Địa Chỉ",
+      city: "Thành Phố",
+      district: "Quận/Huyện",
+      ward: "Phường/Xã",
+      bankName: "Tên Ngân Hàng",
+      bankAccountNumber: "Số Tài Khoản",
+      operatingLicenseExpiryDate: "Ngày Hết Hạn Giấy Phép Hoạt Động",
+      operatingLicense: "Giấy Phép Hoạt Động",
+      businessLicense: "Giấy Phép Kinh Doanh",
+      profilePictureUrl: "Ảnh Đại Diện",
+    },
+    placeholders: {
+      name: "Nhập tên phòng khám",
+      email: "Nhập địa chỉ email",
+      phoneNumber: "Nhập số điện thoại",
+      taxCode: "Nhập mã số thuế",
+      address: "Nhập địa chỉ đầy đủ",
+      city: "Nhập thành phố",
+      district: "Nhập quận/huyện",
+      ward: "Nhập phường/xã",
+      bankName: "Nhập tên ngân hàng",
+      bankAccountNumber: "Nhập số tài khoản ngân hàng",
+    },
+    fileUpload: {
+      clickToUpload: "Nhấp để tải lên",
+      orDragAndDrop: "hoặc kéo và thả",
+      fileTypes: "PNG, JPG hoặc PDF (tối đa 10MB)",
+      remove: "Xóa",
+      change: "Thay đổi",
+      sizeError: "Kích thước tệp phải nhỏ hơn 10MB",
+    },
+    validation: {
+      nameRequired: "Tên phòng khám là bắt buộc",
+      emailInvalid: "Vui lòng nhập địa chỉ email hợp lệ",
+      phoneRequired: "Số điện thoại là bắt buộc",
+      taxCodeRequired: "Mã số thuế là bắt buộc",
+      addressRequired: "Địa chỉ là bắt buộc",
+      cityRequired: "Thành phố là bắt buộc",
+      districtRequired: "Quận/huyện là bắt buộc",
+      wardRequired: "Phường/xã là bắt buộc",
+      bankNameRequired: "Tên ngân hàng là bắt buộc",
+      bankAccountRequired: "Số tài khoản ngân hàng là bắt buộc",
+      expiryDateRequired: "Ngày hết hạn giấy phép hoạt động là bắt buộc",
+    },
+    toast: {
+      missingFiles: {
+        title: "Thiếu tài liệu",
+        description: "Vui lòng tải lên tất cả các tài liệu bắt buộc",
+      },
+      success: {
+        title: "Đăng ký thành công",
+        description: "Phòng khám của bạn đã được đăng ký thành công",
+      },
+      error: {
+        title: "Đăng ký thất bại",
+        description:
+          "Đã xảy ra lỗi khi đăng ký phòng khám của bạn. Vui lòng thử lại.",
+        pendingRequest: "Đang chờ yêu cầu",
+        duplicateInfo: "Thông tin đã tồn tại",
+        validation: "Vui lòng kiểm tra lại thông tin đã nhập",
+      },
+    },
+    submit: "Gửi Đăng Ký",
+    submitting: "Đang gửi...",
+  },
+};

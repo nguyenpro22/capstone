@@ -1,7 +1,7 @@
-"use client"
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
+"use client";
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import {
   Search,
   Phone,
@@ -25,47 +25,47 @@ import {
   Trash2,
   X,
   Mail,
-} from "lucide-react"
+} from "lucide-react";
 
 type UserType = {
-  id: number
-  name: string
-  image: string
-  status: "online" | "offline" | "away"
-  lastSeen?: string
-  unread: number
-  lastMessage?: string
-  lastMessageTime?: string
-  isTyping?: boolean
-}
+  id: number;
+  name: string;
+  image: string;
+  status: "online" | "offline" | "away";
+  lastSeen?: string;
+  unread: number;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  isTyping?: boolean;
+};
 
 type MessageType = {
-  id: number
-  content: string
-  sender: "me" | "user"
-  timestamp: string
-  status?: "sent" | "delivered" | "read"
+  id: number;
+  content: string;
+  sender: "me" | "user";
+  timestamp: string;
+  status?: "sent" | "delivered" | "read";
   attachments?: {
-    type: "image" | "file"
-    url: string
-    name?: string
-  }[]
-}
+    type: "image" | "file";
+    url: string;
+    name?: string;
+  }[];
+};
 
 const MessageManagement: React.FC = () => {
-  const [selectedUser, setSelectedUser] = useState<number | null>(1)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [newMessage, setNewMessage] = useState("")
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [showUserProfile, setShowUserProfile] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [isRecording, setIsRecording] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<number | null>(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   const users: UserType[] = [
     {
       id: 1,
       name: "Emma Johnson",
-      image: "/placeholder.svg?height=40&width=40",
+      image: "https://placehold.co/40x40.png",
       status: "online",
       unread: 2,
       lastMessage: "I'll check the appointment schedule and get back to you",
@@ -74,7 +74,7 @@ const MessageManagement: React.FC = () => {
     {
       id: 2,
       name: "Liam Wilson",
-      image: "/placeholder.svg?height=40&width=40",
+      image: "https://placehold.co/40x40.png",
       status: "online",
       unread: 0,
       lastMessage: "Thanks for the information!",
@@ -84,7 +84,7 @@ const MessageManagement: React.FC = () => {
     {
       id: 3,
       name: "Olivia Martinez",
-      image: "/placeholder.svg?height=40&width=40",
+      image: "https://placehold.co/40x40.png",
       status: "away",
       lastSeen: "5m ago",
       unread: 0,
@@ -94,7 +94,7 @@ const MessageManagement: React.FC = () => {
     {
       id: 4,
       name: "Noah Thompson",
-      image: "/placeholder.svg?height=40&width=40",
+      image: "https://placehold.co/40x40.png",
       status: "offline",
       lastSeen: "2h ago",
       unread: 5,
@@ -104,37 +104,42 @@ const MessageManagement: React.FC = () => {
     {
       id: 5,
       name: "Ava Williams",
-      image: "/placeholder.svg?height=40&width=40",
+      image: "https://placehold.co/40x40.png",
       status: "online",
       unread: 0,
       lastMessage: "Perfect, see you then!",
       lastMessageTime: "Tue",
     },
-  ]
+  ];
 
-  const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const selectedUserData = users.find((user) => user.id === selectedUser)
+  const selectedUserData = users.find((user) => user.id === selectedUser);
 
   const messagesByDate: Record<string, MessageType[]> = {
     Today: [
       {
         id: 1,
-        content: "Good morning! I wanted to check if my appointment for tomorrow is still confirmed?",
+        content:
+          "Good morning! I wanted to check if my appointment for tomorrow is still confirmed?",
         sender: "user",
         timestamp: "09:30 AM",
         status: "read",
       },
       {
         id: 2,
-        content: "Good morning! Yes, your appointment is confirmed for tomorrow at 2:00 PM with Dr. Smith.",
+        content:
+          "Good morning! Yes, your appointment is confirmed for tomorrow at 2:00 PM with Dr. Smith.",
         sender: "me",
         timestamp: "09:45 AM",
         status: "read",
       },
       {
         id: 3,
-        content: "Perfect, thank you! Should I bring anything specific with me?",
+        content:
+          "Perfect, thank you! Should I bring anything specific with me?",
         sender: "user",
         timestamp: "10:15 AM",
         status: "read",
@@ -156,7 +161,8 @@ const MessageManagement: React.FC = () => {
       },
       {
         id: 6,
-        content: "Here's the information brochure about the procedure you asked for:",
+        content:
+          "Here's the information brochure about the procedure you asked for:",
         sender: "me",
         timestamp: "10:45 AM",
         status: "sent",
@@ -172,7 +178,8 @@ const MessageManagement: React.FC = () => {
     Yesterday: [
       {
         id: 7,
-        content: "Do you have any dietary restrictions we should be aware of before your procedure?",
+        content:
+          "Do you have any dietary restrictions we should be aware of before your procedure?",
         sender: "me",
         timestamp: "03:20 PM",
         status: "read",
@@ -186,45 +193,47 @@ const MessageManagement: React.FC = () => {
       },
       {
         id: 9,
-        content: "Thank you for letting us know. I've updated your medical record with this information.",
+        content:
+          "Thank you for letting us know. I've updated your medical record with this information.",
         sender: "me",
         timestamp: "04:10 PM",
         status: "read",
       },
       {
         id: 10,
-        content: "Here's a photo of the rash I mentioned during our last consultation:",
+        content:
+          "Here's a photo of the rash I mentioned during our last consultation:",
         sender: "user",
         timestamp: "05:30 PM",
         status: "read",
         attachments: [
           {
             type: "image",
-            url: "/placeholder.svg?height=200&width=300",
+            url: "https://placehold.co/300x200.png",
           },
         ],
       },
     ],
-  }
+  };
 
   // Auto scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messagesByDate])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messagesByDate]);
 
   const handleSendMessage = () => {
-    if (newMessage.trim() === "" && !isRecording) return
+    if (newMessage.trim() === "" && !isRecording) return;
 
     // In a real app, you would send the message to an API
     // and then update the state with the response
 
-    setNewMessage("")
-    setIsRecording(false)
-  }
+    setNewMessage("");
+    setIsRecording(false);
+  };
 
   const toggleRecording = () => {
-    setIsRecording(!isRecording)
-  }
+    setIsRecording(!isRecording);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -267,7 +276,9 @@ const MessageManagement: React.FC = () => {
 
           <div className="flex items-center justify-between mt-3">
             <div className="flex space-x-2">
-              <button className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">All</button>
+              <button className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                All
+              </button>
               <button className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200">
                 Unread
               </button>
@@ -306,23 +317,31 @@ const MessageManagement: React.FC = () => {
                       user.status === "online"
                         ? "bg-green-500"
                         : user.status === "away"
-                          ? "bg-yellow-500"
-                          : "bg-gray-400"
+                        ? "bg-yellow-500"
+                        : "bg-gray-400"
                     }`}
                   ></span>
                 </div>
 
                 <div className="ml-3 flex-1 min-w-0">
                   <div className="flex justify-between items-baseline">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.lastMessageTime}</p>
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {user.lastMessageTime}
+                    </p>
                   </div>
 
                   <div className="flex items-center">
                     {user.isTyping ? (
-                      <p className="text-xs text-purple-600 font-medium">typing...</p>
+                      <p className="text-xs text-purple-600 font-medium">
+                        typing...
+                      </p>
                     ) : (
-                      <p className="text-xs text-gray-500 truncate">{user.lastMessage}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user.lastMessage}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -345,9 +364,15 @@ const MessageManagement: React.FC = () => {
             {/* Chat Header */}
             <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
               <div className="flex items-center">
-                <div className="relative cursor-pointer" onClick={() => setShowUserProfile(!showUserProfile)}>
+                <div
+                  className="relative cursor-pointer"
+                  onClick={() => setShowUserProfile(!showUserProfile)}
+                >
                   <Image
-                    src={selectedUserData?.image || "/placeholder.svg?height=40&width=40"}
+                    src={
+                      selectedUserData?.image ||
+                      "https://placehold.co/40x40.png"
+                    }
                     alt={selectedUserData?.name || "User"}
                     width={48}
                     height={48}
@@ -358,19 +383,21 @@ const MessageManagement: React.FC = () => {
                       selectedUserData?.status === "online"
                         ? "bg-green-500"
                         : selectedUserData?.status === "away"
-                          ? "bg-yellow-500"
-                          : "bg-gray-400"
+                        ? "bg-yellow-500"
+                        : "bg-gray-400"
                     }`}
                   ></span>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-semibold">{selectedUserData?.name}</p>
+                  <p className="text-sm font-semibold">
+                    {selectedUserData?.name}
+                  </p>
                   <p className="text-xs text-gray-500">
                     {selectedUserData?.status === "online"
                       ? "Online"
                       : selectedUserData?.status === "away"
-                        ? `Away · Last seen ${selectedUserData?.lastSeen}`
-                        : `Offline · Last seen ${selectedUserData?.lastSeen}`}
+                      ? `Away · Last seen ${selectedUserData?.lastSeen}`
+                      : `Offline · Last seen ${selectedUserData?.lastSeen}`}
                   </p>
                 </div>
               </div>
@@ -392,23 +419,32 @@ const MessageManagement: React.FC = () => {
               {Object.entries(messagesByDate).map(([date, messages]) => (
                 <div key={date} className="space-y-4">
                   <div className="flex items-center justify-center">
-                    <div className="bg-gray-200 text-gray-600 text-xs font-medium px-3 py-1 rounded-full">{date}</div>
+                    <div className="bg-gray-200 text-gray-600 text-xs font-medium px-3 py-1 rounded-full">
+                      {date}
+                    </div>
                   </div>
 
                   {messages.map((message, index) => {
-                    const isConsecutive = index > 0 && messages[index - 1].sender === message.sender
+                    const isConsecutive =
+                      index > 0 &&
+                      messages[index - 1].sender === message.sender;
 
                     return (
                       <div
                         key={message.id}
                         className={`flex ${
-                          message.sender === "me" ? "justify-end" : "justify-start"
+                          message.sender === "me"
+                            ? "justify-end"
+                            : "justify-start"
                         } ${isConsecutive ? "mt-1" : "mt-4"}`}
                       >
                         {message.sender !== "me" && !isConsecutive && (
                           <div className="flex-shrink-0 mr-3">
                             <Image
-                              src={selectedUserData?.image || "/placeholder.svg?height=32&width=32"}
+                              src={
+                                selectedUserData?.image ||
+                                "https://placehold.co/32x32.png"
+                              }
                               alt={selectedUserData?.name || "User"}
                               width={32}
                               height={32}
@@ -417,7 +453,13 @@ const MessageManagement: React.FC = () => {
                           </div>
                         )}
 
-                        <div className={`max-w-[70%] ${message.sender !== "me" && isConsecutive ? "ml-11" : ""}`}>
+                        <div
+                          className={`max-w-[70%] ${
+                            message.sender !== "me" && isConsecutive
+                              ? "ml-11"
+                              : ""
+                          }`}
+                        >
                           {/* Message content */}
                           <div
                             className={`px-4 py-2 rounded-lg ${
@@ -430,8 +472,8 @@ const MessageManagement: React.FC = () => {
                                   ? "rounded-tr-sm"
                                   : ""
                                 : isConsecutive
-                                  ? "rounded-tl-sm"
-                                  : ""
+                                ? "rounded-tl-sm"
+                                : ""
                             }`}
                           >
                             {message.content}
@@ -443,7 +485,9 @@ const MessageManagement: React.FC = () => {
                                   {attachment.type === "image" ? (
                                     <div className="relative rounded-lg overflow-hidden">
                                       <Image
-                                        src={attachment.url || "/placeholder.svg"}
+                                        src={
+                                          attachment.url || "/placeholder.svg"
+                                        }
                                         alt="Attachment"
                                         width={300}
                                         height={200}
@@ -453,17 +497,23 @@ const MessageManagement: React.FC = () => {
                                   ) : (
                                     <div
                                       className={`flex items-center p-2 rounded-md ${
-                                        message.sender === "me" ? "bg-purple-700" : "bg-gray-100"
+                                        message.sender === "me"
+                                          ? "bg-purple-700"
+                                          : "bg-gray-100"
                                       }`}
                                     >
                                       <Paperclip
                                         className={`w-4 h-4 mr-2 ${
-                                          message.sender === "me" ? "text-purple-200" : "text-gray-500"
+                                          message.sender === "me"
+                                            ? "text-purple-200"
+                                            : "text-gray-500"
                                         }`}
                                       />
                                       <span
                                         className={`text-sm ${
-                                          message.sender === "me" ? "text-purple-100" : "text-gray-700"
+                                          message.sender === "me"
+                                            ? "text-purple-100"
+                                            : "text-gray-700"
                                         }`}
                                       >
                                         {attachment.name}
@@ -477,10 +527,14 @@ const MessageManagement: React.FC = () => {
                           {/* Message metadata */}
                           <div
                             className={`flex items-center mt-1 text-xs ${
-                              message.sender === "me" ? "justify-end" : "justify-start"
+                              message.sender === "me"
+                                ? "justify-end"
+                                : "justify-start"
                             }`}
                           >
-                            <span className="text-gray-500 mr-1">{message.timestamp}</span>
+                            <span className="text-gray-500 mr-1">
+                              {message.timestamp}
+                            </span>
                             {message.sender === "me" && (
                               <span className="text-gray-500">
                                 {message.status === "read" ? (
@@ -497,7 +551,7 @@ const MessageManagement: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               ))}
@@ -524,7 +578,9 @@ const MessageManagement: React.FC = () => {
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder={isRecording ? "Recording audio..." : "Type a message"}
+                  placeholder={
+                    isRecording ? "Recording audio..." : "Type a message"
+                  }
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
@@ -567,9 +623,12 @@ const MessageManagement: React.FC = () => {
             <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-4">
               <MessageSquare className="w-10 h-10 text-purple-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Your Messages</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Your Messages
+            </h3>
             <p className="text-gray-500 text-center max-w-md mb-6">
-              Select a conversation from the list to start chatting or search for a specific user.
+              Select a conversation from the list to start chatting or search
+              for a specific user.
             </p>
             <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
               Start New Conversation
@@ -605,18 +664,20 @@ const MessageManagement: React.FC = () => {
                   selectedUserData.status === "online"
                     ? "bg-green-500"
                     : selectedUserData.status === "away"
-                      ? "bg-yellow-500"
-                      : "bg-gray-400"
+                    ? "bg-yellow-500"
+                    : "bg-gray-400"
                 }`}
               ></span>
             </div>
-            <h2 className="text-xl font-bold text-gray-800">{selectedUserData.name}</h2>
+            <h2 className="text-xl font-bold text-gray-800">
+              {selectedUserData.name}
+            </h2>
             <p className="text-sm text-gray-500 mb-2">
               {selectedUserData.status === "online"
                 ? "Online"
                 : selectedUserData.status === "away"
-                  ? `Away · Last seen ${selectedUserData.lastSeen}`
-                  : `Offline · Last seen ${selectedUserData.lastSeen}`}
+                ? `Away · Last seen ${selectedUserData.lastSeen}`
+                : `Offline · Last seen ${selectedUserData.lastSeen}`}
             </p>
             <div className="flex space-x-2 mt-2">
               <button className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200">
@@ -633,7 +694,9 @@ const MessageManagement: React.FC = () => {
 
           <div className="p-4 overflow-y-auto flex-1">
             <div className="mb-6">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Contact Information</h4>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                Contact Information
+              </h4>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
@@ -641,7 +704,10 @@ const MessageManagement: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Email</p>
-                    <p className="text-sm">{selectedUserData.name.toLowerCase().replace(" ", ".")}@example.com</p>
+                    <p className="text-sm">
+                      {selectedUserData.name.toLowerCase().replace(" ", ".")}
+                      @example.com
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -666,35 +732,49 @@ const MessageManagement: React.FC = () => {
             </div>
 
             <div className="mb-6">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Shared Files</h4>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                Shared Files
+              </h4>
               <div className="space-y-2">
                 <div className="flex items-center p-2 rounded-md bg-gray-50 hover:bg-gray-100">
                   <Paperclip className="w-4 h-4 text-gray-500 mr-2" />
-                  <span className="text-sm text-gray-700 flex-1">procedure_info.pdf</span>
+                  <span className="text-sm text-gray-700 flex-1">
+                    procedure_info.pdf
+                  </span>
                   <span className="text-xs text-gray-500">Today</span>
                 </div>
                 <div className="flex items-center p-2 rounded-md bg-gray-50 hover:bg-gray-100">
                   <ImageIcon className="w-4 h-4 text-gray-500 mr-2" />
-                  <span className="text-sm text-gray-700 flex-1">rash_photo.jpg</span>
+                  <span className="text-sm text-gray-700 flex-1">
+                    rash_photo.jpg
+                  </span>
                   <span className="text-xs text-gray-500">Yesterday</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Actions</h4>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                Actions
+              </h4>
               <div className="space-y-2">
                 <button className="flex items-center w-full p-2 rounded-md hover:bg-gray-100 text-left">
                   <Star className="w-4 h-4 text-yellow-500 mr-2" />
-                  <span className="text-sm text-gray-700">Add to favorites</span>
+                  <span className="text-sm text-gray-700">
+                    Add to favorites
+                  </span>
                 </button>
                 <button className="flex items-center w-full p-2 rounded-md hover:bg-gray-100 text-left">
                   <Bell className="w-4 h-4 text-purple-500 mr-2" />
-                  <span className="text-sm text-gray-700">Mute notifications</span>
+                  <span className="text-sm text-gray-700">
+                    Mute notifications
+                  </span>
                 </button>
                 <button className="flex items-center w-full p-2 rounded-md hover:bg-gray-100 text-left">
                   <Trash2 className="w-4 h-4 text-red-500 mr-2" />
-                  <span className="text-sm text-gray-700">Delete conversation</span>
+                  <span className="text-sm text-gray-700">
+                    Delete conversation
+                  </span>
                 </button>
               </div>
             </div>
@@ -707,32 +787,49 @@ const MessageManagement: React.FC = () => {
         <div className="absolute bottom-20 left-1/4 bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-72">
           <div className="flex justify-between items-center mb-2">
             <h4 className="text-sm font-medium">Emoji</h4>
-            <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowEmojiPicker(false)}>
+            <button
+              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setShowEmojiPicker(false)}
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="grid grid-cols-8 gap-2">
             {/* This would be populated by an emoji picker library */}
-            {["😊", "😂", "❤️", "👍", "🙏", "🔥", "🎉", "👋", "😍", "🤔", "😢", "😎", "🤗", "😴", "🤢", "😇"].map(
-              (emoji, index) => (
-                <button
-                  key={index}
-                  className="text-2xl hover:bg-gray-100 p-1 rounded"
-                  onClick={() => {
-                    setNewMessage((prev) => prev + emoji)
-                    setShowEmojiPicker(false)
-                  }}
-                >
-                  {emoji}
-                </button>
-              ),
-            )}
+            {[
+              "😊",
+              "😂",
+              "❤️",
+              "👍",
+              "🙏",
+              "🔥",
+              "🎉",
+              "👋",
+              "😍",
+              "🤔",
+              "😢",
+              "😎",
+              "🤗",
+              "😴",
+              "🤢",
+              "😇",
+            ].map((emoji, index) => (
+              <button
+                key={index}
+                className="text-2xl hover:bg-gray-100 p-1 rounded"
+                onClick={() => {
+                  setNewMessage((prev) => prev + emoji);
+                  setShowEmojiPicker(false);
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default MessageManagement
-
+export default MessageManagement;

@@ -1,35 +1,49 @@
-// import { ExampleAPI } from "@/services/apis";
-import { authApi } from "@/features/auth/api";
-import { landingApi } from "@/features/landing/api";
-import authReducer from "@/features/auth/slice";
-import { addressApi  } from "@/features/address/api";
-import { paymentsApi  } from "@/features/payment/api";
-
-import { clinicsQueryApi, clinicsCommandApi, staffCommandApi, staffQueryApi, doctorCommandApi, doctorQueryApi  } from "@/features/clinic/api";
-import { packageApi, packageCreateApi } from "@/features/package/api"; // Đảm bảo đường dẫn đúng
-import { partnershipRequestApi } from "@/features/partnership/api"; // Đảm bảo đường dẫn đúng
-
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
+
+import authReducer from "@/features/auth/slice";
+
+
+import { authApi } from "@/features/auth/api";
+import { landingApi } from "@/features/landing/api";
+import { addressApi } from "@/features/address/api";
+import { paymentsApi } from "@/features/payment/api";
+import { clinicsQueryApi, clinicsCommandApi } from "@/features/clinic/api";
+import { packageApi, packageCreateApi } from "@/features/package/api";
+import { partnershipRequestApi } from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
 import { categoryApi } from "@/features/home/api";
-import { categoryQueryApi, categoryCommandApi } from "@/features/category-service/api";
-import { serviceCommandApi, serviceQueryApi } from "@/features/clinic-service/api";
-import {  customerScheduleCommandApi, customerScheduleQueryApi } from "@/features/customer-schedule/api";
-import { doctorServiceCommandApi, doctorServiceQueryApi } from "@/features/doctor-service/api";
-import { promotionCommandApi } from "@/features/promotion-service/api";
-import { bookingQueryApi } from "@/features/booking/api";
+import {
+  categoryQueryApi,
+  categoryCommandApi,
+} from "@/features/category-service/api";
+import {
+  serviceCommandApi,
+  serviceQueryApi,
+} from "@/features/clinic-service/api";
+import {
+  bookingCommandApi,
+  bookingQueryApi,
+} from "@/features/booking/api";
+import {
+  doctorCommandApi,
+  doctorQueryApi,
+} from "@/features/doctor/api";
+
+
 const store = configureStore({
   reducer: {
-    // [ExampleAPI.reducerPath]: ExampleAPI.reducer,
-    auth: authReducer, //save state auth
-    [landingApi.reducerPath]: landingApi.reducer,
+    auth: authReducer,
+
+
     [authApi.reducerPath]: authApi.reducer,
-    [packageApi.reducerPath]: packageApi.reducer, // ✅ Thêm reducer của RTK Query
-    [packageCreateApi.reducerPath]: packageCreateApi.reducer, // Thêm packageCreateApi vào store
+    [landingApi.reducerPath]: landingApi.reducer,
+    [packageApi.reducerPath]: packageApi.reducer,
+    [packageCreateApi.reducerPath]: packageCreateApi.reducer,
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
-    [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
+    [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
+    [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
@@ -40,26 +54,18 @@ const store = configureStore({
     [serviceQueryApi.reducerPath]: serviceQueryApi.reducer,
     [addressApi.reducerPath]: addressApi.reducer,
     [paymentsApi.reducerPath]: paymentsApi.reducer,
-    [staffCommandApi.reducerPath]: staffCommandApi.reducer,
-    [staffQueryApi.reducerPath]: staffQueryApi.reducer,
-    [doctorCommandApi.reducerPath]: doctorCommandApi.reducer,
     [doctorQueryApi.reducerPath]: doctorQueryApi.reducer,
-    [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
-    [customerScheduleQueryApi.reducerPath]: customerScheduleQueryApi.reducer,
-    [doctorServiceCommandApi.reducerPath]: doctorServiceCommandApi.reducer,
-    [doctorServiceQueryApi.reducerPath]: doctorServiceQueryApi.reducer,
-    [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
-
-
-
+    [doctorCommandApi.reducerPath]: doctorCommandApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    // getDefaultMiddleware().concat(ExampleAPI.middleware),
     getDefaultMiddleware().concat(
       authApi.middleware,
+      landingApi.middleware,
       packageApi.middleware,
-      packageCreateApi.middleware, // Thêm middleware cho packageCreateApi
+      packageCreateApi.middleware,
       partnershipRequestApi.middleware,
+      bookingQueryApi.middleware,
+      bookingCommandApi.middleware,
       serviceApi.middleware,
       categoryApi.middleware,
       clinicsQueryApi.middleware,
@@ -70,23 +76,22 @@ const store = configureStore({
       serviceQueryApi.middleware,
       addressApi.middleware,
       paymentsApi.middleware,
-      staffCommandApi.middleware,
-      staffQueryApi.middleware,
-      doctorCommandApi.middleware,
       doctorQueryApi.middleware,
-      customerScheduleCommandApi.middleware,
-      customerScheduleQueryApi.middleware,
-      doctorServiceQueryApi.middleware,
-      doctorServiceCommandApi.middleware,
-      promotionCommandApi.middleware,
-      bookingQueryApi.middleware,
-
-    ),// ✅ Đảm bảo middleware của cả hai API được thêm vào
+      doctorCommandApi.middleware
+    ),
 });
 
+
 setupListeners(store.dispatch);
+
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
+
 export default store;
+
+
+
+
+

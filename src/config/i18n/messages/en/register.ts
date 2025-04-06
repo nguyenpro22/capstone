@@ -1,0 +1,35 @@
+import { Messages } from "../types";
+
+export const register: Messages["register"] = {
+  createAccount: "Create an account",
+  fillDetails: "Please fill in the details below to register.",
+  email: "Email",
+  emailPlaceholder: "you@example.com",
+  password: "Password",
+  passwordPlaceholder: "Enter your password",
+  confirmPassword: "Confirm Password",
+  confirmPasswordPlaceholder: "Re-enter your password",
+  firstName: "First Name",
+  firstNamePlaceholder: "John",
+  lastName: "Last Name",
+  lastNamePlaceholder: "Doe",
+  phoneNumber: "Phone Number",
+  phoneNumberPlaceholder: "+84901234567",
+  dateOfBirth: "Date of Birth",
+  address: "Address",
+  addressPlaceholder: "Enter your address",
+  register: "Register",
+  registering: "Registering...",
+  alreadyHaveAccount: "Already have an account?",
+  signIn: "Sign in",
+  registrationSuccess: "Registration Successful!",
+  verificationCodeSent:
+    "A verification code has been sent to your email. Please enter the code to complete registration.",
+  enterVerificationCode: "Enter verification code",
+  checkEmail: "Please check your email and enter the verification code.",
+  verificationCodePlaceholder: "Enter verification code",
+  timeRemaining: "Time remaining",
+  confirm: "Confirm",
+  emailAlreadyExists:
+    "Email or phone number already exists. Please use a different one.",
+};

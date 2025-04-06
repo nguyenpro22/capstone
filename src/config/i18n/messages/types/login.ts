@@ -1,0 +1,19 @@
+export type LoginTranslations = {
+  welcomeBack: string;
+  enterDetails: string;
+  email: string;
+  emailPlaceholder: string;
+  password: string;
+  passwordPlaceholder: string;
+  rememberMe: string;
+  forgotPassword: string;
+  signIn: string;
+  signingIn: string;
+  orContinueWith: string;
+  dontHaveAccount: string;
+  signUp: string;
+  successMessage: string;
+  invalidCredentials: string;
+  userNotFound: string;
+  generalError: string;
+};
