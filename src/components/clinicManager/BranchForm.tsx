@@ -7,6 +7,7 @@ import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/
 import { toast } from "react-toastify"
 import { motion } from "framer-motion"
 import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, ImageIcon, Loader2 } from "lucide-react"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 
 // Interfaces
 interface BranchFormProps {
@@ -35,6 +36,8 @@ interface AddressDetail {
   wardId: string
   wardName: string
   streetAddress: string
+  bankAccountNumber: string
+  bankName: string
 }
 
 export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) {
@@ -46,6 +49,11 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     operatingLicenseExpiryDate: "",
     profilePictureUrl: null as File | null,
   })
+  // Get the token and extract clinicId
+  const token = getAccessToken()
+  // Add null check for token
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
+  const clinicId = tokenData?.clinicId || ""
 
   const [addressDetail, setAddressDetail] = useState<AddressDetail>({
     provinceId: "",
@@ -55,6 +63,8 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     wardId: "",
     wardName: "",
     streetAddress: "",
+    bankAccountNumber: "",
+    bankName: "",
   })
 
   // RTK Query hooks
@@ -67,6 +77,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
   })
 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+  const [generalError, setGeneralError] = useState<string | null>(null)
   const [createBranch, { isLoading }] = useCreateBranchMutation()
 
   // Handle address selection changes
@@ -137,6 +148,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
 
     // Clear all previous errors before submitting
     setValidationErrors({})
+    setGeneralError(null)
 
     const formDataToSend = new FormData()
     formDataToSend.append("name", formData.name)
@@ -148,6 +160,8 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     formDataToSend.append("city", addressDetail.provinceName)
     formDataToSend.append("district", addressDetail.districtName)
     formDataToSend.append("ward", addressDetail.wardName)
+    formDataToSend.append("bankName", addressDetail.bankName)
+    formDataToSend.append("bankAccountNumber", addressDetail.bankAccountNumber)
 
     // Also include the full address for backward compatibility if needed
     // formDataToSend.append("fullAddress", getFullAddress())
@@ -161,12 +175,18 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
     }
 
     try {
-      await createBranch({ data: formDataToSend }).unwrap()
+      await createBranch({ clinicId, data: formDataToSend }).unwrap()
       toast.success("Branch created successfully!")
       onSaveSuccess()
       onClose()
     } catch (error: any) {
       console.error("Error response:", error)
+
+      // Display the detail message from the error response
+      if (error?.data?.detail) {
+        setGeneralError(error.data.detail)
+        toast.error(error.data.detail)
+      }
 
       // Handle API validation errors
       if (error?.data?.errors) {
@@ -197,9 +217,11 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
         })
 
         setValidationErrors(formattedErrors)
-        toast.error("Please check the form for errors")
-      } else {
-        // Handle unexpected errors
+        if (!error?.data?.detail) {
+          toast.error("Please check the form for errors")
+        }
+      } else if (!error?.data?.detail) {
+        // Handle unexpected errors if no detail message is provided
         toast.error(error?.data?.message || "An unexpected error occurred. Please try again later.")
       }
     }
@@ -261,6 +283,21 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
         </div>
 
         <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
+          {/* General Error Message */}
+          {generalError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3"
+            >
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-700 font-medium">Error</p>
+                <p className="text-red-600 text-sm mt-1">{generalError}</p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Validation Errors */}
           {Object.entries(validationErrors).filter(([_, message]) => message).length > 0 && (
             <motion.div

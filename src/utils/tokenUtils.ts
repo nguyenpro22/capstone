@@ -48,7 +48,7 @@ export const decodeJwt = (token: string | null) => {
   return JSON.parse(atob(base64));
 };
 
-export const GetDataByToken = (token: string): unknown | null => {
+export const GetDataByToken = (token: string): TokenData | null => {
   const decoded = decodeJwt(token);
   const role = decoded?.RoleName;
   const roleId = decoded?.RoleId;
@@ -60,7 +60,7 @@ export const GetDataByToken = (token: string): unknown | null => {
 };
 
 export type TokenData = {
-  role: string;
+  roleName: string;
   roleId: string;
   userId: string;
   clinicId?: string;

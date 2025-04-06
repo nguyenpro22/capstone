@@ -1,25 +1,34 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { reAuthQuery } from "@/lib/api"
+import { createApi } from "@reduxjs/toolkit/query/react"
 
-// API running on port 3000 for fetching requests
+// API GET running on port 3000
 export const partnershipRequestApi = createApi({
-  reducerPath: 'partnershipRequestApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://160.187.240.214:3000/api/v1' }),
+  reducerPath: "partnershipRequestApi",
+  baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
     getPartnershipRequests: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/clinics/application?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
+      query: ({ pageIndex, pageSize, searchTerm }) =>
+        `/clinics/application?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
     }),
+  }),
+})
+
+// API POST/PUT/DELETE running on port 4000
+export const partnershipRequestCommandApi = createApi({
+  reducerPath: "partnershipRequestCommandApi",
+  baseQuery: reAuthQuery("command"),
+  endpoints: (builder) => ({
     updatePartnershipRequest: builder.mutation({
-      // Custom fetchBaseQuery for the update request (port 4000)
       query: ({ requestId, action, rejectReason }) => ({
-        url: `http://160.187.240.214:4000/api/v1/clinics/application/${requestId}`, // Port 4000
-        method: 'PUT',
+        url: `/clinics/${requestId}/response`,
+        method: "PUT",
         body: { requestId, action, rejectReason },
       }),
     }),
   }),
-});
+})
 
-export const {
-  useGetPartnershipRequestsQuery,
-  useUpdatePartnershipRequestMutation,
-} = partnershipRequestApi;
+export const { useGetPartnershipRequestsQuery } = partnershipRequestApi
+
+export const { useUpdatePartnershipRequestMutation } = partnershipRequestCommandApi
+

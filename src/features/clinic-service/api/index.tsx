@@ -1,5 +1,5 @@
 import { reAuthQuery } from '@/lib/api';
-import { ServiceDetailResponse } from './../types/index';
+import { ProcedureRequest, ServiceDetailResponse, UpdateProcedureRequest } from './../types/index';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 
@@ -49,11 +49,35 @@ export const serviceCommandApi = createApi({
     }),
     
     
-    addProcedure: builder.mutation<any, { data: FormData }>({
+    addProcedure: builder.mutation<any, { data: ProcedureRequest }>({
       query: ({ data }) => ({
         url: "/procedures",
         method: "POST",
-        body: data, // Truyền trực tiếp FormData
+        body: data,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }),
+    }),
+    
+    deleteProcedure: builder.mutation<any, { id: string }>({
+      query: ({ id }) => ({
+        url: `/procedures/${id}`,
+        method: "DELETE",
+        body: { id }, // Truyền id trong request body theo yêu cầu API
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
+    updateProcedure: builder.mutation<any, { id: string; data: UpdateProcedureRequest }>({
+      query: ({ id, data }) => ({
+        url: `/procedures/${id}`,
+        method: "PUT",
+        body: data,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
     }),
   }),
@@ -61,7 +85,9 @@ export const serviceCommandApi = createApi({
 
 export const { useGetServicesQuery, useLazyGetServiceByIdQuery } = serviceQueryApi;
 export const { useCreateServiceMutation,
-              useUpdateServiceMutation, // Thêm API cập nhật gói
+              useUpdateServiceMutation, 
               useDeleteServiceMutation,
-              useAddProcedureMutation, // Hook để gọi API thêm Procedure
+              useAddProcedureMutation, 
+              useUpdateProcedureMutation,
+              useDeleteProcedureMutation, 
               } = serviceCommandApi;

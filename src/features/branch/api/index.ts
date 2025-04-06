@@ -1,5 +1,4 @@
 import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
-import { BranchDetailResponse } from './../types/index';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { Branch } from '@/features/clinic/types';
 

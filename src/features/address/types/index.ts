@@ -5,6 +5,16 @@ export interface BaseResponse<T> {
     data_name: string
     data: T[]
   }
+
+export interface AddressDetail {
+    provinceId: string
+    provinceName: string
+    districtId: string
+    districtName: string
+    wardId: string
+    wardName: string
+    streetAddress: string
+  }
   
   // Province/City data structure
   export interface Province {

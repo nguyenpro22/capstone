@@ -7,11 +7,11 @@ import { voucherMessages } from "./voucher";
 import { clinicMessages } from "./clinic";
 import { serviceMessages } from "./service";
 import { branchMessages } from "./branch";
-
+import { doctorMessages } from "./staffDoctor";
+import { staffMessages } from "./staff";
 import { LoginTranslations } from "./login";
 import { PasswordResetTranslations } from "./forgot-password";
 import { RegistrationTranslations } from "./register";
-import { doctor } from "./doctor";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
 
@@ -25,7 +25,8 @@ export type Messages = {
   clinic: clinicMessages;
   service: serviceMessages;
   branch: branchMessages;
-  doctorService: doctor;
+  staffDoctor: doctorMessages;
+  staff: staffMessages;
   login: LoginTranslations;
   forgotPassword: PasswordResetTranslations;
   register: RegistrationTranslations;
