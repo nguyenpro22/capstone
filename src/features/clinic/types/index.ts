@@ -2,17 +2,10 @@ export interface Clinic {
   id: string;
   name: string;
   email: string;
-  address: string;
-  city: string;
-  district: string;
-  ward: string;
-  phoneNumber: string;
+  fullAddress: string;
   totalBranches: number;
-  profilePictureUrl: string;
-  bankName: string;
-  bankAccountNumber: string;
   isActivated: boolean;
-  
+  profilePictureUrl?: string;
 }
 
 export interface ClinicsResponse {

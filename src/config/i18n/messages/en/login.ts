@@ -18,4 +18,5 @@ export const loginMessage: Messages["login"] = {
   invalidCredentials: "Invalid email or password",
   userNotFound: "User not found",
   generalError: "Something went wrong",
+  continueWithGoogle: "Continue with Google",
 };

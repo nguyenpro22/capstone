@@ -14,6 +14,7 @@ import type { QuizItem } from "@/features/quiz/types";
 import type { IListResponse, IResCommon } from "@/lib/api";
 import { ServicesSection } from "@/components/home/services-section";
 import LoadingSpinner from "./loading";
+import { ClinicsSliderSection } from "@/components/clinic-view/clinics-slider-section";
 
 // Move the data fetching function outside the component
 function getQuizData(): IResCommon<IListResponse<QuizItem>> {
@@ -188,9 +189,8 @@ export default function Home() {
       <HeroSection />
       <ServicesSection />
       <WhyChooseUsSection />
+      <ClinicsSliderSection />
       <TestimonialsSection />
-      <ExpertsSection />
-      <OffersSection />
       <FooterSection />
       <FloatingQuizButton quizzes={quizData.value.items} />
     </div>

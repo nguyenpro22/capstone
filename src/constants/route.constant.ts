@@ -2,7 +2,7 @@ const privateSystemAdminPath = "/systemAdmin";
 const privateClinicAdminPath = "/clinicManager";
 const privateDoctorPath = "/doctor";
 const privateClinicStaffPath = "/clinicStaff";
-const publicCustomerPath = "/";
+const publicCustomerPath = "";
 const privateSystemStaffPath = "/systemStaff";
 // SYSTEM ADMIN ROUTES
 export const systemAdminRoutes = {

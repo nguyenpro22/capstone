@@ -83,7 +83,7 @@ export function ServicesSection() {
                     <Image
                       src={
                         service.coverImage?.[0]?.url ||
-                        `/placeholder.svg?height=400&width=600` ||
+                        `https://placehold.co/600x400.png` ||
                         "/placeholder.svg"
                       }
                       alt={service.name}

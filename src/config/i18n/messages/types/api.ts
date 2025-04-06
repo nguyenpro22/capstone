@@ -7,6 +7,16 @@ export type apiMessages = {
       minPassword: string;
       maxPassword: string;
       invalidEmail: string;
+      providerLoginSuccess: string;
+      logoutError: string;
+      invalidCredentials: string;
+      userNotFound: string;
+      generalError: string;
+      logoutSuccess: string;
+      providerLoginError: string;
+      popupBlocked: string;
+      authTimeout: string;
+      authCancelled: string;
     };
   };
 };

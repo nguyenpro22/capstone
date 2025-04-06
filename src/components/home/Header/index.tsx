@@ -21,6 +21,8 @@ import {
   clearToken,
   getAccessToken,
   GetDataByToken,
+  showError,
+  showSuccess,
   type TokenData,
 } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +46,8 @@ import { Badge } from "@/components/ui/badge";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import LangToggle from "@/components/common/LangToggle";
 import { customerRoutes } from "@/constants";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { supabase } from "@/utils/supabaseClient";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -115,7 +119,6 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const t = useTranslations("home");
   const router = useRouter();
-
   const token = getAccessToken() as string;
 
   useEffect(() => {
@@ -153,11 +156,6 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
     router.push("/login");
   };
 
-  const handleLogout = () => {
-    clearToken();
-    router.push("/");
-  };
-
   const handleProfile = () => {
     router.push("/profile");
   };
@@ -181,7 +179,29 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
   };
+  const handleLogout = async () => {
+    try {
+      clearToken();
+      const { error } = await supabase.auth.signOut();
 
+      if (error) {
+        console.error("Error signing out:", error.message);
+        showError(t("logoutError"));
+        return;
+      }
+
+      // clearToken();
+      setUserData(null);
+
+      // Mostrar mensaje de éxito
+      showSuccess(t("logoutSuccess"));
+
+      // Redirigir a la página de inicio de sesión
+      router.push("/login");
+    } catch (error) {
+      console.log("error at 202");
+    }
+  };
   const navItems = [
     {
       label: t("footer.quickLinks.links.0.label"),
@@ -205,7 +225,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
       href: "/registerClinic",
     },
   ];
-
+  console.log("customerRoutes.SERVICES =", customerRoutes.SERVICES);
   return (
     <header
       className={cn(
@@ -302,7 +322,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
+                      <p className="text-sm leading-none">
                         {userData?.name || "User"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
@@ -320,7 +340,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                     <span>Lịch hẹn</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={() => handleLogout()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>
@@ -398,7 +418,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="text-sm font-medium">
+                              <p className="text-sm">
                                 {userData?.name || "User"}
                               </p>
                               <p className="text-xs text-muted-foreground">
@@ -433,7 +453,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                             <Button
                               variant="outline"
                               className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                              onClick={handleLogout}
+                              onClick={() => handleLogout()}
                             >
                               <LogOut className="mr-2 h-4 w-4" />
                               Đăng xuất

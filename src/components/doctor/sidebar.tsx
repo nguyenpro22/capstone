@@ -29,7 +29,9 @@ import ThemeToggle from "../common/ThemeToggle";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { clearToken, showSuccess } from "@/utils";
+import { clearToken, showError, showSuccess } from "@/utils";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { supabase } from "@/utils/supabaseClient";
 
 export function Sidebar() {
   const t = useTranslations("doctor.sidebar");
@@ -60,14 +62,26 @@ export function Sidebar() {
       icon: Settings,
     },
   ];
+  const handleLogout = async () => {
+    try {
+      clearToken();
+      const { error } = await supabase.auth.signOut();
 
-  const handleLogout = () => {
-    clearToken();
+      if (error) {
+        console.error("Error signing out:", error.message);
+        showError(t("logoutError"));
+        return;
+      }
 
-    showSuccess(t("logoutSuccess"));
-    router.push("/");
+      // Mostrar mensaje de éxito
+      showSuccess(t("logoutSuccess"));
+
+      // Redirigir a la página de inicio de sesión
+      router.push("/login");
+    } catch (error) {
+      console.log("error at 202");
+    }
   };
-
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Header with logo */}

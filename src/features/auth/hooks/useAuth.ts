@@ -21,11 +21,12 @@ import {
   systemAdminRoutes,
   systemStaffRoutes,
 } from "@/constants";
-import { useLoginMutation } from "../api";
+import { useLoginMutation, useLoginWithGoogleMutation } from "../api";
 import type { ILoginRequest } from "../types";
 import { useTranslations } from "next-intl";
 import { supabase } from "../../../utils/supabaseClient";
 import { useLocale } from "next-intl";
+import { get } from "http";
 
 // Tipos para el estado de autenticación
 type AuthStatus = "idle" | "authenticating" | "authenticated" | "error";
@@ -35,7 +36,7 @@ export const useAuth = () => {
   const t = useTranslations("api.auth.login");
   const [login] = useLoginMutation();
   const locale = useLocale(); // Obtener el idioma actual
-
+  const [loginGoogle] = useLoginWithGoogleMutation();
   // Estados refinados
   const [authStatus, setAuthStatus] = useState<AuthStatus>("idle");
   const [authError, setAuthError] = useState<string | null>(null);
@@ -105,13 +106,15 @@ export const useAuth = () => {
       if (event === "SIGNED_IN" && session) {
         try {
           // Guardar tokens
-          setAccessToken(session.access_token);
-          if (session.refresh_token) {
-            setRefreshToken(session.refresh_token);
-          }
-
+          const loginGoogleResponse = await loginGoogle({
+            googleToken: session.access_token,
+          }).unwrap();
+          setAccessToken(loginGoogleResponse.value.accessToken);
+          setRefreshToken(loginGoogleResponse.value.refreshToken);
           // Obtener datos del usuario
-          const userData = GetDataByToken(session.access_token) as TokenData;
+          const userData = GetDataByToken(
+            loginGoogleResponse.value.accessToken
+          ) as TokenData;
           setUserData(userData);
 
           // Actualizar estado
@@ -283,6 +286,7 @@ export const useAuth = () => {
           // Guardar tokens
           setAccessToken(accessToken);
           setRefreshToken(refreshToken);
+          console.log("accesstoken:", getAccessToken());
 
           // Obtener datos del usuario
           const userData = GetDataByToken(accessToken) as TokenData;
@@ -293,6 +297,7 @@ export const useAuth = () => {
 
           // Mostrar mensaje de éxito
           showSuccess(t("loginSuccess"));
+          console.log("Login successful:", userData);
 
           // Redirigir según el rol
           handleRedirectByRole(userData.role);
@@ -334,7 +339,7 @@ export const useAuth = () => {
       }
 
       // Limpiar tokens y estado
-      clearToken();
+      // clearToken();
       setUserData(null);
       setAuthStatus("idle");
       setAuthError(null);
