@@ -19,9 +19,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export default function Sidebar({ className }: SidebarProps) {
+export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const t = useTranslations("doctorCommon.sidebar");
@@ -117,8 +115,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
       <aside
         className={cn(
-          "hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-10 bg-background",
-          className
+          "hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-10 bg-background"
         )}
       >
         <div className="flex flex-col flex-grow border-r bg-background">

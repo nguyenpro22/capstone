@@ -1,4 +1,5 @@
 import { UserNav } from "@/components/services/user/user-nav";
+import Link from "next/link";
 import type React from "react";
 
 export default function UserLayout({
@@ -11,28 +12,28 @@ export default function UserLayout({
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
           <div className="mr-4 hidden md:flex">
-            <a href="/" className="mr-6 flex items-center space-x-2">
+            <Link href="/" className="mr-6 flex items-center space-x-2">
               <span className="font-bold">Beauty Clinic</span>
-            </a>
+            </Link>
             <nav className="flex items-center space-x-6 text-sm font-medium">
-              <a
+              <Link
                 href="/user/bookings"
                 className="transition-colors hover:text-foreground/80 text-foreground"
               >
                 Lịch hẹn
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/user/profile"
                 className="transition-colors hover:text-foreground/80 text-muted-foreground"
               >
                 Hồ sơ
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/services"
                 className="transition-colors hover:text-foreground/80 text-muted-foreground"
               >
                 Dịch vụ
-              </a>
+              </Link>
             </nav>
           </div>
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
