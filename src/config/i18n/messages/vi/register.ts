@@ -1,0 +1,35 @@
+import { Messages } from "../types";
+
+export const register: Messages["register"] = {
+  createAccount: "Tạo tài khoản",
+  fillDetails: "Vui lòng điền thông tin bên dưới để đăng ký.",
+  email: "Email",
+  emailPlaceholder: "ban@example.com",
+  password: "Mật khẩu",
+  passwordPlaceholder: "Nhập mật khẩu của bạn",
+  confirmPassword: "Xác nhận mật khẩu",
+  confirmPasswordPlaceholder: "Nhập lại mật khẩu của bạn",
+  firstName: "Tên",
+  firstNamePlaceholder: "Nguyễn",
+  lastName: "Họ",
+  lastNamePlaceholder: "Văn A",
+  phoneNumber: "Số điện thoại",
+  phoneNumberPlaceholder: "+84901234567",
+  dateOfBirth: "Ngày sinh",
+  address: "Địa chỉ",
+  addressPlaceholder: "Nhập địa chỉ của bạn",
+  register: "Đăng ký",
+  registering: "Đang đăng ký...",
+  alreadyHaveAccount: "Bạn đã có tài khoản?",
+  signIn: "Đăng nhập",
+  registrationSuccess: "Đăng ký thành công!",
+  verificationCodeSent:
+    "Mã xác minh đã được gửi đến email của bạn. Vui lòng nhập mã để hoàn tất đăng ký.",
+  enterVerificationCode: "Nhập mã xác minh",
+  checkEmail: "Vui lòng kiểm tra email và nhập mã xác minh.",
+  verificationCodePlaceholder: "Nhập mã xác minh",
+  timeRemaining: "Thời gian còn lại",
+  confirm: "Xác nhận",
+  emailAlreadyExists:
+    "Email hoặc số điện thoại đã tồn tại. Vui lòng sử dụng một cái khác.",
+};

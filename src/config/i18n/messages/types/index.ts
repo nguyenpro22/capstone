@@ -7,13 +7,13 @@ import { voucherMessages } from "./voucher";
 import { clinicMessages } from "./clinic";
 import { serviceMessages } from "./service";
 import { branchMessages } from "./branch";
-import { serviceMessages as doctorServiceMessage } from "./doctor/service";
-import { AppointmentMessages } from "./doctor/appointments";
-import { CalendarMessages } from "./doctor/calendar";
-import { DashboardMessages } from "./doctor/dashboard";
-import { PatientMessages } from "./doctor/patients";
-import { ProfileMessages } from "./doctor/profile";
-import { CommonMessages } from "./doctor/common";
+
+import { LoginTranslations } from "./login";
+import { PasswordResetTranslations } from "./forgot-password";
+import { RegistrationTranslations } from "./register";
+import { doctor } from "./doctor";
+import { serviceDetail } from "./serivceDetail";
+import { registerClinic } from "./registerClinic";
 
 export type Messages = {
   home: homeMessages;
@@ -25,11 +25,10 @@ export type Messages = {
   clinic: clinicMessages;
   service: serviceMessages;
   branch: branchMessages;
-  doctorService: doctorServiceMessage;
-  doctorAppointments: AppointmentMessages;
-  doctorCalendar: CalendarMessages;
-  doctorDashboard: DashboardMessages;
-  doctorPatients: PatientMessages;
-  doctorProfile: ProfileMessages;
-  doctorCommon: CommonMessages;
+  doctorService: doctor;
+  login: LoginTranslations;
+  forgotPassword: PasswordResetTranslations;
+  register: RegistrationTranslations;
+  serviceDetail: serviceDetail;
+  registerClinic: registerClinic;
 };

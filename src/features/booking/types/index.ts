@@ -67,3 +67,9 @@ export enum OrderStatus {
   COMPLETED = "Completed",
   UNCOMPLETED = "Uncompleted",
 }
+
+export type CustomerSchedule = {
+  customerScheduleId: string;
+  date: string;
+  startTime: string;
+};

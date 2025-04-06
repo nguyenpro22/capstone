@@ -95,7 +95,7 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
             <div className="p-4 flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/20">
                 <AvatarImage
-                  src="/placeholder.svg?height=48&width=48"
+                  src="https://placehold.co/48x48.png"
                   alt="Clinic Logo"
                 />
                 <AvatarFallback className="bg-primary/10 text-primary">
@@ -298,7 +298,7 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
             <CardContent className="p-6 flex flex-col items-center">
               <div className="bg-white p-3 rounded-xl shadow-sm mb-4">
                 <Image
-                  src="/placeholder.svg?height=300&width=300"
+                  src="https://placehold.co/300x300.png"
                   alt="QR Code"
                   width={200}
                   height={200}

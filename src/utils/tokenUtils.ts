@@ -50,8 +50,7 @@ export const decodeJwt = (token: string | null) => {
 
 export const GetDataByToken = (token: string): unknown | null => {
   const decoded = decodeJwt(token);
-  const role =
-    decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+  const role = decoded?.RoleName;
   const roleId = decoded?.RoleId;
   const userId = decoded?.UserId;
   const clinicId = decoded?.ClinicId;

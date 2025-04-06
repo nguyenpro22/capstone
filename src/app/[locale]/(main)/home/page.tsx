@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ContactSection } from "@/components/home/contact-section";
 import { ExpertsSection } from "@/components/home/experts-section";
 import { FooterSection } from "@/components/home/Footer";
 import { GallerySection } from "@/components/home/gallery-section";
@@ -14,6 +13,7 @@ import { WhyChooseUsSection } from "@/components/home/why-choose-us";
 import type { QuizItem } from "@/features/quiz/types";
 import type { IListResponse, IResCommon } from "@/lib/api";
 import { ServicesSection } from "@/components/home/services-section";
+import LoadingSpinner from "./loading";
 
 // Move the data fetching function outside the component
 function getQuizData(): IResCommon<IListResponse<QuizItem>> {
@@ -180,20 +180,17 @@ export default function Home() {
 
   // Show loading state while fetching data
   if (!quizData) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner key={1} size={40} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-gray-900 dark:to-gray-950">
-      <SiteHeader />
       <HeroSection />
       <ServicesSection />
       <WhyChooseUsSection />
       <TestimonialsSection />
-      <GallerySection />
       <ExpertsSection />
       <OffersSection />
-      <ContactSection />
       <FooterSection />
       <FloatingQuizButton quizzes={quizData.value.items} />
     </div>

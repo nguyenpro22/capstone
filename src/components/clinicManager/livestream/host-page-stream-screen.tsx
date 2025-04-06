@@ -2,118 +2,83 @@
 
 import type React from "react";
 
-import { type RefObject, useState, useEffect } from "react";
-import { AlertCircle, X } from "lucide-react";
-import { useLivestream } from "./context";
+// Thêm kiểu dữ liệu cho props
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ChatMessage, Reaction } from ".";
 
 interface HostPageStreamScreenProps {
   view: number;
-  localVideoRef: RefObject<HTMLVideoElement>;
+  localVideoRef: React.RefObject<HTMLVideoElement>;
   startPublishing: () => Promise<void>;
+  sendMessage: (message: string) => Promise<void>;
   isPublish: boolean;
   endLive: () => void;
+  chatMessage: ChatMessage[];
+  activeReactions: Reaction[];
 }
 
 export default function HostPageStreamScreen({
   view,
   localVideoRef,
   startPublishing,
+  sendMessage,
   isPublish,
   endLive,
-}: HostPageStreamScreenProps): JSX.Element {
-  const { error, clearError, peerConnection } = useLivestream();
-  const [isConfigCollapsed, setIsConfigCollapsed] = useState<boolean>(false);
-  const [message, setMessage] = useState<string>("");
-  const [isStartingPublish, setIsStartingPublish] = useState<boolean>(false);
-  const [messages, setMessages] = useState([
-    {
-      id: "1",
-      sender: "Client",
-      message: "What's the best product for dry skin?",
-      isHost: false,
-      avatar: "🧑",
-    },
-    {
-      id: "2",
-      sender: "Host",
-      message: "Try using our hydrating serum!",
-      isHost: true,
-      avatar: "🥰",
-    },
-  ]);
+  chatMessage,
+  activeReactions,
+}: HostPageStreamScreenProps) {
+  const [isConfigCollapsed, setIsConfigCollapsed] = useState(false);
+  const [text, setText] = useState("");
 
-  const toggleConfig = (): void => {
+  // Add refs and state for chat scrolling
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [userScrolled, setUserScrolled] = useState(false);
+
+  const toggleConfig = () => {
     setIsConfigCollapsed(!isConfigCollapsed);
+    // After toggling, we need to recalculate scroll position
+    setTimeout(() => {
+      if (!userScrolled) {
+        scrollToBottom();
+      }
+    }, 300); // Wait for animation to complete
   };
 
-  const handleSendMessage = (): void => {
-    if (message.trim()) {
-      const newMessage = {
-        id: Date.now().toString(),
-        sender: "Host",
-        message: message,
-        isHost: true,
-        avatar: "🥰",
-      };
-      setMessages([...messages, newMessage]);
-      setMessage("");
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter") {
-      handleSendMessage();
-    }
-  };
-
-  const handleStartPublishing = async () => {
-    setIsStartingPublish(true);
-    clearError();
-    try {
-      await startPublishing();
-      // Không cần set isStartingPublish = false ở đây vì sẽ được xử lý trong useEffect
-    } catch (error) {
-      setIsStartingPublish(false);
-      console.error("Error in handleStartPublishing:", error);
-    }
-  };
-
-  // Thêm một hàm để kiểm tra trạng thái kết nối
-  const checkConnectionStatus = () => {
-    if (peerConnection) {
-      const iceState = peerConnection.iceConnectionState;
-      const connectionState = peerConnection.connectionState;
-
-      console.log(
-        `Connection check - ICE: ${iceState}, Connection: ${connectionState}`
-      );
-
-      // Nếu kết nối đang hoạt động nhưng UI chưa cập nhật
-      if (
-        (iceState === "connected" || iceState === "completed") &&
-        !isPublish
-      ) {
-        console.log("Connection is actually working but UI is not updated");
-        // Có thể thực hiện các hành động để đồng bộ lại UI
+  // Add scroll handling functions
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        chatContainerRef.current;
+      // Check if user has scrolled up a significant amount
+      if (scrollHeight - scrollTop - clientHeight > 50) {
+        setUserScrolled(true);
+      } else {
+        setUserScrolled(false);
       }
     }
   };
 
-  // Theo dõi trạng thái isPublish để cập nhật UI
-  useEffect(() => {
-    if (isPublish) {
-      setIsStartingPublish(false);
-      console.log("✅ Publishing started successfully, updating UI");
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      setUserScrolled(false);
     }
-  }, [isPublish]);
+  };
 
-  // Theo dõi lỗi để cập nhật UI
+  // Scroll to bottom when component mounts
   useEffect(() => {
-    if (error) {
-      setIsStartingPublish(false);
-      console.log("❌ Error occurred, resetting starting state");
+    scrollToBottom();
+  }, []);
+
+  // Auto-scroll to bottom when new messages arrive, but only if user hasn't scrolled up
+  useEffect(() => {
+    if (messagesEndRef.current && !userScrolled) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [error]);
+  }, [chatMessage]); // Only depend on chatMessage to avoid unnecessary scrolls
 
   return (
     <div className="flex h-screen bg-rose-50 overflow-hidden font-sans">
@@ -144,112 +109,33 @@ export default function HostPageStreamScreen({
             </svg>
             {view}
           </div>
-
-          {/* Livestream Controls */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
-            {!isPublish && (
-              <button
-                onClick={handleStartPublishing}
-                disabled={isStartingPublish}
-                className={`bg-gradient-to-r from-rose-400 to-pink-500 text-white font-medium px-6 py-3 rounded-full hover:from-rose-500 hover:to-pink-600 transition shadow-lg flex items-center ${
-                  isStartingPublish ? "opacity-75 cursor-not-allowed" : ""
-                }`}
-              >
-                {isStartingPublish ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Đang bắt đầu...
-                  </>
-                ) : (
-                  "Bắt đầu phát sóng"
-                )}
-              </button>
-            )}
-            {isPublish && (
-              <button
-                onClick={endLive}
-                className="bg-gradient-to-r from-rose-400 to-pink-500 text-white font-medium px-6 py-3 rounded-full hover:from-rose-500 hover:to-pink-600 transition shadow-lg"
-              >
-                Kết thúc phát sóng
-              </button>
-            )}
-          </div>
-
-          {/* Error message */}
-          {error && (
-            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-md max-w-md">
-              <div className="flex justify-between items-start">
-                <div className="flex items-start">
-                  <AlertCircle className="h-5 w-5 mr-2 mt-0.5" />
-                  <div>
-                    <strong className="font-bold">Lỗi: </strong>
-                    <span className="block sm:inline">{error}</span>
-
-                    {error.includes("camera") && (
-                      <div className="mt-2 text-xs">
-                        <p className="font-semibold">Cách khắc phục:</p>
-                        <ul className="list-disc pl-4 mt-1">
-                          <li>
-                            Đảm bảo không có ứng dụng nào khác đang sử dụng
-                            camera
-                          </li>
-                          <li>Kiểm tra camera có được kết nối đúng cách</li>
-                          <li>Làm mới trang và thử lại</li>
-                          <li>
-                            Thử sử dụng trình duyệt khác (Chrome, Firefox)
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-
-                    {(error.includes("ICE") ||
-                      error.includes("không nhận được phản hồi")) && (
-                      <div className="mt-2 text-xs">
-                        <p className="font-semibold">Lưu ý:</p>
-                        <p className="mt-1">
-                          Nếu bạn vẫn thấy video đang phát và khách hàng có thể
-                          xem được, bạn có thể bỏ qua thông báo này.
-                        </p>
-                        <div className="mt-2 flex justify-center">
-                          <button
-                            onClick={clearError}
-                            className="px-3 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
-                          >
-                            Bỏ qua và tiếp tục phát sóng
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={clearError}
-                  className="ml-4 text-red-700 hover:text-red-900"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+          {/* Start Livestream Button */}
+          {!isPublish && (
+            <Button
+              onClick={startPublishing}
+              className="absolute top-6 right-0 transform -translate-x-1/2 bg-gradient-to-r from-rose-400 to-pink-500 text-white font-medium px-6 py-3 rounded-full hover:from-rose-500 hover:to-pink-600 transition shadow-lg"
+            >
+              Start Live
+            </Button>
           )}
+          {isPublish && (
+            <Button
+              onClick={endLive}
+              className="absolute top-6 right-0 transform -translate-x-1/2 bg-gradient-to-r from-rose-400 to-pink-500 text-white font-medium px-6 py-3 rounded-full hover:from-rose-500 hover:to-pink-600 transition shadow-lg"
+            >
+              Stop Livestream
+            </Button>
+          )}
+          {/* Simplified reaction display */}
+          {activeReactions.map((reaction) => (
+            <div
+              key={reaction.key}
+              className="floating-reaction pointer-events-none"
+              style={{ left: `${reaction.left}%` }}
+            >
+              {reaction.emoji}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -267,7 +153,7 @@ export default function HostPageStreamScreen({
             onClick={toggleConfig}
           >
             <div className="text-lg font-semibold text-rose-800 flex items-center">
-              ⚙️ Cài đặt phát sóng
+              ⚙️ Session Settings
             </div>
             <button className="text-rose-800 hover:text-rose-600 transition-colors">
               <svg
@@ -300,31 +186,31 @@ export default function HostPageStreamScreen({
             {/* Stream Title */}
             <div>
               <label className="block text-sm font-medium text-rose-700 mb-1">
-                Tiêu đề buổi phát sóng
+                Beauty Session Title
               </label>
-              <input
+              <Input
                 type="text"
                 className="block w-full border-rose-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-400 px-4 py-2 bg-white"
-                placeholder="VD: Hướng dẫn chăm sóc da nhạy cảm"
+                placeholder="e.g., Skincare Routine for Sensitive Skin"
               />
             </div>
 
             {/* Session Privacy */}
             <div>
               <label className="block text-sm font-medium text-rose-700 mb-1">
-                Quyền riêng tư
+                Session Privacy
               </label>
               <select className="block w-full border-rose-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-400 px-4 py-2 bg-white">
-                <option>Công khai</option>
-                <option>Riêng tư</option>
-                <option>Chỉ thành viên VIP</option>
+                <option>Public Session</option>
+                <option>Private Session</option>
+                <option>VIP Members Only</option>
               </select>
             </div>
 
             {/* Stream Quality */}
             <div>
               <label className="block text-sm font-medium text-rose-700 mb-1">
-                Chất lượng video
+                Video Quality
               </label>
               <select className="block w-full border-rose-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-400 px-4 py-2 bg-white">
                 <option>HD (720p)</option>
@@ -336,12 +222,12 @@ export default function HostPageStreamScreen({
             {/* Session Category */}
             <div>
               <label className="block text-sm font-medium text-rose-700 mb-1">
-                Danh mục
+                Session Category
               </label>
               <select className="block w-full border-rose-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-400 px-4 py-2 bg-white">
-                <option>Hướng dẫn chăm sóc da</option>
-                <option>Lớp học trang điểm</option>
-                <option>Demo điều trị spa</option>
+                <option>Skincare Tutorial</option>
+                <option>Makeup Masterclass</option>
+                <option>Spa Treatment Demo</option>
               </select>
             </div>
           </div>
@@ -351,57 +237,59 @@ export default function HostPageStreamScreen({
         <div className="flex-grow flex flex-col border border-rose-200 rounded-lg m-4 shadow-sm transition-all duration-500 ease-in-out">
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-rose-100 to-pink-100 px-4 py-3 border-b border-rose-200">
-            💬 Câu hỏi từ khách hàng
+            💬 Client Questions
           </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 transition-all duration-500 ease-in-out">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex items-start ${
-                  msg.isHost ? "justify-end mb-3" : "mb-3"
-                }`}
-              >
-                {!msg.isHost && (
-                  <div className="w-8 h-8 rounded-full bg-rose-300 flex items-center justify-center mr-2">
-                    {msg.avatar}
-                  </div>
-                )}
-                <div
-                  className={`${
-                    msg.isHost ? "bg-rose-400 text-white" : "bg-rose-100"
-                  } px-4 py-2 rounded-lg`}
-                >
-                  {msg.message}
+          {/* Chat Messages - Add ref and scroll handler with dynamic height */}
+          <div
+            ref={chatContainerRef}
+            onScroll={handleScroll}
+            style={{
+              maxHeight: isConfigCollapsed
+                ? "calc(100vh - 220px - 60px)" // When config is collapsed (60px height)
+                : "calc(100vh - 220px - 380px)", // When config is expanded (380px height)
+            }}
+            className="flex-1 overflow-y-auto p-4 space-y-3 transition-all duration-500 ease-in-out"
+          >
+            {chatMessage.map((item, index) => (
+              <div key={index} className="flex items-center mb-3">
+                <div className="w-8 h-8 rounded-full bg-rose-300 flex items-center justify-center mr-2">
+                  🧑
                 </div>
-                {msg.isHost && (
-                  <div className="w-8 h-8 rounded-full bg-rose-500 ml-2 flex items-center justify-center">
-                    {msg.avatar}
-                  </div>
-                )}
+                <div className="bg-rose-100 px-4 py-2 rounded-lg">
+                  {item.message}
+                </div>
               </div>
             ))}
+            {/* Add invisible element for scrolling to bottom */}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Input */}
           <div className="p-4 border-t border-rose-200">
-            <div className="flex items-center">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="flex-1 border-rose-300 rounded-lg px-4 py-2 bg-rose-50 focus:ring-rose-500"
-                placeholder="Trả lời khách hàng..."
-              />
-              <button
-                onClick={handleSendMessage}
-                className="ml-2 bg-rose-400 text-white px-4 py-2 rounded-lg hover:bg-rose-500 transition"
-              >
-                ➡️
-              </button>
-            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault(); // Prevent form submission and page reload
+                sendMessage(text);
+                setText(""); // Clear the input after sending the message
+              }}
+            >
+              <div className="flex items-center">
+                <Input
+                  type="text"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="flex-1 border-rose-300 rounded-lg px-4 py-2 bg-rose-50 focus:ring-rose-500"
+                  placeholder="Reply to clients..."
+                />
+                <Button
+                  type="submit" // This will trigger the form's onSubmit
+                  className="ml-2 bg-rose-400 text-white px-4 py-2 rounded-lg hover:bg-rose-500 transition"
+                >
+                  ➡️
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

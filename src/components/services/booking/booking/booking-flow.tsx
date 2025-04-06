@@ -9,13 +9,14 @@ import { SelectDoctorDateStep } from "./steps/select-doctor-date-step";
 import { SelectServiceStep } from "./steps/select-service-step";
 import { BookingSummaryStep } from "./steps/booking-summary-step";
 import { BookingConfirmation } from "./booking-confirmation";
-import { BookingData, Doctor, Service } from "../types/booking";
+import { BookingData, Doctor } from "../types/booking";
 import { createBookingRequest } from "../utils/booking-utils";
 import { BookingService } from "../utils/booking-service";
 import { useCreateBookingMutation } from "@/features/booking/api";
+import { ServiceDetail } from "@/features/services/types";
 
 interface BookingFlowProps {
-  service: Service;
+  service: ServiceDetail;
   onClose: () => void;
   userData?: {
     name: string;

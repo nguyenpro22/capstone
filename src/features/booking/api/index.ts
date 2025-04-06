@@ -1,6 +1,6 @@
 import { IListResponse, IResCommon, reAuthQuery } from "@/lib/api";
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { Booking, BookingRequest, TimeSlot } from "../types";
+import { Booking, BookingRequest, CustomerSchedule, TimeSlot } from "../types";
 
 // API GET chạy trên port 3000
 export const bookingQueryApi = createApi({
@@ -42,6 +42,13 @@ export const bookingCommandApi = createApi({
         body: data,
       }),
     }),
+    updateBooking: builder.mutation<IResCommon<null>, CustomerSchedule>({
+      query: (body) => ({
+        url: `/customer-schedules/customer/${body.customerScheduleId}`,
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -51,4 +58,5 @@ export const {
   useGetBusyTimesQuery,
 } = bookingQueryApi;
 
-export const { useCreateBookingMutation } = bookingCommandApi;
+export const { useCreateBookingMutation, useUpdateBookingMutation } =
+  bookingCommandApi;

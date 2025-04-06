@@ -30,8 +30,16 @@ export function SelectClinicStep({
     const fetchClinics = async () => {
       setLoading(true);
       try {
-        const clinicsData = await BookingService.getClinicsByService(service);
-        setClinics(clinicsData);
+        if (
+          "description" in service &&
+          "procedures" in service &&
+          "promotions" in service
+        ) {
+          const clinicsData = await BookingService.getClinicsByService(service);
+          setClinics(clinicsData);
+        } else {
+          console.error("Service is not of type ServiceDetail");
+        }
       } catch (error) {
         console.error("Error fetching clinics:", error);
       } finally {

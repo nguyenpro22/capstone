@@ -416,6 +416,8 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
 
   // Đăng ký các event handler cho SignalR
   const registerSignalRHandlers = (connection: signalR.HubConnection) => {
+    console.log("Registering SignalR handlers");
+
     // Xóa tất cả các handler hiện có để tránh đăng ký nhiều lần
     connection.off("RoomCreatedAndJoined");
     connection.off("PublishStarted");
@@ -423,157 +425,36 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
     connection.off("LivestreamEnded");
     connection.off("JanusError");
     connection.off("JoinRoomResponse");
+    connection.off("ReceiveMessage"); // Thêm dòng này
+    connection.off("ReceiveReaction"); // Thêm dòng này
 
-    // Đăng ký lại các handler
-    connection.on(
-      "RoomCreatedAndJoined",
-      ({ roomGuid, janusRoomId, sessionId }: RoomCreatedAndJoinedData) => {
-        console.log("✅ RoomCreatedAndJoined:", roomGuid, janusRoomId);
-        setSessionId(sessionId);
-        setRoomGuid(roomGuid);
-        setJanusRoomId(janusRoomId);
-        setIsCreateRoom(true);
-        setIsConnecting(false);
-        isCreatingRoomRef.current = false; // Reset flag sau khi tạo phòng thành công
-      }
-    );
-
-    connection.on(
-      "PublishStarted",
-      async ({ sessionId, jsep }: PublishStartedData) => {
-        console.log("✅ PublishStarted event received", sessionId);
-
-        // Xóa tất cả các timeout đang chờ
-        publishTimeoutIdsRef.current.forEach((id) => clearTimeout(id));
-        publishTimeoutIdsRef.current = [];
-
-        // Sử dụng peerConnectionRef.current thay vì peerConnection
-        if (peerConnectionRef.current) {
-          setSessionId(sessionId);
-          try {
-            await peerConnectionRef.current.setRemoteDescription(
-              new RTCSessionDescription({
-                type: "answer",
-                sdp: jsep,
-              })
-            );
-            console.log("✅ Remote description set successfully");
-            setIsPublish(true);
-            clearError(); // Xóa bất kỳ lỗi nào đang hiển thị
-            console.log("✅ isPublish set to true");
-          } catch (error) {
-            console.error("❌ Error setting remote description:", error);
-            setError("Không thể thiết lập kết nối media. Vui lòng thử lại.");
-          }
-        } else {
-          console.error(
-            "❌ No peer connection available for PublishStarted event"
-          );
-          setError("Không có kết nối peer. Vui lòng làm mới trang và thử lại.");
-        }
-      }
-    );
-
-    connection.on(
-      "JoinRoomResponse",
-      async ({ jsep, roomId, sessionId, handleId }) => {
-        console.log("✅ JoinRoomResponse received", {
-          roomId,
-          sessionId,
-          handleId,
-        });
-
-        if (jsep) {
-          try {
-            const pc = new RTCPeerConnection({
-              iceServers: [
-                { urls: "stun:stun.l.google.com:19302" },
-                { urls: "stun:stun1.l.google.com:19302" },
-              ],
-            });
-
-            pc.ontrack = (event) => {
-              if (localVideoRef.current) {
-                localVideoRef.current.srcObject = event.streams[0];
-              }
-            };
-
-            // Lưu peerConnection vào ref
-            peerConnectionRef.current = pc;
-            setPeerConnection(pc);
-
-            await pc.setRemoteDescription(
-              new RTCSessionDescription({
-                type: "offer",
-                sdp: jsep,
-              })
-            );
-
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-
-            if (
-              signalRConnectionRef.current?.state ===
-              signalR.HubConnectionState.Connected
-            ) {
-              setSessionId(sessionId);
-              setRoomGuid(roomId);
-              signalRConnectionRef.current.invoke(
-                "SendAnswerToJanus",
-                roomId,
-                sessionId,
-                handleId,
-                answer.sdp
-              );
-              setIsConnecting(false);
-              isJoiningRoomRef.current = false; // Reset flag sau khi tham gia phòng thành công
-              clearError();
-            } else {
-              setError("SignalR connection not ready yet!");
-              setIsConnecting(false);
-              isJoiningRoomRef.current = false;
-            }
-          } catch (error) {
-            console.error("Error setting up WebRTC:", error);
-            setError(`WebRTC setup failed: ${(error as Error).message}`);
-            setIsConnecting(false);
-            isJoiningRoomRef.current = false;
-          }
-        }
-      }
-    );
-
-    connection.on("ListenerCountUpdated", (count: number) => {
-      setViewerCount(count);
-    });
-
-    connection.on("LivestreamEnded", () => {
-      console.log("🚨 Livestream has ended");
-      alert("Livestream đã kết thúc");
-
-      // Nếu là host, reset livestream
-      if (isCreateRoom) {
-        resetLivestream();
-      }
-      // Nếu là khách, quay lại trang danh sách
-      else {
-        leaveRoom();
-        router.push("/livestream-view");
-      }
-    });
-
-    connection.on("JanusError", (message: string) => {
-      console.error("🚨 Janus Error:", message);
-      setError(message);
-      setIsConnecting(false);
-      isCreatingRoomRef.current = false; // Reset flag khi có lỗi
-      isPublishingRef.current = false; // Reset flag khi có lỗi
-      isJoiningRoomRef.current = false; // Reset flag khi có lỗi
-    });
+    // Tiếp tục đăng ký các handler như bình thường...
   };
 
   // Sửa lại hàm initializeConnection để không tự động gọi HostCreateRoom
   const initializeConnection = async () => {
+    console.log(
+      "initializeConnection called, current state:",
+      signalRConnectionRef.current?.state
+    );
+
+    // If connection exists but is in Disconnected state, try to restart it
+    if (
+      signalRConnectionRef.current?.state ===
+      signalR.HubConnectionState.Disconnected
+    ) {
+      console.log("Trying to restart disconnected connection");
+      try {
+        await signalRConnectionRef.current.start();
+        console.log("✅ Reconnected to SignalR");
+        setIsConnected(true);
+        return signalRConnectionRef.current;
+      } catch (error) {
+        console.error("Failed to restart SignalR connection:", error);
+        // Fall through to create a new connection
+      }
+    }
+
     // Nếu đã có kết nối, trả về kết nối hiện tại
     if (
       signalRConnectionRef.current?.state ===
@@ -680,6 +561,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
   // Thêm hàm joinRoom cho khách hàng và sử dụng useCallback để tránh vòng lặp vô hạn
   const joinRoom = useCallback(
     async (roomId: string) => {
+      console.log("joinRoom called with roomId:", roomId);
       if (!roomId) {
         setError("Room ID is required");
         return;
@@ -741,6 +623,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
 
   // Thêm hàm leaveRoom cho khách hàng
   const leaveRoom = useCallback(() => {
+    console.log("CustomerPageStreamScreen unmounting, calling leaveRoom");
     // Dọn dẹp kết nối
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
@@ -790,16 +673,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
         // Thử với các constraints khác nhau, bắt đầu với chất lượng cao nhất
         // và giảm dần nếu không thành công
         const constraints = [
-          // Chất lượng cao (1080p)
-          {
-            video: {
-              width: { ideal: 1920 },
-              height: { ideal: 1080 },
-              frameRate: { ideal: 30 },
-            },
-            audio: true,
-          },
-          // Chất lượng trung bình (720p)
+          // Chất lượng trung bình (720p) - start with this instead of 1080p
           {
             video: {
               width: { ideal: 1280 },

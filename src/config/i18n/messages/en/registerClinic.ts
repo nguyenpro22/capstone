@@ -1,0 +1,86 @@
+import { Messages } from "../types";
+
+export const registerClinic: Messages["registerClinic"] = {
+  title: "Register Your Clinic",
+  description:
+    "Complete the form below to register your clinic in our platform",
+  form: {
+    sections: {
+      clinicInfo: "Clinic Information",
+      contactInfo: "Contact Information",
+      address: "Address",
+      bankInfo: "Bank Information",
+      licenseInfo: "License Information",
+      documents: "Documents",
+    },
+    fields: {
+      name: "Clinic Name",
+      email: "Email",
+      phoneNumber: "Phone Number",
+      taxCode: "Tax Code",
+      address: "Address",
+      city: "City",
+      district: "District",
+      ward: "Ward",
+      bankName: "Bank Name",
+      bankAccountNumber: "Bank Account Number",
+      operatingLicenseExpiryDate: "Operating License Expiry Date",
+      operatingLicense: "Operating License",
+      businessLicense: "Business License",
+      profilePictureUrl: "Profile Picture",
+    },
+    placeholders: {
+      name: "Enter clinic name",
+      email: "Enter email address",
+      phoneNumber: "Enter phone number",
+      taxCode: "Enter tax code",
+      address: "Enter full address",
+      city: "Enter city",
+      district: "Enter district",
+      ward: "Enter ward",
+      bankName: "Enter bank name",
+      bankAccountNumber: "Enter bank account number",
+    },
+    fileUpload: {
+      clickToUpload: "Click to upload",
+      orDragAndDrop: "or drag and drop",
+      fileTypes: "PNG, JPG or PDF (max. 10MB)",
+      remove: "Remove",
+      change: "Change",
+      sizeError: "File size must be less than 10MB",
+    },
+    validation: {
+      nameRequired: "Clinic name is required",
+      emailInvalid: "Please enter a valid email address",
+      phoneRequired: "Phone number is required",
+      taxCodeRequired: "Tax code is required",
+      addressRequired: "Address is required",
+      cityRequired: "City is required",
+      districtRequired: "District is required",
+      wardRequired: "Ward is required",
+      bankNameRequired: "Bank name is required",
+      bankAccountRequired: "Bank account number is required",
+      expiryDateRequired: "Operating license expiry date is required",
+    },
+    toast: {
+      missingFiles: {
+        title: "Missing files",
+        description: "Please upload all required documents",
+      },
+      success: {
+        title: "Registration successful",
+        description: "Your clinic has been registered successfully",
+      },
+      error: {
+        title: "Registration failed",
+        description:
+          "There was an error registering your clinic. Please try again.",
+        pendingRequest: "Pending request",
+        duplicateInfo: "Duplicate information",
+        validation: "Invalid information",
+      },
+    },
+    submit: "Submit Registration",
+    submitting: "Submitting...",
+  },
+};

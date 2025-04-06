@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import Image from "next/image";
 
 interface RegisterLayoutProps {
@@ -7,41 +7,43 @@ interface RegisterLayoutProps {
 
 export default function RegisterLayout({ children }: RegisterLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-rose-100 via-pink-100 to-purple-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-rose-100 via-pink-100 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950 transition-colors duration-300">
+      {/* Theme and Language Controls */}
+
       {/* Left Column (Content) */}
       <div className="flex-1 flex flex-col justify-between px-8 py-12 sm:px-12 lg:px-16">
         <div className="mb-8">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-600">
+          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-600 dark:from-pink-300 dark:to-purple-400">
             BEAUTIFY
           </h1>
         </div>
 
-        <div className="max-w-md w-full mx-auto bg-white bg-opacity-80 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-pink-200">
+        <div className="max-w-md w-full mx-auto bg-white dark:bg-gray-900 bg-opacity-80 dark:bg-opacity-90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-pink-200 dark:border-purple-900 transition-all duration-300">
           {children}
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
+        <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
           &copy; 2024 Beautify. All rights reserved.
         </div>
       </div>
 
       {/* Right Column (Decorative) */}
       <div className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-300 to-purple-400 rounded-l-3xl opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-300 to-purple-400 dark:from-pink-500/30 dark:to-purple-700/50 rounded-l-3xl opacity-90 transition-colors duration-300" />
 
         {/* Main Image */}
         <div className="relative z-10 w-full h-full">
           <Image
-            src="/placeholder.svg?height=800&width=600"
+            src="/images/login.jpg"
             alt="Beautiful woman in spa"
             layout="fill"
             objectFit="cover"
-            className="rounded-l-3xl"
+            className="rounded-l-3xl dark:opacity-80 transition-opacity duration-300"
           />
         </div>
 
         {/* Overlay Content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black bg-opacity-30 rounded-l-3xl">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black bg-opacity-30 dark:bg-opacity-50 rounded-l-3xl transition-all duration-300">
           <h2 className="text-5xl font-bold text-white mb-6">
             Discover Your Beauty
           </h2>
@@ -50,7 +52,7 @@ export default function RegisterLayout({ children }: RegisterLayoutProps) {
           </p>
           <div className="flex justify-center space-x-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
+              <div className="w-16 h-16 bg-white bg-opacity-20 dark:bg-opacity-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -69,7 +71,7 @@ export default function RegisterLayout({ children }: RegisterLayoutProps) {
               <span className="text-white text-sm">Facial</span>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
+              <div className="w-16 h-16 bg-white bg-opacity-20 dark:bg-opacity-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -88,7 +90,7 @@ export default function RegisterLayout({ children }: RegisterLayoutProps) {
               <span className="text-white text-sm">Massage</span>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
+              <div className="w-16 h-16 bg-white bg-opacity-20 dark:bg-opacity-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -110,9 +112,9 @@ export default function RegisterLayout({ children }: RegisterLayoutProps) {
         </div>
 
         {/* Decorative Elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-200 dark:bg-pink-800/30 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-3xl opacity-70 animate-blob transition-colors duration-300" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-200 dark:bg-purple-800/30 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-3xl opacity-70 animate-blob animation-delay-2000 transition-colors duration-300" />
+        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-yellow-200 dark:bg-yellow-700/20 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-3xl opacity-70 animate-blob animation-delay-4000 transition-colors duration-300" />
       </div>
     </div>
   );

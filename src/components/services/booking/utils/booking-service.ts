@@ -1,19 +1,22 @@
 import { TimeSlot } from "@/features/booking/types";
-import type { Doctor, Clinic, Procedure, Service } from "../types/booking";
+import type { Doctor, Clinic } from "../types/booking";
+import { Procedure, ServiceDetail } from "@/features/services/types";
 
 export const BookingService = {
   // Get doctors by service ID
-  getDoctorsByService: async (service: Service): Promise<Doctor[]> => {
+  getDoctorsByService: async (service: ServiceDetail): Promise<Doctor[]> => {
     return service.doctorServices.map((ds) => ds.doctor);
   },
 
   // Get clinics by service ID
-  getClinicsByService: async (service: Service): Promise<Clinic[]> => {
+  getClinicsByService: async (service: ServiceDetail): Promise<Clinic[]> => {
     return service.clinics;
   },
 
   // Get procedures by service ID
-  getProceduresByService: async (service: Service): Promise<Procedure[]> => {
+  getProceduresByService: async (
+    service: ServiceDetail
+  ): Promise<Procedure[]> => {
     return service.procedures;
   },
 

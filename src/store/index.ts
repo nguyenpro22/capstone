@@ -23,7 +23,7 @@ import {
   serviceQueryApi,
 } from "@/features/clinic-service/api";
 import { bookingCommandApi, bookingQueryApi } from "@/features/booking/api";
-import { doctorQueryApi } from "@/features/doctor/api";
+import { doctorCommandApi, doctorQueryApi } from "@/features/doctor/api";
 const store = configureStore({
   reducer: {
     // [ExampleAPI.reducerPath]: ExampleAPI.reducer,
@@ -46,6 +46,7 @@ const store = configureStore({
     [paymentsApi.reducerPath]: paymentsApi.reducer,
     [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
     [doctorQueryApi.reducerPath]: doctorQueryApi.reducer,
+    [doctorCommandApi.reducerPath]: doctorCommandApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     // getDefaultMiddleware().concat(ExampleAPI.middleware),
@@ -67,7 +68,8 @@ const store = configureStore({
       addressApi.middleware,
       paymentsApi.middleware,
       bookingCommandApi.middleware,
-      doctorQueryApi.middleware
+      doctorQueryApi.middleware,
+      doctorCommandApi.middleware
     ), // ✅ Đảm bảo middleware của cả hai API được thêm vào
 });
 

@@ -1,7 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { IListResponse, IResCommon } from "@/lib/api";
-import { DoctorWorkingSchedule } from "../types";
+import { DoctorSchedule, DoctorWorkingSchedule } from "../types";
+import { register } from "module";
 
 export const doctorQueryApi = createApi({
   reducerPath: "doctorQueryApi",
@@ -32,4 +33,22 @@ export const doctorQueryApi = createApi({
   }),
 });
 
+export const doctorCommandApi = createApi({
+  reducerPath: "doctorCommandApi",
+  baseQuery: reAuthQuery("command"),
+  endpoints: (builder) => ({
+    addAppointmentNote: builder.mutation<
+      IResCommon<null>,
+      { customerScheduleId: string; note: string }
+    >({
+      query: ({ customerScheduleId, note }) => ({
+        url: `/customer-schedules/doctor/${customerScheduleId}`,
+        method: "POST",
+        body: note.toString(),
+      }),
+    }),
+  }),
+});
+
 export const { useGetDoctorSchedulesQuery } = doctorQueryApi;
+export const { useAddAppointmentNoteMutation } = doctorCommandApi;

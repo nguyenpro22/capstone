@@ -37,7 +37,7 @@ export function OffersSection() {
               <div className="grid md:grid-cols-2">
                 <div className="relative h-64 md:h-auto">
                   <Image
-                    src="/placeholder.svg?height=400&width=300"
+                    src="https://placehold.co/300x400.png"
                     alt="New Client Special"
                     fill
                     className="object-cover"
@@ -81,7 +81,7 @@ export function OffersSection() {
               <div className="grid md:grid-cols-2">
                 <div className="relative h-64 md:h-auto">
                   <Image
-                    src="/placeholder.svg?height=400&width=300"
+                    src="https://placehold.co/300x400.png"
                     alt="Summer Package"
                     fill
                     className="object-cover"
