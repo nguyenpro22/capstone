@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useUpdateCategoryMutation } from "@/features/category-service/api"
 import { toast } from "react-toastify"
-import { X, Save, FileText, Tag, FolderTree, Info } from "lucide-react"
+import { X, Save, FileText, Tag, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,7 +27,6 @@ interface EditCategoryFormProps {
 interface ValidationErrors {
   name?: string
   description?: string
-  parentId?: string
 }
 
 export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }: EditCategoryFormProps) {
@@ -35,7 +34,6 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
     id: initialData.id,
     name: initialData.name || "",
     description: initialData.description || "",
-    parentId: initialData.parentId || "",
   })
 
   const [updateCategory, { isLoading }] = useUpdateCategoryMutation()
@@ -131,8 +129,8 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
         }
       }}
     >
-      <div className="w-full max-w-md max-h-[90vh] overflow-auto" onClick={handleFormClick}>
-        <Card className="border shadow-lg">
+      <div className="w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col" onClick={handleFormClick}>
+        <Card className="border shadow-lg flex flex-col h-full rounded-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xl font-bold">Chỉnh sửa danh mục</CardTitle>
             <Button type="button" variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-full">
@@ -146,8 +144,9 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
               handleSubmit(e)
             }}
             onClick={handleFormClick}
+            className="flex flex-col flex-1 overflow-hidden"
           >
-            <CardContent className="space-y-4 pt-4">
+            <CardContent className="space-y-4 pt-4 overflow-y-auto flex-1">
               {/* ID (Read-only) */}
               <div className="space-y-2">
                 <Label htmlFor="id" className="flex items-center gap-1 text-sm font-medium">
@@ -203,29 +202,10 @@ export default function EditCategoryForm({ initialData, onClose, onSaveSuccess }
                 )}
               </div>
 
-              {/* Parent ID */}
-              <div className="space-y-2">
-                <Label htmlFor="parentId" className="flex items-center gap-1 text-sm font-medium">
-                  <FolderTree className="h-4 w-4" />
-                  Parent ID
-                </Label>
-                <Input
-                  id="parentId"
-                  name="parentId"
-                  value={formData.parentId}
-                  onChange={handleChange}
-                  placeholder="Nhập ID danh mục cha (nếu có)"
-                  className={validationErrors.parentId ? "border-destructive" : ""}
-                />
-                {validationErrors.parentId && (
-                  <p className="text-sm text-destructive flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    {validationErrors.parentId}
-                  </p>
-                )}
-              </div>
+              {/* Add some space at the bottom to ensure content doesn't get cut off */}
+              <div className="h-4"></div>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 pt-2">
+            <CardFooter className="flex justify-end gap-2 pt-2 border-t p-4 bg-white rounded-b-lg">
               <Button type="button" variant="outline" onClick={handleClose} className="gap-1">
                 <X className="h-4 w-4" />
                 Hủy

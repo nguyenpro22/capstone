@@ -4,45 +4,57 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { format } from "date-fns";
 import {
   MapPin,
   Phone,
   Mail,
-  Clock,
-  Star,
-  Users,
-  Calendar,
-  ChevronLeft,
+  Building,
+  ArrowLeft,
   Share2,
-  Bookmark,
-  Check,
-  ArrowRight,
-  CalendarClock,
+  Calendar,
+  FileText,
+  CreditCard,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  ChevronRight,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetClinicByIdQuery } from "@/features/clinic/api";
-import { useGetAllServicesQuery } from "@/features/services/api";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetClinicByIdV2Query } from "@/features/clinic/api";
 
 export default function ClinicDetailPage() {
   const t = useTranslations("clinicDetail");
-  const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const router = useRouter();
+  const clinicId = params.id as string;
+
+  const { data, isLoading, error } = useGetClinicByIdV2Query(clinicId);
+  const clinic = data?.value;
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: clinic, isLoading, error } = useGetClinicByIdQuery(id);
+  const handleBack = () => {
+    router.back();
+  };
 
-  // Fetch clinic services
-  const { data: servicesData } = useGetAllServicesQuery({
-    pageIndex: 1,
-    pageSize: 4,
-  });
-
-  const services = servicesData?.value?.items || [];
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: clinic?.name,
+        text: `Check out ${clinic?.name} on our platform!`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      // You would typically show a toast notification here
+      alert("Link copied to clipboard!");
+    }
+  };
 
   if (isLoading) {
     return <ClinicDetailSkeleton />;
@@ -51,7 +63,12 @@ export default function ClinicDetailPage() {
   if (error || !clinic) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto text-center py-16 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+        <Button variant="ghost" onClick={handleBack} className="mb-8">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {t("backToList") || "Back to clinics"}
+        </Button>
+
+        <div className="text-center py-16 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="rounded-full bg-red-100 dark:bg-red-900/40 p-3">
               <svg
@@ -71,20 +88,15 @@ export default function ClinicDetailPage() {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {t("clinicNotFound") || "Clinic Not Found"}
-            </h2>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-medium text-red-600 dark:text-red-400">
+              {t("clinicNotFound") || "Clinic not found"}
+            </h3>
+            <p className="text-red-600/70 dark:text-red-400/70">
               {t("clinicNotFoundDesc") ||
                 "The clinic you're looking for doesn't exist or has been removed."}
             </p>
-            <Button
-              variant="outline"
-              className="mt-2"
-              onClick={() => router.push("/clinics")}
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              {t("backToClinics") || "Back to Clinics"}
+            <Button variant="outline" className="mt-2" onClick={handleBack}>
+              {t("backToList") || "Back to clinics"}
             </Button>
           </div>
         </div>
@@ -93,340 +105,635 @@ export default function ClinicDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Hero section with clinic header image */}
-      <div className="relative h-64 md:h-80 lg:h-96 w-full bg-gray-200 dark:bg-gray-800">
+    <div className="container mx-auto px-4 py-12">
+      <Button variant="ghost" onClick={handleBack} className="mb-8">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        {t("backToList") || "Back to clinics"}
+      </Button>
+
+      {/* Hero Section */}
+      <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden mb-8">
         <Image
           src={
-            clinic.profilePictureUrl || `/placeholder.svg?height=600&width=1200`
+            clinic.profilePictureUrl || `/placeholder.svg?height=800&width=1600`
           }
           alt={clinic.name}
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
 
-        <div className="absolute bottom-0 left-0 right-0 container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-md">
-                {clinic.name}
-              </h1>
-              <div className="flex items-center gap-4 text-white/90 mb-2">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{clinic.address}</span>
-                </div>
-                <div className="flex items-center text-yellow-400 text-sm">
-                  <Star className="h-4 w-4 fill-current mr-1" />
-                  <span>{clinic.rating || "4.8"}</span>
-                  <span className="text-white/80 ml-1">
-                    ({clinic.reviewCount || "42"} reviews)
-                  </span>
-                </div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  {clinic.name}
+                </h1>
+                {clinic.isActivated ? (
+                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+                    {t("active") || "Active"}
+                  </Badge>
+                ) : (
+                  <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+                    {t("pendingActivation") || "Pending Activation"}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-white/80">
+                <MapPin className="h-4 w-4" />
+                <p className="text-sm md:text-base">{clinic.fullAddress}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                onClick={handleShare}
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 {t("share") || "Share"}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
-              >
-                <Bookmark className="h-4 w-4 mr-2" />
-                {t("save") || "Save"}
-              </Button>
+
               <Button
                 size="sm"
                 className="bg-primary hover:bg-primary/90 text-white"
+                onClick={() =>
+                  (window.location.href = `tel:${clinic.phoneNumber}`)
+                }
               >
-                <CalendarClock className="h-4 w-4 mr-2" />
-                {t("bookAppointment") || "Book Appointment"}
+                <Phone className="h-4 w-4 mr-2" />
+                {t("call") || "Call"}
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-6"
-          onClick={() => router.push("/clinics")}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          {t("backToClinics") || "Back to Clinics"}
-        </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="w-full justify-start mb-6 bg-transparent space-x-4 border-b rounded-none h-auto p-0">
+              <TabsTrigger
+                value="overview"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+              >
+                {t("overview") || "Overview"}
+              </TabsTrigger>
+              <TabsTrigger
+                value="branches"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+              >
+                {t("branches") || "Branches"} ({clinic.totalBranches})
+              </TabsTrigger>
+              <TabsTrigger
+                value="documents"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+              >
+                {t("documents") || "Documents"}
+              </TabsTrigger>
+            </TabsList>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <TabsContent value="overview" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("basicInfo") || "Basic Information"}</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <Mail className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {t("email") || "Email"}
+                        </p>
+                        <a
+                          href={`mailto:${clinic.email}`}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {clinic.email}
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Phone className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {t("phone") || "Phone"}
+                        </p>
+                        <a
+                          href={`tel:${clinic.phoneNumber}`}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {clinic.phoneNumber}
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Building className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {t("branches") || "Branches"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {clinic.totalBranches}{" "}
+                          {clinic.totalBranches === 1
+                            ? t("branch") || "branch"
+                            : t("branches") || "branches"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <FileText className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {t("taxCode") || "Tax Code"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {clinic.taxCode}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <CreditCard className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {t("bankInfo") || "Bank Information"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {clinic.bankName} - {clinic.bankAccountNumber}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      {clinic.isActivated ? (
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">
+                          {t("status") || "Status"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {clinic.isActivated
+                            ? t("activeStatus") || "Active and operational"
+                            : t("pendingStatus") || "Pending activation"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {t("addressInfo") || "Address Information"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {t("fullAddress") || "Full Address"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {clinic.fullAddress}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                    <div>
+                      <p className="text-sm font-medium">
+                        {t("city") || "City"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {clinic.city}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">
+                        {t("district") || "District"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {clinic.district || "-"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">
+                        {t("ward") || "Ward"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {clinic.ward || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (clinic.fullAddress) {
+                          window.open(
+                            `https://maps.google.com/?q=${encodeURIComponent(
+                              clinic.fullAddress
+                            )}`,
+                            "_blank"
+                          );
+                        } else {
+                          alert("Address not available");
+                        }
+                      }}
+                    >
+                      <MapPin className="mr-2 h-4 w-4" />
+                      {t("viewOnMap") || "View on Map"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="branches">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("branchesList") || "Branches List"}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(clinic.branches && clinic?.branches?.items?.length) ??
+                  0 > 0 ? (
+                    <div className="space-y-4">
+                      {clinic?.branches?.items?.map((branch) => (
+                        <Card key={branch.id} className="overflow-hidden">
+                          <div className="flex flex-col md:flex-row">
+                            <div className="relative h-40 md:h-auto md:w-48 bg-muted">
+                              {branch.profilePictureUrl ? (
+                                <Image
+                                  src={
+                                    branch.profilePictureUrl ||
+                                    "/placeholder.svg"
+                                  }
+                                  alt={branch.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="flex items-center justify-center h-full">
+                                  <Building className="h-12 w-12 text-muted-foreground/50" />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="p-4 flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-medium">{branch.name}</h3>
+                                  {branch.isActivated ? (
+                                    <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+                                      {t("active") || "Active"}
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+                                      {t("pending") || "Pending"}
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    router.push(`/clinics/${branch.id}`)
+                                  }
+                                >
+                                  {t("viewDetails") || "View Details"}
+                                  <ChevronRight className="ml-1 h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground truncate">
+                                    {branch.fullAddress}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">
+                                    {branch.phoneNumber}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">
+                                    {branch.email}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+
+                      {clinic?.branches?.hasNextPage && (
+                        <div className="text-center mt-4">
+                          <Button variant="outline">
+                            {t("loadMore") || "Load More Branches"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 bg-muted/30 rounded-lg">
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="rounded-full bg-muted/50 p-3">
+                          <Building className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-xl font-medium">
+                          {t("noBranches") || "No branches available"}
+                        </h3>
+                        <p className="text-muted-foreground">
+                          {t("noBranchesDesc") ||
+                            "This clinic hasn't added any branches yet."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {t("legalDocuments") || "Legal Documents"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="bg-muted/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-medium">
+                            {t("businessLicense") || "Business License"}
+                          </h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.open(clinic.businessLicenseUrl, "_blank")
+                            }
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            {t("view") || "View"}
+                          </Button>
+                        </div>
+
+                        <div className="relative h-40 bg-muted rounded-md overflow-hidden">
+                          <Image
+                            src={
+                              clinic.businessLicenseUrl || "/placeholder.svg"
+                            }
+                            alt="Business License"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-muted/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-medium">
+                            {t("operatingLicense") || "Operating License"}
+                          </h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.open(clinic.operatingLicenseUrl, "_blank")
+                            }
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            {t("view") || "View"}
+                          </Button>
+                        </div>
+
+                        <div className="relative h-40 bg-muted rounded-md overflow-hidden">
+                          <Image
+                            src={
+                              clinic.operatingLicenseUrl || "/placeholder.svg"
+                            }
+                            alt="Operating License"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {clinic.operatingLicenseExpiryDate && (
+                    <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-100 dark:border-yellow-900/30">
+                      <Calendar className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                          {t("licenseExpiry") ||
+                            "Operating License Expiry Date"}
+                        </p>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                          {format(
+                            new Date(clinic.operatingLicenseExpiryDate),
+                            "MMMM d, yyyy"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Sidebar */}
+        <div>
+          <Card>
+            <CardContent className="p-6">
               <h3 className="text-lg font-medium mb-4">
                 {t("contactInfo") || "Contact Information"}
               </h3>
+
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <Phone className="h-5 w-5" />
-                  </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium">
                       {t("phone") || "Phone"}
-                    </div>
-                    <div className="font-medium">{clinic.phoneNumber}</div>
+                    </p>
+                    <a
+                      href={`tel:${clinic.phoneNumber}`}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {clinic.phoneNumber}
+                    </a>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <Mail className="h-5 w-5" />
-                  </div>
+                <div className="flex items-start gap-3">
+                  <Mail className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium">
                       {t("email") || "Email"}
-                    </div>
-                    <div className="font-medium">{clinic.email}</div>
+                    </p>
+                    <a
+                      href={`mailto:${clinic.email}`}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {clinic.email}
+                    </a>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <MapPin className="h-5 w-5" />
-                  </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium">
                       {t("address") || "Address"}
-                    </div>
-                    <div className="font-medium">{clinic.address}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">
-                      {t("workingHours") || "Working Hours"}
-                    </div>
-                    <div className="font-medium">
-                      {clinic.workingHours || "Mon-Fri: 9AM-7PM, Sat: 10AM-4PM"}
-                    </div>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {clinic.fullAddress}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <Button className="w-full mt-6">
-                {t("contactClinic") || "Contact Clinic"}
-              </Button>
-            </div>
+              <div className="mt-6 pt-6 border-t border-muted/30">
+                <Button
+                  className="w-full"
+                  onClick={() =>
+                    (window.location.href = `tel:${clinic.phoneNumber}`)
+                  }
+                >
+                  <Phone className="mr-2 h-4 w-4" />
+                  {t("callClinic") || "Call Clinic"}
+                </Button>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <Button
+                  variant="outline"
+                  className="w-full mt-3"
+                  onClick={() =>
+                    (window.location.href = `mailto:${clinic.email}`)
+                  }
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  {t("emailClinic") || "Email Clinic"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full mt-3"
+                  onClick={() => {
+                    if (clinic.fullAddress) {
+                      window.open(
+                        `https://maps.google.com/?q=${encodeURIComponent(
+                          clinic.fullAddress
+                        )}`,
+                        "_blank"
+                      );
+                    } else {
+                      alert("Address not available");
+                    }
+                  }}
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  {t("viewOnMap") || "View on Map"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardContent className="p-6">
               <h3 className="text-lg font-medium mb-4">
-                {t("highlights") || "Highlights"}
+                {t("clinicStatus") || "Clinic Status"}
               </h3>
-              <ul className="space-y-2">
-                {[
-                  t("equipmentHighlight") || "Modern equipment",
-                  t("staffHighlight") || "Professional staff",
-                  t("cleanHighlight") || "Clean environment",
-                  t("appointmentHighlight") || "Easy appointment booking",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <div className="h-5 w-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
-                    </div>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
 
-          {/* Main content */}
-          <div className="lg:col-span-2">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList className="w-full justify-start mb-6 bg-transparent space-x-4 border-b rounded-none h-auto p-0">
-                <TabsTrigger
-                  value="overview"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                >
-                  {t("overview") || "Overview"}
-                </TabsTrigger>
-                <TabsTrigger
-                  value="services"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                >
-                  {t("services") || "Services"}
-                </TabsTrigger>
-                <TabsTrigger
-                  value="doctors"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                >
-                  {t("doctors") || "Doctors"}
-                </TabsTrigger>
-                <TabsTrigger
-                  value="reviews"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                >
-                  {t("reviews") || "Reviews"}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-6">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4">
-                    {t("aboutClinic") || "About the Clinic"}
-                  </h2>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    {clinic.description ||
-                      "This premier beauty clinic offers a wide range of services designed to enhance your natural beauty and boost your confidence. Our team of skilled professionals uses state-of-the-art equipment and proven techniques to deliver exceptional results. From facial treatments to body contouring, we provide personalized care tailored to your specific needs and goals. Our clinic maintains the highest standards of hygiene and safety to ensure a comfortable and secure environment for all our clients."}
-                  </p>
-
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-                    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-4 text-center">
-                      <div className="flex justify-center mb-2">
-                        <Users className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {clinic.doctors || "8"}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("specialists") || "Specialists"}
-                      </div>
-                    </div>
-
-                    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-4 text-center">
-                      <div className="flex justify-center mb-2">
-                        <Calendar className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {clinic.services || "12"}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("services") || "Services"}
-                      </div>
-                    </div>
-
-                    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-4 text-center">
-                      <div className="flex justify-center mb-2">
-                        <Star className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {clinic.rating || "4.8"}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {t("rating") || "Rating"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">
-                      {t("featuredServices") || "Featured Services"}
-                    </h2>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setActiveTab("services")}
-                      className="text-primary hover:text-primary-foreground hover:bg-primary"
+              <div
+                className={`p-4 rounded-lg ${
+                  clinic.isActivated
+                    ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30"
+                    : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {clinic.isActivated ? (
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  )}
+                  <div>
+                    <p
+                      className={`text-sm font-medium ${
+                        clinic.isActivated
+                          ? "text-green-800 dark:text-green-300"
+                          : "text-yellow-800 dark:text-yellow-300"
+                      }`}
                     >
-                      {t("viewAll") || "View All"}
-                      <ArrowRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {services.slice(0, 4).map((service) => (
-                      <div
-                        key={service.id}
-                        className="border border-muted/30 rounded-lg p-4 hover:border-primary/30 transition-colors cursor-pointer"
-                        onClick={() => router.push(`/services/${service.id}`)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{service.name}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {service.description ||
-                                service.category.description ||
-                                "No description available."}
-                            </p>
-                          </div>
-                          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0">
-                            ${service.minPrice}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                      {clinic.isActivated
+                        ? t("activeClinic") || "Active Clinic"
+                        : t("pendingClinic") || "Pending Activation"}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        clinic.isActivated
+                          ? "text-green-700 dark:text-green-400"
+                          : "text-yellow-700 dark:text-yellow-400"
+                      }`}
+                    >
+                      {clinic.isActivated
+                        ? t("activeDesc") ||
+                          "This clinic is verified and operational."
+                        : t("pendingDesc") ||
+                          "This clinic is awaiting verification and activation."}
+                    </p>
                   </div>
                 </div>
-              </TabsContent>
+              </div>
 
-              <TabsContent value="services">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-6">
-                    {t("clinicServices") || "Clinic Services"}
-                  </h2>
-
-                  {/* Service list would go here */}
-                  <p className="text-muted-foreground mb-4">
-                    {t("servicesPlaceholder") ||
-                      "A complete list of services offered by this clinic will be displayed here."}
-                  </p>
-
-                  <Button className="mt-4">
-                    {t("bookAppointment") || "Book an Appointment"}
-                  </Button>
+              {!clinic.isActivated && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {t("pendingNote") ||
+                    "Once verified by our team, this clinic will be fully operational on our platform."}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="doctors">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-6">
-                    {t("clinicDoctors") || "Our Specialists"}
-                  </h2>
-
-                  {/* Doctors list would go here */}
-                  <p className="text-muted-foreground mb-4">
-                    {t("doctorsPlaceholder") ||
-                      "Information about the medical staff at this clinic will be displayed here."}
-                  </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="reviews">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-6">
-                    {t("clientReviews") || "Client Reviews"}
-                  </h2>
-
-                  {/* Reviews would go here */}
-                  <p className="text-muted-foreground mb-4">
-                    {t("reviewsPlaceholder") ||
-                      "Client reviews and ratings for this clinic will be displayed here."}
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
@@ -435,25 +742,76 @@ export default function ClinicDetailPage() {
 
 function ClinicDetailSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="relative h-64 md:h-80 lg:h-96 w-full bg-gray-300 dark:bg-gray-800">
+    <div className="container mx-auto px-4 py-12">
+      <Skeleton className="h-10 w-32 mb-8" />
+
+      {/* Hero Section Skeleton */}
+      <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden mb-8">
         <Skeleton className="h-full w-full" />
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <Skeleton className="h-10 w-32 mb-6" />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 space-y-6">
-            <Skeleton className="h-72 w-full rounded-lg" />
-            <Skeleton className="h-60 w-full rounded-lg" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content Skeleton */}
+        <div className="lg:col-span-2">
+          <div className="border-b border-muted/30 mb-6">
+            <div className="flex gap-4">
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-8 w-24" />
+            </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <Skeleton className="h-12 w-full mb-6" />
-            <Skeleton className="h-96 w-full rounded-lg mb-6" />
-            <Skeleton className="h-80 w-full rounded-lg" />
-          </div>
+          <Skeleton className="h-64 w-full mb-6 rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-lg" />
+        </div>
+
+        {/* Sidebar Skeleton */}
+        <div>
+          <Card>
+            <CardContent className="p-6">
+              <Skeleton className="h-6 w-48 mb-4" />
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-16 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-16 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-16 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-muted/30">
+                <Skeleton className="h-10 w-full mb-3" />
+                <Skeleton className="h-10 w-full mb-3" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardContent className="p-6">
+              <Skeleton className="h-6 w-48 mb-4" />
+              <Skeleton className="h-24 w-full mb-4 rounded-lg" />
+              <Skeleton className="h-16 w-full" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

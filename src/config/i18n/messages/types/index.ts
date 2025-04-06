@@ -5,15 +5,16 @@ import { apiMessages } from "./api";
 import { dashboardMessages } from "./dashboard";
 import { voucherMessages } from "./voucher";
 import { clinicMessages } from "./clinic";
-import { serviceMessages } from "./service";
+import { service, serviceMessages } from "./service";
 import { branchMessages } from "./branch";
-
+import { doctorMessages } from "./staffDoctor";
+import { staffMessages } from "./staff";
 import { LoginTranslations } from "./login";
 import { PasswordResetTranslations } from "./forgot-password";
 import { RegistrationTranslations } from "./register";
-import { doctor } from "./doctor";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
+import { doctor } from "./doctor";
 
 export type Messages = {
   home: homeMessages;
@@ -23,12 +24,15 @@ export type Messages = {
   dashboard: dashboardMessages;
   voucher: voucherMessages;
   clinic: clinicMessages;
-  service: serviceMessages;
+  serviceMessage: serviceMessages;
   branch: branchMessages;
-  doctorService: doctor;
+  staffDoctor: doctorMessages;
+  staff: staffMessages;
   login: LoginTranslations;
   forgotPassword: PasswordResetTranslations;
   register: RegistrationTranslations;
   serviceDetail: serviceDetail;
   registerClinic: registerClinic;
+  doctorService: doctor;
+  service: service;
 };

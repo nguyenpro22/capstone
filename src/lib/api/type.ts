@@ -21,6 +21,20 @@ export interface IErrorResponse {
   code?: number;
 }
 
+// New validation error interfaces
+export interface ValidationErrorItem {
+  code: string;
+  message: string;
+}
+
+export interface ValidationErrorResponse {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  errors: ValidationErrorItem[];
+}
+
 export type CustomBaseQuery = BaseQueryFn<
   string | FetchArgs,
   unknown,

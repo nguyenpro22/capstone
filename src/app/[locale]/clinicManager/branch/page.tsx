@@ -1,18 +1,29 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useState } from "react"
-import { Clock, CheckCircle2, XCircle, FileText, Layers, MoreVertical } from "lucide-react"
+import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useGetBranchesQuery, useLazyGetBranchByIdQuery, useUpdateBranchMutation } from "@/features/clinic/api"
+import {
+  useGetBranchesQuery,
+  useLazyGetBranchByIdQuery,
+  useChangeStatusBranchMutation,
+  useGetStaffQuery,
+  useLazyGetStaffByIdQuery,
+} from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import * as XLSX from "xlsx"
-import { toast } from "react-toastify"
-import Modal from "@/components/systemStaff/Modal"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 import BranchForm from "@/components/clinicManager/BranchForm"
 import EditBranchForm from "@/components/clinicManager/EditBranchForm"
+import EditStaffForm from "@/components/clinicManager/staff/EditStaffForm"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import type { Branch } from "@/features/clinic/types"
+import type { Branch, Staff } from "@/features/clinic/types"
+import ViewBranchModal from "@/components/clinicManager/branch/view-branch-modal"
+import Pagination from "@/components/common/Pagination/Pagination"
+import { MenuPortal } from "@/components/ui/menu-portal"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 
 const BranchesList: React.FC = () => {
   const t = useTranslations("branch")
@@ -25,20 +36,57 @@ const BranchesList: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const token = getAccessToken() as string
-  const { clinicId } = GetDataByToken(token) as TokenData
+  const token = getAccessToken()
+  // Add null check for token
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
+  const clinicId = tokenData?.clinicId || ""
 
-  const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || '')
+  // Staff related states
+  const [expandedBranch, setExpandedBranch] = useState<string | null>(null)
+  const [editStaff, setEditStaff] = useState<Staff | null>(null)
+  const [showEditStaffForm, setShowEditStaffForm] = useState(false)
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
 
-  const [updateBranch] = useUpdateBranchMutation()
+  const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || "")
+  const delayedRefetch = useDelayedRefetch(refetch)
+
+  const [changeStatusBranch] = useChangeStatusBranchMutation()
   const [fetchBranchById] = useLazyGetBranchByIdQuery()
+  const [fetchStaffById] = useLazyGetStaffByIdQuery()
 
-  const branches = data?.value?.branches || []
-  const totalCount = branches.length || 0
-  // const hasNextPage = false
-  // const hasPreviousPage = false
+  // Update the branches variable to correctly access the items array
+  const branches = Array.isArray(data?.value?.branches?.items) ? data?.value?.branches?.items : []
 
-  const handleToggleMenu = (branchId: string) => {
+  // Update the pagination variables to use the correct properties
+  const totalCount = data?.value?.branches?.totalCount || 0
+  const hasNextPage = data?.value?.branches?.hasNextPage
+  const hasPreviousPage = data?.value?.branches?.hasPreviousPage
+  // Function to fetch staff for a specific branch
+  const { data: staffData } = useGetStaffQuery(
+    {
+      clinicId,
+      pageIndex: 1,
+      pageSize: 100, // Get all staff to filter by branch
+      searchTerm: "",
+      role: 2, // Staff role
+    },
+    {
+      skip: !expandedBranch,
+    },
+  )
+
+  const allStaff = staffData?.value?.items || []
+
+  // Filter staff by branch
+  const getStaffForBranch = (branchId: string) => {
+    return allStaff.filter((staff) => staff.branchs && staff.branchs.some((branch) => branch.id === branchId))
+  }
+
+  const handleToggleMenu = (branchId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.nativeEvent.stopImmediatePropagation()
+    // Store the position of the button
+    setTriggerRect(e.currentTarget.getBoundingClientRect())
     setMenuOpen(menuOpen === branchId ? null : branchId)
   }
 
@@ -67,12 +115,28 @@ const BranchesList: React.FC = () => {
     setMenuOpen(null)
   }
 
+  const handleEditStaff = async (staffId: string) => {
+    try {
+      const result = await fetchStaffById({
+        clinicId,
+        staffId,
+      }).unwrap()
+      setEditStaff(result.value)
+      setShowEditStaffForm(true)
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to fetch staff details")
+      setEditStaff(null)
+    }
+    // setStaffMenuOpen(null)
+  }
+
   const handleDeleteBranch = async (branchId: string) => {
     if (window.confirm(t("confirmDelete"))) {
       try {
         // await deleteBranch(branchId).unwrap();
         toast.success(t("deleteSuccess"))
-        refetch()
+        delayedRefetch()
       } catch (error) {
         console.error(error)
         toast.error(t("deleteFailed"))
@@ -85,6 +149,8 @@ const BranchesList: React.FC = () => {
     setShowEditForm(false)
     setEditBranch(null)
     setShowCreateForm(false)
+    setShowEditStaffForm(false)
+    setEditStaff(null)
   }
 
   const handleToggleStatus = async (id: string) => {
@@ -92,17 +158,18 @@ const BranchesList: React.FC = () => {
     if (!branch) return
 
     try {
-      const updatedFormData = new FormData()
-      updatedFormData.append("branchId", branch.id || "")
-      updatedFormData.append("isActivated", (!branch.isActivated).toString())
-
-      await updateBranch({ data: updatedFormData }).unwrap()
+      // Simply call the API with the branch ID - no body needed
+      await changeStatusBranch({ id: branch.id }).unwrap()
       toast.success(t("statusUpdated"))
-      refetch()
+      delayedRefetch()
     } catch (error) {
       console.error("Failed to update status", error)
       toast.error(t("statusUpdateFailed"))
     }
+  }
+
+  const handleToggleExpandBranch = (branchId: string) => {
+    setExpandedBranch(expandedBranch === branchId ? null : branchId)
   }
 
   const exportToExcel = () => {
@@ -115,17 +182,20 @@ const BranchesList: React.FC = () => {
   if (isLoading) return <div className="text-center text-gray-600">{t("loading")}</div>
   if (error) return <div className="text-center text-red-600">{t("errorFetching")}</div>
 
-  const filteredBranches = searchTerm
-    ? branches.filter(
-        (branch: Branch) =>
-          branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          branch.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          branch.address.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    : branches
+  const filteredBranches =
+    searchTerm && Array.isArray(branches)
+      ? branches.filter(
+          (branch: Branch) =>
+            branch.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            branch.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            branch.address?.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+      : branches
 
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 shadow-xl rounded-xl">
+      {/* Toast Container */}
+      <ToastContainer />
       <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 tracking-wide">{t("branchesList")}</h1>
 
       {/* Buttons and Search */}
@@ -165,219 +235,257 @@ const BranchesList: React.FC = () => {
       </div>
 
       {/* Table */}
-      <table className="table-auto w-full border-collapse">
-        <thead className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700">
+      <table className="table-auto w-full border-collapse border border-gray-200 rounded-lg overflow-hidden">
+        <thead className="bg-gradient-to-r from-purple-100 to-pink-100 text-gray-700">
           <tr>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("fullName")}</th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("email")}</th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("address")}</th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+              {t("branchName")}
+            </th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+              {t("email")}
+            </th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+              {t("address")}
+            </th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
               {t("operatingLicenseExpiryDate")}
             </th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("status")}</th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider">{t("action")}</th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+              {t("status")}
+            </th>
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+              {t("action")}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {filteredBranches.map((branch: Branch) => (
-            <motion.tr
-              key={branch.id}
-              whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.5)" }}
-              className="transition-colors duration-200"
-            >
-              <td className="p-4 text-gray-800 font-serif">{branch.name}</td>
-              <td className="p-4 text-gray-600">{branch.email}</td>
-              <td className="p-4 text-gray-600">{branch.address}</td>
-              <td className="p-4 text-gray-600">
-                {branch.operatingLicenseExpiryDate
-                  ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                    })
-                  : "N/A"}
-              </td>
-              <td className="p-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={branch.isActivated}
-                    onChange={() => handleToggleStatus(branch.id)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                  <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600" : "text-red-600"}`}>
-                    {branch.isActivated ? t("active") : t("inactive")}
-                  </span>
-                </div>
-              </td>
-              <td className="p-4 relative">
-                <div className="relative">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleToggleMenu(branch.id)
-                    }}
-                  >
-                    <MoreVertical className="w-5 h-5 text-gray-600" />
-                  </motion.button>
+          {filteredBranches.map((branch: Branch, index: number) => (
+            <React.Fragment key={branch.id}>
+              <motion.tr
+                whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.7)" }}
+                className={`transition-colors duration-200 ${
+                  index % 2 === 0 ? "bg-white" : "bg-purple-50"
+                } border-b border-gray-200 last:border-b-0`}
+              >
+                <td className="p-4 text-gray-800 font-serif border-r border-gray-200 last:border-r-0">
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => handleToggleExpandBranch(branch.id)}
+                      className="mr-2 p-1 rounded-full hover:bg-gray-100"
+                    >
+                      {expandedBranch === branch.id ? (
+                        <ChevronUp className="w-4 h-4 text-gray-600" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-600" />
+                      )}
+                    </button>
+                    <div className="max-w-[180px] truncate" title={branch.name || ""}>
+                      {branch.name}
+                    </div>
+                  </div>
+                </td>
+                <td className="p-4 text-gray-600 border-r border-gray-200 last:border-r-0">
+                  <div className="max-w-[180px] truncate" title={branch.email || ""}>
+                    {branch.email}
+                  </div>
+                </td>
+                <td className="p-4 text-gray-600 border-r border-gray-200 last:border-r-0">
+                  <div className="max-w-[200px] truncate" title={branch.address || ""}>
+                    {branch.address}
+                  </div>
+                </td>
+                <td className="p-4 text-gray-600 border-r border-gray-200 last:border-r-0">
+                  {branch.operatingLicenseExpiryDate
+                    ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })
+                    : "N/A"}
+                </td>
+                <td className="p-4 border-r border-gray-200 last:border-r-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={branch.isActivated}
+                      onChange={() => handleToggleStatus(branch.id)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600" : "text-red-600"}`}>
+                      {branch.isActivated ? t("active") : t("inactive")}
+                    </span>
+                  </div>
+                </td>
+                <td className="p-4 relative border-r border-gray-200 last:border-r-0">
+                  <div className="relative">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                      onClick={(e) => handleToggleMenu(branch.id, e)}
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                    </motion.button>
 
-                  <AnimatePresence>
-                    {menuOpen === branch.id && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg text-sm py-2 z-[100]"
-                        style={{ top: "100%" }}
-                      >
-                        <button
-                          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
-                          onClick={() => handleMenuAction("view", branch.id)}
+                    <AnimatePresence>
+                      {menuOpen === branch.id && (
+                        <MenuPortal
+                          isOpen={menuOpen === branch.id}
+                          onClose={() => setMenuOpen(null)}
+                          triggerRect={triggerRect}
                         >
-                          {t("viewBranchDetail")}
-                        </button>
-                        <button
-                          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-150"
-                          onClick={() => handleMenuAction("edit", branch.id)}
-                        >
-                          {t("editBranch")}
-                        </button>
-                        <button
-                          className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-150"
-                          onClick={() => handleDeleteBranch(branch.id)}
-                        >
-                          {t("deleteBranch")}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </td>
-            </motion.tr>
+                          <li
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMenuAction("view", branch.id)
+                            }}
+                          >
+                            <span className="w-4 h-4 rounded-full bg-purple-100 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                            </span>
+                            {t("viewBranchDetail")}
+                          </li>
+                          <li
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMenuAction("edit", branch.id)
+                            }}
+                          >
+                            <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            </span>
+                            {t("editBranch")}
+                          </li>
+                          <li
+                            className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteBranch(branch.id)
+                            }}
+                          >
+                            <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            </span>
+                            {t("deleteBranch")}
+                          </li>
+                        </MenuPortal>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </td>
+              </motion.tr>
+
+              {/* Staff List for the Branch */}
+              {expandedBranch === branch.id && (
+                <tr>
+                  <td colSpan={6} className="p-0">
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 border-t border-b border-gray-200">
+                      <div className="flex items-center mb-3">
+                        <div className="w-1 h-6 bg-purple-500 rounded-full mr-2"></div>
+                        <h3 className="text-lg font-medium text-purple-700">Staff in {branch.name}</h3>
+                      </div>
+
+                      {getStaffForBranch(branch.id).length > 0 ? (
+                        <div className="border border-purple-200 rounded-lg overflow-hidden shadow-sm">
+                          <table className="w-full border-collapse border border-purple-200 rounded-lg overflow-hidden">
+                            <thead className="bg-gradient-to-r from-purple-100 to-pink-100">
+                              <tr>
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                  Name
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                  Email
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                  Phone
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                  Role
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                              {getStaffForBranch(branch.id).map((staff: Staff, index: number) => (
+                                <tr
+                                  key={staff.employeeId}
+                                  className={`hover:bg-purple-100 transition-colors ${
+                                    index % 2 === 0 ? "bg-white" : "bg-purple-50"
+                                  } ${
+                                    index !== getStaffForBranch(branch.id).length - 1
+                                      ? "border-b border-purple-100"
+                                      : ""
+                                  }`}
+                                >
+                                  <td className="p-3 font-medium">
+                                    <div className="max-w-[150px] truncate" title={staff.fullName || ""}>
+                                      {staff.fullName}
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-purple-600">
+                                    <div className="max-w-[180px] truncate" title={staff.email || ""}>
+                                      {staff.email}
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="max-w-[120px] truncate" title={staff.phoneNumber || "-"}>
+                                      {staff.phoneNumber || "-"}
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded-full text-xs">
+                                      {staff.role}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 relative">
+                                    {/* Replace the staff actions column with a direct edit button: */}
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      className="p-1 rounded-full hover:bg-purple-100 transition-colors flex items-center gap-1 text-purple-600"
+                                      onClick={() => handleEditStaff(staff.employeeId)}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                      <span className="text-xs">Edit</span>
+                                    </motion.button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="py-6 text-center bg-white rounded-lg border border-purple-200 shadow-sm">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-50 flex items-center justify-center">
+                            <UserIcon className="w-6 h-6 text-purple-300" />
+                          </div>
+                          <p className="text-gray-500">No staff assigned to this branch</p>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
           ))}
         </tbody>
       </table>
 
       {/* Pagination */}
-      {/* 
-<Pagination
-  pageIndex={pageIndex}
-  pageSize={pageSize}
-  totalCount={totalCount}
-  hasNextPage={hasNextPage}
-  hasPreviousPage={hasPreviousPage}
-  onPageChange={setPageIndex}
-/> 
-*/}
+
+      <Pagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        hasNextPage={!!hasNextPage}
+        hasPreviousPage={!!hasPreviousPage}
+        onPageChange={setPageIndex}
+      />
 
       {/* View Branch Modal */}
-      {viewBranch && (
-        <Modal onClose={() => setViewBranch(null)}>
-          <div className="max-w-2xl mx-auto p-6 bg-white/95 backdrop-blur rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
-            {/* Header */}
-            <div className="text-center space-y-2 mb-6">
-              <h2 className="text-xl font-serif tracking-wide text-gray-800">{t("branchDetails")}</h2>
-              <div className="w-16 h-1 mx-auto bg-gradient-to-r from-pink-200 to-purple-200 rounded-full" />
-            </div>
-
-            {/* Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Left Column */}
-              <div className="space-y-4">
-                {/* Branch Name */}
-                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
-                  <Layers className="w-5 h-5 text-pink-400 mt-1" />
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">{t("branchName")}</div>
-                    <div className="text-base font-medium text-gray-800">{viewBranch.name}</div>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
-                  <FileText className="w-5 h-5 text-pink-400 mt-1" />
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">{t("email")}</div>
-                    <div className="text-gray-700">{viewBranch.email}</div>
-                  </div>
-                </div>
-
-                {/* Phone Number */}
-                {/* <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
-                  <CreditCard className="w-5 h-5 text-pink-400 mt-1" />
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">{t("phoneNumber")}</div>
-                    <div className="text-gray-700">{viewBranch.phoneNumber}</div>
-                  </div>
-                </div> */}
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-4">
-                {/* Address */}
-                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
-                  <Clock className="w-5 h-5 text-pink-400 mt-1" />
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">{t("address")}</div>
-                    <div className="text-gray-700">{viewBranch.address}</div>
-                  </div>
-                </div>
-
-                {/* Profile Picture */}
-                {viewBranch.profilePictureUrl && (
-                  <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
-                    <FileText className="w-5 h-5 text-pink-400 mt-1" />
-                    <div>
-                      <div className="text-xs text-gray-500 mb-1">{t("profilePicture")}</div>
-                      <a
-                        href={viewBranch.profilePictureUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-purple-600 hover:underline"
-                      >
-                        {t("viewProfilePicture")}
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {/* Status */}
-                <div className="flex items-start space-x-3 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-colors duration-300">
-                  {viewBranch.isActivated ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-1" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-400 mt-1" />
-                  )}
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">{t("status")}</div>
-                    <div
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
-                        viewBranch.isActivated
-                          ? "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700"
-                          : "bg-gradient-to-r from-red-50 to-red-100 text-red-700"
-                      }`}
-                    >
-                      {viewBranch.isActivated ? t("active") : t("inactive")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setViewBranch(null)}
-                className="px-6 py-2 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 text-white hover:from-pink-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-purple-200 hover:shadow-purple-300 font-medium tracking-wide"
-              >
-                {t("close")}
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {viewBranch && <ViewBranchModal viewBranch={viewBranch} onClose={() => setViewBranch(null)} />}
 
       {/* Edit Branch Form */}
       {showEditForm && editBranch && (
@@ -404,8 +512,9 @@ const BranchesList: React.FC = () => {
               initialData={editBranch}
               onClose={handleCloseForm}
               onSaveSuccess={() => {
+                toast.success(t("branchUpdatedSuccess") || "Branch updated successfully!")
                 handleCloseForm()
-                refetch()
+                delayedRefetch()
               }}
             />
           </motion.div>
@@ -437,7 +546,40 @@ const BranchesList: React.FC = () => {
               onClose={handleCloseForm}
               onSaveSuccess={() => {
                 handleCloseForm()
-                refetch()
+                delayedRefetch()
+              }}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Edit Staff Form */}
+      {showEditStaffForm && editStaff && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={handleCloseForm}
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="relative z-10 w-full max-w-md mx-4"
+          >
+            <EditStaffForm
+              initialData={editStaff}
+              onClose={handleCloseForm}
+              onSaveSuccess={() => {
+                handleCloseForm()
+                delayedRefetch()
               }}
             />
           </motion.div>

@@ -310,8 +310,8 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                   >
                     <Avatar className="h-9 w-9 border-2 border-primary/10">
                       <AvatarImage
-                        src={userData?.role || undefined}
-                        alt={userData?.role || "User"}
+                        src={userData?.roleName || undefined}
+                        alt={userData?.roleName || "User"}
                       />
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {getUserInitials()}

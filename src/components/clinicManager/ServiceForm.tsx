@@ -1,110 +1,157 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState } from "react";
-import {
-  useCreateServiceMutation,
-  useGetServicesQuery,
-} from "@/features/clinic-service/api";
-import { useGetCategoriesQuery } from "@/features/category-service/api";
-import {  useGetBranchesQuery } from "@/features/clinic/api";
+import type React from "react"
+import { useState, useEffect } from "react"
+import { useCreateServiceMutation, useGetServicesQuery } from "@/features/clinic-service/api"
+import { useGetCategoriesQuery } from "@/features/category-service/api"
+import { useGetBranchesQuery } from "@/features/clinic/api"
 
-import Select from "react-select";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, ImageIcon, Check, AlertCircle } from "lucide-react";
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
-import { Branch } from "@/features/clinic/types";
+import Select from "react-select"
+import { motion, AnimatePresence } from "framer-motion"
+import { X, AlertCircle, FileText, ImageIcon, Trash2 } from "lucide-react"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+import dynamic from "next/dynamic"
+import Image from "next/image"
+
+// Dynamically import QuillEditor to avoid SSR issues
+const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
+  ssr: false,
+  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 animate-pulse" />,
+})
 
 interface ServiceFormProps {
-  onClose: () => void;
-  onSaveSuccess: () => void;
+  onClose: () => void
+  onSaveSuccess: () => void
 }
 
 export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [descriptionImages, setDescriptionImages] = useState<File[]>([]);
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([]);
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [categoryId, setCategoryId] = useState("")
+  const [coverImages, setCoverImages] = useState<File[]>([])
+  const [imagePreview, setImagePreview] = useState<string[]>([])
+  const [errorMessages, setErrorMessages] = useState<string[]>([])
+  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([])
+  const [editorLoaded, setEditorLoaded] = useState(false)
 
-  const [createService, { isLoading }] = useCreateServiceMutation();
-  const { refetch: refetchServices } = useGetServicesQuery(undefined);
+  const [createService, { isLoading }] = useCreateServiceMutation()
+  const { refetch: refetchServices } = useGetServicesQuery(undefined)
   const { data: categoryData, isLoading: isCategoriesLoading } = useGetCategoriesQuery({
     pageIndex: 1,
     pageSize: 100,
     searchTerm: "",
-  });
+  })
   const token = getAccessToken() as string
-    const { clinicId } = GetDataByToken(token) as TokenData
-  
-    const { data: branchesData, isLoading: isLoadingBranches, error, refetch } = useGetBranchesQuery(clinicId || '')
+  const { clinicId } = GetDataByToken(token) as TokenData
 
-  const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : [];
+  const { data: branchesData, isLoading: isLoadingBranches, error, refetch } = useGetBranchesQuery(clinicId || "")
+
+  // Ensure editor is loaded
+  useEffect(() => {
+    setEditorLoaded(true)
+  }, [])
+
+  const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : []
   const categoryOptions = categories.map((cat: any) => ({
     value: cat.id,
     label: cat.name,
-  }));
+  }))
 
-  const branches = Array.isArray(branchesData?.value.branches) ? branchesData.value.branches : [];
-  console.log("data branches: " , branchesData)
-  const branchOptions = branches.map((branch: Branch) => ({
+  // Extract branches from the response, handling both possible structures
+  const getBranchesFromResponse = () => {
+    if (!branchesData) return []
+
+    // Check if the response has branches in the nested structure
+    if (branchesData.value?.branches?.items && Array.isArray(branchesData.value.branches.items)) {
+      return branchesData.value.branches.items
+    }
+
+    // If we have a single branch with nested branches
+    if (branchesData.value?.id && branchesData.value?.branches?.items) {
+      return branchesData.value.branches.items
+    }
+
+    return []
+  }
+
+  const branches = getBranchesFromResponse()
+  console.log("data branches: ", branchesData)
+  console.log("extracted branches: ", branches)
+
+  const branchOptions = branches.map((branch) => ({
     value: branch.id,
     label: branch.name,
-  }));
+  }))
 
   const handleCoverFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setCoverImage(e.target.files[0]);
-    }
-  };
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
-  const handleDescriptionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setDescriptionImages(Array.from(e.target.files));
-    }
-  };
+    // Convert FileList to array and append to existing images
+    const newFiles = Array.from(files)
+    setCoverImages((prevImages) => [...prevImages, ...newFiles])
+
+    // Create previews for all new files
+    newFiles.forEach((file) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview((prevPreviews) => [...prevPreviews, reader.result as string])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setCoverImages((prevImages) => prevImages.filter((_, i) => i !== index))
+    setImagePreview((prevPreviews) => prevPreviews.filter((_, i) => i !== index))
+  }
+
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessages([]);
+    e.preventDefault()
+    setErrorMessages([])
 
-    if (!name.trim() || !description.trim() || !categoryId || selectedBranches.length === 0) {
-      setErrorMessages(["Please fill in all required fields, including at least one branch"]);
-      return;
+    if (
+      !name.trim() ||
+      !description.trim() ||
+      !categoryId ||
+      selectedBranches.length === 0 ||
+      coverImages.length === 0
+    ) {
+      setErrorMessages(["Please fill in all required fields, including at least one branch and one image"])
+      return
     }
 
-    const formData = new FormData();
-    formData.append("clinicId", JSON.stringify(selectedBranches.map((branch) => branch.value)));
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("categoryId", categoryId);
+    const formData = new FormData()
+    formData.append("clinicId", JSON.stringify(selectedBranches.map((branch) => branch.value)))
+    formData.append("name", name)
+    formData.append("description", description)
+    formData.append("categoryId", categoryId)
 
-    if (coverImage) {
-      formData.append("coverImages", coverImage);
-    }
-
-    descriptionImages.forEach((file) => {
-      formData.append("descriptionImages", file);
-    });
+    // Append all cover images to the formData
+    coverImages.forEach((image) => {
+      formData.append("coverImages", image)
+    })
 
     try {
-      const response = await createService({ data: formData }).unwrap();
+      const response = await createService({ data: formData }).unwrap()
       if (response.isSuccess) {
-        await refetchServices();
-        onSaveSuccess();
-        onClose();
+        await refetchServices()
+        onSaveSuccess()
+        onClose()
       }
     } catch (err: any) {
       if (err?.data?.status === 422 && err?.data?.errors) {
-        const messages = err.data.errors.map((error: any) => error.message);
-        setErrorMessages(messages);
+        const messages = err.data.errors.map((error: any) => error.message)
+        setErrorMessages(messages)
       } else {
-        setErrorMessages(["An unexpected error occurred"]);
+        setErrorMessages(["An unexpected error occurred"])
       }
     }
-  };
+  }
 
   const selectStyles = {
     control: (base: any) => ({
@@ -142,7 +189,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
         backgroundColor: "#e2e8f0",
       },
     }),
-  };
+  }
 
   return (
     <motion.div
@@ -188,7 +235,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
             )}
           </AnimatePresence>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Service Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Service Name</label>
@@ -201,21 +248,50 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
               />
             </div>
 
-            {/* Description */}
+            {/* Description - Quill Editor */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                required
-              />
+              <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
+                <FileText className="h-4 w-4" />
+                Description
+              </label>
+              {editorLoaded && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    marginBottom: "80px", // Extreme margin to ensure no overlap
+                    position: "relative", // Create a new stacking context
+                    zIndex: 1, // Lower z-index
+                  }}
+                >
+                  <QuillEditor
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    placeholder="Enter service description"
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Category Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Category</label>
+            {/* Category Selection - Now with explicit styling to ensure visibility */}
+            <div
+              className="space-y-2"
+              style={{
+                marginTop: "80px", // Extreme margin to push it down
+                position: "relative", // Create a new stacking context
+                zIndex: 2, // Higher z-index to ensure it's above the editor
+              }}
+            >
+              <label
+                className="text-sm font-medium text-gray-700 block py-2"
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  position: "relative", // Create a new stacking context
+                  zIndex: 3, // Even higher z-index for the label
+                }}
+              >
+                Category
+              </label>
               <Select
                 value={categoryOptions.find((option: any) => option.value === categoryId)}
                 onChange={(selected) => setCategoryId(selected?.value || "")}
@@ -223,15 +299,22 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 isDisabled={isCategoriesLoading}
                 isSearchable
                 placeholder="Select Category"
-                styles={selectStyles}
+                styles={{
+                  ...selectStyles,
+                  container: (base) => ({
+                    ...base,
+                    position: "relative",
+                    zIndex: 2,
+                  }),
+                }}
                 className="react-select-container"
                 classNamePrefix="react-select"
               />
             </div>
 
             {/* Branch Selection (Multiple) */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Branches</label>
+            <div className="space-y-2 mt-6">
+              <label className="text-sm font-medium text-gray-700 block mb-2">Branches</label>
               <Select
                 isMulti
                 value={selectedBranches}
@@ -244,78 +327,69 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 className="react-select-container"
                 classNamePrefix="react-select"
               />
+              {branchOptions.length === 0 && !isLoadingBranches && (
+                <p className="text-sm text-amber-600">No branches available. Please create a branch first.</p>
+              )}
             </div>
 
-            {/* File Upload Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Cover Image Upload */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Cover Image</label>
+            {/* Multiple Images Upload */}
+            <div className="space-y-2 mt-6">
+              <label className="text-sm font-medium text-gray-700 block mb-2">Images</label>
+              <div className="grid grid-cols-1 gap-4">
                 <div className="relative">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleCoverFileChange}
                     className="hidden"
-                    id="cover-image"
-                  />
-                  <label
-                    htmlFor="cover-image"
-                    className={`flex flex-col items-center justify-center w-full h-28 rounded-lg border-2 border-dashed
-                      ${coverImage ? "border-purple-300 bg-purple-50" : "border-gray-300 hover:border-purple-300"}
-                      transition-all duration-200 cursor-pointer`}
-                  >
-                    {coverImage ? (
-                      <div className="flex items-center gap-2 text-purple-600">
-                        <Check className="w-5 h-5" />
-                        <span className="text-sm font-medium">{coverImage.name}</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 text-gray-600">
-                        <Upload className="w-6 h-6" />
-                        <span className="text-sm">Upload cover image</span>
-                      </div>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              {/* Description Images Upload */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Description Images</label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
+                    id="cover-images"
                     multiple
-                    onChange={handleDescriptionFileChange}
-                    className="hidden"
-                    id="description-images"
                   />
                   <label
-                    htmlFor="description-images"
+                    htmlFor="cover-images"
                     className={`flex flex-col items-center justify-center w-full h-28 rounded-lg border-2 border-dashed
-                      ${descriptionImages.length > 0 ? "border-purple-300 bg-purple-50" : "border-gray-300 hover:border-purple-300"}
+                      ${coverImages.length > 0 ? "border-purple-300 bg-purple-50" : "border-gray-300 hover:border-purple-300"}
                       transition-all duration-200 cursor-pointer`}
                   >
-                    {descriptionImages.length > 0 ? (
-                      <div className="flex items-center gap-2 text-purple-600">
-                        <ImageIcon className="w-5 h-5" />
-                        <span className="text-sm font-medium">{descriptionImages.length} images selected</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 text-gray-600">
-                        <Upload className="w-6 h-6" />
-                        <span className="text-sm">Upload description images</span>
-                      </div>
-                    )}
+                    <div className="flex flex-col items-center gap-2 text-gray-600">
+                      <ImageIcon className="w-6 h-6" />
+                      <span className="text-sm">
+                        {coverImages.length > 0
+                          ? `${coverImages.length} image${coverImages.length > 1 ? "s" : ""} selected`
+                          : "Upload images (multiple allowed)"}
+                      </span>
+                    </div>
                   </label>
                 </div>
+
+                {/* Image Previews */}
+                {imagePreview.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {imagePreview.map((preview, index) => (
+                      <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                        <Image
+                          src={preview || "/placeholder.svg"}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          width={100}
+                          height={100}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
               <button
                 type="button"
                 onClick={onClose}
@@ -344,5 +418,6 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
         </div>
       </motion.div>
     </motion.div>
-  );
+  )
 }
+

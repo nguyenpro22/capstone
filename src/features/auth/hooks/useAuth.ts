@@ -140,7 +140,7 @@ export const useAuth = () => {
           }
 
           // Redirigir según el rol
-          handleRedirectByRole(userData.role);
+          handleRedirectByRole(userData.roleName);
         } catch (error) {
           console.error("Error processing authentication:", error);
           setAuthStatus("error");
@@ -236,7 +236,7 @@ export const useAuth = () => {
           //     }
 
           //     // Redirigir según el rol
-          //     handleRedirectByRole(userData.role);
+          //     handleRedirectByRole(userData.roleName);
           //   } catch (error) {
           //     console.error("Error processing token from popup:", error);
           //     setAuthStatus("error");
@@ -300,7 +300,7 @@ export const useAuth = () => {
           console.log("Login successful:", userData);
 
           // Redirigir según el rol
-          handleRedirectByRole(userData.role);
+          handleRedirectByRole(userData.roleName);
         } else {
           setAuthStatus("error");
           setAuthError(t("loginError"));
@@ -338,7 +338,6 @@ export const useAuth = () => {
         return;
       }
 
-      // Limpiar tokens y estado
       // clearToken();
       setUserData(null);
       setAuthStatus("idle");

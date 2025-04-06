@@ -1,0 +1,57 @@
+/* Custom styles for the Quill editor */
+.quill-container {
+  position: relative;
+}
+
+.quill-editor {
+  height: 200px;
+}
+
+.quill-editor .ql-container {
+  border-bottom-left-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  background: white;
+  min-height: 120px;
+}
+
+.quill-editor .ql-toolbar {
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  background: white;
+}
+
+.quill-error .ql-toolbar {
+  border-color: hsl(var(--destructive));
+}
+
+.quill-error .ql-container {
+  border-color: hsl(var(--destructive));
+}
+
+/* Improve toolbar button hover states */
+.ql-snow.ql-toolbar button:hover,
+.ql-snow .ql-toolbar button:hover,
+.ql-snow.ql-toolbar button:focus,
+.ql-snow .ql-toolbar button:focus,
+.ql-snow.ql-toolbar button.ql-active,
+.ql-snow .ql-toolbar button.ql-active {
+  color: hsl(var(--primary));
+}
+
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button:focus .ql-fill,
+.ql-snow .ql-toolbar button:focus .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill {
+  fill: hsl(var(--primary));
+}
+
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button:focus .ql-stroke,
+.ql-snow .ql-toolbar button:focus .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: hsl(var(--primary));
+}

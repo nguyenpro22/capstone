@@ -14,6 +14,7 @@ import SubCategoryForm from "@/components/systemAdmin/SubCategoryForm"
 import EditSubCategoryForm from "@/components/systemAdmin/EditSubCategoryForm"
 import Pagination from "@/components/common/Pagination/Pagination"
 import { motion, AnimatePresence } from "framer-motion"
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch" // Import the custom hook
 
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
@@ -55,6 +56,9 @@ export default function Category() {
     searchTerm,
   })
 
+  // Use the custom hook to create a delayed refetch function
+  const delayedRefetch = useDelayedRefetch(refetch)
+
   // New query to get all categories for the modal
   const { data: allCategoriesData, isLoading: isLoadingAllCategories } = useGetAllCategoriesQuery()
 
@@ -79,7 +83,7 @@ export default function Category() {
   }
 
   const handleToggleSubMenu = (subCategoryId: string) => {
-    setSubMenuOpen(subMenuOpen === subCategoryId ? null : subCategoryId)
+    setSubMenuOpen(subMenuOpen === subCategoryId ? null : subMenuOpen)
   }
 
   const handleCloseMenu = () => {
@@ -137,7 +141,8 @@ export default function Category() {
       try {
         await deleteCategory(categoryId).unwrap()
         toast.success("Danh mục đã được xóa thành công!")
-        refetch()
+        // Use delayed refetch instead of immediate refetch
+        delayedRefetch()
       } catch (error) {
         console.error(error)
         toast.error("Xóa danh mục thất bại!")
@@ -155,7 +160,8 @@ export default function Category() {
       try {
         await deleteSubCategory(subCategoryId).unwrap()
         toast.success("Danh mục con đã được xóa thành công!")
-        refetch()
+        // Use delayed refetch instead of immediate refetch
+        delayedRefetch()
 
         // Cập nhật lại categoryDetails sau khi xóa
         const parentId = Object.keys(categoryDetails).find((key) =>
@@ -182,8 +188,8 @@ export default function Category() {
   }
 
   const handleSubCategorySuccess = async (parentId: string) => {
-    // Refresh danh sách categories
-    refetch()
+    // Refresh danh sách categories with delay
+    delayedRefetch()
 
     // Cập nhật lại chi tiết category sau khi thêm/sửa subcategory
     try {
@@ -246,7 +252,8 @@ export default function Category() {
 
       setShowMoveSubCategoryModal(false)
       setSubCategoryToMove(null)
-      refetch()
+      // Use delayed refetch instead of immediate refetch
+      delayedRefetch()
     } catch (error) {
       console.error("Failed to move subcategory:", error)
       toast.error("Không thể chuyển danh mục!")
@@ -343,11 +350,23 @@ export default function Category() {
                             ) : (
                               <Folder className="w-5 h-5 text-gray-500 mr-2" />
                             )}
-                            <span className="font-medium">{category.name}</span>
+                            <span
+                              className="font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]"
+                              title={category.name}
+                            >
+                              {category.name}
+                            </span>
                           </div>
                         </div>
                       </td>
-                      <td className="p-3 border border-gray-200">{category.description}</td>
+                      <td className="p-3 border border-gray-200">
+                        <div
+                          className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[300px]"
+                          title={category.description}
+                        >
+                          {category.description}
+                        </div>
+                      </td>
                       <td className="p-3 border border-gray-200 relative">
                         <div className="flex items-center space-x-2">
                           <button
@@ -410,10 +429,22 @@ export default function Category() {
                                           <td className="p-2 pl-8 border-b border-gray-200">
                                             <div className="flex items-center">
                                               <div className="w-1 h-1 bg-purple-400 rounded-full mr-2"></div>
-                                              <span>{subCategory.name}</span>
+                                              <span
+                                                className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]"
+                                                title={subCategory.name}
+                                              >
+                                                {subCategory.name}
+                                              </span>
                                             </div>
                                           </td>
-                                          <td className="p-2 border-b border-gray-200">{subCategory.description}</td>
+                                          <td className="p-2 border-b border-gray-200">
+                                            <div
+                                              className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[300px]"
+                                              title={subCategory.description}
+                                            >
+                                              {subCategory.description}
+                                            </div>
+                                          </td>
                                           <td className="p-2 border-b border-gray-200">
                                             <div className="flex items-center space-x-1">
                                               <button
@@ -502,7 +533,8 @@ export default function Category() {
             onClose={() => setShowForm(false)}
             onSaveSuccess={() => {
               setShowForm(false)
-              refetch()
+              // Use delayed refetch instead of immediate refetch
+              delayedRefetch()
               toast.success("Thêm danh mục thành công!")
             }}
           />
@@ -520,7 +552,8 @@ export default function Category() {
             onSaveSuccess={() => {
               setShowEditForm(false)
               setEditCategory(null)
-              refetch()
+              // Use delayed refetch instead of immediate refetch
+              delayedRefetch()
             }}
           />
         </div>

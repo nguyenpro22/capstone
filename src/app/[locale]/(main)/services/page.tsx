@@ -69,7 +69,7 @@ interface ErrorDisplayProps {
 
 // Loading Skeleton Component
 function ServicesPageSkeleton(): JSX.Element {
-  const t = useTranslations("Services");
+  const t = useTranslations("serviceMessage");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-950">
@@ -213,7 +213,7 @@ function ServicesPageSkeleton(): JSX.Element {
 
 // Error Component
 function ErrorDisplay({ onRetry }: ErrorDisplayProps): JSX.Element {
-  const t = useTranslations("Services");
+  const t = useTranslations("serviceMessage");
 
   return (
     <div className="container mx-auto py-12 text-center">
@@ -236,7 +236,7 @@ function ErrorDisplay({ onRetry }: ErrorDisplayProps): JSX.Element {
 
 // Add a component to render rich text descriptions
 function RichTextDescription({ content }: { content: string }) {
-  const t = useTranslations("Services");
+  const t = useTranslations("serviceMessage");
 
   // Simple implementation to render HTML content safely
   return (
@@ -257,7 +257,7 @@ interface ShareModalProps {
 }
 
 function ShareModal({ isOpen, onClose, service }: ShareModalProps) {
-  const t = useTranslations("Services");
+  const t = useTranslations("serviceMessage");
   const [copied, setCopied] = useState(false);
 
   if (!service) return null;
@@ -518,7 +518,7 @@ function CategoryInfo({ category }: { category: Category | undefined }) {
 
 // Main component
 export default function ServicesPage(): JSX.Element {
-  const t = useTranslations("Services");
+  const t = useTranslations("serviceMessage");
   const router = useRouter();
   const [pageIndex, setPageIndex] = useState<number>(1);
   const pageSize: number = 10;

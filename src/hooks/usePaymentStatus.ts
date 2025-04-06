@@ -45,6 +45,9 @@ class PaymentService {
   public onPaymentStatusReceived(callback: (status: boolean) => void): void {
     this.connection.on("ReceivePaymentStatus", callback);
   }
+  public async onCancelPaymentSession(transactionId: string): Promise<void> {
+    await this.connection.invoke("CancelPaymentSession", transactionId);
+  }
 }
 
 // Export as singleton instance

@@ -81,7 +81,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ viewService, onClose }) => 
 
       {viewService?.procedures?.length > 0 && (
         <div>
-          <h3 className="text-lg font-bold text-black">Các thủ tục</h3>
+          <h3 className="text-lg font-bold text-black">Các giai đoạn</h3>
           <div className="space-y-4">
             {viewService.procedures.map((procedure: any) => (
               <div key={procedure.id} className="border rounded-lg p-3 shadow-sm hover:shadow-md flex space-x-4">

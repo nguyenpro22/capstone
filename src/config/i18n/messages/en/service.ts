@@ -1,6 +1,6 @@
 import { Messages } from "../types";
 
-export const serviceMessages: Messages["service"] = {
+export const service: Messages["service"] = {
   beautyServices: "Beauty Services",
   ourServices: "Our Services",
   discoverServices: "Discover",
@@ -101,4 +101,22 @@ export const serviceMessages: Messages["service"] = {
   processing: "Processing...",
   confirmBooking: "Confirm Booking",
   bookService: "Book Service",
+};
+export const serviceMessages: Messages["serviceMessage"] = {
+  servicesList: "Services List",
+  no: "No.",
+  addNewService: "Add new Service",
+  serviceName: "Service Name",
+  price: "Price",
+  coverImage: "Cover Image",
+  action: "Action",
+  category: "Category",
+  percentDiscount: "Percent Discount",
+  searchByName: "Search By Name",
+  active: "Active",
+  inactive: "Inactive",
+  viewServiceDetail: "View service detail",
+  editService: "Edit service",
+  deleteService: "Delete service",
+  addProcedure: "Add Procedure",
 };

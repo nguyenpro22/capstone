@@ -1,6 +1,25 @@
 import { Messages } from "../types";
 
-export const serviceMessages: Messages["service"] = {
+export const serviceMessages: Messages["serviceMessage"] = {
+  servicesList: "Danh sách dịch vụ",
+  no: "STT",
+  addNewService: "Thêm dịch vụ mới",
+  serviceName: "Tên Dịch Vụ",
+  price: "Giá",
+  coverImage: "Ảnh",
+  action: "Hành Động",
+  category: "Loại",
+  percentDiscount: "̀% Giảm giá",
+  searchByName: "Tìm kiếm theo tên",
+  active: "Hoạt động",
+  inactive: "Ngưng hoạt động",
+  viewServiceDetail: "Xem chi tiết dịch vụ",
+  editService: "Chỉnh sửa thông tin dịch vụ",
+  deleteService: "Xóa phòng dịch vụ",
+  addProcedure: " Thêm giai đoạn",
+};
+
+export const service: Messages["service"] = {
   beautyServices: "Dịch Vụ Làm Đẹp",
   ourServices: "Dịch Vụ Của Chúng Tôi",
   discoverServices: "Khám Phá",
