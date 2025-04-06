@@ -7,7 +7,7 @@ export const landingApi = createApi({
   endpoints: (builder) => ({
     clinicRegistration: builder.mutation<Response, Partial<FormData>>({
       query: (credentials) => ({
-        url: "/clinics/apply",
+        url: "/clinics",
         method: "POST",
         body: credentials,
         formData: true,

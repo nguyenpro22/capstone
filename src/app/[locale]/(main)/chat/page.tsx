@@ -72,7 +72,7 @@ export default function ChatScreen() {
     {
       id: "2",
       name: "Luxury Spa & Clinic",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "https://placehold.co/40x40.png",
       lastMessage: "Cảm ơn bạn đã đặt lịch. Chúng tôi sẽ xác nhận lại sau.",
       lastMessageTime: "Hôm qua",
       unreadCount: 0,
@@ -81,7 +81,7 @@ export default function ChatScreen() {
     {
       id: "3",
       name: "Seoul Beauty Center",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "https://placehold.co/40x40.png",
       lastMessage: "Bạn có thể đến vào lúc 15:00 chiều mai nhé.",
       lastMessageTime: "Hôm qua",
       unreadCount: 0,
@@ -90,7 +90,7 @@ export default function ChatScreen() {
     {
       id: "4",
       name: "Tokyo Aesthetic Clinic",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "https://placehold.co/40x40.png",
       lastMessage: "Chúng tôi có chương trình khuyến mãi đặc biệt tháng này.",
       lastMessageTime: "23/02",
       unreadCount: 0,
@@ -99,7 +99,7 @@ export default function ChatScreen() {
     {
       id: "5",
       name: "Paris Beauty Lounge",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "https://placehold.co/40x40.png",
       lastMessage: "Xin chào, bạn quan tâm đến dịch vụ nào của chúng tôi?",
       lastMessageTime: "20/02",
       unreadCount: 0,

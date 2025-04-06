@@ -41,27 +41,6 @@ export function ProcedureItem({
             <p className="text-sm text-muted-foreground mt-1">
               {procedure.description}
             </p>
-
-            {procedure.coverImage && procedure.coverImage.length > 0 && (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {procedure.coverImage.slice(0, 2).map((imgUrl, index) => (
-                  <div
-                    key={index}
-                    className="relative h-24 rounded-md overflow-hidden"
-                  >
-                    <img
-                      src={
-                        imgUrl ||
-                        "/placeholder.svg?height=96&width=160" ||
-                        "/placeholder.svg"
-                      }
-                      alt={`${procedure.name} - Hình ảnh ${index + 1}`}
-                      className="object-cover h-full w-full"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ContactSection } from "@/components/home/contact-section";
 import { ExpertsSection } from "@/components/home/experts-section";
 import { FooterSection } from "@/components/home/Footer";
 import { GallerySection } from "@/components/home/gallery-section";
@@ -186,15 +185,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-gray-900 dark:to-gray-950">
-      <SiteHeader />
       <HeroSection />
       <ServicesSection />
       <WhyChooseUsSection />
       <TestimonialsSection />
-      <GallerySection />
       <ExpertsSection />
       <OffersSection />
-      <ContactSection />
       <FooterSection />
       <FloatingQuizButton quizzes={quizData.value.items} />
     </div>

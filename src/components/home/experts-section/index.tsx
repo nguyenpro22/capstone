@@ -37,7 +37,7 @@ export function ExpertsSection() {
               <CardContent className="p-0">
                 <div className="relative h-72">
                   <Image
-                    src="/placeholder.svg?height=400&width=300"
+                    src="https://placehold.co/300x400.png"
                     alt={expert.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"

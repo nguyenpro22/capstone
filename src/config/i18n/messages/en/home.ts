@@ -54,6 +54,7 @@ export const homeMessages: Messages["home"] = {
       },
     ],
     learnMore: "Learn More",
+    viewAll: "View All",
   },
   whyChooseUs: {
     badge: "Why Choose Us",

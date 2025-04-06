@@ -42,7 +42,7 @@ export function ClinicItem({
             <img
               src={
                 clinic.profilePictureUrl ||
-                "/placeholder.svg?height=64&width=64" ||
+                "https://placehold.co/64x64.png" ||
                 "/placeholder.svg"
               }
               alt={clinic.name}

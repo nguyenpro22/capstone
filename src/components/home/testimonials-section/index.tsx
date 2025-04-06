@@ -44,7 +44,7 @@ export function TestimonialsSection() {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12 border-2 border-primary/20">
                     <AvatarImage
-                      src="/placeholder.svg?height=100&width=100"
+                      src="https://placehold.co/100x100.png"
                       alt={testimonial.name}
                     />
                     <AvatarFallback>

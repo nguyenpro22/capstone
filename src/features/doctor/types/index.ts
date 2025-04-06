@@ -17,3 +17,14 @@ export type DoctorWorkingSchedule = {
   serviceName: string;
   currentProcedureName: string;
 };
+
+type WorkingDate = {
+  date: string;
+  startTime: string;
+  endTime: string;
+};
+
+export type DoctorSchedule = {
+  doctorId: string;
+  workingDates: WorkingDate[];
+};

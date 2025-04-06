@@ -56,6 +56,7 @@ export const homeMessages: Messages["home"] = {
       },
     ],
     learnMore: "Tìm Hiểu Thêm",
+    viewAll: "Xem tất cả",
   },
   whyChooseUs: {
     badge: "Tại Sao Chọn Chúng Tôi",
@@ -269,7 +270,7 @@ export const homeMessages: Messages["home"] = {
         { label: "Trang Chủ", href: "#" },
         { label: "Về Chúng Tôi", href: "#" },
         { label: "Dịch Vụ", href: "#" },
-        { label: "Thư Viện", href: "#" },
+        { label: "Đăng ký phòng khám", href: "#" },
         { label: "Liên Hệ", href: "#" },
       ],
     },

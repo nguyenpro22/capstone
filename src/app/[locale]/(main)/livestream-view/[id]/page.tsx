@@ -75,7 +75,7 @@ export default function CustomerViewLivestream() {
   const [chatMessage, setChatMessage] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
   const chatContainerRef = useRef(null);
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
   // Fix type for reactions
   const [activeReactions, setActiveReactions] = useState<Reaction[]>([]);
@@ -84,7 +84,7 @@ export default function CustomerViewLivestream() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Define the reactions map
-  const reactionsMap = {
+  const reactionsMap: Record<number, { emoji: string; text: string }> = {
     1: { emoji: "👍", text: "Looks great!" },
     2: { emoji: "❤️", text: "Love it!" },
     3: { emoji: "🔥", text: "That's fire!" },
@@ -340,7 +340,7 @@ export default function CustomerViewLivestream() {
     };
   }, [router, id]);
 
-  const sendMessage = async (message) => {
+  const sendMessage = async (message: any) => {
     if (
       signalR_Connection.current?.state ===
         signalR.HubConnectionState.Connected &&
@@ -352,7 +352,7 @@ export default function CustomerViewLivestream() {
     }
   };
 
-  const sendReaction = (reaction) => {
+  const sendReaction = (reaction: any) => {
     if (
       signalR_Connection.current?.state ===
         signalR.HubConnectionState.Connected &&
@@ -411,7 +411,7 @@ export default function CustomerViewLivestream() {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text: any) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {

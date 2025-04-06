@@ -1,3 +1,5 @@
+import { ServiceDetail, ServiceItem } from "@/features/services/types";
+
 // API Request Type
 export interface BookingRequest {
   doctorId: string;
@@ -44,7 +46,6 @@ export interface Procedure {
   name: string;
   description: string;
   stepIndex: number;
-  coverImage: string[];
   procedurePriceTypes: ProcedurePriceType[];
 }
 
@@ -92,7 +93,7 @@ export interface ServiceResponse {
 }
 
 export interface BookingData {
-  service: Service;
+  service: ServiceDetail;
   doctor: Doctor | null;
   clinic: Clinic | null;
   date: Date | null;

@@ -8,13 +8,12 @@ import { navbarMessages } from "./navbar";
 import { serviceMessages } from "./service";
 import { voucherMessages } from "./voucher";
 import { branchMessages } from "./branch";
-import { serviceMessages as doctorServiceMessage } from "./doctor/service";
-import { appointments as doctorAppointments } from "./doctor/appointments";
-import { calendar as doctorCalendar } from "./doctor/calendar";
-import { dashboard as doctorDashboard } from "./doctor/dashboard";
-import { patientMessages as doctorPatients } from "./doctor/patients";
-import { profile as doctorProfile } from "./doctor/profile";
-import { common as doctorCommon } from "./doctor/common";
+import { loginMessage } from "./login";
+import { forgotPassword } from "./forgot-password";
+import { register } from "./register";
+import { doctor } from "./doctor";
+import { serviceDetail } from "./serivceDetail";
+import { registerClinic } from "./registerClinic";
 
 const en = {
   home: homeMessages,
@@ -26,13 +25,12 @@ const en = {
   clinic: clinicMessages,
   service: serviceMessages,
   branch: branchMessages,
-  doctorService: doctorServiceMessage,
-  doctorAppointments: doctorAppointments,
-  doctorCalendar: doctorCalendar,
-  doctorDashboard: doctorDashboard,
-  doctorPatients: doctorPatients,
-  doctorProfile: doctorProfile,
-  doctorCommon: doctorCommon,
+  doctor,
+  login: loginMessage,
+  forgotPassword,
+  register,
+  serviceDetail,
+  registerClinic,
 };
 
 export default en;

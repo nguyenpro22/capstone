@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronRight, Loader2, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,64 +75,66 @@ export function ServicesSection() {
             {serviceList.map((service) => (
               <Card
                 key={service.id}
-                className="group overflow-hidden border-primary/10 dark:bg-gray-800/50 hover:shadow-lg transition-all duration-300 hover:border-primary/30"
+                className="group overflow-hidden border-primary/10 dark:bg-gray-800/50 hover:shadow-xl transition-all duration-300 hover:border-primary/30 cursor-pointer"
+                onClick={() => handleServiceClick(service.id)}
               >
                 <CardContent className="p-0">
-                  <div className="relative h-56 overflow-hidden">
+                  <div className="relative h-64 overflow-hidden">
                     <Image
                       src={
                         service.coverImage?.[0]?.url ||
-                        `/placeholder.svg?height=300&width=400&text=${
-                          encodeURIComponent(service.name) || "/placeholder.svg"
-                        }`
+                        `/placeholder.svg?height=400&width=600` ||
+                        "/placeholder.svg"
                       }
                       alt={service.name}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-                    {service.promotions && service.promotions.length > 0 && (
+                    {Number(service.discountPercent) > 0 && (
                       <div className="absolute top-4 right-4">
-                        <Badge className="bg-primary text-white px-2 py-1">
-                          -{service.promotions[0].discountPercent}%
+                        <Badge className="bg-primary text-white px-3 py-1.5 text-sm font-medium rounded-full shadow-lg">
+                          -{service.discountPercent}%
                         </Badge>
                       </div>
                     )}
 
                     <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="text-xl font-semibold text-white mb-1 drop-shadow-md">
+                      <h3 className="text-xl font-semibold text-white mb-2 drop-shadow-md group-hover:text-primary-foreground transition-colors">
                         {service.name}
                       </h3>
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-2">
                         <Badge
                           variant="outline"
                           className="bg-white/20 backdrop-blur-sm text-white border-white/20"
                         >
                           {service.category.name}
                         </Badge>
+                        <div className="flex items-center text-yellow-400 text-xs">
+                          <Star className="h-3.5 w-3.5 fill-current mr-1" />
+                          <span>4.9</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-6">
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                      {service.description}
-                    </p>
-
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <div className="text-sm text-muted-foreground">
-                          Giá từ
+                        <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                          {t("services.priceFrom")}
                         </div>
                         <div className="flex items-center gap-2">
-                          {service.discountPercent !== "0" && (
+                          {Number(service.discountPercent) > 0 && (
                             <span className="text-sm text-muted-foreground line-through">
                               {formatCurrency(service.minPrice)}
                             </span>
                           )}
-                          <span className="text-primary font-medium">
-                            {formatCurrency(service.discountMinPrice)}
+                          <span className="text-primary font-semibold text-lg">
+                            {formatCurrency(
+                              service.discountMinPrice || service.minPrice
+                            )}
                           </span>
                         </div>
                       </div>
@@ -140,11 +142,10 @@ export function ServicesSection() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-full group-hover:translate-x-2 transition-transform"
-                        onClick={() => handleServiceClick(service.id)}
+                        className="rounded-full group-hover:bg-primary group-hover:text-white transition-all duration-300 group-hover:translate-x-1"
                       >
                         {t("services.learnMore")}
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>
                     </div>
                   </div>

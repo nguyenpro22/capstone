@@ -1,439 +1,537 @@
 "use client";
 
-import React from "react";
-
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { useTranslations } from "next-intl";
-import {
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
-  Instagram,
-  Facebook,
-  Twitter,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { create } from "zustand";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AnimatedText } from "@/components/ui/animated-text";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Upload } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { showError, showSuccess } from "@/utils";
+import { useClinicRegistrationMutation } from "@/features/landing/api";
 
-interface ClinicFormData {
-  name: string;
-  email: string;
-  phoneNumber: string;
-  taxCode: string;
-  bankName: string;
-  bankAccountNumber: string;
-  address: string;
-  city: string;
-  district: string;
-  ward: string;
-  operatingLicenseExpiryDate: string;
-}
+// Componente para la carga de archivos
+const FileUploadField = ({
+  label,
+  file,
+  onChange,
+  accept = "image/*,.pdf",
+  t,
+}: {
+  label: string;
+  file: File | null;
+  onChange: (file: File | null) => void;
+  accept?: string;
+  t: any;
+}) => {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {file ? (
+        <div className="relative h-32 w-full group">
+          {file.type.startsWith("image/") ? (
+            <div className="h-full w-full rounded-lg border-2 border-primary overflow-hidden">
+              <img
+                src={URL.createObjectURL(file) || "/placeholder.svg"}
+                alt={`Preview of ${label}`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full w-full rounded-lg border-2 border-primary bg-primary/5">
+              <p className="text-sm font-medium text-center px-2">
+                {file.name}
+                <br />
+                <span className="text-xs text-muted-foreground">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              </p>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={() => onChange(null)}
+              className="h-8"
+            >
+              {t("form.fileUpload.remove")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => document.getElementById(`${label}-input`)?.click()}
+              className="h-8"
+            >
+              {t("form.fileUpload.change")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center w-full">
+          <label
+            htmlFor={`${label}-input`}
+            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500"
+          >
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <Upload className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="font-semibold">
+                  {t("form.fileUpload.clickToUpload")}
+                </span>{" "}
+                {t("form.fileUpload.orDragAndDrop")}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {t("form.fileUpload.fileTypes")}
+              </p>
+            </div>
+            <Input
+              id={`${label}-input`}
+              type="file"
+              className="hidden"
+              accept={accept}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 10 * 1024 * 1024) {
+                    alert(t("form.fileUpload.sizeError"));
+                    return;
+                  }
+                  onChange(file);
+                }
+              }}
+            />
+          </label>
+        </div>
+      )}
+    </div>
+  );
+};
 
-interface ClinicFiles {
-  operatingLicense: File | null;
-  businessLicense: File | null;
-  profilePictureUrl: File | null;
-}
-
-interface ClinicStore {
-  formData: ClinicFormData;
-  files: ClinicFiles;
-  setFormData: (field: keyof ClinicFormData, value: string) => void;
-  setFiles: (field: keyof ClinicFiles, file: File | null) => void;
-}
-
-const useClinicStore = create<ClinicStore>((set) => ({
-  formData: {
-    name: "",
-    email: "",
-    phoneNumber: "",
-    taxCode: "",
-    bankName: "",
-    bankAccountNumber: "",
-    address: "",
-    city: "",
-    district: "",
-    ward: "",
-    operatingLicenseExpiryDate: "",
-  },
-  files: {
+export function RegisterClinicForm() {
+  const t = useTranslations("registerClinic");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registerClinic] = useClinicRegistrationMutation();
+  // Estado para los archivos
+  const [files, setFiles] = useState<{
+    operatingLicense: File | null;
+    businessLicense: File | null;
+    profilePictureUrl: File | null;
+  }>({
     operatingLicense: null,
     businessLicense: null,
     profilePictureUrl: null,
-  },
-  setFormData: (field, value) =>
-    set((state) => ({
-      formData: { ...state.formData, [field]: value },
-    })),
-  setFiles: (field, file) =>
-    set((state) => ({
-      files: { ...state.files, [field]: file },
-    })),
-}));
+  });
 
-export function ContactSection() {
-  const t = useTranslations("home");
-  const { formData, files, setFormData, setFiles } = useClinicStore();
+  // Esquema de validación con Zod
+  const formSchema = z.object({
+    name: z.string().min(1, t("form.validation.nameRequired")),
+    email: z.string().email(t("form.validation.emailInvalid")),
+    phoneNumber: z.string().min(1, t("form.validation.phoneRequired")),
+    taxCode: z.string().min(1, t("form.validation.taxCodeRequired")),
+    bankName: z.string().min(1, t("form.validation.bankNameRequired")),
+    bankAccountNumber: z
+      .string()
+      .min(1, t("form.validation.bankAccountRequired")),
+    address: z.string().min(1, t("form.validation.addressRequired")),
+    city: z.string().min(1, t("form.validation.cityRequired")),
+    district: z.string().min(1, t("form.validation.districtRequired")),
+    ward: z.string().min(1, t("form.validation.wardRequired")),
+    operatingLicenseExpiryDate: z
+      .string()
+      .min(1, t("form.validation.expiryDateRequired")),
+  });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Form Data:", formData);
-    console.log("Uploaded Files:", files);
+  // Configuración del formulario con React Hook Form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phoneNumber: "",
+      taxCode: "",
+      bankName: "",
+      bankAccountNumber: "",
+      address: "",
+      city: "",
+      district: "",
+      ward: "",
+      operatingLicenseExpiryDate: "",
+    },
+  });
+
+  // Función para manejar el envío del formulario
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Validar que se hayan cargado todos los archivos requeridos
+    if (
+      !files.operatingLicense ||
+      !files.businessLicense ||
+      !files.profilePictureUrl
+    ) {
+      showError(
+        t("form.validation.fileUploadRequired") +
+          " " +
+          t("form.validation.fileUploadRequiredTitle")
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Crear FormData para enviar los datos
+      const formData = new FormData();
+
+      // Agregar campos de texto
+      Object.entries(values).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      // Agregar archivos
+      formData.append("operatingLicense", files.operatingLicense);
+      formData.append("businessLicense", files.businessLicense);
+      formData.append("profilePictureUrl", files.profilePictureUrl);
+
+      // Enviar datos a la API
+      const response = await registerClinic(formData).unwrap();
+
+      // Mostrar mensaje de éxito
+      showSuccess(
+        t("form.toast.success.title") +
+          " " +
+          t("form.toast.success.description")
+      );
+
+      // Limpiar formulario
+      form.reset();
+      setFiles({
+        operatingLicense: null,
+        businessLicense: null,
+        profilePictureUrl: null,
+      });
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+
+      // Manejar diferentes tipos de errores
+      if (error.status === 400) {
+        if (error.data?.detail === "Clinics Request is handling !") {
+          showError(t("form.toast.error.pendingRequest"));
+        } else if (error.data?.detail === "Information Already Exist") {
+          showError(t("form.toast.error.duplicateInfo"));
+        } else {
+          showError(
+            t("form.toast.error.title") +
+              " " +
+              t("form.toast.error.description")
+          );
+        }
+      } else if (error.status === 422) {
+        // Error de validación
+        const validationErrors = error.data?.errors;
+        if (validationErrors && validationErrors.length > 0) {
+          const errorMessages = validationErrors
+            .map((err: any) => err.message)
+            .join(", ");
+          showError(t("form.toast.error.validation") + " " + errorMessages);
+        } else {
+          showError(t("form.toast.error.validation"));
+        }
+      } else {
+        showError(
+          t("form.toast.error.title") + " " + t("form.toast.error.description")
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Clean up object URLs when component unmounts
-  React.useEffect(() => {
-    return () => {
-      Object.values(files).forEach((file) => {
-        if (file) {
-          URL.revokeObjectURL(URL.createObjectURL(file));
-        }
-      });
-    };
-  }, [files]);
-
-  const contactItems = [
-    {
-      icon: <MapPin className="h-5 w-5 text-primary" />,
-      title: t("contact.info.visit.title"),
-      content: t("contact.info.visit.content"),
-    },
-    {
-      icon: <Phone className="h-5 w-5 text-primary" />,
-      title: t("contact.info.call.title"),
-      content: t("contact.info.call.content"),
-    },
-    {
-      icon: <Mail className="h-5 w-5 text-primary" />,
-      title: t("contact.info.email.title"),
-      content: t("contact.info.email.content"),
-    },
-    {
-      icon: <Calendar className="h-5 w-5 text-primary" />,
-      title: t("contact.info.hours.title"),
-      content: [
-        t("contact.info.hours.weekdays"),
-        t("contact.info.hours.weekend"),
-      ],
-    },
-  ];
-
-  const socialLinks = [
-    { icon: <Instagram className="h-5 w-5 text-primary" />, href: "#" },
-    { icon: <Facebook className="h-5 w-5 text-primary" />, href: "#" },
-    { icon: <Twitter className="h-5 w-5 text-primary" />, href: "#" },
-  ];
-
   return (
-    <section className="py-16 md:py-24">
-      <div className="container px-4 mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          <div className="space-y-8">
-            <Badge variant="outline" className="mb-2">
-              {t("contact.badge")}
-            </Badge>
-            <AnimatedText
-              text={t("contact.title")}
-              variant="h2"
-              className="mb-6"
-            />
-
-            <p className="text-muted-foreground">{t("contact.description")}</p>
-
-            <div className="space-y-6">
-              {contactItems.map((item, index) => (
-                <div key={index} className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium">{item.title}</h3>
-                    {Array.isArray(item.content) ? (
-                      item.content.map((line, i) => (
-                        <p key={i} className="text-muted-foreground text-sm">
-                          {line}
-                        </p>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">
-                        {item.content}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+    <Card className="border-primary/10 shadow-md">
+      <CardContent className="p-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Clinic Information */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-medium">
+                {t("form.sections.clinicInfo")}
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.name")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.name")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.email")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder={t("form.placeholders.email")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="flex gap-4 pt-4">
-              {socialLinks.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
-                  aria-label={`Social media link ${index + 1}`}
-                >
-                  {link.icon}
-                </a>
-              ))}
+            {/* Contact Information */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-medium">
+                {t("form.sections.contactInfo")}
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.phoneNumber")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.phoneNumber")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="taxCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.taxCode")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.taxCode")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <Card className="border-primary/10 shadow-md">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-medium mb-6">
-                  {t("contact.form.title")}
-                </h3>
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  {/* Clinic Information */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Clinic Name</Label>
+            {/* Address */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-medium">
+                {t("form.sections.address")}
+              </h2>
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("form.fields.address")}</FormLabel>
+                    <FormControl>
                       <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData("name", e.target.value)}
-                        placeholder="Enter clinic name"
+                        placeholder={t("form.placeholders.address")}
+                        {...field}
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData("email", e.target.value)}
-                        placeholder="Enter email"
-                      />
-                    </div>
-                  </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid sm:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.city")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.city")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="district"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.district")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.district")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ward"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.ward")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.ward")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-                  {/* Phone & Tax Code */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phoneNumber">Phone Number</Label>
-                      <Input
-                        id="phoneNumber"
-                        type="tel"
-                        value={formData.phoneNumber}
-                        onChange={(e) =>
-                          setFormData("phoneNumber", e.target.value)
-                        }
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="taxCode">Tax Code</Label>
-                      <Input
-                        id="taxCode"
-                        value={formData.taxCode}
-                        onChange={(e) => setFormData("taxCode", e.target.value)}
-                        placeholder="Enter tax code"
-                      />
-                    </div>
-                  </div>
+            {/* Bank Information */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-medium">
+                {t("form.sections.bankInfo")}
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="bankName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("form.fields.bankName")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.bankName")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="bankAccountNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("form.fields.bankAccountNumber")}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("form.placeholders.bankAccountNumber")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-                  {/* Address */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => setFormData("city", e.target.value)}
-                        placeholder="Enter city"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="district">District</Label>
-                      <Input
-                        id="district"
-                        value={formData.district}
-                        onChange={(e) =>
-                          setFormData("district", e.target.value)
-                        }
-                        placeholder="Enter district"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ward">Ward</Label>
-                      <Input
-                        id="ward"
-                        value={formData.ward}
-                        onChange={(e) => setFormData("ward", e.target.value)}
-                        placeholder="Enter ward"
-                      />
-                    </div>
-                  </div>
+            {/* License Information */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-medium">
+                {t("form.sections.licenseInfo")}
+              </h2>
+              <FormField
+                control={form.control}
+                name="operatingLicenseExpiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t("form.fields.operatingLicenseExpiryDate")}
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                  {/* Bank Information */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="bankName">Bank Name</Label>
-                      <Input
-                        id="bankName"
-                        value={formData.bankName}
-                        onChange={(e) =>
-                          setFormData("bankName", e.target.value)
-                        }
-                        placeholder="Enter bank name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bankAccountNumber">
-                        Bank Account Number
-                      </Label>
-                      <Input
-                        id="bankAccountNumber"
-                        value={formData.bankAccountNumber}
-                        onChange={(e) =>
-                          setFormData("bankAccountNumber", e.target.value)
-                        }
-                        placeholder="Enter bank account number"
-                      />
-                    </div>
-                  </div>
+            {/* File Uploads */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-medium">
+                {t("form.sections.documents")}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <FileUploadField
+                  label={t("form.fields.operatingLicense")}
+                  file={files.operatingLicense}
+                  onChange={(file) =>
+                    setFiles({ ...files, operatingLicense: file })
+                  }
+                  t={t}
+                />
+                <FileUploadField
+                  label={t("form.fields.businessLicense")}
+                  file={files.businessLicense}
+                  onChange={(file) =>
+                    setFiles({ ...files, businessLicense: file })
+                  }
+                  t={t}
+                />
+                <FileUploadField
+                  label={t("form.fields.profilePictureUrl")}
+                  file={files.profilePictureUrl}
+                  onChange={(file) =>
+                    setFiles({ ...files, profilePictureUrl: file })
+                  }
+                  t={t}
+                />
+              </div>
+            </div>
 
-                  {/* License Expiry Date */}
-                  <div className="space-y-2">
-                    <Label htmlFor="operatingLicenseExpiryDate">
-                      Operating License Expiry Date
-                    </Label>
-                    <Input
-                      id="operatingLicenseExpiryDate"
-                      type="date"
-                      value={formData.operatingLicenseExpiryDate}
-                      onChange={(e) =>
-                        setFormData(
-                          "operatingLicenseExpiryDate",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-
-                  {/* File Uploads */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {(
-                      [
-                        "operatingLicense",
-                        "businessLicense",
-                        "profilePictureUrl",
-                      ] as (keyof ClinicFiles)[]
-                    ).map((field) => (
-                      <div className="space-y-2" key={field}>
-                        <Label htmlFor={field}>
-                          {field
-                            .replace(/([A-Z])/g, " $1")
-                            .replace(/^./, (str) => str.toUpperCase())}
-                        </Label>
-                        {files[field] ? (
-                          <div className="relative h-32 w-full group">
-                            {files[field]?.type.startsWith("image/") ? (
-                              <div className="h-full w-full rounded-lg border-2 border-primary overflow-hidden">
-                                <img
-                                  src={
-                                    URL.createObjectURL(files[field] as File) ||
-                                    "/placeholder.svg"
-                                  }
-                                  alt={`Preview of ${field}`}
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center h-full w-full rounded-lg border-2 border-primary bg-primary/5">
-                                <p className="text-sm font-medium text-center px-2">
-                                  {files[field]?.name}
-                                  <br />
-                                  <span className="text-xs text-muted-foreground">
-                                    {(files[field]?.size / 1024 / 1024).toFixed(
-                                      2
-                                    )}{" "}
-                                    MB
-                                  </span>
-                                </p>
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setFiles(field, null)}
-                                className="h-8"
-                              >
-                                Remove
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="secondary"
-                                onClick={() =>
-                                  document
-                                    .getElementById(`${field}-input`)
-                                    ?.click()
-                                }
-                                className="h-8"
-                              >
-                                Change
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center w-full">
-                            <label
-                              htmlFor={`${field}-input`}
-                              className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500"
-                            >
-                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                                  <span className="font-semibold">
-                                    Click to upload
-                                  </span>{" "}
-                                  or drag and drop
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  PNG, JPG or PDF (max. 10MB)
-                                </p>
-                              </div>
-                              <Input
-                                id={`${field}-input`}
-                                type="file"
-                                className="hidden"
-                                accept="image/*,.pdf"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    if (file.size > 10 * 1024 * 1024) {
-                                      alert("File size must be less than 10MB");
-                                      return;
-                                    }
-                                    setFiles(field, file);
-                                  }
-                                }}
-                              />
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Submit Button */}
-                  <Button type="submit" className="w-full">
-                    Submit Registration
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </section>
+            {/* Submit Button */}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("form.submitting")}
+                </>
+              ) : (
+                t("form.submit")
+              )}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

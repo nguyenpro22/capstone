@@ -9,6 +9,7 @@ const nextConfig = {
       "via.placeholder.com",
       "qr.sepay.vn",
       "api.dicebear.com",
+      "placehold.co",
     ],
   },
   reactStrictMode: true,
@@ -26,6 +27,19 @@ const nextConfig = {
       type: "asset/source", // Bỏ qua file .html (cách mới thay vì 'ignore-loader')
     });
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+        ],
+      },
+    ];
   },
 };
 
