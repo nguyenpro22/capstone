@@ -69,7 +69,7 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
 }
 
 export default function DoctorPage() {
-  const t = useTranslations("doctor") // Using namespace "doctor"
+  const t = useTranslations("staffDoctor") // Using namespace "doctor"
 
   // Get the token and extract clinicId
   const token = getAccessToken()

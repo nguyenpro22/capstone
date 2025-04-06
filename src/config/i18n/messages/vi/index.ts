@@ -8,7 +8,7 @@ import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
 import { voucherMessages } from "./voucher";
 import { branchMessages } from './branch';
-import { doctorMessages } from './doctor';
+import { doctorMessages } from './staffDoctor';
 
 const vi = {
   home: homeMessages,
@@ -20,7 +20,7 @@ const vi = {
   clinic: clinicMessages,
   service: serviceMessages,
   branch: branchMessages,
-  doctor: doctorMessages,
+  staffDoctor: doctorMessages,
   staff: staffMessages
 };
 

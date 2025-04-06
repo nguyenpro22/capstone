@@ -22,10 +22,10 @@ import {
   serviceCommandApi,
   serviceQueryApi,
 } from "@/features/clinic-service/api";
-import {
-  bookingCommandApi,
-  bookingQueryApi,
-} from "@/features/booking/api";
+// import {
+//   bookingCommandApi,
+//   bookingQueryApi,
+// } from "@/features/booking/api";
 import {
   doctorCommandApi,
   doctorQueryApi,
@@ -42,8 +42,8 @@ const store = configureStore({
     [packageApi.reducerPath]: packageApi.reducer,
     [packageCreateApi.reducerPath]: packageCreateApi.reducer,
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
-    [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
-    [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
+    // [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
+    // [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
@@ -64,8 +64,8 @@ const store = configureStore({
       packageApi.middleware,
       packageCreateApi.middleware,
       partnershipRequestApi.middleware,
-      bookingQueryApi.middleware,
-      bookingCommandApi.middleware,
+      // bookingQueryApi.middleware,
+      // bookingCommandApi.middleware,
       serviceApi.middleware,
       categoryApi.middleware,
       clinicsQueryApi.middleware,

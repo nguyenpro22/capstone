@@ -1,6 +1,6 @@
 import { Messages } from "../types";
 
-export const doctorMessages: Messages["doctor"] = {
+export const doctorMessages: Messages["staffDoctor"] = {
   // Page titles and general
   doctorList: "Doctor List",
   addNewDoctor: "Add New Doctor",

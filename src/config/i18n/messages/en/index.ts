@@ -10,10 +10,9 @@ import { branchMessages } from "./branch";
 import { loginMessage } from "./login";
 import { forgotPassword } from "./forgot-password";
 import { register } from "./register";
-import { doctor } from "./doctor";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
-import { doctorMessages } from "./doctor";
+import { doctorMessages } from "./staffDoctor";
 import { staffMessages } from "./staff";
 
 
@@ -27,13 +26,12 @@ const en = {
   clinic: clinicMessages,
   service: serviceMessages,
   branch: branchMessages,
-  doctor,
   login: loginMessage,
   forgotPassword,
   register,
   serviceDetail,
   registerClinic,
-  doctor: doctorMessages,
+  staffDoctor: doctorMessages,
   staff: staffMessages
 };
 
