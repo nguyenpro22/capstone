@@ -13,3 +13,10 @@ export interface CustomerSchedule {
   procedurePriceTypeName?: string
   note: string
 }
+
+// Define the interface for the update schedule request body
+export interface UpdateCustomerScheduleRequest {
+  customerScheduleId: string
+  date: string
+  startTime: string
+}

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import {
   LayoutDashboard,
   Ticket,
@@ -24,6 +23,7 @@ import {
   UserCircle,
   Calendar,
   Clock,
+  Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -35,6 +35,9 @@ import {
   SidebarMenuButton,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+
+// Import motion from framer-motion only on the client side
+import { motion } from "framer-motion"
 
 type SidebarProps = {
   role: "systemAdmin" | "user" | "systemStaff" | "clinicManager" | "clinicStaff"
@@ -136,50 +139,91 @@ const menuItems = {
   ],
 }
 
+// Create a client-only active indicator component
+const ActiveIndicator = ({ className }: { className: string }) => {
+  return (
+    <motion.div layoutId="active-indicator" className={className}>
+      <ChevronRight className="size-3 md:size-4" />
+    </motion.div>
+  )
+}
+
 export default function AppSidebar({ role, onClose }: SidebarProps) {
-  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  // Sử dụng useState với lazy initialization để tránh hydration mismatch
+  const [mounted, setMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [normalizedPathname, setNormalizedPathname] = useState("")
 
+  // Chỉ xử lý client-side logic sau khi component đã mount
   useEffect(() => {
+    // Normalize pathname
+    const normalizedPath = pathname?.replace(/^\/(en|vi)/, "") || ""
+    setNormalizedPathname(normalizedPath)
+
+    // Set mounted state
     setMounted(true)
-  }, [])
 
-  if (!mounted) return null
+    // Check screen size
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
 
-  const normalizePath = (path: string) => {
-    return path.replace(/^\/(en|vi)/, "")
+    // Initial check
+    checkScreenSize()
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkScreenSize)
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkScreenSize)
+  }, [pathname])
+
+  // Không render gì cho đến khi component đã mount ở client
+  if (!mounted) {
+    return null
   }
 
-  const normalizedPathname = normalizePath(pathname)
-
   return (
-    <SidebarProvider defaultOpen>
-      <Sidebar className="border-r">
-        <SidebarHeader className="border-b px-6 py-3">
+    
+    <SidebarProvider defaultOpen={!isMobile}>
+      <Sidebar className="border-r" variant="default">
+        <SidebarHeader className="border-b px-3 md:px-6 py-2 md:py-3 flex items-center justify-between">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
                 <Link href="/" className="flex items-center gap-2">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-lg">
-                    <Layers className="size-5" />
+                  <div className="flex aspect-square size-7 md:size-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-lg">
+                    <Layers className="size-4 md:size-5" />
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-serif text-lg tracking-wide">Beautify</span>
-                    <span className="text-xs text-muted-foreground">Admin Portal</span>
+                    <span className="font-serif text-base md:text-lg tracking-wide">Beautify</span>
+                    <span className="text-[10px] md:text-xs text-muted-foreground">Admin Portal</span>
                   </div>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+          {isMobile && (
+            <button
+              onClick={() => {
+                const triggerElement = document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement | null
+                if (triggerElement) triggerElement.click()
+              }}
+              className="md:hidden p-1.5 rounded-md hover:bg-gray-100"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
         </SidebarHeader>
 
-        <SidebarContent className="p-4">
+        <SidebarContent className="p-2 md:p-4">
           <SidebarMenu>
             {menuItems[role].map((item) => {
               const Icon = item.icon
               const isActive =
-                normalizedPathname === normalizePath(item.path) ||
-                normalizedPathname.startsWith(normalizePath(item.path) + "/")
+                normalizedPathname === item.path.replace(/^\/(en|vi)/, "") ||
+                normalizedPathname.startsWith(item.path.replace(/^\/(en|vi)/, "") + "/")
 
               return (
                 <SidebarMenuItem key={item.path}>
@@ -192,28 +236,23 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
                       !isActive && "hover:bg-gradient-to-r hover:from-pink-500/5 hover:to-purple-500/5",
                     )}
                   >
-                    <Link href={item.path} className="flex items-center gap-3 py-2">
+                    <Link href={item.path} className="flex items-center gap-2 md:gap-3 py-1.5 md:py-2">
                       <Icon
                         className={cn(
-                          "size-5 transition-colors",
+                          "size-4 md:size-5 transition-colors",
                           isActive ? "text-pink-600" : "text-muted-foreground group-hover:text-pink-500",
                         )}
                       />
                       <span
                         className={cn(
-                          "font-medium tracking-wide transition-colors",
+                          "text-sm md:text-base font-medium tracking-wide transition-colors",
                           isActive ? "text-pink-600" : "text-foreground/70 group-hover:text-pink-500",
                         )}
                       >
                         {item.label}
                       </span>
-                      {isActive && (
-                        <motion.div
-                          layoutId="active-indicator"
-                          className="absolute right-2 flex size-5 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white"
-                        >
-                          <ChevronRight className="size-4" />
-                        </motion.div>
+                      {isActive && mounted && (
+                        <ActiveIndicator className="absolute right-1 md:right-2 flex size-4 md:size-5 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white" />
                       )}
                     </Link>
                   </SidebarMenuButton>

@@ -34,6 +34,11 @@ import { useCreateOrderPaymentMutation } from "@/features/payment/api"
 import type { CustomerSchedule } from "@/features/customer-schedule/types"
 import PaymentService from "@/hooks/usePaymentStatus"
 import { useUpdateScheduleStatusMutation } from "@/features/customer-schedule/api"
+// Alternative implementation using the RTK Query mutation
+// You can use this approach instead of the PaymentService method
+
+// Add this import at the top of your file
+import { useGenerateSchedulesMutation } from "@/features/customer-schedule/api"
 
 interface SchedulePaymentModalProps {
   schedule: CustomerSchedule | null
@@ -63,6 +68,8 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number>(30)
   const [isTimedOut, setIsTimedOut] = useState<boolean>(false)
+  // Add this inside your component, near the other hooks
+  const [generateSchedules, { isLoading: isGeneratingSchedules }] = useGenerateSchedulesMutation()
 
   useEffect(() => {
     if (!transactionId) return
@@ -110,11 +117,23 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                   .then(() => {
                     console.log("Schedule status updated to Completed")
 
+                    // Generate follow-up schedules after successful payment
+                    if (schedule.id) {
+                      generateSchedules(schedule.id)
+                        .unwrap()
+                        .then(() => {
+                          console.log("Follow-up schedules generated successfully")
+                        })
+                        .catch((error) => {
+                          console.error("Failed to generate follow-up schedules:", error)
+                        })
+                    }
+
                     // Automatically close the modal after 2 seconds on successful payment
                     setTimeout(() => {
                       onClose()
-                      router.push("/schedules")
-                    }, 2000)
+                      router.push("/clinicStaff/customer-schedule")
+                    }, 3000)
                   })
                   .catch((error: any) => {
                     console.error("Failed to update schedule status:", error)
@@ -160,7 +179,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
         PaymentService.leavePaymentSession(transactionId)
       }
     }
-  }, [transactionId, schedule, updateScheduleStatus, onClose, router])
+  }, [transactionId, schedule, updateScheduleStatus, onClose, router, generateSchedules])
 
   // Keep the countdown effect, but simplify it to use the existing method:
   useEffect(() => {
@@ -250,10 +269,20 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
             }).unwrap()
             console.log("Schedule status updated to Completed")
 
+            // Generate follow-up schedules for cash payments
+            if (schedule.id) {
+              try {
+                await generateSchedules(schedule.id).unwrap()
+                console.log("Follow-up schedules generated successfully")
+              } catch (error) {
+                console.error("Failed to generate follow-up schedules:", error)
+              }
+            }
+
             // Automatically close the modal after 2 seconds for cash payments
             setTimeout(() => {
               onClose()
-              router.push("/schedules")
+              router.push("/clinicStaff/customer-schedule")
             }, 2000)
           } catch (error: any) {
             console.error("Failed to update schedule status:", error)

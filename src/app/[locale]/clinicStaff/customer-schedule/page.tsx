@@ -89,6 +89,7 @@ export default function SchedulesPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<CustomerSchedule | null>(null)
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false)
 
   // Using RTK Query hooks
   const [getCustomerSchedules, { data: scheduleResponse, isLoading: isLoadingCustomer, error: customerError }] =
@@ -323,6 +324,11 @@ export default function SchedulesPage() {
     }
   }
 
+  const handleScheduleFollowUp = (schedule: CustomerSchedule) => {
+    setSelectedSchedule(schedule)
+    setIsFollowUpModalOpen(true)
+  }
+
   // Effect to fetch schedules when component mounts or when dependencies change
   useEffect(() => {
     fetchClinicSchedules()
@@ -494,6 +500,9 @@ export default function SchedulesPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleScheduleFollowUp(schedule)}>
+                                Schedule Follow-up
+                              </DropdownMenuItem>
                               <DropdownMenuItem>Send Reminder</DropdownMenuItem>
                               <DropdownMenuItem>Reschedule</DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -639,10 +648,23 @@ export default function SchedulesPage() {
                             <TableCell>{formatTimeRange(schedule.startTime, schedule.endTime)}</TableCell>
                             <TableCell>{getStatusBadge(schedule.status)}</TableCell>
                             <TableCell>
-                              <Button variant="outline" size="sm" onClick={() => handleViewSchedule(schedule)}>
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => handleViewSchedule(schedule)}>
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                {schedule.status === "Completed" && (
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="bg-green-500 hover:bg-green-600 text-white"
+                                    onClick={() => handleScheduleFollowUp(schedule)}
+                                  >
+                                    <Calendar className="h-4 w-4 mr-1" />
+                                    Follow-up
+                                  </Button>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
@@ -731,6 +753,8 @@ export default function SchedulesPage() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
       />
+
+     
     </div>
   )
 }

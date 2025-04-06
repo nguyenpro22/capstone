@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { reAuthQuery } from "@/lib/api/reAuthQuery"
 import type { IListResponse, IResCommon } from "@/lib/api"
-import type { CustomerSchedule } from "../types"
+import type { CustomerSchedule, UpdateCustomerScheduleRequest } from "../types"
 
 // Query API for read operations
 export const customerScheduleQueryApi = createApi({
@@ -54,6 +54,8 @@ export const customerScheduleQueryApi = createApi({
     }),
   }),
 })
+
+
 
 // Command API for write operations
 export const customerScheduleCommandApi = createApi({
@@ -110,6 +112,27 @@ export const customerScheduleCommandApi = createApi({
         method: "POST",
       }),
     }),
+
+    // Generate schedules for remaining steps
+    generateSchedules: builder.mutation<IResCommon<CustomerSchedule[]>, string>({
+      query: (customerScheduleId) => ({
+        url: `customer-schedules/generate/${customerScheduleId}`,
+        method: "POST",
+      }),
+    }),
+
+    // Update customer schedule (from the image)
+    updateCustomerSchedule: builder.mutation<IResCommon<CustomerSchedule>, UpdateCustomerScheduleRequest>({
+      query: (data) => ({
+        url: `/api/v1/customer-schedules/customer/${data.customerScheduleId}`,
+        method: "PUT",
+        body: {
+          customerScheduleId: data.customerScheduleId,
+          date: data.date,
+          startTime: data.startTime,
+        },
+      }),
+    }),
   }),
 })
 
@@ -131,5 +154,7 @@ export const {
   useChangeScheduleStatusMutation,
   useUpdateScheduleStatusMutation,
   useCheckInCustomerMutation,
+  useGenerateSchedulesMutation,
+  useUpdateCustomerScheduleMutation, // Export the new hook
 } = customerScheduleCommandApi
 
