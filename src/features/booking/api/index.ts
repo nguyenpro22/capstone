@@ -26,6 +26,15 @@ export const bookingQueryApi = createApi({
     getBookingById: builder.query<IResCommon<Booking>, string>({
       query: (id) => `clinic/${id}?id=${id}`,
     }),
+    // Get total appointments by month-year
+    getAppointmentsTotal: builder.query({
+      query: (date) => `bookings/appointments/total?Date=${date}`,
+    }),
+    
+    // Get appointments by specific date
+    getAppointmentsByDate: builder.query({
+      query: (date) => `bookings/appointments/${date}`,
+    }),
   }),
 });
 
@@ -56,6 +65,10 @@ export const {
   useGetBookingsQuery,
   useGetBookingByIdQuery,
   useGetBusyTimesQuery,
+  useGetAppointmentsTotalQuery, 
+  useLazyGetAppointmentsTotalQuery,
+  useGetAppointmentsByDateQuery,
+  useLazyGetAppointmentsByDateQuery
 } = bookingQueryApi;
 
 export const { useCreateBookingMutation, useUpdateBookingMutation } =
