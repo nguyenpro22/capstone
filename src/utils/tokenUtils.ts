@@ -40,14 +40,31 @@ export const decodeJwt = (token: string | null) => {
   if (token === "undefined" || !token) {
     return null;
   }
-  if (!token) {
-    return null;
-  }
+
   const base64Url = token.split(".")[1];
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  return JSON.parse(atob(base64));
-};
 
+  // Giải mã base64 an toàn cho Unicode
+  try {
+    // Chuyển base64 thành binary string
+    const binaryString = atob(base64);
+
+    // Chuyển binary string thành mảng bytes
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // Chuyển mảng bytes thành string UTF-8
+    const decodedString = new TextDecoder("utf-8").decode(bytes);
+
+    // Parse JSON
+    return JSON.parse(decodedString);
+  } catch (error) {
+    console.error("Error decoding JWT:", error);
+    return null;
+  }
+};
 export const GetDataByToken = (token: string): TokenData | null => {
   const decoded = decodeJwt(token);
   const roleName = decoded?.RoleName;
@@ -55,6 +72,8 @@ export const GetDataByToken = (token: string): TokenData | null => {
   const userId = decoded?.UserId;
   const clinicId = decoded?.ClinicId;
   const name = decoded?.Name;
+  console.log(name);
+
   const email = decoded?.Email;
   return { roleName, roleId, userId, clinicId, name, email };
 };
