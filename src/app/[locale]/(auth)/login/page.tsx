@@ -31,14 +31,6 @@ export default function LoginPage() {
     authError,
   } = useAuth();
 
-  // Redirigir si ya está autenticado
-  useEffect(() => {
-    const token = getAccessToken();
-    if (token || isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, router]);
-
   // Configurar react-hook-form con Zod validation
   const {
     register,

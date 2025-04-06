@@ -1,5 +1,5 @@
-import { staffMessages } from './staff';
-import { serviceMessages } from './service';
+import { staffMessages } from "./staff";
+import { service, serviceMessages } from "./service";
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
@@ -7,8 +7,8 @@ import { homeMessages } from "./home";
 import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
 import { voucherMessages } from "./voucher";
-import { branchMessages } from './branch';
-import { doctorMessages } from './staffDoctor';
+import { branchMessages } from "./branch";
+import { doctorMessages } from "./staffDoctor";
 
 const vi = {
   home: homeMessages,
@@ -21,7 +21,8 @@ const vi = {
   service: serviceMessages,
   branch: branchMessages,
   staffDoctor: doctorMessages,
-  staff: staffMessages
+  staff: staffMessages,
+  serviceMessage: service,
 };
 
 export default vi;

@@ -47,6 +47,16 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    loginWithGoogle: builder.mutation<
+      IResCommon<ILoginResponse>,
+      { googleToken: string }
+    >({
+      query: ({ googleToken }) => ({
+        url: "/auth/login_google",
+        method: "POST",
+        body: { googleToken },
+      }),
+    }),
   }),
 });
 
@@ -56,4 +66,5 @@ export const {
   useVerifyMutation,
   useChangePasswordMutation,
   useSendRequestMutation,
+  useLoginWithGoogleMutation,
 } = authApi;

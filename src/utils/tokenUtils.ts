@@ -50,13 +50,13 @@ export const decodeJwt = (token: string | null) => {
 
 export const GetDataByToken = (token: string): TokenData | null => {
   const decoded = decodeJwt(token);
-  const role = decoded?.RoleName;
+  const roleName = decoded?.RoleName;
   const roleId = decoded?.RoleId;
   const userId = decoded?.UserId;
   const clinicId = decoded?.ClinicId;
   const name = decoded?.Name;
   const email = decoded?.Email;
-  return { role, roleId, userId, clinicId, name, email };
+  return { roleName, roleId, userId, clinicId, name, email };
 };
 
 export type TokenData = {

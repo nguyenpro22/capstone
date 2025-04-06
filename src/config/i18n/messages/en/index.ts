@@ -4,7 +4,7 @@ import { dashboardMessages } from "./dashboard";
 import { homeMessages } from "./home";
 import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
-import { serviceMessages } from "./service";
+import { service, serviceMessages } from "./service";
 import { voucherMessages } from "./voucher";
 import { branchMessages } from "./branch";
 import { loginMessage } from "./login";
@@ -14,7 +14,6 @@ import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
 import { doctorMessages } from "./staffDoctor";
 import { staffMessages } from "./staff";
-
 
 const en = {
   home: homeMessages,
@@ -32,7 +31,8 @@ const en = {
   serviceDetail,
   registerClinic,
   staffDoctor: doctorMessages,
-  staff: staffMessages
+  staff: staffMessages,
+  serviceMessage: service,
 };
 
 export default en;

@@ -13,7 +13,6 @@ export interface Clinic {
   bankName: string;
   bankAccountNumber: string;
   isActivated: boolean;
-  
 }
 
 export interface ClinicsResponse {
@@ -68,8 +67,6 @@ export interface Branch {
   services: any[] | null;
 }
 
-
-
 export interface BranchDetailResponse {
   value: {
     items: Branch[]; // Array of branches
@@ -105,30 +102,30 @@ export interface TransactionDetails {
   qrUrl: string;
 }
 export interface Certificate {
-  id: string
-  certificateUrl: string
-  certificateName: string
-  expiryDate: string
-  note?: string
+  id: string;
+  certificateUrl: string;
+  certificateName: string;
+  expiryDate: string;
+  note?: string;
 }
 export interface Staff {
-  id: string
-  clinicId: string
-  employeeId: string
-  email: string
-  firstName: string
-  lastName: string
-  fullName: string
-  city: string | null
-  district: string | null
-  ward: string | null
-  address: string | null
-  phoneNumber: string | null
-  fullAddress: string
-  profilePictureUrl: string | null
-  role: string
-  doctorCertificates: Array<Certificate>
-  branchs?: Array<Branch>
+  id: string;
+  clinicId: string;
+  employeeId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  city: string | null;
+  district: string | null;
+  ward: string | null;
+  address: string | null;
+  phoneNumber: string | null;
+  fullAddress: string;
+  profilePictureUrl: string | null;
+  role: string;
+  doctorCertificates: Array<Certificate>;
+  branchs?: Array<Branch>;
 }
 
 export interface Doctor {
@@ -148,5 +145,5 @@ export interface Doctor {
   profilePictureUrl: string | null;
   role: string;
   doctorCertificates: any | null;
-  branchs?: Array<Branch>
+  branchs?: Array<Branch>;
 }

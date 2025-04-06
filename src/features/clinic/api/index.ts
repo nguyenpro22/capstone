@@ -1,6 +1,14 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
-import { Clinic, ClinicDetailResponse, ClinicsResponse, BranchDetailResponse, Branch, Staff, Doctor } from "@/features/clinic/types";
-import { IListResponse, IResCommon, reAuthQuery } from '@/lib/api';
+import { createApi } from "@reduxjs/toolkit/query/react";
+import {
+  Clinic,
+  ClinicDetailResponse,
+  ClinicsResponse,
+  BranchDetailResponse,
+  Branch,
+  Staff,
+  Doctor,
+} from "@/features/clinic/types";
+import { IListResponse, IResCommon, reAuthQuery } from "@/lib/api";
 
 export const clinicsQueryApi = createApi({
   reducerPath: "clinicsQueryApi",
@@ -17,12 +25,15 @@ export const clinicsQueryApi = createApi({
     getClinicById: builder.query<ClinicDetailResponse, string>({
       query: (id) => `clinics/${id}`,
     }),
+    getClinicByIdV2: builder.query<IResCommon<Branch>, string>({
+      query: (id) => `clinics/${id}`,
+    }),
     getBranches: builder.query<IResCommon<Branch>, string>({
-        // query: ({ pageIndex = 1, pageSize = 10, serchTerm=""}) => `/clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${serchTerm}&sortOrder=desc`,
-        query: (id) => `/clinics/${id}?id=${id}`,
-        }),
+      // query: ({ pageIndex = 1, pageSize = 10, serchTerm=""}) => `/clinics?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${serchTerm}&sortOrder=desc`,
+      query: (id) => `/clinics/${id}?id=${id}`,
+    }),
     getBranchById: builder.query<IResCommon<Branch>, string>({
-        query: (id) => `clinics/${id}?id=${id}`,
+      query: (id) => `clinics/${id}?id=${id}`,
     }),
   }),
 });
@@ -43,14 +54,17 @@ export const clinicsCommandApi = createApi({
       }),
       invalidatesTags: [{ type: "Clinic", id: "LIST" }],
     }),
-    createBranch: builder.mutation<any, { clinicId: string, data: FormData }>({
-      query: ({ clinicId ,data }) => ({
+    createBranch: builder.mutation<any, { clinicId: string; data: FormData }>({
+      query: ({ clinicId, data }) => ({
         url: `clinics/${clinicId}/branches`,
         method: "POST",
         body: data, // Truyền trực tiếp FormData
       }),
     }),
-    updateBranch: builder.mutation<Branch, { clinicId: string; branchId: string; data: FormData }>({
+    updateBranch: builder.mutation<
+      Branch,
+      { clinicId: string; branchId: string; data: FormData }
+    >({
       query: ({ clinicId, branchId, data }) => ({
         url: `clinics/${clinicId}/branches/${branchId}`,
         method: "PUT",
@@ -75,7 +89,6 @@ export const clinicsCommandApi = createApi({
         // No params needed as branchId is in the URL path
       }),
     }),
-   
   }),
 });
 
@@ -87,17 +100,32 @@ export const staffQueryApi = createApi({
   endpoints: (builder) => ({
     getStaff: builder.query<
       IResCommon<IListResponse<Staff>>,
-      { clinicId: string; pageIndex: number; pageSize: number; searchTerm: string, role: number }
+      {
+        clinicId: string;
+        pageIndex: number;
+        pageSize: number;
+        searchTerm: string;
+        role: number;
+      }
     >({
-      query: ({ clinicId, pageIndex, pageSize, searchTerm,role }) =>
+      query: ({ clinicId, pageIndex, pageSize, searchTerm, role }) =>
         `clinics/${clinicId}/employees?role=${role}&pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
       providesTags: ["Staff"],
     }),
-    getStaffById: builder.query<IResCommon<Staff>, { clinicId: string; staffId: string }>({
-      query: ({ clinicId, staffId }) => `clinics/${clinicId}/employees/${staffId}`,
-      providesTags: (result, error, { staffId }) => [{ type: "Staff", id: staffId }],
+    getStaffById: builder.query<
+      IResCommon<Staff>,
+      { clinicId: string; staffId: string }
+    >({
+      query: ({ clinicId, staffId }) =>
+        `clinics/${clinicId}/employees/${staffId}`,
+      providesTags: (result, error, { staffId }) => [
+        { type: "Staff", id: staffId },
+      ],
     }),
-    getStaffByClinic: builder.query<IResCommon<IListResponse<Staff>>, { id: string; pageIndex: number; pageSize: number; searchTerm: string }>({
+    getStaffByClinic: builder.query<
+      IResCommon<IListResponse<Staff>>,
+      { id: string; pageIndex: number; pageSize: number; searchTerm: string }
+    >({
       query: ({ id, pageIndex, pageSize, searchTerm }) =>
         `clinics/${id}/accounts?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
       providesTags: ["Staff"],
@@ -125,7 +153,7 @@ export const staffCommandApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error) => [{ type: "Staff"}, "Staff"],
+      invalidatesTags: (result, error) => [{ type: "Staff" }, "Staff"],
     }),
     deleteStaff: builder.mutation<void, { id: string; accountId: string }>({
       query: ({ id, accountId }) => ({
@@ -134,12 +162,18 @@ export const staffCommandApi = createApi({
       }),
       invalidatesTags: ["Staff"],
     }),
-    changeStaffStatus: builder.mutation<void, { id: string; accountId: string }>({
+    changeStaffStatus: builder.mutation<
+      void,
+      { id: string; accountId: string }
+    >({
       query: ({ id, accountId }) => ({
         url: `/clinics/${id}/accounts/${accountId}/status`,
         method: "PATCH",
       }),
-      invalidatesTags: (result, error, { accountId }) => [{ type: "Staff", id: accountId }, "Staff"],
+      invalidatesTags: (result, error, { accountId }) => [
+        { type: "Staff", id: accountId },
+        "Staff",
+      ],
     }),
   }),
 });
@@ -151,17 +185,32 @@ export const doctorQueryApi = createApi({
   endpoints: (builder) => ({
     getDoctors: builder.query<
       IResCommon<IListResponse<Doctor>>,
-      { clinicId: string; pageIndex: number; pageSize: number; searchTerm: string, role: number }
+      {
+        clinicId: string;
+        pageIndex: number;
+        pageSize: number;
+        searchTerm: string;
+        role: number;
+      }
     >({
       query: ({ clinicId, pageIndex, pageSize, searchTerm, role }) =>
         `clinics/${clinicId}/employees?role=${role}&pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
       providesTags: ["Doctor"],
     }),
-    getDoctorById: builder.query<IResCommon<Doctor>, { clinicId: string; employeeId: string }>({
-      query: ({ clinicId, employeeId }) => `clinics/${clinicId}/employees/${employeeId}`,
-      providesTags: (result, error, { employeeId }) => [{ type: "Doctor", id: employeeId }],
+    getDoctorById: builder.query<
+      IResCommon<Doctor>,
+      { clinicId: string; employeeId: string }
+    >({
+      query: ({ clinicId, employeeId }) =>
+        `clinics/${clinicId}/employees/${employeeId}`,
+      providesTags: (result, error, { employeeId }) => [
+        { type: "Doctor", id: employeeId },
+      ],
     }),
-    getDoctorByClinic: builder.query<IResCommon<IListResponse<Doctor>>, { id: string; pageIndex: number; pageSize: number; searchTerm: string }>({
+    getDoctorByClinic: builder.query<
+      IResCommon<IListResponse<Doctor>>,
+      { id: string; pageIndex: number; pageSize: number; searchTerm: string }
+    >({
       query: ({ id, pageIndex, pageSize, searchTerm }) =>
         `clinics/${id}/accounts?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
       providesTags: ["Doctor"],
@@ -198,12 +247,18 @@ export const doctorCommandApi = createApi({
       }),
       invalidatesTags: ["Doctor"],
     }),
-    changeDoctorStatus: builder.mutation<void, { id: string; accountId: string }>({
+    changeDoctorStatus: builder.mutation<
+      void,
+      { id: string; accountId: string }
+    >({
       query: ({ id, accountId }) => ({
         url: `/clinics/${id}/accounts/${accountId}/status`,
         method: "PATCH",
       }),
-      invalidatesTags: (result, error, { accountId }) => [{ type: "Doctor", id: accountId }, "Doctor"],
+      invalidatesTags: (result, error, { accountId }) => [
+        { type: "Doctor", id: accountId },
+        "Doctor",
+      ],
     }),
 
     // New endpoint for updating doctor's branch
@@ -222,8 +277,10 @@ export const doctorCommandApi = createApi({
 export const {
   useGetClinicsQuery,
   useLazyGetClinicByIdQuery,
+  useGetClinicByIdQuery,
   useGetBranchesQuery,
   useLazyGetBranchByIdQuery,
+  useGetClinicByIdV2Query,
 } = clinicsQueryApi;
 
 export const {
@@ -233,14 +290,31 @@ export const {
   useChangeStatusBranchMutation,
 } = clinicsCommandApi;
 
-export const { useGetStaffQuery, useLazyGetStaffByIdQuery, useGetStaffByClinicQuery } = staffQueryApi
+export const {
+  useGetStaffQuery,
+  useLazyGetStaffByIdQuery,
+  useGetStaffByClinicQuery,
+} = staffQueryApi;
 
 // Export hooks for the command API
-export const { useAddStaffMutation, useUpdateStaffMutation, useDeleteStaffMutation, useChangeStaffStatusMutation } =
-  staffCommandApi
+export const {
+  useAddStaffMutation,
+  useUpdateStaffMutation,
+  useDeleteStaffMutation,
+  useChangeStaffStatusMutation,
+} = staffCommandApi;
 
-  // Export the hooks
-export const { useGetDoctorsQuery, useLazyGetDoctorByIdQuery, useGetDoctorByClinicQuery } = doctorQueryApi
+// Export the hooks
+export const {
+  useGetDoctorsQuery,
+  useLazyGetDoctorByIdQuery,
+  useGetDoctorByClinicQuery,
+} = doctorQueryApi;
 
-export const { useAddDoctorMutation, useUpdateDoctorMutation, useDeleteDoctorMutation, useChangeDoctorStatusMutation,useChangeDoctorBranchMutation } =
-  doctorCommandApi
+export const {
+  useAddDoctorMutation,
+  useUpdateDoctorMutation,
+  useDeleteDoctorMutation,
+  useChangeDoctorStatusMutation,
+  useChangeDoctorBranchMutation,
+} = doctorCommandApi;

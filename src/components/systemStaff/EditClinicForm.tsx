@@ -1,51 +1,70 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useUpdateClinicMutation } from "@/features/clinic/api"
-import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast } from "react-toastify"
-import { motion } from "framer-motion"
-import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, CreditCard, Landmark, ImageIcon } from "lucide-react"
-import Image from "next/image"
-import type { Clinic } from "@/features/clinic/types"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useUpdateClinicMutation } from "@/features/clinic/api";
+import {
+  useGetProvincesQuery,
+  useGetDistrictsQuery,
+  useGetWardsQuery,
+} from "@/features/address/api";
+import { toast } from "react-toastify";
+import { motion } from "framer-motion";
+import {
+  X,
+  AlertCircle,
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  CreditCard,
+  Landmark,
+  ImageIcon,
+} from "lucide-react";
+import Image from "next/image";
+import type { Clinic } from "@/features/clinic/types";
 
 // Interfaces
 interface ClinicFormProps {
-  initialData: Partial<Clinic>
-  onClose: () => void
-  onSaveSuccess: () => void
+  initialData: Partial<Clinic>;
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
 interface ValidationErrors {
-  name?: string
-  email?: string
-  phoneNumber?: string
-  address?: string
-  city?: string
-  district?: string
-  ward?: string
-  bankName?: string
-  bankAccountNumber?: string
-  profilePicture?: string
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  ward?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  profilePicture?: string;
 }
 
 interface AddressDetail {
-  provinceId: string
-  provinceName: string
-  districtId: string
-  districtName: string
-  wardId: string
-  wardName: string
-  streetAddress: string
+  provinceId: string;
+  provinceName: string;
+  districtId: string;
+  districtName: string;
+  wardId: string;
+  wardName: string;
+  streetAddress: string;
 }
 
-export default function ClinicForm({ initialData, onClose, onSaveSuccess }: ClinicFormProps) {
+export default function ClinicForm({
+  initialData,
+  onClose,
+  onSaveSuccess,
+}: ClinicFormProps) {
   const [formData, setFormData] = useState({
     ...initialData,
     bankName: initialData.bankName || "",
     bankAccountNumber: initialData.bankAccountNumber || "",
-  })
+  });
 
   const [addressDetail, setAddressDetail] = useState<AddressDetail>({
     provinceId: "",
@@ -55,66 +74,85 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
     wardId: "",
     wardName: initialData.ward || "",
     streetAddress: initialData.address || "",
-  })
+  });
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [errorMessages, setErrorMessages] = useState<string[]>([])
-  const [updateClinic, { isLoading }] = useUpdateClinicMutation()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [updateClinic, { isLoading }] = useUpdateClinicMutation();
 
   // RTK Query hooks
-  const { data: provinces, isLoading: isLoadingProvinces } = useGetProvincesQuery()
-  const { data: districts, isLoading: isLoadingDistricts } = useGetDistrictsQuery(addressDetail.provinceId, {
-    skip: !addressDetail.provinceId,
-  })
-  const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(addressDetail.districtId, {
-    skip: !addressDetail.districtId,
-  })
+  const { data: provinces, isLoading: isLoadingProvinces } =
+    useGetProvincesQuery();
+  const { data: districts, isLoading: isLoadingDistricts } =
+    useGetDistrictsQuery(addressDetail.provinceId, {
+      skip: !addressDetail.provinceId,
+    });
+  const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(
+    addressDetail.districtId,
+    {
+      skip: !addressDetail.districtId,
+    }
+  );
 
   // Find province ID by name when provinces are loaded
   useEffect(() => {
-    if (provinces?.data && addressDetail.provinceName && !addressDetail.provinceId) {
-      const province = provinces.data.find((p) => p.name === addressDetail.provinceName)
+    if (
+      provinces?.data &&
+      addressDetail.provinceName &&
+      !addressDetail.provinceId
+    ) {
+      const province = provinces.data.find(
+        (p) => p.name === addressDetail.provinceName
+      );
       if (province) {
         setAddressDetail((prev) => ({
           ...prev,
           provinceId: province.id,
-        }))
+        }));
       }
     }
-  }, [provinces, addressDetail.provinceName, addressDetail.provinceId])
+  }, [provinces, addressDetail.provinceName, addressDetail.provinceId]);
 
   // Find district ID by name when districts are loaded
   useEffect(() => {
-    if (districts?.data && addressDetail.districtName && !addressDetail.districtId) {
-      const district = districts.data.find((d) => d.name === addressDetail.districtName)
+    if (
+      districts?.data &&
+      addressDetail.districtName &&
+      !addressDetail.districtId
+    ) {
+      const district = districts.data.find(
+        (d) => d.name === addressDetail.districtName
+      );
       if (district) {
         setAddressDetail((prev) => ({
           ...prev,
           districtId: district.id,
-        }))
+        }));
       }
     }
-  }, [districts, addressDetail.districtName, addressDetail.districtId])
+  }, [districts, addressDetail.districtName, addressDetail.districtId]);
 
   // Find ward ID by name when wards are loaded
   useEffect(() => {
     if (wards?.data && addressDetail.wardName && !addressDetail.wardId) {
-      const ward = wards.data.find((w) => w.name === addressDetail.wardName)
+      const ward = wards.data.find((w) => w.name === addressDetail.wardName);
       if (ward) {
         setAddressDetail((prev) => ({
           ...prev,
           wardId: ward.id,
-        }))
+        }));
       }
     }
-  }, [wards, addressDetail.wardName, addressDetail.wardId])
+  }, [wards, addressDetail.wardName, addressDetail.wardId]);
 
   // Handle address selection changes
-  const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    const { name, value } = e.target
+  const handleAddressChange = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
 
     if (name === "provinceId" && provinces) {
-      const province = provinces.data.find((p) => p.id === value)
+      const province = provinces.data.find((p) => p.id === value);
       setAddressDetail((prev) => ({
         ...prev,
         provinceId: value,
@@ -123,88 +161,93 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
         districtName: "",
         wardId: "",
         wardName: "",
-      }))
+      }));
     } else if (name === "districtId" && districts) {
-      const district = districts.data.find((d) => d.id === value)
+      const district = districts.data.find((d) => d.id === value);
       setAddressDetail((prev) => ({
         ...prev,
         districtId: value,
         districtName: district?.name || "",
         wardId: "",
         wardName: "",
-      }))
+      }));
     } else if (name === "wardId" && wards) {
-      const ward = wards.data.find((w) => w.id === value)
+      const ward = wards.data.find((w) => w.id === value);
       setAddressDetail((prev) => ({
         ...prev,
         wardId: value,
         wardName: ward?.name || "",
-      }))
+      }));
     } else if (name === "streetAddress") {
       setAddressDetail((prev) => ({
         ...prev,
         streetAddress: value,
-      }))
+      }));
     }
-  }
+  };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0])
+      setSelectedFile(e.target.files[0]);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMessages([])
+    e.preventDefault();
+    setErrorMessages([]);
 
     if (!formData.id) {
-      setErrorMessages(["Clinic ID is missing"])
-      return
+      setErrorMessages(["Clinic ID is missing"]);
+      return;
     }
 
-    const updatedFormData = new FormData()
-    updatedFormData.append("clinicId", formData.id)
-    updatedFormData.append("name", formData.name || "")
-    updatedFormData.append("email", formData.email || "")
-    updatedFormData.append("phoneNumber", formData.phoneNumber || "")
+    const updatedFormData = new FormData();
+    updatedFormData.append("clinicId", formData.id);
+    updatedFormData.append("name", formData.name || "");
+    updatedFormData.append("email", formData.email || "");
+    updatedFormData.append("phoneNumber", formData.phoneNumber || "");
 
     // Send address components separately
-    updatedFormData.append("address", addressDetail.streetAddress)
-    updatedFormData.append("city", addressDetail.provinceName)
-    updatedFormData.append("district", addressDetail.districtName)
-    updatedFormData.append("ward", addressDetail.wardName)
+    updatedFormData.append("address", addressDetail.streetAddress);
+    updatedFormData.append("city", addressDetail.provinceName);
+    updatedFormData.append("district", addressDetail.districtName);
+    updatedFormData.append("ward", addressDetail.wardName);
 
     // Add banking information
-    updatedFormData.append("bankName", formData.bankName)
-    updatedFormData.append("bankAccountNumber", formData.bankAccountNumber)
+    updatedFormData.append("bankName", formData.bankName);
+    updatedFormData.append("bankAccountNumber", formData.bankAccountNumber);
 
     if (selectedFile) {
-      updatedFormData.append("profilePicture", selectedFile)
+      updatedFormData.append("profilePicture", selectedFile);
     }
 
     try {
-      await updateClinic({ clinicId: formData.id, data: updatedFormData }).unwrap()
-      toast.success("Clinic updated successfully!")
+      await updateClinic({
+        clinicId: formData.id,
+        data: updatedFormData,
+      }).unwrap();
+      toast.success("Clinic updated successfully!");
       // Gọi onSaveSuccess trước khi đóng form
-      onSaveSuccess()
+      onSaveSuccess();
       // Sau đó mới đóng form
-      onClose()
+      onClose();
     } catch (error: any) {
-      console.error("Update failed:", error)
+      console.error("Update failed:", error);
       if (error?.data?.status === 422 && error?.data?.errors) {
-        const messages = error.data.errors.map((err: any) => err.message)
-        setErrorMessages(messages)
+        const messages = error.data.errors.map((err: any) => err.message);
+        setErrorMessages(messages);
       } else {
-        setErrorMessages(["Failed to update clinic. Please try again."])
+        setErrorMessages(["Failed to update clinic. Please try again."]);
       }
     }
-  }
+  };
 
   return (
     <motion.div
@@ -215,7 +258,7 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
       onClick={(e) => {
         // Chỉ đóng modal khi click vào backdrop, không phải khi click vào nội dung
         if (e.target === e.currentTarget) {
-          onClose()
+          onClose();
         }
       }}
     >
@@ -250,11 +293,16 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
             >
               <div className="flex items-center gap-2 p-4 bg-red-50 border-b border-red-200">
                 <AlertCircle className="h-5 w-5 text-red-500" />
-                <p className="text-red-700 font-medium">Please fix the following errors:</p>
+                <p className="text-red-700 font-medium">
+                  Please fix the following errors:
+                </p>
               </div>
               <div className="p-4 bg-white space-y-2">
                 {errorMessages.map((message, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm text-red-600">
+                  <div
+                    key={index}
+                    className="flex items-start gap-2 text-sm text-red-600"
+                  >
                     <span className="mt-0.5">•</span>
                     <span>{message}</span>
                   </div>
@@ -403,16 +451,21 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
                           <option
                             key={province.id}
                             value={province.id}
-                            selected={province.name === addressDetail.provinceName}
+                            selected={
+                              province.name === addressDetail.provinceName
+                            }
                           >
                             {province.name}
                           </option>
                         ))}
                       </select>
                     )}
-                    {!addressDetail.provinceId && addressDetail.provinceName && (
-                      <div className="mt-1 text-sm text-amber-600">Current: {addressDetail.provinceName}</div>
-                    )}
+                    {!addressDetail.provinceId &&
+                      addressDetail.provinceName && (
+                        <div className="mt-1 text-sm text-amber-600">
+                          Current: {addressDetail.provinceName}
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -443,16 +496,21 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
                           <option
                             key={district.id}
                             value={district.id}
-                            selected={district.name === addressDetail.districtName}
+                            selected={
+                              district.name === addressDetail.districtName
+                            }
                           >
                             {district.name}
                           </option>
                         ))}
                       </select>
                     )}
-                    {!addressDetail.districtId && addressDetail.districtName && (
-                      <div className="mt-1 text-sm text-amber-600">Current: {addressDetail.districtName}</div>
-                    )}
+                    {!addressDetail.districtId &&
+                      addressDetail.districtName && (
+                        <div className="mt-1 text-sm text-amber-600">
+                          Current: {addressDetail.districtName}
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -480,14 +538,20 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
                       >
                         <option value="">Select Ward</option>
                         {wards?.data.map((ward) => (
-                          <option key={ward.id} value={ward.id} selected={ward.name === addressDetail.wardName}>
+                          <option
+                            key={ward.id}
+                            value={ward.id}
+                            selected={ward.name === addressDetail.wardName}
+                          >
                             {ward.name}
                           </option>
                         ))}
                       </select>
                     )}
                     {!addressDetail.wardId && addressDetail.wardName && (
-                      <div className="mt-1 text-sm text-amber-600">Current: {addressDetail.wardName}</div>
+                      <div className="mt-1 text-sm text-amber-600">
+                        Current: {addressDetail.wardName}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -515,11 +579,15 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
                 animate={{ opacity: 1, y: 0 }}
                 className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100"
               >
-                <p className="text-sm text-gray-600 font-medium">Full Address:</p>
+                <p className="text-sm text-gray-600 font-medium">
+                  Full Address:
+                </p>
                 <p className="text-sm text-gray-800 mt-1">
-                  {addressDetail.streetAddress && `${addressDetail.streetAddress}, `}
+                  {addressDetail.streetAddress &&
+                    `${addressDetail.streetAddress}, `}
                   {addressDetail.wardName && `${addressDetail.wardName}, `}
-                  {addressDetail.districtName && `${addressDetail.districtName}, `}
+                  {addressDetail.districtName &&
+                    `${addressDetail.districtName}, `}
                   {addressDetail.provinceName}
                 </p>
               </motion.div>
@@ -534,7 +602,10 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                  Profile Picture <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                  Profile Picture{" "}
+                  <span className="text-gray-400 text-xs font-normal">
+                    (Optional)
+                  </span>
                 </label>
                 <div className="relative">
                   <input
@@ -545,7 +616,9 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
                   />
                   <ImageIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
-                <p className="text-xs text-gray-500">Accepted formats: JPG, PNG (max 5MB)</p>
+                <p className="text-xs text-gray-500">
+                  Accepted formats: JPG, PNG (max 5MB)
+                </p>
 
                 {formData.profilePictureUrl && (
                   <div className="mt-2 flex items-center gap-4">
@@ -590,6 +663,5 @@ export default function ClinicForm({ initialData, onClose, onSaveSuccess }: Clin
         </div>
       </motion.div>
     </motion.div>
-  )
+  );
 }
-

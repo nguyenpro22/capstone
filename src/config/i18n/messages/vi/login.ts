@@ -18,4 +18,5 @@ export const loginMessage: Messages["login"] = {
   invalidCredentials: "Email hoặc mật khẩu không hợp lệ",
   userNotFound: "Không tìm thấy người dùng",
   generalError: "Đã xảy ra lỗi",
+  continueWithGoogle: "Tiếp tục với Google",
 };

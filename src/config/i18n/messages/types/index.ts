@@ -5,7 +5,7 @@ import { apiMessages } from "./api";
 import { dashboardMessages } from "./dashboard";
 import { voucherMessages } from "./voucher";
 import { clinicMessages } from "./clinic";
-import { serviceMessages } from "./service";
+import { service, serviceMessages } from "./service";
 import { branchMessages } from "./branch";
 import { doctorMessages } from "./staffDoctor";
 import { staffMessages } from "./staff";
@@ -14,6 +14,7 @@ import { PasswordResetTranslations } from "./forgot-password";
 import { RegistrationTranslations } from "./register";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
+import { doctor } from "./doctor";
 
 export type Messages = {
   home: homeMessages;
@@ -23,7 +24,7 @@ export type Messages = {
   dashboard: dashboardMessages;
   voucher: voucherMessages;
   clinic: clinicMessages;
-  service: serviceMessages;
+  serviceMessage: serviceMessages;
   branch: branchMessages;
   staffDoctor: doctorMessages;
   staff: staffMessages;
@@ -32,4 +33,6 @@ export type Messages = {
   register: RegistrationTranslations;
   serviceDetail: serviceDetail;
   registerClinic: registerClinic;
+  doctorService: doctor;
+  service: service;
 };
