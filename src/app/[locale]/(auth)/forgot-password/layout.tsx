@@ -34,7 +34,7 @@ export default function RegisterLayout({ children }: RegisterLayoutProps) {
         {/* Main Image */}
         <div className="relative z-10 w-full h-full">
           <Image
-            src="https://placehold.co/600x800.png"
+            src="/images/login.jpg"
             alt="Beautiful woman in spa"
             layout="fill"
             objectFit="cover"

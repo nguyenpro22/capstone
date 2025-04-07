@@ -26,7 +26,6 @@ import type { ILoginRequest } from "../types";
 import { useTranslations } from "next-intl";
 import { supabase } from "../../../utils/supabaseClient";
 import { useLocale } from "next-intl";
-import { get } from "http";
 
 // Tipos para el estado de autenticación
 type AuthStatus = "idle" | "authenticating" | "authenticated" | "error";
@@ -37,6 +36,7 @@ export const useAuth = () => {
   const [login] = useLoginMutation();
   const locale = useLocale(); // Obtener el idioma actual
   const [loginGoogle] = useLoginWithGoogleMutation();
+
   // Estados refinados
   const [authStatus, setAuthStatus] = useState<AuthStatus>("idle");
   const [authError, setAuthError] = useState<string | null>(null);
@@ -105,12 +105,17 @@ export const useAuth = () => {
 
       if (event === "SIGNED_IN" && session) {
         try {
+          // Log the current domain and environment for debugging
+          console.log("Current domain:", window.location.origin);
+          console.log("Environment:", process.env.NODE_ENV);
+
           // Guardar tokens
           const loginGoogleResponse = await loginGoogle({
             googleToken: session.access_token,
           }).unwrap();
           setAccessToken(loginGoogleResponse.value.accessToken);
           setRefreshToken(loginGoogleResponse.value.refreshToken);
+
           // Obtener datos del usuario
           const userData = GetDataByToken(
             loginGoogleResponse.value.accessToken
@@ -183,7 +188,7 @@ export const useAuth = () => {
         }
       }
     };
-  }, [t, handleRedirectByRole]);
+  }, [t, handleRedirectByRole, loginGoogle]);
 
   // Escuchar mensajes de la ventana popup
   useEffect(() => {
@@ -338,7 +343,7 @@ export const useAuth = () => {
         return;
       }
 
-      // clearToken();
+      // clearToken()
       setUserData(null);
       setAuthStatus("idle");
       setAuthError(null);
@@ -362,9 +367,17 @@ export const useAuth = () => {
         setAuthStatus("authenticating");
         setAuthError(null);
 
+        // Determinar si estamos en producción o desarrollo
+        const isProduction = process.env.NODE_ENV === "production";
+
         // Crear URL de callback con el prefijo de idioma
-        const popupCallbackUrl = `${window.location.origin}/${locale}/popup-callback`;
+        // En producción, usar el dominio actual; en desarrollo, usar localhost
+        const currentDomain = window.location.origin;
+        const popupCallbackUrl = `${currentDomain}/${locale}/popup-callback`;
+
         console.log("Using callback URL:", popupCallbackUrl);
+        console.log("Environment:", process.env.NODE_ENV);
+        console.log("Current domain:", currentDomain);
 
         // Iniciar flujo de autenticación
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -472,7 +485,7 @@ export const useAuth = () => {
         showError(t("providerLoginError", { provider }));
       }
     },
-    [t, locale, handleRedirectByRole]
+    [t, locale]
   );
 
   // Verificar si el usuario está autenticado

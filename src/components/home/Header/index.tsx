@@ -2,29 +2,13 @@
 
 import type React from "react";
 import Image from "next/image";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import {
-  User,
-  LogOut,
-  Settings,
-  Menu,
-  X,
-  ChevronDown,
-  Bell,
-  ShoppingBag,
-} from "lucide-react";
+import { User, LogOut, Bell, Menu, X, ShoppingBag } from "lucide-react";
 import logo from "@/../public/images/logo.png";
 import { useRouter } from "next/navigation";
-import {
-  clearToken,
-  getAccessToken,
-  GetDataByToken,
-  showError,
-  showSuccess,
-  type TokenData,
-} from "@/utils";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +31,7 @@ import ThemeToggle from "@/components/common/ThemeToggle";
 import LangToggle from "@/components/common/LangToggle";
 import { customerRoutes } from "@/constants";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { supabase } from "@/utils/supabaseClient";
+import { normalizeVietnameseText } from "@/utils/vietnamese-text";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -88,37 +72,17 @@ interface ServiceItem {
   isDeleted: boolean;
 }
 
-interface ApiResponse {
-  value: {
-    items: ServiceItem[];
-    pageIndex: number;
-    pageSize: number;
-    totalCount: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-  isSuccess: boolean;
-  isFailure: boolean;
-  error: {
-    code: string;
-    message: string;
-  };
-}
-
 interface SiteHeaderProps {
   children?: React.ReactNode;
 }
 
 export default function SiteHeader({ children }: SiteHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [allServices, setAllServices] = useState<ServiceItem[]>([]);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [userData, setUserData] = useState<TokenData | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const t = useTranslations("home");
   const router = useRouter();
+  const { handleLogout } = useAuth();
   const token = getAccessToken() as string;
 
   useEffect(() => {
@@ -132,6 +96,14 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
     const styleElement = document.createElement("style");
     styleElement.innerHTML = scrollbarStyles;
     document.head.appendChild(styleElement);
+
+    // Ensure proper character encoding for Vietnamese text
+    if (!document.querySelector('meta[charset="UTF-8"]')) {
+      const metaCharset = document.createElement("meta");
+      metaCharset.setAttribute("charset", "UTF-8");
+      document.head.appendChild(metaCharset);
+    }
+
     return () => {
       document.head.removeChild(styleElement);
     };
@@ -168,7 +140,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const getUserInitials = () => {
     if (!userData || !userData.name) return "U";
 
-    return userData?.name
+    return normalizeVietnameseText(userData.name)
       .split(" ")
       .map((part) => part[0])
       .join("")
@@ -179,29 +151,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
   };
-  const handleLogout = async () => {
-    try {
-      clearToken();
-      const { error } = await supabase.auth.signOut();
 
-      if (error) {
-        console.error("Error signing out:", error.message);
-        showError(t("logoutError"));
-        return;
-      }
-
-      // clearToken();
-      setUserData(null);
-
-      // Mostrar mensaje de éxito
-      showSuccess(t("logoutSuccess"));
-
-      // Redirigir a la página de inicio de sesión
-      router.push("/login");
-    } catch (error) {
-      console.log("error at 202");
-    }
-  };
   const navItems = [
     {
       label: t("footer.quickLinks.links.0.label"),
@@ -222,10 +172,10 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
     },
     {
       label: t("footer.quickLinks.links.3.label"),
-      href: "/registerClinic",
+      href: "/register-clinic",
     },
   ];
-  console.log("customerRoutes.SERVICES =", customerRoutes.SERVICES);
+
   return (
     <header
       className={cn(
@@ -319,11 +269,11 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm leading-none">
-                        {userData?.name || "User"}
+                      <p className="text-sm font-medium leading-none">
+                        {normalizeVietnameseText(userData?.name) || "User"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {userData?.email || ""}
@@ -340,7 +290,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                     <span>Lịch hẹn</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleLogout()}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>
@@ -418,8 +368,9 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="text-sm">
-                                {userData?.name || "User"}
+                              <p className="text-sm font-medium">
+                                {normalizeVietnameseText(userData?.name) ||
+                                  "User"}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {userData?.email || ""}
@@ -453,7 +404,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                             <Button
                               variant="outline"
                               className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                              onClick={() => handleLogout()}
+                              onClick={handleLogout}
                             >
                               <LogOut className="mr-2 h-4 w-4" />
                               Đăng xuất
