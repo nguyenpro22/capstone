@@ -1,18 +1,62 @@
+import { Service } from "@/features/clinic-service/types";
+
 export interface Clinic {
-  id: string;
-  name: string;
-  email: string;
-  address: string;
-  fullAddress: string;
-  city: string;
-  district: string;
-  ward: string;
-  phoneNumber: string;
-  totalBranches: number;
-  profilePictureUrl: string;
-  bankName: string;
-  bankAccountNumber: string;
-  isActivated: boolean;
+  id: string
+  name: string
+  email: string
+  phoneNumber: string
+  city: string
+  address: string | null
+  district: string | null
+  ward: string | null
+  fullAddress: string
+  taxCode: string
+  businessLicenseUrl: string
+  operatingLicenseUrl: string
+  operatingLicenseExpiryDate: string | null
+  profilePictureUrl: string | null
+  totalBranches: number
+  isActivated: boolean
+  bankName: string
+  bankAccountNumber: string
+  branches: {
+    items: Branch[]
+    pageIndex: number
+    pageSize: number
+    totalCount: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }
+  services: Service[]
+}
+export interface ProfileClinic {
+  id: string
+  name: string
+  email: string
+  phoneNumber: string
+  city: string
+  address: string | null
+  district: string | null
+  ward: string | null
+  fullAddress: string
+  taxCode: string
+  businessLicenseUrl: string
+  operatingLicenseUrl: string
+  operatingLicenseExpiryDate: string | null
+  profilePictureUrl: string | null
+  totalBranches: number
+  isActivated: boolean
+  bankName: string
+  bankAccountNumber: string
+  branches: {
+    items: Branch[]
+    pageIndex: number
+    pageSize: number
+    totalCount: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }
+  services: Service[]
 }
 
 export interface ClinicsResponse {

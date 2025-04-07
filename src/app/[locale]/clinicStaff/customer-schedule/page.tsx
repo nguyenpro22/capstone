@@ -36,6 +36,7 @@ import {
   useLazyGetCustomerSchedulesQuery,
   useLazyGetClinicSchedulesQuery,
   useUpdateScheduleStatusMutation,
+  useLazyGetNextScheduleAvailabilityQuery,
 } from "@/features/customer-schedule/api"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
@@ -46,6 +47,8 @@ import type { CustomerSchedule } from "@/features/customer-schedule/types"
 import ScheduleDetailsModal from "@/components/clinicStaff/customer-schedule/schedule-details-modal"
 import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/schedule-payment-modal"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import ScheduleFollowUpModal from "@/components/clinicStaff/customer-schedule/schedule-follow-up-modal"
+import NextScheduleNotification from "@/components/clinicStaff/customer-schedule/next-schedule-notification"
 
 // Define error response type
 interface ErrorResponse {
@@ -71,6 +74,16 @@ const getStatusBadge = (status: string) => {
   }
 }
 
+// Function to get the default date range based on the current date
+const getDefaultDateRange = () => {
+  const today = new Date()
+  const futureDate = addDays(today, 90)
+  return {
+    from: today,
+    to: futureDate,
+  }
+}
+
 export default function SchedulesPage() {
   // Customer search states
   const [customerName, setCustomerName] = useState("")
@@ -90,6 +103,7 @@ export default function SchedulesPage() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false)
+  const [scheduleNeedingFollowUp, setScheduleNeedingFollowUp] = useState<CustomerSchedule | null>(null)
 
   // Using RTK Query hooks
   const [getCustomerSchedules, { data: scheduleResponse, isLoading: isLoadingCustomer, error: customerError }] =
@@ -98,6 +112,8 @@ export default function SchedulesPage() {
     useLazyGetClinicSchedulesQuery()
 
   const [updateScheduleStatus, { isLoading: isUpdatingStatus }] = useUpdateScheduleStatusMutation()
+
+  const [getNextScheduleAvailability, { isLoading: isCheckingNextSchedule }] = useLazyGetNextScheduleAvailabilityQuery()
 
   // Create delayed refetch functions
   const delayedGetCustomerSchedules = useDelayedRefetch(getCustomerSchedules)
@@ -109,34 +125,32 @@ export default function SchedulesPage() {
     return format(date, "yyyy-MM-dd")
   }
 
-  // Get default date range based on active tab
-  const getDefaultDateRange = () => {
-    const today = new Date()
+  // Check if a completed schedule needs a follow-up
+  const checkForFollowUpNeeded = async (schedules: CustomerSchedule[]) => {
+    // Find the first completed schedule
+    const completedSchedule = schedules.find((schedule) => schedule.status.toLowerCase() === "completed")
 
-    if (activeTab === "upcoming") {
-      // For upcoming: from today to 3 months in the future
-      return {
-        from: today,
-        to: addDays(today, 90),
+    if (completedSchedule) {
+      try {
+        // Call the API to check if a follow-up is needed
+        const result = await getNextScheduleAvailability(completedSchedule.id).unwrap()
+
+        // Check if the API response indicates a follow-up is needed
+        if (result.isSuccess && result.value === "Need to schedule for next step") {
+          // Set the schedule that needs a follow-up
+          setScheduleNeedingFollowUp(completedSchedule)
+        } else {
+          // Clear the notification if no follow-up is needed
+          setScheduleNeedingFollowUp(null)
+        }
+      } catch (error) {
+        console.error("Failed to check next schedule availability:", error)
+        // Don't show notification if there was an error
+        setScheduleNeedingFollowUp(null)
       }
-    } else if (activeTab === "past") {
-      // For past: from 3 months ago to yesterday
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-
-      const threeMonthsAgo = new Date(today)
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-
-      return {
-        from: threeMonthsAgo,
-        to: yesterday,
-      }
-    }
-
-    // Default fallback
-    return {
-      from: today,
-      to: addDays(today, 30),
+    } else {
+      // Clear the notification if there are no completed schedules
+      setScheduleNeedingFollowUp(null)
     }
   }
 
@@ -172,6 +186,12 @@ export default function SchedulesPage() {
             detail: "An unexpected error occurred",
             errors: null,
           })
+        }
+      } else if (result.data) {
+        // Check if any completed schedules need follow-ups
+        const schedules = result.data.value || []
+        if (Array.isArray(schedules)) {
+          checkForFollowUpNeeded(schedules)
         }
       }
 
@@ -362,6 +382,14 @@ export default function SchedulesPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Customer Schedules</h1>
 
+      {/* Show notification if a schedule needs a follow-up */}
+      {scheduleNeedingFollowUp && (
+        <NextScheduleNotification
+          customerName={scheduleNeedingFollowUp.customerName}
+          onScheduleFollowUp={() => handleScheduleFollowUp(scheduleNeedingFollowUp)}
+        />
+      )}
+
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 border-b">
           <CardTitle className="text-lg text-pink-700">Search Customer Schedule</CardTitle>
@@ -414,10 +442,14 @@ export default function SchedulesPage() {
         <CardFooter className="bg-gray-50 px-6 py-3 flex justify-end">
           <Button
             onClick={searchSchedules}
-            disabled={isLoadingCustomer}
+            disabled={isLoadingCustomer || isCheckingNextSchedule}
             className="gap-2 w-36 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
           >
-            {isLoadingCustomer ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            {isLoadingCustomer || isCheckingNextSchedule ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
             Search
           </Button>
         </CardFooter>
@@ -491,6 +523,17 @@ export default function SchedulesPage() {
                               disabled={isUpdatingStatus}
                             >
                               {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check-in"}
+                            </Button>
+                          )}
+                          {schedule.status.toLowerCase() === "completed" && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="bg-green-500 hover:bg-green-600 text-white"
+                              onClick={() => handleScheduleFollowUp(schedule)}
+                            >
+                              <Calendar className="h-4 w-4 mr-1" />
+                              Follow-up
                             </Button>
                           )}
                           <DropdownMenu>
@@ -754,7 +797,24 @@ export default function SchedulesPage() {
         onClose={() => setIsPaymentModalOpen(false)}
       />
 
-     
+      {/* Follow-up Modal */}
+      <ScheduleFollowUpModal
+        schedule={selectedSchedule}
+        isOpen={isFollowUpModalOpen}
+        onClose={() => setIsFollowUpModalOpen(false)}
+        onSuccess={() => {
+          // Clear the notification after successful scheduling
+          if (selectedSchedule && scheduleNeedingFollowUp && selectedSchedule.id === scheduleNeedingFollowUp.id) {
+            setScheduleNeedingFollowUp(null)
+          }
+
+          // Refresh the schedules
+          fetchClinicSchedules()
+          if (searchPerformed && (customerName || customerPhone)) {
+            delayedGetCustomerSchedules({ customerName, customerPhone })
+          }
+        }}
+      />
     </div>
   )
 }
