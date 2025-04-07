@@ -468,7 +468,7 @@ export function LivestreamProvider({ children }: { children: ReactNode }) {
 
     // Tạo kết nối mới
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl("https://beautify.asia/livestreamHub", {
+      .withUrl("https://api.beautify.asia/signaling-api/LivestreamHub", {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
       })
