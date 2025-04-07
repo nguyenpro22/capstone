@@ -45,7 +45,7 @@ export function HeroSection() {
             <div className="flex flex-wrap gap-4 pt-2">
               <GradientButton
                 size="lg"
-                className="rounded-full px-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+                className="rounded-full px-6 shadow-md hover:shadow-lg transition-all flex flex-row items-center duration-300 hover:scale-105"
                 onClick={handleBookConsultation}
               >
                 {t("hero.buttons.bookConsultation")}
@@ -55,7 +55,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full px-6 border-2 hover:bg-primary/5 transition-all duration-300"
+                className="flex items-center rounded-full px-6 border-2 hover:bg-primary/5 transition-all duration-300"
                 onClick={handleExploreServices}
               >
                 {t("hero.buttons.exploreServices")}

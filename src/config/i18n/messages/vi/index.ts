@@ -9,6 +9,11 @@ import { navbarMessages } from "./navbar";
 import { voucherMessages } from "./voucher";
 import { branchMessages } from "./branch";
 import { doctorMessages } from "./staffDoctor";
+import { loginMessage } from "./login";
+import { forgotPassword } from "./forgot-password";
+import { register } from "./register";
+import { serviceDetail } from "./serivceDetail";
+import { registerClinic } from "./registerClinic";
 
 const vi = {
   home: homeMessages,
@@ -23,6 +28,11 @@ const vi = {
   staffDoctor: doctorMessages,
   staff: staffMessages,
   serviceMessage: service,
+  login: loginMessage,
+  forgotPassword,
+  register,
+  serviceDetail,
+  registerClinic,
 };
 
 export default vi;

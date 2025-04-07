@@ -47,7 +47,7 @@ export const customerRoutes = {
   DEFAULT: `${publicCustomerPath}/`,
   HOME: `${publicCustomerPath}/`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
-  LIVESTREAM_ROME: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
+  LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
   ORDERS: `${publicCustomerPath}/orders`,
   SERVICES: `${publicCustomerPath}/services`,
   SERVICE_DETAIL: `${publicCustomerPath}/services/[id]`,

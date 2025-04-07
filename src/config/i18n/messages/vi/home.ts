@@ -268,10 +268,9 @@ export const homeMessages: Messages["home"] = {
       title: "Liên Kết Nhanh",
       links: [
         { label: "Trang Chủ", href: "#" },
-        { label: "Về Chúng Tôi", href: "#" },
+        { label: "Tư vấn trực tiếp", href: "#" },
         { label: "Dịch Vụ", href: "#" },
         { label: "Đăng ký phòng khám", href: "#" },
-        { label: "Liên Hệ", href: "#" },
       ],
     },
     services: {

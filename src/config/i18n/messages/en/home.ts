@@ -264,10 +264,9 @@ export const homeMessages: Messages["home"] = {
       title: "Quick Links",
       links: [
         { label: "Home", href: "#" },
-        { label: "About Us", href: "#" },
+        { label: "Livestream Consultation", href: "#" },
         { label: "Services", href: "#" },
         { label: "Clinic Registration", href: "#" },
-        { label: "Contact", href: "#" },
       ],
     },
     services: {

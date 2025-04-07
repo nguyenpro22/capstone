@@ -31,7 +31,9 @@ export const GradientButton = React.forwardRef<
         ref={ref}
         {...props}
       >
-        <span className="relative text-white font-medium">{children}</span>
+        <span className="relative flex items-center text-white font-medium">
+          {children}
+        </span>
       </button>
     );
   }

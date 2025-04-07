@@ -103,67 +103,67 @@ export const useAuth = () => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
 
-      if (event === "SIGNED_IN" && session) {
-        try {
-          // Log the current domain and environment for debugging
-          console.log("Current domain:", window.location.origin);
-          console.log("Environment:", process.env.NODE_ENV);
+      // if (event === "SIGNED_IN" && session) {
+      //   try {
+      //     // Log the current domain and environment for debugging
+      //     console.log("Current domain:", window.location.origin);
+      //     console.log("Environment:", process.env.NODE_ENV);
 
-          // Guardar tokens
-          const loginGoogleResponse = await loginGoogle({
-            googleToken: session.access_token,
-          }).unwrap();
-          setAccessToken(loginGoogleResponse.value.accessToken);
-          setRefreshToken(loginGoogleResponse.value.refreshToken);
+      //     // Guardar tokens
+      //     const loginGoogleResponse = await loginGoogle({
+      //       googleToken: session.access_token,
+      //     }).unwrap();
+      //     setAccessToken(loginGoogleResponse.value.accessToken);
+      //     setRefreshToken(loginGoogleResponse.value.refreshToken);
 
-          // Obtener datos del usuario
-          const userData = GetDataByToken(
-            loginGoogleResponse.value.accessToken
-          ) as TokenData;
-          setUserData(userData);
+      //     // Obtener datos del usuario
+      //     const userData = GetDataByToken(
+      //       loginGoogleResponse.value.accessToken
+      //     ) as TokenData;
+      //     setUserData(userData);
 
-          // Actualizar estado
-          setAuthStatus("authenticated");
-          setAuthError(null);
+      //     // Actualizar estado
+      //     setAuthStatus("authenticated");
+      //     setAuthError(null);
 
-          // Mostrar mensaje de éxito
-          const provider = session.user?.app_metadata?.provider || "OAuth";
-          const userName =
-            session.user?.user_metadata?.full_name || session.user?.email || "";
+      //     // Mostrar mensaje de éxito
+      //     const provider = session.user?.app_metadata?.provider || "OAuth";
+      //     const userName =
+      //       session.user?.user_metadata?.full_name || session.user?.email || "";
 
-          showSuccess(t("providerLoginSuccess", { provider, userName }));
+      //     showSuccess(t("providerLoginSuccess", { provider, userName }));
 
-          // Limpiar timeouts
-          if (authTimeoutRef.current) {
-            clearTimeout(authTimeoutRef.current);
-            authTimeoutRef.current = null;
-          }
+      //     // Limpiar timeouts
+      //     if (authTimeoutRef.current) {
+      //       clearTimeout(authTimeoutRef.current);
+      //       authTimeoutRef.current = null;
+      //     }
 
-          if (authCheckIntervalRef.current) {
-            clearInterval(authCheckIntervalRef.current);
-            authCheckIntervalRef.current = null;
-          }
+      //     if (authCheckIntervalRef.current) {
+      //       clearInterval(authCheckIntervalRef.current);
+      //       authCheckIntervalRef.current = null;
+      //     }
 
-          // Redirigir según el rol
-          handleRedirectByRole(userData.roleName);
-        } catch (error) {
-          console.error("Error processing authentication:", error);
-          setAuthStatus("error");
-          setAuthError(t("loginError"));
-          showError(t("loginError"));
-        }
-      } else if (event === "SIGNED_OUT") {
-        clearToken();
-        setUserData(null);
-        setAuthStatus("idle");
-        setAuthError(null);
-      } else if (event === "TOKEN_REFRESHED" && session) {
-        // Actualizar tokens
-        setAccessToken(session.access_token);
-        if (session.refresh_token) {
-          setRefreshToken(session.refresh_token);
-        }
-      }
+      //     // Redirigir según el rol
+      //     handleRedirectByRole(userData.roleName);
+      //   } catch (error) {
+      //     console.error("Error processing authentication:", error);
+      //     setAuthStatus("error");
+      //     setAuthError(t("loginError"));
+      //     showError(t("loginError"));
+      //   }
+      // } else if (event === "SIGNED_OUT") {
+      //   clearToken();
+      //   setUserData(null);
+      //   setAuthStatus("idle");
+      //   setAuthError(null);
+      // } else if (event === "TOKEN_REFRESHED" && session) {
+      //   // Actualizar tokens
+      //   setAccessToken(session.access_token);
+      //   if (session.refresh_token) {
+      //     setRefreshToken(session.refresh_token);
+      //   }
+      // }
     });
 
     // Limpiar el listener cuando el componente se desmonte
