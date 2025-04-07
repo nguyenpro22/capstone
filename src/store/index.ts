@@ -7,7 +7,7 @@ import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
 import { addressApi } from "@/features/address/api";
 import { paymentsApi } from "@/features/payment/api";
-import { clinicsQueryApi, clinicsCommandApi } from "@/features/clinic/api";
+import { clinicsQueryApi, clinicsCommandApi, staffQueryApi, staffCommandApi, doctorAdminQueryApi, doctorAdminCommandApi } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api";
 import { partnershipRequestApi } from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
@@ -22,6 +22,7 @@ import {
 } from "@/features/clinic-service/api";
 import { bookingCommandApi, bookingQueryApi } from "@/features/booking/api";
 import { doctorCommandApi, doctorQueryApi } from "@/features/doctor/api";
+import { customerScheduleCommandApi, customerScheduleQueryApi } from "@/features/customer-schedule/api";
 
 const store = configureStore({
   reducer: {
@@ -46,6 +47,15 @@ const store = configureStore({
     [paymentsApi.reducerPath]: paymentsApi.reducer,
     [doctorQueryApi.reducerPath]: doctorQueryApi.reducer,
     [doctorCommandApi.reducerPath]: doctorCommandApi.reducer,
+    [doctorAdminQueryApi.reducerPath]: doctorAdminQueryApi.reducer,
+    [doctorAdminCommandApi.reducerPath]: doctorAdminCommandApi.reducer,
+    [staffQueryApi.reducerPath]: staffQueryApi.reducer,
+    [staffCommandApi.reducerPath]: staffCommandApi.reducer,
+    [customerScheduleQueryApi.reducerPath]: customerScheduleQueryApi.reducer,
+    [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
+
+
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -67,7 +77,14 @@ const store = configureStore({
       addressApi.middleware,
       paymentsApi.middleware,
       doctorQueryApi.middleware,
-      doctorCommandApi.middleware
+      doctorCommandApi.middleware,
+      doctorAdminQueryApi.middleware,
+      doctorAdminCommandApi.middleware,
+      staffQueryApi.middleware,
+      staffCommandApi.middleware,
+      customerScheduleQueryApi.middleware,
+      customerScheduleCommandApi.middleware,
+
     ),
 });
 
