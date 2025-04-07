@@ -163,12 +163,8 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
       name: "services",
     },
     {
-      label: t("footer.quickLinks.links.4.label"),
-      href: "#contact",
-    },
-    {
       label: t("footer.quickLinks.links.1.label"),
-      href: "#about",
+      href: customerRoutes.LIVESTREAM_VIEW,
     },
     {
       label: t("footer.quickLinks.links.3.label"),

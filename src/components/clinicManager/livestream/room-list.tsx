@@ -37,7 +37,9 @@ export default function LivestreamRoomList({
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await fetch("https://beautify.asia/api/LiveStream");
+        const response = await fetch(
+          "https://api.beautify.asia/signaling-api/LiveStream/Rooms"
+        );
         const data = await response.json();
 
         if (data.isSuccess) {
@@ -58,7 +60,7 @@ export default function LivestreamRoomList({
 
     // Set up SignalR connection for real-time updates
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://beautify.asia/livestreamHub", {
+      .withUrl("https://api.beautify.asia/signaling-api/LivestreamHub", {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
       })
@@ -174,7 +176,9 @@ export default function LivestreamRoomList({
   useEffect(() => {
     const intervalId = setInterval(async () => {
       try {
-        const response = await fetch("https://beautify.asia/api/LiveStream");
+        const response = await fetch(
+          "https://api.beautify.asia/signaling-api/LiveStream/Rooms"
+        );
         const data = await response.json();
 
         if (data.isSuccess) {
