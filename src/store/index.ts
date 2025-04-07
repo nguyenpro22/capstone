@@ -23,6 +23,7 @@ import {
 import { bookingCommandApi, bookingQueryApi } from "@/features/booking/api";
 import { doctorCommandApi, doctorQueryApi } from "@/features/doctor/api";
 import { customerScheduleCommandApi, customerScheduleQueryApi } from "@/features/customer-schedule/api";
+import { promotionCommandApi } from "@/features/promotion-service/api";
 
 const store = configureStore({
   reducer: {
@@ -53,6 +54,7 @@ const store = configureStore({
     [staffCommandApi.reducerPath]: staffCommandApi.reducer,
     [customerScheduleQueryApi.reducerPath]: customerScheduleQueryApi.reducer,
     [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
+    [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
 
 
 
@@ -84,6 +86,7 @@ const store = configureStore({
       staffCommandApi.middleware,
       customerScheduleQueryApi.middleware,
       customerScheduleCommandApi.middleware,
+      promotionCommandApi.middleware,
 
     ),
 });
