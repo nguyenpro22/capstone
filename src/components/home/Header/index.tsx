@@ -175,7 +175,6 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
       href: "/register-clinic",
     },
   ];
-  console.log("Header render", userData);
 
   return (
     <header

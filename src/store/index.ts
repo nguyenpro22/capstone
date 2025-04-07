@@ -1,9 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
-
 import authReducer from "@/features/auth/slice";
-
 
 import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
@@ -22,28 +20,20 @@ import {
   serviceCommandApi,
   serviceQueryApi,
 } from "@/features/clinic-service/api";
-// import {
-//   bookingCommandApi,
-//   bookingQueryApi,
-// } from "@/features/booking/api";
-import {
-  doctorCommandApi,
-  doctorQueryApi,
-} from "@/features/doctor/api";
-
+import { bookingCommandApi, bookingQueryApi } from "@/features/booking/api";
+import { doctorCommandApi, doctorQueryApi } from "@/features/doctor/api";
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-
 
     [authApi.reducerPath]: authApi.reducer,
     [landingApi.reducerPath]: landingApi.reducer,
     [packageApi.reducerPath]: packageApi.reducer,
     [packageCreateApi.reducerPath]: packageCreateApi.reducer,
     [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
-    // [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
-    // [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
+    [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
+    [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [clinicsQueryApi.reducerPath]: clinicsQueryApi.reducer,
@@ -64,8 +54,8 @@ const store = configureStore({
       packageApi.middleware,
       packageCreateApi.middleware,
       partnershipRequestApi.middleware,
-      // bookingQueryApi.middleware,
-      // bookingCommandApi.middleware,
+      bookingQueryApi.middleware,
+      bookingCommandApi.middleware,
       serviceApi.middleware,
       categoryApi.middleware,
       clinicsQueryApi.middleware,
@@ -81,17 +71,9 @@ const store = configureStore({
     ),
 });
 
-
 setupListeners(store.dispatch);
-
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-
 export default store;
-
-
-
-
-
