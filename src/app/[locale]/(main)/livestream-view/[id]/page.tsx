@@ -418,7 +418,7 @@ export default function CustomerPageStreamScreen() {
           setChatMessage([]);
           setIsJoinRoom(false);
           alert("The livestream has ended");
-          router.push(`/customer`);
+          router.push(`/home`);
         });
 
         conn.on(
