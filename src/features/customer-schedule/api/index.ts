@@ -52,6 +52,14 @@ export const customerScheduleQueryApi = createApi({
         method: "GET",
       }),
     }),
+
+      // Get next schedule availability
+      getNextScheduleAvailability: builder.query({
+        query: (customerScheduleId) => ({
+          url: `/customer-schedules/${customerScheduleId}/next-schedule/availability`,
+          method: "GET",
+        }),
+      }),
   }),
 })
 
@@ -124,7 +132,7 @@ export const customerScheduleCommandApi = createApi({
     // Update customer schedule (from the image)
     updateCustomerSchedule: builder.mutation<IResCommon<CustomerSchedule>, UpdateCustomerScheduleRequest>({
       query: (data) => ({
-        url: `/api/v1/customer-schedules/customer/${data.customerScheduleId}`,
+        url: `customer-schedules/customer/${data.customerScheduleId}`,
         method: "PUT",
         body: {
           customerScheduleId: data.customerScheduleId,
@@ -144,6 +152,7 @@ export const {
   useLazyGetClinicSchedulesQuery,
   useGetScheduleByIdQuery,
   useLazyGetScheduleByIdQuery,
+  useLazyGetNextScheduleAvailabilityQuery
 } = customerScheduleQueryApi
 
 // Export hooks for commands
