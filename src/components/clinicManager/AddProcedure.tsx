@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -7,11 +7,14 @@ import { toast } from "react-toastify"
 import { X, Plus, Clock, DollarSign, Trash2, AlertCircle, FileText } from "lucide-react"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { useTheme } from "next-themes"
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
   ssr: false,
-  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 animate-pulse" />,
+  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />,
 })
 
 // Define error types based on the API response
@@ -29,11 +32,20 @@ interface ApiError {
   errors: ValidationError[] | null
 }
 
-const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clinicServiceId: string }) => {
+const AddProcedure = ({
+  onClose,
+  clinicServiceId,
+  onSuccess,
+}: {
+  onClose: () => void
+  clinicServiceId: string
+  onSuccess?: () => void
+}) => {
+  const { theme } = useTheme()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [stepIndex, setStepIndex] = useState(0)
-  const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0 }])
+  const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0, isDefault: true }])
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [editorLoaded, setEditorLoaded] = useState(false)
 
@@ -45,19 +57,37 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   }, [])
 
   const handleAddPriceType = () => {
-    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0 }]);
-  };
+    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0, isDefault: false }])
+  }
 
   const handleRemovePriceType = (index: number) => {
-    setPriceTypes(priceTypes.filter((_, i) => i !== index));
-  };
+    const updatedPriceTypes = priceTypes.filter((_, i) => i !== index)
+
+    // If we removed the default price type and there are other price types, set the first one as default
+    if (priceTypes[index].isDefault && updatedPriceTypes.length > 0) {
+      updatedPriceTypes[0].isDefault = true
+    }
+
+    setPriceTypes(updatedPriceTypes)
+  }
 
   const handlePriceTypeChange = (index: number, field: string, value: any) => {
-    const updatedPriceTypes = priceTypes.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
-    );
-    setPriceTypes(updatedPriceTypes);
-  };
+    const updatedPriceTypes = [...priceTypes]
+
+    if (field === "isDefault" && value === true) {
+      // If setting this one as default, unset others
+      updatedPriceTypes.forEach((pt, i) => {
+        pt.isDefault = i === index
+      })
+    } else {
+      updatedPriceTypes[index] = {
+        ...updatedPriceTypes[index],
+        [field]: field === "price" || field === "duration" ? Number(value) : value,
+      }
+    }
+
+    setPriceTypes(updatedPriceTypes)
+  }
 
   const handleDescriptionChange = (value: string) => {
     setDescription(value)
@@ -100,6 +130,11 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
       errors.PriceTypes = "Phải có ít nhất một loại giá!"
     }
 
+    // Ensure at least one price type is set as default
+    if (priceTypes.length > 0 && !priceTypes.some((pt) => pt.isDefault)) {
+      errors.DefaultPriceType = "Phải có ít nhất một loại giá được đặt làm mặc định!"
+    }
+
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors)
       // Show the first error as a toast
@@ -109,11 +144,11 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     }
 
     // Format the data according to the API requirements
-    const procedurePriceTypes = priceTypes.map((item, index) => ({
+    const procedurePriceTypes = priceTypes.map((item) => ({
       name: item.name,
       duration: item.duration,
       price: item.price,
-      isDefault: index === 0, // Set the first price type as default
+      isDefault: item.isDefault,
     }))
 
     // Create the request body as a JSON object
@@ -128,7 +163,16 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
     try {
       await addProcedure({ data: requestBody }).unwrap()
       toast.success("Thêm giai đoạn thành công!")
-      onClose()
+      // Reset form data instead of closing
+      setName("")
+      setDescription("")
+      setStepIndex(0)
+      setPriceTypes([{ name: "", duration: 0, price: 0, isDefault: true }])
+      setValidationErrors({})
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess()
+      }
     } catch (error: any) {
       console.error("Lỗi khi thêm Procedure:", error)
 
@@ -171,14 +215,14 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         toast.error("Thêm thất bại, vui lòng thử lại.")
       }
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]"
       >
         {/* Header with gradient - Fixed at top */}
         <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 p-5 rounded-t-xl top-0 z-10">
@@ -192,14 +236,16 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         </div>
 
         {/* Scrollable content */}
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 dark:bg-gray-800">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Tên Giai Đoạn</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tên Giai Đoạn</label>
               <input
                 type="text"
-                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all ${
-                  getFieldError("Name") ? "border-red-500 bg-red-50" : "border-gray-300"
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all ${
+                  getFieldError("Name")
+                    ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-800"
+                    : "border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 }`}
                 value={name}
                 onChange={(e) => {
@@ -216,7 +262,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 required
               />
               {getFieldError("Name") && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
                   {getFieldError("Name")}
                 </p>
@@ -225,7 +271,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
 
             {/* Description - Quill Editor */}
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 flex items-center gap-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
                 <FileText className="h-4 w-4" />
                 Mô Tả
               </label>
@@ -245,7 +291,7 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 )}
               </div>
               {getFieldError("Description") && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
                   {getFieldError("Description")}
                 </p>
@@ -256,12 +302,16 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
             <div className="clear-both h-16"></div>
 
             {/* Step Index */}
-            <div className="space-y-1.5 relative z-20 bg-white pt-4">
-              <label className="block text-sm font-medium text-gray-700 bg-white relative z-20">Thứ tự bước</label>
+            <div className="space-y-1.5 relative z-20 bg-white dark:bg-gray-800 pt-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 relative z-20">
+                Thứ tự bước
+              </label>
               <input
                 type="number"
-                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all relative z-20 ${
-                  getFieldError("StepIndex") ? "border-red-500 bg-red-50" : "border-gray-300"
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all relative z-20 ${
+                  getFieldError("StepIndex")
+                    ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-800"
+                    : "border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 }`}
                 value={stepIndex}
                 onChange={(e) => {
@@ -279,120 +329,124 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
                 required
               />
               {getFieldError("StepIndex") && (
-                <p className="mt-1 text-sm text-red-600 flex items-center relative z-20">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center relative z-20">
                   <AlertCircle size={14} className="mr-1" />
                   {getFieldError("StepIndex")}
                 </p>
               )}
             </div>
 
-            <div className="space-y-3 relative z-20 bg-white">
+            <div className="space-y-3 relative z-20 bg-white dark:bg-gray-800">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
-                  Loại Giá Dịch Vụ
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Loại Giá Dịch Vụ</label>
                 <button
                   type="button"
                   onClick={handleAddPriceType}
-                  className="flex items-center text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors"
+                  className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
                 >
                   <Plus size={16} className="mr-1" />
                   Thêm Loại Giá
                 </button>
               </div>
 
+              {getFieldError("DefaultPriceType") && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {getFieldError("DefaultPriceType")}
+                </p>
+              )}
+
               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
                 {priceTypes.map((item, index) => (
                   <div
                     key={index}
-                    className="flex flex-col sm:flex-row gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    className="flex flex-col sm:flex-row gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
                   >
                     <div className="flex-1 space-y-1">
-                      <label className="text-xs text-gray-500 flex items-center">
-                        <span className="w-2 h-2 rounded-full bg-purple-500 mr-1"></span>
+                      <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400 mr-1"></span>
                         Tên
                       </label>
                       <input
                         type="text"
                         placeholder="VD: Cơ bản"
-                        className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
+                        className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.name}
-                        onChange={(e) =>
-                          handlePriceTypeChange(index, "name", e.target.value)
-                        }
+                        onChange={(e) => handlePriceTypeChange(index, "name", e.target.value)}
                         required
                       />
                     </div>
 
                     <div className="flex-1 space-y-1">
-                      <label className="text-xs text-gray-500 flex items-center">
+                      <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <Clock size={12} className="mr-1" />
                         Thời gian (phút)
                       </label>
                       <input
                         type="number"
                         placeholder="30"
-                        className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
+                        className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.duration}
-                        onChange={(e) =>
-                          handlePriceTypeChange(
-                            index,
-                            "duration",
-                            Number(e.target.value)
-                          )
-                        }
+                        onChange={(e) => handlePriceTypeChange(index, "duration", e.target.value)}
                         min="0"
                         required
                       />
                     </div>
 
                     <div className="flex-1 space-y-1">
-                      <label className="text-xs text-gray-500 flex items-center">
+                      <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <DollarSign size={12} className="mr-1" />
                         Giá (VND)
                       </label>
                       <input
                         type="number"
                         placeholder="100,000"
-                        className="p-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all"
+                        className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.price}
-                        onChange={(e) =>
-                          handlePriceTypeChange(
-                            index,
-                            "price",
-                            Number(e.target.value)
-                          )
-                        }
+                        onChange={(e) => handlePriceTypeChange(index, "price", e.target.value)}
                         min="0"
                         required
                       />
                     </div>
 
-                    {index > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePriceType(index)}
-                        className="self-end sm:self-center p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-                        title="Xóa loại giá này"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Checkbox
+                          id={`default-${index}`}
+                          checked={item.isDefault}
+                          onCheckedChange={(checked) => handlePriceTypeChange(index, "isDefault", checked)}
+                        />
+                        <Label htmlFor={`default-${index}`} className="text-xs text-gray-500 dark:text-gray-400">
+                          Đặt làm mặc định
+                        </Label>
+                      </div>
+
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePriceType(index)}
+                          className="self-end sm:self-center p-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors"
+                          title="Xóa loại giá này"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
               {getFieldError("PriceTypes") && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
                   {getFieldError("PriceTypes")}
                 </p>
               )}
             </div>
-            <div className="flex justify-end space-x-3 pt-4 border-t">
+            <div className="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
               >
                 Hủy
               </button>
@@ -420,12 +474,48 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
         .ql-container.ql-snow {
           position: relative;
           z-index: 10;
+          background-color: white;
         }
         
         /* Fix for the Quill editor to not extend beyond its bounds */
         .ql-editor {
           max-height: 150px;
           overflow-y: auto;
+          background-color: white;
+          color: #1e293b;
+        }
+        
+        /* Dark mode styles for Quill */
+        [data-theme='dark'] .ql-toolbar.ql-snow,
+        [data-theme='dark'] .ql-container.ql-snow {
+          background-color: #1f2937;
+          border-color: #4b5563;
+        }
+        
+        [data-theme='dark'] .ql-editor {
+          background-color: #1f2937;
+          color: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-picker-label {
+          color: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-stroke {
+          stroke: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-fill {
+          fill: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-picker-options {
+          background-color: #1f2937;
+          border-color: #4b5563;
+        }
+        
+        [data-theme='dark'] .ql-picker-item {
+          color: #d1d5db;
         }
         
         /* Clear float to prevent overlap */
@@ -439,4 +529,4 @@ const AddProcedure = ({ onClose, clinicServiceId }: { onClose: () => void; clini
   )
 }
 
-export default AddProcedure;
+export default AddProcedure

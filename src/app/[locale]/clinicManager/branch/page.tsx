@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useState } from "react"
-import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
+import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import {
   useGetBranchesQuery,
@@ -179,8 +179,8 @@ const BranchesList: React.FC = () => {
     XLSX.writeFile(workbook, "Branches.xlsx")
   }
 
-  if (isLoading) return <div className="text-center text-gray-600">{t("loading")}</div>
-  if (error) return <div className="text-center text-red-600">{t("errorFetching")}</div>
+  if (isLoading) return <div className="text-center text-gray-600 dark:text-gray-400">{t("loading")}</div>
+  if (error) return <div className="text-center text-red-600 dark:text-red-400">{t("errorFetching")}</div>
 
   const filteredBranches =
     searchTerm && Array.isArray(branches)
@@ -193,10 +193,10 @@ const BranchesList: React.FC = () => {
       : branches
 
   return (
-    <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 shadow-xl rounded-xl">
+    <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-pink-950 shadow-xl rounded-xl">
       {/* Toast Container */}
       <ToastContainer />
-      <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 tracking-wide">{t("branchesList")}</h1>
+      <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 dark:text-gray-100 tracking-wide">{t("branchesList")}</h1>
 
       {/* Buttons and Search */}
       <div className="flex items-center justify-between mb-6">
@@ -217,7 +217,7 @@ const BranchesList: React.FC = () => {
           <input
             type="text"
             placeholder={t("searchByName")}
-            className="w-full max-w-md px-5 py-3 bg-white/80 border border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all duration-200 text-gray-700 placeholder-gray-400"
+            className="w-full max-w-md px-5 py-3 bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg shadow-inner focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-600 focus:border-transparent transition-all duration-200 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -235,48 +235,48 @@ const BranchesList: React.FC = () => {
       </div>
 
       {/* Table */}
-      <table className="table-auto w-full border-collapse border border-gray-200 rounded-lg overflow-hidden">
-        <thead className="bg-gradient-to-r from-purple-100 to-pink-100 text-gray-700">
+      <table className="table-auto w-full border-collapse border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <thead className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-gray-700 dark:text-gray-200">
           <tr>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 last:border-r-0">
               {t("branchName")}
             </th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 last:border-r-0">
               {t("email")}
             </th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 last:border-r-0">
               {t("address")}
             </th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 last:border-r-0">
               {t("operatingLicenseExpiryDate")}
             </th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 last:border-r-0">
               {t("status")}
             </th>
-            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 last:border-r-0">
+            <th className="p-4 text-left font-sans font-medium text-sm uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 last:border-r-0">
               {t("action")}
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {filteredBranches.map((branch: Branch, index: number) => (
             <React.Fragment key={branch.id}>
               <motion.tr
                 whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.7)" }}
                 className={`transition-colors duration-200 ${
-                  index % 2 === 0 ? "bg-white" : "bg-purple-50"
-                } border-b border-gray-200 last:border-b-0`}
+                  index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-purple-50 dark:bg-purple-900/10"
+                } border-b border-gray-200 dark:border-gray-700 last:border-b-0`}
               >
-                <td className="p-4 text-gray-800 font-serif border-r border-gray-200 last:border-r-0">
+                <td className="p-4 text-gray-800 dark:text-gray-200 font-serif border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   <div className="flex items-center">
                     <button
                       onClick={() => handleToggleExpandBranch(branch.id)}
-                      className="mr-2 p-1 rounded-full hover:bg-gray-100"
+                      className="mr-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       {expandedBranch === branch.id ? (
-                        <ChevronUp className="w-4 h-4 text-gray-600" />
+                        <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-gray-600" />
+                        <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       )}
                     </button>
                     <div className="max-w-[180px] truncate" title={branch.name || ""}>
@@ -284,17 +284,17 @@ const BranchesList: React.FC = () => {
                     </div>
                   </div>
                 </td>
-                <td className="p-4 text-gray-600 border-r border-gray-200 last:border-r-0">
+                <td className="p-4 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   <div className="max-w-[180px] truncate" title={branch.email || ""}>
                     {branch.email}
                   </div>
                 </td>
-                <td className="p-4 text-gray-600 border-r border-gray-200 last:border-r-0">
+                <td className="p-4 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   <div className="max-w-[200px] truncate" title={branch.address || ""}>
                     {branch.address}
                   </div>
                 </td>
-                <td className="p-4 text-gray-600 border-r border-gray-200 last:border-r-0">
+                <td className="p-4 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   {branch.operatingLicenseExpiryDate
                     ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -303,27 +303,27 @@ const BranchesList: React.FC = () => {
                       })
                     : "N/A"}
                 </td>
-                <td className="p-4 border-r border-gray-200 last:border-r-0">
+                <td className="p-4 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={branch.isActivated}
                       onChange={() => handleToggleStatus(branch.id)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 dark:focus:ring-purple-400"
                     />
-                    <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600" : "text-red-600"}`}>
+                    <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                       {branch.isActivated ? t("active") : t("inactive")}
                     </span>
                   </div>
                 </td>
-                <td className="p-4 relative border-r border-gray-200 last:border-r-0">
+                <td className="p-4 relative border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   <div className="relative">
                     <motion.button
                       whileHover={{ scale: 1.1 }}
-                      className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                       onClick={(e) => handleToggleMenu(branch.id, e)}
                     >
-                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                      <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </motion.button>
 
                     <AnimatePresence>
@@ -334,38 +334,38 @@ const BranchesList: React.FC = () => {
                           triggerRect={triggerRect}
                         >
                           <li
-                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                            className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleMenuAction("view", branch.id)
                             }}
                           >
-                            <span className="w-4 h-4 rounded-full bg-purple-100 flex items-center justify-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                            <span className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 dark:bg-purple-400"></span>
                             </span>
                             {t("viewBranchDetail")}
                           </li>
                           <li
-                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                            className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleMenuAction("edit", branch.id)
                             }}
                           >
-                            <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
                             </span>
                             {t("editBranch")}
                           </li>
                           <li
-                            className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                            className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleDeleteBranch(branch.id)
                             }}
                           >
-                            <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                             </span>
                             {t("deleteBranch")}
                           </li>
@@ -380,63 +380,63 @@ const BranchesList: React.FC = () => {
               {expandedBranch === branch.id && (
                 <tr>
                   <td colSpan={6} className="p-0">
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 border-t border-b border-gray-200">
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 border-t border-b border-gray-200 dark:border-gray-700">
                       <div className="flex items-center mb-3">
-                        <div className="w-1 h-6 bg-purple-500 rounded-full mr-2"></div>
-                        <h3 className="text-lg font-medium text-purple-700">Staff in {branch.name}</h3>
+                        <div className="w-1 h-6 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
+                        <h3 className="text-lg font-medium text-purple-700 dark:text-purple-300">Staff in {branch.name}</h3>
                       </div>
 
                       {getStaffForBranch(branch.id).length > 0 ? (
-                        <div className="border border-purple-200 rounded-lg overflow-hidden shadow-sm">
-                          <table className="w-full border-collapse border border-purple-200 rounded-lg overflow-hidden">
-                            <thead className="bg-gradient-to-r from-purple-100 to-pink-100">
+                        <div className="border border-purple-200 dark:border-purple-800 rounded-lg overflow-hidden shadow-sm">
+                          <table className="w-full border-collapse border border-purple-200 dark:border-purple-800 rounded-lg overflow-hidden">
+                            <thead className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
                               <tr>
-                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
                                   Name
                                 </th>
-                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
                                   Email
                                 </th>
-                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
                                   Phone
                                 </th>
-                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
                                   Role
                                 </th>
-                                <th className="p-3 text-left text-sm font-medium text-purple-800 border-b border-purple-200">
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
                                   Actions
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="bg-white">
+                            <tbody className="bg-white dark:bg-gray-900">
                               {getStaffForBranch(branch.id).map((staff: Staff, index: number) => (
                                 <tr
                                   key={staff.employeeId}
-                                  className={`hover:bg-purple-100 transition-colors ${
-                                    index % 2 === 0 ? "bg-white" : "bg-purple-50"
+                                  className={`hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors ${
+                                    index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-purple-50 dark:bg-purple-900/10"
                                   } ${
                                     index !== getStaffForBranch(branch.id).length - 1
-                                      ? "border-b border-purple-100"
+                                      ? "border-b border-purple-100 dark:border-purple-800"
                                       : ""
                                   }`}
                                 >
-                                  <td className="p-3 font-medium">
+                                  <td className="p-3 font-medium dark:text-gray-200">
                                     <div className="max-w-[150px] truncate" title={staff.fullName || ""}>
                                       {staff.fullName}
                                     </div>
                                   </td>
-                                  <td className="p-3 text-purple-600">
+                                  <td className="p-3 text-purple-600 dark:text-purple-400">
                                     <div className="max-w-[180px] truncate" title={staff.email || ""}>
                                       {staff.email}
                                     </div>
                                   </td>
-                                  <td className="p-3">
+                                  <td className="p-3 dark:text-gray-300">
                                     <div className="max-w-[120px] truncate" title={staff.phoneNumber || "-"}>
                                       {staff.phoneNumber || "-"}
                                     </div>
                                   </td>
                                   <td className="p-3">
-                                    <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded-full text-xs">
+                                    <span className="px-2 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs">
                                       {staff.role}
                                     </span>
                                   </td>
@@ -444,7 +444,7 @@ const BranchesList: React.FC = () => {
                                     {/* Replace the staff actions column with a direct edit button: */}
                                     <motion.button
                                       whileHover={{ scale: 1.1 }}
-                                      className="p-1 rounded-full hover:bg-purple-100 transition-colors flex items-center gap-1 text-purple-600"
+                                      className="p-1 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center gap-1 text-purple-600 dark:text-purple-400"
                                       onClick={() => handleEditStaff(staff.employeeId)}
                                     >
                                       <Edit className="w-4 h-4" />
@@ -457,11 +457,11 @@ const BranchesList: React.FC = () => {
                           </table>
                         </div>
                       ) : (
-                        <div className="py-6 text-center bg-white rounded-lg border border-purple-200 shadow-sm">
-                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-50 flex items-center justify-center">
-                            <UserIcon className="w-6 h-6 text-purple-300" />
+                        <div className="py-6 text-center bg-white dark:bg-gray-900 rounded-lg border border-purple-200 dark:border-purple-800 shadow-sm">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
+                            <UserIcon className="w-6 h-6 text-purple-300 dark:text-purple-400" />
                           </div>
-                          <p className="text-gray-500">No staff assigned to this branch</p>
+                          <p className="text-gray-500 dark:text-gray-400">No staff assigned to this branch</p>
                         </div>
                       )}
                     </div>
@@ -474,7 +474,6 @@ const BranchesList: React.FC = () => {
       </table>
 
       {/* Pagination */}
-
       <Pagination
         pageIndex={pageIndex}
         pageSize={pageSize}
@@ -590,4 +589,3 @@ const BranchesList: React.FC = () => {
 }
 
 export default BranchesList
-

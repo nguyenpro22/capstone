@@ -3,33 +3,7 @@
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-  Users,
-  Building2,
-  DollarSign,
-  Clock,
-  Search,
-  Calendar,
-  Bell,
-  ChevronDown,
-  Filter,
-  Download,
-  MoreHorizontal,
-  Eye,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Activity,
-  TrendingUp,
-  Layers,
-  Briefcase,
-  Settings,
-} from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Users, Building2, DollarSign, Clock, Search, Calendar, Bell, ChevronDown, Filter, Download, MoreHorizontal, Eye, CheckCircle2, AlertCircle, XCircle, BarChart3, PieChart, LineChart, Activity, TrendingUp, Layers, Briefcase, Settings } from 'lucide-react';
 
 // Dummy data for the chart
 const revenueData = [
@@ -109,7 +83,7 @@ const recentActivities = [
     user: "Wellness Spa Center",
     time: "2 hours ago",
     icon: Building2,
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400",
   },
   {
     id: 2,
@@ -117,7 +91,7 @@ const recentActivities = [
     user: "Beauty Clinic Spa",
     time: "4 hours ago",
     icon: DollarSign,
-    color: "bg-green-100 text-green-600",
+    color: "bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400",
   },
   {
     id: 3,
@@ -125,7 +99,7 @@ const recentActivities = [
     user: "John Smith",
     time: "6 hours ago",
     icon: Users,
-    color: "bg-purple-100 text-purple-600",
+    color: "bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400",
   },
   {
     id: 4,
@@ -133,7 +107,7 @@ const recentActivities = [
     user: "Dental Excellence",
     time: "8 hours ago",
     icon: Clock,
-    color: "bg-yellow-100 text-yellow-600",
+    color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/50 dark:text-yellow-400",
   },
 ];
 
@@ -155,21 +129,21 @@ export default function Dashboard() {
     switch (status) {
       case "accepted":
         return (
-          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
             <CheckCircle2 className="w-3 h-3 mr-1" />
             {t("accepted")}
           </span>
         );
       case "pending":
         return (
-          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
             <Clock className="w-3 h-3 mr-1" />
             {t("pending")}
           </span>
         );
       case "rejected":
         return (
-          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300">
             <XCircle className="w-3 h-3 mr-1" />
             {t("rejected")}
           </span>
@@ -189,12 +163,12 @@ export default function Dashboard() {
       <div className="mt-6 relative">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">{t("currentYear")}</span>
+            <div className="w-3 h-3 bg-purple-500 dark:bg-purple-400 rounded-full"></div>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{t("currentYear")}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-            <span className="text-sm text-gray-600">{t("previousYear")}</span>
+            <div className="w-3 h-3 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{t("previousYear")}</span>
           </div>
         </div>
 
@@ -210,11 +184,11 @@ export default function Dashboard() {
                 style={{ height: `${(item.revenue / maxRevenue) * 100}%` }}
               >
                 <div
-                  className="absolute bottom-0 w-full bg-purple-500 rounded-t-md"
+                  className="absolute bottom-0 w-full bg-purple-500 dark:bg-purple-400 rounded-t-md"
                   style={{ height: `${(item.revenue / maxRevenue) * 100}%` }}
                 ></div>
                 <div
-                  className="absolute bottom-0 w-full bg-gray-300 rounded-t-md"
+                  className="absolute bottom-0 w-full bg-gray-300 dark:bg-gray-600 rounded-t-md"
                   style={{
                     height: `${(item.lastYear / maxRevenue) * 100}%`,
                     width: "40%",
@@ -222,48 +196,48 @@ export default function Dashboard() {
                   }}
                 ></div>
               </div>
-              <span className="text-xs text-gray-500">{item.month}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{item.month}</span>
             </div>
           ))}
         </div>
 
         <div className="grid grid-cols-4 gap-4 mt-6">
-          <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
               {t("totalRevenue")}
             </h3>
-            <p className="text-2xl font-bold mt-1">$712,345</p>
-            <div className="flex items-center mt-2 text-green-500 text-sm">
+            <p className="text-2xl font-bold mt-1 dark:text-white">$712,345</p>
+            <div className="flex items-center mt-2 text-green-500 dark:text-green-400 text-sm">
               <ArrowUpRight className="w-4 h-4 mr-1" />
               <span>+12.5% {t("fromLastYear")}</span>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
               {t("averageRevenue")}
             </h3>
-            <p className="text-2xl font-bold mt-1">$59,362</p>
-            <div className="flex items-center mt-2 text-green-500 text-sm">
+            <p className="text-2xl font-bold mt-1 dark:text-white">$59,362</p>
+            <div className="flex items-center mt-2 text-green-500 dark:text-green-400 text-sm">
               <ArrowUpRight className="w-4 h-4 mr-1" />
               <span>+8.2% {t("fromLastYear")}</span>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
               {t("highestMonth")}
             </h3>
-            <p className="text-2xl font-bold mt-1">Dec ($89,000)</p>
-            <div className="flex items-center mt-2 text-green-500 text-sm">
+            <p className="text-2xl font-bold mt-1 dark:text-white">Dec ($89,000)</p>
+            <div className="flex items-center mt-2 text-green-500 dark:text-green-400 text-sm">
               <ArrowUpRight className="w-4 h-4 mr-1" />
               <span>+15.3% {t("fromLastYear")}</span>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
               {t("lowestMonth")}
             </h3>
-            <p className="text-2xl font-bold mt-1">Jan ($35,000)</p>
-            <div className="flex items-center mt-2 text-green-500 text-sm">
+            <p className="text-2xl font-bold mt-1 dark:text-white">Jan ($35,000)</p>
+            <div className="flex items-center mt-2 text-green-500 dark:text-green-400 text-sm">
               <ArrowUpRight className="w-4 h-4 mr-1" />
               <span>+5.1% {t("fromLastYear")}</span>
             </div>
@@ -274,12 +248,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {t("dashboard")}
             </h1>
 
@@ -288,12 +262,12 @@ export default function Dashboard() {
                 <input
                   type="text"
                   placeholder={t("search")}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
-                <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500 w-5 h-5" />
               </div>
 
-              <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 relative">
+              <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 relative">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
@@ -308,8 +282,8 @@ export default function Dashboard() {
                     className="object-cover"
                   />
                 </div>
-                <span className="text-sm font-medium text-gray-700">Admin</span>
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Admin</span>
+                <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </div>
             </div>
           </div>
@@ -320,24 +294,24 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-200 hover:shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 transition-all duration-200 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   {t("totalUsers")}
                 </p>
-                <h2 className="text-3xl font-bold mt-2 text-gray-900">
+                <h2 className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
                   40,689
                 </h2>
-                <div className="flex items-center mt-2 text-green-500">
+                <div className="flex items-center mt-2 text-green-500 dark:text-green-400">
                   <ArrowUpRight className="w-4 h-4 mr-1" />
                   <span className="text-sm font-medium">
                     +8.5% {t("fromYesterday")}
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Users className="w-6 h-6 text-blue-500" />
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <Users className="w-6 h-6 text-blue-500 dark:text-blue-400" />
               </div>
             </div>
 
@@ -347,7 +321,7 @@ export default function Dashboard() {
                 {[40, 35, 50, 45, 60, 55, 65, 70, 85].map((height, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-blue-100 rounded-sm"
+                    className="flex-1 bg-blue-100 dark:bg-blue-900/50 rounded-sm"
                     style={{ height: `${height}%` }}
                   ></div>
                 ))}
@@ -355,24 +329,24 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-200 hover:shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 transition-all duration-200 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   {t("totalClinics")}
                 </p>
-                <h2 className="text-3xl font-bold mt-2 text-gray-900">
+                <h2 className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
                   10,293
                 </h2>
-                <div className="flex items-center mt-2 text-green-500">
+                <div className="flex items-center mt-2 text-green-500 dark:text-green-400">
                   <ArrowUpRight className="w-4 h-4 mr-1" />
                   <span className="text-sm font-medium">
                     +1.3% {t("fromLastWeek")}
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <Building2 className="w-6 h-6 text-green-500" />
+              <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                <Building2 className="w-6 h-6 text-green-500 dark:text-green-400" />
               </div>
             </div>
 
@@ -382,7 +356,7 @@ export default function Dashboard() {
                 {[50, 55, 45, 60, 65, 60, 70, 75, 80].map((height, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-green-100 rounded-sm"
+                    className="flex-1 bg-green-100 dark:bg-green-900/50 rounded-sm"
                     style={{ height: `${height}%` }}
                   ></div>
                 ))}
@@ -390,24 +364,24 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-200 hover:shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 transition-all duration-200 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   {t("totalRevenue")}
                 </p>
-                <h2 className="text-3xl font-bold mt-2 text-gray-900">
+                <h2 className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
                   $89,000
                 </h2>
-                <div className="flex items-center mt-2 text-red-500">
+                <div className="flex items-center mt-2 text-red-500 dark:text-red-400">
                   <ArrowDownRight className="w-4 h-4 mr-1" />
                   <span className="text-sm font-medium">
                     -4.3% {t("fromYesterday")}
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-red-50 rounded-lg">
-                <DollarSign className="w-6 h-6 text-red-500" />
+              <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
+                <DollarSign className="w-6 h-6 text-red-500 dark:text-red-400" />
               </div>
             </div>
 
@@ -417,7 +391,7 @@ export default function Dashboard() {
                 {[80, 75, 85, 70, 65, 60, 55, 50, 45].map((height, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-red-100 rounded-sm"
+                    className="flex-1 bg-red-100 dark:bg-red-900/50 rounded-sm"
                     style={{ height: `${height}%` }}
                   ></div>
                 ))}
@@ -425,22 +399,22 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-200 hover:shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 transition-all duration-200 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   {t("totalPending")}
                 </p>
-                <h2 className="text-3xl font-bold mt-2 text-gray-900">2,040</h2>
-                <div className="flex items-center mt-2 text-green-500">
+                <h2 className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">2,040</h2>
+                <div className="flex items-center mt-2 text-green-500 dark:text-green-400">
                   <ArrowUpRight className="w-4 h-4 mr-1" />
                   <span className="text-sm font-medium">
                     +1.8% {t("fromYesterday")}
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-yellow-50 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-500" />
+              <div className="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
+                <Clock className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
               </div>
             </div>
 
@@ -450,7 +424,7 @@ export default function Dashboard() {
                 {[30, 40, 35, 45, 50, 55, 50, 60, 65].map((height, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-yellow-100 rounded-sm"
+                    className="flex-1 bg-yellow-100 dark:bg-yellow-900/50 rounded-sm"
                     style={{ height: `${height}%` }}
                   ></div>
                 ))}
@@ -462,19 +436,19 @@ export default function Dashboard() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Revenue Chart - Takes up 2/3 of the width on large screens */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t("revenueDetails")}
               </h2>
 
               <div className="flex flex-wrap items-center mt-4 sm:mt-0 gap-3">
-                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                   <button
                     className={`p-1.5 rounded-md text-xs font-medium ${
                       chartType === "bar"
-                        ? "bg-white shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-white dark:bg-gray-600 shadow-sm"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     }`}
                     onClick={() => setChartType("bar")}
                   >
@@ -483,8 +457,8 @@ export default function Dashboard() {
                   <button
                     className={`p-1.5 rounded-md text-xs font-medium ${
                       chartType === "line"
-                        ? "bg-white shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-white dark:bg-gray-600 shadow-sm"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     }`}
                     onClick={() => setChartType("line")}
                   >
@@ -493,8 +467,8 @@ export default function Dashboard() {
                   <button
                     className={`p-1.5 rounded-md text-xs font-medium ${
                       chartType === "pie"
-                        ? "bg-white shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-white dark:bg-gray-600 shadow-sm"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     }`}
                     onClick={() => setChartType("pie")}
                   >
@@ -503,7 +477,7 @@ export default function Dashboard() {
                 </div>
 
                 <select
-                  className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 p-2"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 p-2"
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
                 >
@@ -513,7 +487,7 @@ export default function Dashboard() {
                   <option value="year">{t("lastYear")}</option>
                 </select>
 
-                <button className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">
+                <button className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                   <Download className="w-4 h-4" />
                 </button>
               </div>
@@ -523,12 +497,12 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Activity - Takes up 1/3 of the width on large screens */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t("recentActivity")}
               </h2>
-              <button className="text-sm text-purple-600 hover:text-purple-800 font-medium">
+              <button className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium">
                 {t("viewAll")}
               </button>
             </div>
@@ -540,11 +514,11 @@ export default function Dashboard() {
                     <activity.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-white">
                       {activity.action}
                     </p>
-                    <p className="text-sm text-gray-500">{activity.user}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{activity.user}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                       {activity.time}
                     </p>
                   </div>
@@ -552,32 +526,32 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">
                 {t("quickActions")}
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Users className="w-5 h-5 text-purple-600 mb-2" />
-                  <span className="text-xs text-gray-700">
+                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <Users className="w-5 h-5 text-purple-600 dark:text-purple-400 mb-2" />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">
                     {t("manageUsers")}
                   </span>
                 </button>
-                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Building2 className="w-5 h-5 text-green-600 mb-2" />
-                  <span className="text-xs text-gray-700">
+                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <Building2 className="w-5 h-5 text-green-600 dark:text-green-400 mb-2" />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">
                     {t("manageClinics")}
                   </span>
                 </button>
-                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Activity className="w-5 h-5 text-blue-600 mb-2" />
-                  <span className="text-xs text-gray-700">
+                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400 mb-2" />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">
                     {t("viewReports")}
                   </span>
                 </button>
-                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Settings className="w-5 h-5 text-gray-600 mb-2" />
-                  <span className="text-xs text-gray-700">{t("settings")}</span>
+                <button className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400 mb-2" />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">{t("settings")}</span>
                 </button>
               </div>
             </div>
@@ -585,10 +559,10 @@ export default function Dashboard() {
         </div>
 
         {/* Approval History */}
-        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t("approvalHistory")}
               </h2>
 
@@ -597,12 +571,12 @@ export default function Dashboard() {
                   <input
                     type="text"
                     placeholder={t("searchClinics")}
-                    className="pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
-                  <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500 w-4 h-4" />
                 </div>
 
-                <button className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center">
+                <button className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center">
                   <Filter className="w-4 h-4 mr-1" />
                   <span className="text-sm">{t("filter")}</span>
                 </button>
@@ -613,7 +587,7 @@ export default function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   <th className="px-6 py-3 font-medium">{t("clinicName")}</th>
                   <th className="px-6 py-3 font-medium">{t("location")}</th>
                   <th className="px-6 py-3 font-medium">{t("dateTime")}</th>
@@ -623,11 +597,11 @@ export default function Dashboard() {
                   <th className="px-6 py-3 font-medium">{t("actions")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {currentItems.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center">
@@ -641,25 +615,25 @@ export default function Dashboard() {
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 dark:text-white">
                             {item.clinicName}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
                             ID: #{item.id}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {item.location}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {item.dateTime}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {item.piece}
                     </td>
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
                       ${item.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
@@ -667,10 +641,10 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        <button className="p-1 rounded-full hover:bg-gray-100 text-blue-600">
+                        <button className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="p-1 rounded-full hover:bg-gray-100 text-gray-600">
+                        <button className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
                       </div>
@@ -682,8 +656,8 @@ export default function Dashboard() {
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <div className="text-sm text-gray-500">
+          <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
               {Math.min(indexOfLastItem, approvalHistory.length)} {t("of")}{" "}
               {approvalHistory.length} {t("entries")}
@@ -692,8 +666,8 @@ export default function Dashboard() {
               <button
                 className={`p-2 rounded-md border ${
                   currentPage === 1
-                    ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
@@ -707,7 +681,7 @@ export default function Dashboard() {
                     className={`w-8 h-8 rounded-md ${
                       currentPage === page
                         ? "bg-purple-600 text-white"
-                        : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                     onClick={() => setCurrentPage(page)}
                   >
@@ -718,8 +692,8 @@ export default function Dashboard() {
               <button
                 className={`p-2 rounded-md border ${
                   currentPage === totalPages
-                    ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
@@ -734,58 +708,58 @@ export default function Dashboard() {
 
         {/* Performance Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-gray-900">{t("userGrowth")}</h3>
-              <TrendingUp className="w-5 h-5 text-green-500" />
+              <h3 className="font-medium text-gray-900 dark:text-white">{t("userGrowth")}</h3>
+              <TrendingUp className="w-5 h-5 text-green-500 dark:text-green-400" />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold text-gray-900">+24.5%</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">+24.5%</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {t("comparedToLastMonth")}
                 </p>
               </div>
-              <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center">
-                <Users className="w-8 h-8 text-green-500" />
+              <div className="w-16 h-16 bg-green-50 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                <Users className="w-8 h-8 text-green-500 dark:text-green-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-gray-900">
+              <h3 className="font-medium text-gray-900 dark:text-white">
                 {t("clinicRegistrations")}
               </h3>
-              <Layers className="w-5 h-5 text-blue-500" />
+              <Layers className="w-5 h-5 text-blue-500 dark:text-blue-400" />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold text-gray-900">+12.3%</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">+12.3%</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {t("comparedToLastMonth")}
                 </p>
               </div>
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-blue-500" />
+              <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-blue-500 dark:text-blue-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-gray-900">{t("approvalRate")}</h3>
-              <Briefcase className="w-5 h-5 text-purple-500" />
+              <h3 className="font-medium text-gray-900 dark:text-white">{t("approvalRate")}</h3>
+              <Briefcase className="w-5 h-5 text-purple-500 dark:text-purple-400" />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold text-gray-900">92.7%</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">92.7%</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {t("comparedToLastMonth")}
                 </p>
               </div>
-              <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-purple-500" />
+              <div className="w-16 h-16 bg-purple-50 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-purple-500 dark:text-purple-400" />
               </div>
             </div>
           </div>

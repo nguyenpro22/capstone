@@ -16,14 +16,14 @@ import {
   User,
   Home,
   Layers,
-  ChevronRight,
   ShoppingBag,
   Users,
   Stethoscope,
   UserCircle,
   Calendar,
   Clock,
-  Menu,
+  ChevronLeft,
+  ChevronRightIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -35,29 +35,34 @@ import {
   SidebarMenuButton,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 
-// Import motion from framer-motion only on the client side
+import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
 type SidebarProps = {
   role: "systemAdmin" | "user" | "systemStaff" | "clinicManager" | "clinicStaff"
   onClose?: () => void
+  isSidebarOpen: boolean
+  toggleSidebar: () => void
 }
 
 const menuItems = {
   systemAdmin: [
-    {
-      label: "Dashboard",
-      path: "/systemAdmin/dashboard",
-      icon: LayoutDashboard,
-    },
+    { label: "Dashboard", path: "/systemAdmin/dashboard", icon: LayoutDashboard },
     { label: "Voucher", path: "/systemAdmin/voucher", icon: Ticket },
     { label: "Package", path: "/systemAdmin/package", icon: Archive },
-    {
-      label: "Category Services",
-      path: "/systemAdmin/category-service",
-      icon: Layers,
-    },
+    { label: "Category Services", path: "/systemAdmin/category-service", icon: Layers },
     { label: "Settings", path: "/systemAdmin/settings", icon: Settings },
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
@@ -69,33 +74,13 @@ const menuItems = {
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
   clinicManager: [
-    {
-      label: "Dashboard",
-      path: "/clinicManager/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Branch Management",
-      path: "/clinicManager/branch",
-      icon: Building2,
-    },
-    {
-      label: "Staff Management",
-      path: "/clinicManager/staff",
-      icon: Users,
-    },
-    {
-      label: "Doctor Management",
-      path: "/clinicManager/doctor",
-      icon: Stethoscope,
-    },
+    { label: "Dashboard", path: "/clinicManager/dashboard", icon: LayoutDashboard },
+    { label: "Branch Management", path: "/clinicManager/branch", icon: Building2 },
+    { label: "Staff Management", path: "/clinicManager/staff", icon: Users },
+    { label: "Doctor Management", path: "/clinicManager/doctor", icon: Stethoscope },
     { label: "Service", path: "/clinicManager/service", icon: Ticket },
     { label: "Order", path: "/clinicManager/order", icon: ClipboardList },
-    {
-      label: "Buy Package",
-      path: "/clinicManager/buy-package",
-      icon: ShoppingBag,
-    },
+    { label: "Buy Package", path: "/clinicManager/buy-package", icon: ShoppingBag },
     { label: "Inbox", path: "/clinicManager/inbox", icon: Inbox },
     { label: "Live Stream", path: "/clinicManager/live-stream", icon: Video },
     { label: "Profile", path: "/clinicManager/profile", icon: UserCircle },
@@ -103,26 +88,10 @@ const menuItems = {
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
   clinicStaff: [
-    {
-      label: "Dashboard",
-      path: "/clinicStaff/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Customer Schedules",
-      path: "/clinicStaff/customer-schedule",
-      icon: Calendar,
-    },
-    {
-      label: "Appointments",
-      path: "/clinicStaff/appointment",
-      icon: Clock,
-    },
-    {
-      label: "Branch Doctors",
-      path: "/clinicStaff/doctor",
-      icon: Stethoscope,
-    },
+    { label: "Dashboard", path: "/clinicStaff/dashboard", icon: LayoutDashboard },
+    { label: "Customer Schedules", path: "/clinicStaff/customer-schedule", icon: Calendar },
+    { label: "Appointments", path: "/clinicStaff/appointment", icon: Clock },
+    { label: "Branch Doctors", path: "/clinicStaff/doctor", icon: Stethoscope },
     { label: "Service", path: "/clinicStaff/service", icon: Ticket },
     { label: "Order", path: "/clinicStaff/order", icon: ClipboardList },
     { label: "Inbox", path: "/clinicStaff/inbox", icon: Inbox },
@@ -139,56 +108,46 @@ const menuItems = {
   ],
 }
 
-// Create a client-only active indicator component
-const ActiveIndicator = ({ className }: { className: string }) => {
-  return (
-    <motion.div layoutId="active-indicator" className={className}>
-      <ChevronRight className="size-3 md:size-4" />
-    </motion.div>
-  )
-}
+const ActiveIndicator = ({ className }: { className: string }) => (
+  <motion.div layoutId="active-indicator" className={className}>
+    <ChevronRightIcon className="size-3 md:size-4" />
+  </motion.div>
+)
 
-export default function AppSidebar({ role, onClose }: SidebarProps) {
+export default function AppSidebar({ role, onClose, isSidebarOpen, toggleSidebar }: SidebarProps) {
   const pathname = usePathname()
-  // Sử dụng useState với lazy initialization để tránh hydration mismatch
+  const { theme, setTheme } = useTheme()
+  const { handleLogout } = useAuth()
+
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [normalizedPathname, setNormalizedPathname] = useState("")
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false)
 
-  // Chỉ xử lý client-side logic sau khi component đã mount
   useEffect(() => {
-    // Normalize pathname
     const normalizedPath = pathname?.replace(/^\/(en|vi)/, "") || ""
     setNormalizedPathname(normalizedPath)
-
-    // Set mounted state
     setMounted(true)
 
-    // Check screen size
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768)
     }
 
-    // Initial check
     checkScreenSize()
-
-    // Add event listener for window resize
     window.addEventListener("resize", checkScreenSize)
-
-    // Cleanup
     return () => window.removeEventListener("resize", checkScreenSize)
   }, [pathname])
 
-  // Không render gì cho đến khi component đã mount ở client
-  if (!mounted) {
-    return null
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
   }
 
+  if (!mounted) return null
+
   return (
-    
     <SidebarProvider defaultOpen={!isMobile}>
-      <Sidebar className="border-r" variant="default">
-        <SidebarHeader className="border-b px-3 md:px-6 py-2 md:py-3 flex items-center justify-between">
+      <Sidebar className="border-r dark:border-gray-800 dark:bg-gray-950 h-screen flex flex-col" variant="default">
+        <SidebarHeader className="border-b dark:border-gray-800 px-3 md:px-6 py-2 md:py-3 flex items-center justify-between">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
@@ -197,33 +156,52 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
                     <Layers className="size-4 md:size-5" />
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-serif text-base md:text-lg tracking-wide">Beautify</span>
-                    <span className="text-[10px] md:text-xs text-muted-foreground">Admin Portal</span>
+                    <span className="font-serif text-base md:text-lg tracking-wide dark:text-white">Beautify</span>
+                    <span className="text-[10px] md:text-xs text-muted-foreground dark:text-gray-400">
+                      Admin Portal
+                    </span>
                   </div>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-          {isMobile && (
-            <button
-              onClick={() => {
-                const triggerElement = document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement | null
-                if (triggerElement) triggerElement.click()
-              }}
-              className="md:hidden p-1.5 rounded-md hover:bg-gray-100"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
+
+          {/* Toggle sidebar button */}
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+          >
+            {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRightIcon className="h-5 w-5" />}
+          </button>
         </SidebarHeader>
 
-        <SidebarContent className="p-2 md:p-4">
+        <SidebarContent className="p-2 md:p-4 flex-grow overflow-y-auto">
           <SidebarMenu>
             {menuItems[role].map((item) => {
               const Icon = item.icon
               const isActive =
                 normalizedPathname === item.path.replace(/^\/(en|vi)/, "") ||
                 normalizedPathname.startsWith(item.path.replace(/^\/(en|vi)/, "") + "/")
+
+              if (item.path === "/logout") {
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      isActive={false}
+                      onClick={() => setOpenLogoutDialog(true)}
+                      className="group relative overflow-hidden rounded-lg transition-colors hover:bg-gradient-to-r hover:from-pink-500/5 hover:to-purple-500/5 dark:hover:from-pink-500/10 dark:hover:to-purple-500/10"
+                    >
+                      <div className="flex items-center gap-2 md:gap-3 py-1.5 md:py-2">
+                        <LogOut className="size-4 md:size-5 text-muted-foreground group-hover:text-pink-500 dark:text-gray-400 dark:group-hover:text-pink-400" />
+                        <span className="text-sm md:text-base font-medium tracking-wide text-foreground/70 group-hover:text-pink-500 dark:text-gray-300 dark:group-hover:text-pink-400">
+                          {item.label}
+                        </span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              }
 
               return (
                 <SidebarMenuItem key={item.path}>
@@ -232,21 +210,26 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
                     isActive={isActive}
                     className={cn(
                       "group relative overflow-hidden rounded-lg transition-colors",
-                      isActive && "bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-pink-600",
-                      !isActive && "hover:bg-gradient-to-r hover:from-pink-500/5 hover:to-purple-500/5",
+                      isActive
+                        ? "bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-pink-600 dark:from-pink-500/20 dark:to-purple-500/20 dark:text-pink-400"
+                        : "hover:bg-gradient-to-r hover:from-pink-500/5 hover:to-purple-500/5 dark:hover:from-pink-500/10 dark:hover:to-purple-500/10",
                     )}
                   >
                     <Link href={item.path} className="flex items-center gap-2 md:gap-3 py-1.5 md:py-2">
                       <Icon
                         className={cn(
-                          "size-4 md:size-5 transition-colors",
-                          isActive ? "text-pink-600" : "text-muted-foreground group-hover:text-pink-500",
+                          "size-4 md:size-5",
+                          isActive
+                            ? "text-pink-600 dark:text-pink-400"
+                            : "text-muted-foreground group-hover:text-pink-500 dark:text-gray-400 dark:group-hover:text-pink-400",
                         )}
                       />
                       <span
                         className={cn(
-                          "text-sm md:text-base font-medium tracking-wide transition-colors",
-                          isActive ? "text-pink-600" : "text-foreground/70 group-hover:text-pink-500",
+                          "text-sm md:text-base font-medium tracking-wide",
+                          isActive
+                            ? "text-pink-600 dark:text-pink-400"
+                            : "text-foreground/70 group-hover:text-pink-500 dark:text-gray-300 dark:group-hover:text-pink-400",
                         )}
                       >
                         {item.label}
@@ -262,7 +245,29 @@ export default function AppSidebar({ role, onClose }: SidebarProps) {
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>
+
+      {/* Confirm Logout Dialog */}
+      <AlertDialog open={openLogoutDialog} onOpenChange={setOpenLogoutDialog}>
+        <AlertDialogContent className="dark:bg-gray-900 dark:border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="dark:text-white">Are you sure you want to logout?</AlertDialogTitle>
+            <AlertDialogDescription className="dark:text-gray-400">
+              This will end your session and log you out of the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   )
 }
-
