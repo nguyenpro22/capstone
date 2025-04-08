@@ -29,6 +29,7 @@ import Image from "next/image"
 import ViewServiceModal from "@/components/clinicManager/service/view-service-modal"
 import { MenuPortal } from "@/components/ui/menu-portal"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import ConfirmationDialog from "@/components/ui/confirmation-dialog"
 
 export default function ServicePage() {
   const t = useTranslations("service") // Sử dụng namespace "dashboard"
@@ -37,11 +38,10 @@ export default function ServicePage() {
   const [editService, setEditService] = useState<any | null>(null)
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null)
   const [modalType, setModalType] = useState<"promotion" | "procedure" | null>(null)
-  // const [menuPosition, setMenuPosition] = useState({
-  //   top: 0,
-  //   left: 0,
-  //   transformOrigin: "top left",
-  // })
+
+  // State for confirmation dialog
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null)
 
   const [showForm, setShowForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -67,7 +67,7 @@ export default function ServicePage() {
 
   console.log("API Response:", data)
   const [fetchServiceById] = useLazyGetServiceByIdQuery()
-  const [deleteService] = useDeleteServiceMutation()
+  const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation()
 
   const services: Service[] = data?.value?.items || []
   const categories = categoriesData?.value || []
@@ -79,11 +79,6 @@ export default function ServicePage() {
   const hasPreviousPage = data?.value?.hasPreviousPage
 
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
-  // const [selectedService, setSelectedService] = useState<any | null>(null);
-
-  // const handleToggleMenu = (serviceId: string) => {
-  //   setMenuOpen(menuOpen === serviceId ? null : serviceId);
-  // };
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -152,19 +147,22 @@ export default function ServicePage() {
       setModalType("procedure") // 🆕 Chỉ mở form AddProcedure
     }
 
+    if (action === "delete") {
+      setServiceToDelete(pkgId)
+      setConfirmDialogOpen(true)
+    }
+
     setMenuOpen(null)
   }
 
-  const handleDeleteService = async (ServiceId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
-      try {
-        await deleteService({ id: ServiceId }).unwrap()
-        toast.success("Gói đã được xóa thành công!")
-        delayedRefetch()
-      } catch (error) {
-        console.error(error)
-        toast.error("Xóa gói thất bại!")
-      }
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      await deleteService({ id: serviceId }).unwrap()
+      toast.success("Gói đã được xóa thành công!")
+      delayedRefetch()
+    } catch (error) {
+      console.error(error)
+      toast.error("Xóa gói thất bại!")
     }
   }
 
@@ -187,10 +185,10 @@ export default function ServicePage() {
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
 
   return (
-    <div className="p-6" onClick={handleCloseMenu}>
+    <div className="p-6 dark:bg-gray-950" onClick={handleCloseMenu}>
       <ToastContainer />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-300 dark:to-pink-300">
           {t("servicesList")}
         </h1>
 
@@ -199,13 +197,13 @@ export default function ServicePage() {
             <input
               type="text"
               placeholder={`${t("searchByName")}...`}
-              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 transition-all dark:bg-gray-800 dark:text-white"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
               }}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
@@ -243,32 +241,51 @@ export default function ServicePage() {
         </div>
       </div>
 
-      <div className="bg-white p-6 shadow-md rounded-lg relative">
+      <div className="bg-white dark:bg-gray-900 p-6 shadow-md dark:shadow-gray-900/20 rounded-lg relative">
         {services.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-purple-50 to-pink-50 text-left">
-                  <th className="p-3 border border-gray-200 rounded-tl-lg">{t("no")}</th>
-                  <th className="p-3 border border-gray-200">{t("serviceName")}</th>
-                  <th className="p-3 border border-gray-200">{t("price")}</th>
-                  <th className="p-3 border border-gray-200">{t("coverImage")}</th>
-                  <th className="p-3 border border-gray-200">{t("category")}</th>
-                  <th className="p-3 border border-gray-200">{t("percentDiscount")}</th>
-                  <th className="p-3 border border-gray-200 rounded-tr-lg">{t("action")}</th>
+                <tr className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 text-left">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tl-lg dark:text-gray-100">
+                    {t("no")}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-100">
+                    {t("serviceName")}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-100">{t("price")}</th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-100">
+                    {t("coverImage")}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-100">
+                    {t("category")}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-100">
+                    {t("percentDiscount")}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tr-lg dark:text-gray-100">
+                    {t("action")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {services.map((service: Service, index: number) => (
-                  <tr key={service.id} className="border-t hover:bg-gray-50 transition-colors duration-150">
-                    <td className="p-3 border border-gray-200">{(pageIndex - 1) * pageSize + index + 1}</td>
-                    <td className="p-3 border border-gray-200 font-medium">{service.name}</td>
-                    <td className="p-3 border border-gray-200">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 font-medium">
+                  <tr
+                    key={service.id}
+                    className="border-t hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150"
+                  >
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                      {(pageIndex - 1) * pageSize + index + 1}
+                    </td>
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 font-medium dark:text-gray-100">
+                      {service.name}
+                    </td>
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-300 dark:to-purple-300 font-medium">
                         {service.minPrice.toLocaleString()} - {service.maxPrice.toLocaleString()} VND
                       </span>
                     </td>
-                    <td className="p-3 border border-gray-200">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
                       <div className="flex items-center space-x-2">
                         {service.coverImage && service.coverImage.length > 0 && (
                           <div className="relative w-12 h-12 rounded-md overflow-hidden shadow-sm">
@@ -283,7 +300,7 @@ export default function ServicePage() {
                         )}
                         {service.coverImage && service.coverImage.length > 1 && (
                           <button
-                            className="text-purple-500 hover:text-purple-700 text-sm font-medium transition-colors"
+                            className="text-purple-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200 text-sm font-medium transition-colors"
                             onClick={() => handleOpenModal(service.coverImage || [])}
                           >
                             +{service.coverImage.length - 1} more
@@ -291,28 +308,28 @@ export default function ServicePage() {
                         )}
                       </div>
                     </td>
-                    <td className="p-3 border border-gray-200">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200">
                         {service.category.name}
                       </span>
                     </td>
-                    <td className="p-3 border border-gray-200">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
                       <div className="flex items-center space-x-2">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-200">
                           {service.discountPercent}%
                         </span>
 
                         <button
                           onClick={() => openPromotionForm(service.id)}
-                          className="p-1.5 rounded-full hover:bg-purple-50 text-purple-500 transition-colors"
+                          className="p-1.5 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500 dark:text-purple-300 transition-colors"
                         >
                           <MdEditSquare className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
-                    <td className="p-3 border border-gray-200 relative">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 relative">
                       <button
-                        className="p-2 rounded-full hover:bg-purple-50 transition-colors"
+                        className="p-2 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation()
                           e.nativeEvent.stopImmediatePropagation()
@@ -321,7 +338,7 @@ export default function ServicePage() {
                           setMenuOpen(menuOpen === service.id ? null : service.id)
                         }}
                       >
-                        <MoreVertical className="w-5 h-5 text-gray-600" />
+                        <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                       </button>
 
                       <AnimatePresence>
@@ -332,50 +349,50 @@ export default function ServicePage() {
                             triggerRect={triggerRect}
                           >
                             <li
-                              className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-100"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleMenuAction("view", service.id)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-purple-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 dark:bg-purple-300"></span>
                               </span>
                               {t("viewServiceDetail")}
                             </li>
                             <li
-                              className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-100"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleMenuAction("edit", service.id)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-300"></span>
                               </span>
                               {t("editService")}
                             </li>
                             <li
-                              className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-100"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleMenuAction("addProcedure", service.id)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-300"></span>
                               </span>
                               {t("addProcedure")}
                             </li>
                             <li
-                              className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300 cursor-pointer flex items-center gap-2 transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                handleDeleteService(service?.id)
+                                handleMenuAction("delete", service.id)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-300"></span>
                               </span>
                               {t("deleteService")}
                             </li>
@@ -390,13 +407,13 @@ export default function ServicePage() {
           </div>
         ) : (
           <div className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 flex items-center justify-center">
-              <ImageIcon className="w-8 h-8 text-purple-300" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
+              <ImageIcon className="w-8 h-8 text-purple-300 dark:text-purple-300" />
             </div>
-            <p className="text-gray-500">No Services available.</p>
+            <p className="text-gray-500 dark:text-gray-300">No Services available.</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 transition-colors"
+              className="mt-4 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
             >
               Add your first service
             </button>
@@ -445,7 +462,11 @@ export default function ServicePage() {
 
       {modalType === "procedure" && selectedServiceId && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <AddProcedure onClose={() => setSelectedServiceId(null)} clinicServiceId={selectedServiceId} />
+          <AddProcedure
+            onClose={() => setSelectedServiceId(null)}
+            clinicServiceId={selectedServiceId}
+            onSuccess={() => delayedRefetch()}
+          />
         </div>
       )}
 
@@ -486,7 +507,26 @@ export default function ServicePage() {
           refetchService={refetchServiceData}
         />
       )}
+
+      {/* Use the reusable confirmation dialog component */}
+      <ConfirmationDialog
+        isOpen={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={() => {
+          if (serviceToDelete) {
+            handleDeleteService(serviceToDelete)
+            setConfirmDialogOpen(false)
+          }
+        }}
+        title={t("confirmDelete")}
+        message={
+          t("deleteServiceConfirmation") || "Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác."
+        }
+        confirmButtonText={t("deleteService")}
+        cancelButtonText={t("cancel")}
+        isLoading={isDeleting}
+        type="delete"
+      />
     </div>
   )
 }
-

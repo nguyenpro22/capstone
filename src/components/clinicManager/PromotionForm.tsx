@@ -7,6 +7,7 @@ import Image from "next/image"
 import { toast } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, Percent, X, Upload, AlertCircle } from "lucide-react"
+import { useTheme } from "next-themes"
 
 // Validation error interfaces
 interface ValidationErrorItem {
@@ -39,6 +40,7 @@ interface FieldErrors {
 }
 
 export default function PromotionForm({ serviceId, onClose, onSuccess }: PromotionFormProps) {
+  const { theme } = useTheme()
   const startRef = useRef<HTMLInputElement>(null)
   const endRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState("")
@@ -64,8 +66,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
       }))
       toast.error("Ngày kết thúc phải sau ngày bắt đầu!", {
         position: "top-right",
-        theme: "light",
-        className: "bg-white border border-red-100 text-red-600",
+        theme: theme === "dark" ? "dark" : "light",
+        className:
+          theme === "dark"
+            ? "bg-gray-800 border border-red-800 text-red-400"
+            : "bg-white border border-red-100 text-red-600",
       })
       return
     }
@@ -82,8 +87,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
       await createPromotion({ data: formData }).unwrap()
       toast.success("Khuyến mãi đã được tạo thành công!", {
         position: "top-right",
-        theme: "light",
-        className: "bg-white border border-green-100 text-green-600",
+        theme: theme === "dark" ? "dark" : "light",
+        className:
+          theme === "dark"
+            ? "bg-gray-800 border border-green-800 text-green-400"
+            : "bg-white border border-green-100 text-green-600",
       })
       resetForm()
       onClose()
@@ -131,8 +139,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
             // Also show as toast for visibility
             toast.error(errorMsg, {
               position: "top-right",
-              theme: "light",
-              className: "bg-white border border-red-100 text-red-600",
+              theme: theme === "dark" ? "dark" : "light",
+              className:
+                theme === "dark"
+                  ? "bg-gray-800 border border-red-800 text-red-400"
+                  : "bg-white border border-red-100 text-red-600",
             })
           })
 
@@ -146,8 +157,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
           setFieldErrors({ general: err.data.detail })
           toast.error(err.data.detail, {
             position: "top-right",
-            theme: "light",
-            className: "bg-white border border-red-100 text-red-600",
+            theme: theme === "dark" ? "dark" : "light",
+            className:
+              theme === "dark"
+                ? "bg-gray-800 border border-red-800 text-red-400"
+                : "bg-white border border-red-100 text-red-600",
           })
           return
         }
@@ -158,8 +172,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
         setFieldErrors({ general: err.message })
         toast.error(err.message, {
           position: "top-right",
-          theme: "light",
-          className: "bg-white border border-red-100 text-red-600",
+          theme: theme === "dark" ? "dark" : "light",
+          className:
+            theme === "dark"
+              ? "bg-gray-800 border border-red-800 text-red-400"
+              : "bg-white border border-red-100 text-red-600",
         })
         return
       }
@@ -168,8 +185,11 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
       setFieldErrors({ general: "Tạo khuyến mãi thất bại, vui lòng thử lại!" })
       toast.error("Tạo khuyến mãi thất bại, vui lòng thử lại!", {
         position: "top-right",
-        theme: "light",
-        className: "bg-white border border-red-100 text-red-600",
+        theme: theme === "dark" ? "dark" : "light",
+        className:
+          theme === "dark"
+            ? "bg-gray-800 border border-red-800 text-red-400"
+            : "bg-white border border-red-100 text-red-600",
       })
     }
   }
@@ -217,7 +237,7 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
     if (!message) return null
 
     return (
-      <div className="flex items-center gap-1.5 mt-1.5 text-red-500 text-sm">
+      <div className="flex items-center gap-1.5 mt-1.5 text-red-500 dark:text-red-400 text-sm">
         <AlertCircle className="w-3.5 h-3.5" />
         <span>{message}</span>
       </div>
@@ -235,18 +255,21 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        className="relative w-full max-w-xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/60 overflow-hidden max-h-[90vh] flex flex-col"
       >
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 dark:from-purple-900/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
 
         {/* Header - Fixed at top */}
         <div className="p-6 pb-0">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl tracking-wide text-gray-800">Tạo Khuyến Mãi Mới</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <X className="w-5 h-5 text-gray-500" />
+            <h2 className="text-2xl tracking-wide text-gray-800 dark:text-gray-100">Tạo Khuyến Mãi Mới</h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
         </div>
@@ -256,13 +279,16 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Promotion Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Tên Khuyến Mãi</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tên Khuyến Mãi</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.name ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
-                         focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  fieldErrors.name
+                    ? "border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-600 focus:ring-red-200 dark:focus:ring-red-900"
+                    : "border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-600 focus:ring-purple-200 dark:focus:ring-purple-900"
+                } focus:ring focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100`}
                 required
               />
               <FieldError message={fieldErrors.name} />
@@ -270,7 +296,7 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
 
             {/* Discount Percentage */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Phần Trăm Giảm Giá</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Phần Trăm Giảm Giá</label>
               <div className="relative">
                 <input
                   type="number"
@@ -278,26 +304,29 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                   max="100"
                   value={discountPercent}
                   onChange={(e) => setDiscountPercent(Math.max(0, Number(e.target.value)))}
-                  className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.discountPercent ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
-                           focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    fieldErrors.discountPercent
+                      ? "border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-600 focus:ring-red-200 dark:focus:ring-red-900"
+                      : "border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-600 focus:ring-purple-200 dark:focus:ring-purple-900"
+                  } focus:ring focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100`}
                   required
                 />
-                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               </div>
               <FieldError message={fieldErrors.discountPercent} />
             </div>
 
             {/* Image Upload */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Hình Ảnh Khuyến Mãi</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Hình Ảnh Khuyến Mãi</label>
               <div
                 className={`relative border-2 border-dashed rounded-lg p-4 transition-all duration-200
                   ${
                     fieldErrors.image
-                      ? "border-red-300 bg-red-50/30"
+                      ? "border-red-300 dark:border-red-700 bg-red-50/30 dark:bg-red-900/20"
                       : isDragging
-                        ? "border-purple-400 bg-purple-50"
-                        : "border-gray-200 hover:border-purple-300"
+                        ? "border-purple-400 dark:border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600"
                   }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -322,8 +351,10 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2 py-8">
-                      <Upload className={`w-8 h-8 ${fieldErrors.image ? "text-red-400" : "text-purple-400"}`} />
-                      <p className="text-sm text-gray-500">Kéo thả hoặc click để tải ảnh lên</p>
+                      <Upload
+                        className={`w-8 h-8 ${fieldErrors.image ? "text-red-400 dark:text-red-500" : "text-purple-400 dark:text-purple-500"}`}
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Kéo thả hoặc click để tải ảnh lên</p>
                     </div>
                   )}
                 </label>
@@ -334,20 +365,23 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
             <div className="grid grid-cols-2 gap-4">
               {/* Start Date */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Ngày Bắt Đầu</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Ngày Bắt Đầu</label>
                 <div className="relative">
                   <input
                     ref={startRef}
                     type="datetime-local"
                     value={startDay}
                     onChange={(e) => setStartDay(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.startDay ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
-                     focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      fieldErrors.startDay
+                        ? "border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-600 focus:ring-red-200 dark:focus:ring-red-900"
+                        : "border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-600 focus:ring-purple-200 dark:focus:ring-purple-900"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100`}
                     required
                     onFocus={(e) => e.target.showPicker()} // Opens date picker when focused
                   />
                   <Calendar
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 cursor-pointer"
                     onClick={() => startRef.current?.showPicker()} // Uses ref instead of querySelector
                   />
                 </div>
@@ -356,20 +390,23 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
 
               {/* End Date */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Ngày Kết Thúc</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Ngày Kết Thúc</label>
                 <div className="relative">
                   <input
                     ref={endRef}
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-lg border ${fieldErrors.endDate ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"} 
-                     focus:ring focus:ring-opacity-50 transition-all duration-200`}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      fieldErrors.endDate
+                        ? "border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-600 focus:ring-red-200 dark:focus:ring-red-900"
+                        : "border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-600 focus:ring-purple-200 dark:focus:ring-purple-900"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100`}
                     required
                     onFocus={(e) => e.target.showPicker()} // Opens date picker when focused
                   />
                   <Calendar
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 cursor-pointer"
                     onClick={() => endRef.current?.showPicker()} // Uses ref instead of querySelector
                   />
                 </div>
@@ -384,7 +421,7 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="p-4 rounded-lg bg-red-50 text-red-600 text-sm flex items-start gap-2"
+                  className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm flex items-start gap-2"
                 >
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <span>{fieldErrors.general}</span>
@@ -395,13 +432,13 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
         </div>
 
         {/* Footer with buttons - Fixed at bottom */}
-        <div className="p-6 border-t border-gray-100">
+        <div className="p-6 border-t border-gray-100 dark:border-gray-700">
           <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 
-                       hover:bg-gray-50 transition-colors duration-200"
+              className="px-6 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300
+                       hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
             >
               Hủy
             </button>
@@ -415,7 +452,7 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
               }}
               className="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white
                        hover:from-pink-600 hover:to-purple-600 transition-all duration-200 
-                       disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
+                       disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200 dark:shadow-purple-900/20"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -432,4 +469,3 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
     </motion.div>
   )
 }
-

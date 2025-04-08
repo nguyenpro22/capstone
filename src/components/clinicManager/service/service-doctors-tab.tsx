@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, X, Search, Trash2, Mail } from "lucide-react"
+import { Plus, X, Search, Trash2, Mail } from 'lucide-react'
 import Image from "next/image"
 import { toast } from "react-toastify"
 import { useAddDoctorToServiceMutation, useRemoveDoctorFromServiceMutation } from "@/features/doctor-service/api"
@@ -22,16 +22,12 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 100
 
-  // Get the token and extract clinicId
   const token = getAccessToken()
-  // Add null check for token
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
   const clinicId = tokenData?.clinicId || ""
 
-  // Role = 1 cho Doctor (theo code của bạn)
   const doctorRole = 1
 
-  // Sử dụng RTK Query hooks với endpoint mới
   const { data: doctorsData, isLoading: isLoadingDoctors } = useGetDoctorsQuery(
     {
       clinicId,
@@ -46,11 +42,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
   const [addDoctorToService, { isLoading: isAdding }] = useAddDoctorToServiceMutation()
   const [removeDoctorFromService, { isLoading: isRemoving }] = useRemoveDoctorFromServiceMutation()
 
-  // Lấy danh sách bác sĩ từ response
   const availableDoctors = doctorsData?.value?.items || []
-
-  // Lọc ra các bác sĩ chưa được gán cho dịch vụ này
-  // Chú ý: Sử dụng employeeId thay vì id
   const assignedDoctorIds = doctorServices.map((ds: any) => ds.doctor?.employeeId)
   const filteredAvailableDoctors = availableDoctors.filter(
     (doctor: Doctor) => !assignedDoctorIds.includes(doctor.employeeId),
@@ -63,13 +55,11 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
     }
 
     try {
-      // Sử dụng employeeId làm doctorId
       await addDoctorToService({
         doctorId: selectedDoctors[0],
         serviceIds: [serviceId],
       }).unwrap()
 
-      // Nếu API hỗ trợ thêm nhiều bác sĩ cùng lúc
       if (selectedDoctors.length > 1) {
         const promises = selectedDoctors.slice(1).map((doctorId) =>
           addDoctorToService({
@@ -77,7 +67,6 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
             serviceIds: [serviceId],
           }).unwrap(),
         )
-
         await Promise.all(promises)
       }
 
@@ -85,16 +74,13 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
       setIsAddingDoctor(false)
       setSelectedDoctors([])
 
-      // Đảm bảo đợi một chút trước khi refresh để API có thời gian cập nhật
       setTimeout(async () => {
-        // Gọi onRefresh để cập nhật dữ liệu từ component cha
         await onRefresh()
       }, 400)
     } catch (error) {
       console.error("Error adding doctors:", error)
       toast.error("Không thể thêm bác sĩ")
       setTimeout(async () => {
-        // Gọi onRefresh để cập nhật dữ liệu từ component cha
         await onRefresh()
       }, 400)
     }
@@ -111,10 +97,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
       }).unwrap()
 
       toast.success("Đã xóa bác sĩ khỏi dịch vụ")
-
-      // Đảm bảo đợi một chút trước khi refresh để API có thời gian cập nhật
       setTimeout(async () => {
-        // Gọi onRefresh để cập nhật dữ liệu từ component cha
         await onRefresh()
       }, 300)
     } catch (error) {
@@ -123,15 +106,14 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
     }
   }
 
-  // Lọc bác sĩ theo searchTerm
   const searchFilteredDoctors = filteredAvailableDoctors.filter((doctor: Doctor) =>
     doctor.fullName.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-800">Bác sĩ thực hiện dịch vụ</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Bác sĩ thực hiện dịch vụ</h3>
         {!isAddingDoctor && (
           <button
             onClick={() => setIsAddingDoctor(true)}
@@ -144,15 +126,15 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
       </div>
 
       {isAddingDoctor ? (
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-medium text-gray-700">Chọn bác sĩ</h4>
+            <h4 className="font-medium text-gray-700 dark:text-gray-300">Chọn bác sĩ</h4>
             <button
               onClick={() => {
                 setIsAddingDoctor(false)
                 setSelectedDoctors([])
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               <X size={20} />
             </button>
@@ -162,22 +144,22 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
             <input
               type="text"
               placeholder="Tìm kiếm bác sĩ..."
-              className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+              className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 dark:border-gray-600 focus:border-purple-300 dark:focus:border-purple-400 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
           </div>
 
           <div className="max-h-60 overflow-y-auto mb-4">
             {isLoadingDoctors ? (
               <div className="text-center py-4">
-                <p className="text-gray-500">Đang tải danh sách bác sĩ...</p>
+                <p className="text-gray-500 dark:text-gray-400">Đang tải danh sách bác sĩ...</p>
               </div>
             ) : searchFilteredDoctors.length > 0 ? (
               <div className="space-y-2">
                 {searchFilteredDoctors.map((doctor: Doctor) => (
-                  <div key={doctor.employeeId} className="flex items-center p-2 hover:bg-gray-100 rounded-lg">
+                  <div key={doctor.employeeId} className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg">
                     <input
                       type="checkbox"
                       id={`doctor-${doctor.employeeId}`}
@@ -189,24 +171,27 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                           setSelectedDoctors(selectedDoctors.filter((id) => id !== doctor.employeeId))
                         }
                       }}
-                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 mr-3 flex-shrink-0"
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 dark:text-purple-400 dark:focus:ring-purple-400 mr-3 flex-shrink-0"
                     />
                     <div className="flex items-center min-w-0 flex-1 overflow-hidden">
                       <div className="h-10 w-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
                         <Image
-                          src={doctor.profilePictureUrl || "/placeholder.svg"}
+                          src={doctor.profilePictureUrl || "/images/doctor-default.png"}
                           alt={doctor.fullName}
                           width={40}
                           height={40}
                           className="object-cover h-full w-full"
+                          onError={(e) => {
+                            e.currentTarget.src = "/images/doctor-default.png"
+                          }}
                         />
                       </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
-                        <h4 className="font-medium text-gray-800 truncate w-full" title={doctor.fullName}>
+                        <h4 className="font-medium text-gray-800 dark:text-gray-100 truncate w-full" title={doctor.fullName}>
                           {doctor.fullName}
                         </h4>
                         {doctor.email && (
-                          <div className="flex items-center text-sm text-gray-500 w-full overflow-hidden">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 w-full overflow-hidden">
                             <Mail className="w-3 h-3 mr-1 flex-shrink-0" />
                             <span className="truncate w-full" title={doctor.email}>
                               {doctor.email}
@@ -219,7 +204,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-4">Không tìm thấy bác sĩ</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-4">Không tìm thấy bác sĩ</p>
             )}
           </div>
 
@@ -229,7 +214,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                 setIsAddingDoctor(false)
                 setSelectedDoctors([])
               }}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
               disabled={isAdding}
             >
               Hủy
@@ -252,28 +237,31 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
               {doctorServices.map((doctorService: any) => (
                 <div
                   key={doctorService.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow overflow-hidden"
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md dark:hover:shadow-gray-900 transition-shadow overflow-hidden"
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center w-[calc(100%-30px)] overflow-hidden">
                       <div className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
                         <Image
-                          src={doctorService.doctor?.profilePictureUrl || "/placeholder.svg"}
+                          src={doctorService.doctor?.profilePictureUrl || "/images/doctor-default.png"}
                           alt={doctorService.doctor?.fullName || "Doctor"}
                           width={48}
                           height={48}
                           className="object-cover h-full w-full"
+                          onError={(e) => {
+                            e.currentTarget.src = "/images/doctor-default.png"
+                          }}
                         />
                       </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <h4
-                          className="font-medium text-gray-800 truncate w-full"
+                          className="font-medium text-gray-800 dark:text-gray-100 truncate w-full"
                           title={doctorService.doctor?.fullName}
                         >
                           {doctorService.doctor?.fullName}
                         </h4>
                         {doctorService.doctor?.email && (
-                          <div className="flex items-center text-sm text-gray-500 w-full overflow-hidden">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 w-full overflow-hidden">
                             <Mail className="w-3 h-3 mr-1 flex-shrink-0" />
                             <span className="truncate w-full" title={doctorService.doctor.email}>
                               {doctorService.doctor.email}
@@ -284,7 +272,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                     </div>
                     <button
                       onClick={() => handleRemoveDoctor(doctorService.id)}
-                      className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                      className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0 ml-2"
                       title="Xóa bác sĩ khỏi dịch vụ"
                       disabled={isRemoving}
                     >
@@ -295,11 +283,11 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-500 mb-3">Chưa có bác sĩ nào được gán cho dịch vụ này</p>
+            <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <p className="text-gray-500 dark:text-gray-400 mb-3">Chưa có bác sĩ nào được gán cho dịch vụ này</p>
               <button
                 onClick={() => setIsAddingDoctor(true)}
-                className="px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 border border-purple-200 dark:border-purple-600 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors"
               >
                 Thêm bác sĩ đầu tiên
               </button>
@@ -310,4 +298,3 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
     </div>
   )
 }
-

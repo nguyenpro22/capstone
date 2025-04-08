@@ -32,8 +32,10 @@ import {
 } from "lucide-react"
 import type { CategoryDetail, SubCategory } from "@/features/category-service/types"
 import MoveSubCategoryModal from "@/components/systemAdmin/MoveSubCategoryModal"
+import { useTheme } from "next-themes"
 
 export default function Category() {
+  const { theme } = useTheme()
   const [editCategory, setEditCategory] = useState<any | null>(null)
   const [editSubCategory, setEditSubCategory] = useState<any | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -261,13 +263,13 @@ export default function Category() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen" onClick={handleCloseMenu}>
-      <ToastContainer />
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen" onClick={handleCloseMenu}>
+      <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 mb-2">
           Quản lý Danh mục
         </h1>
-        <p className="text-gray-600">Quản lý danh mục và danh mục con cho hệ thống</p>
+        <p className="text-gray-600 dark:text-gray-300">Quản lý danh mục và danh mục con cho hệ thống</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -275,13 +277,13 @@ export default function Category() {
           <input
             type="text"
             placeholder="Tìm kiếm danh mục..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 transition-all dark:bg-gray-800 dark:text-gray-100"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value)
             }}
           />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
             <Search className="h-5 w-5" />
           </div>
         </div>
@@ -290,29 +292,29 @@ export default function Category() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowForm(true)}
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 flex items-center justify-center gap-2"
+          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-500 dark:hover:to-pink-600 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
           <span className="font-medium tracking-wide">Thêm Danh mục mới</span>
         </motion.button>
       </div>
 
-      <div className="bg-white p-6 shadow-md rounded-lg relative">
+      <div className="bg-white dark:bg-gray-800 p-6 shadow-md dark:shadow-gray-900/30 rounded-lg relative">
         {isLoading && (
           <div className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 flex items-center justify-center animate-pulse">
-              <Folder className="w-8 h-8 text-purple-300" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center animate-pulse">
+              <Folder className="w-8 h-8 text-purple-300 dark:text-purple-400" />
             </div>
-            <p className="text-gray-500">Đang tải danh mục...</p>
+            <p className="text-gray-500 dark:text-gray-400">Đang tải danh mục...</p>
           </div>
         )}
 
         {error && (
           <div className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
-              <Folder className="w-8 h-8 text-red-300" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+              <Folder className="w-8 h-8 text-red-300 dark:text-red-400" />
             </div>
-            <p className="text-red-500">Không thể tải danh mục.</p>
+            <p className="text-red-500 dark:text-red-400">Không thể tải danh mục.</p>
           </div>
         )}
 
@@ -320,38 +322,51 @@ export default function Category() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-purple-50 to-pink-50 text-left">
-                  <th className="p-3 border border-gray-200 rounded-tl-lg">STT</th>
-                  <th className="p-3 border border-gray-200">Tên Danh mục</th>
-                  <th className="p-3 border border-gray-200">Mô tả</th>
-                  <th className="p-3 border border-gray-200 rounded-tr-lg">Thao tác</th>
+                <tr className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 text-left">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tl-lg text-gray-700 dark:text-gray-200">
+                    STT
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                    Tên Danh mục
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                    Mô tả
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tr-lg text-gray-700 dark:text-gray-200">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((category: CategoryDetail, index: number) => (
                   <>
-                    <tr key={category.id} className="border-t hover:bg-gray-50 transition-colors duration-150">
-                      <td className="p-3 border border-gray-200">{(pageIndex - 1) * pageSize + index + 1}</td>
-                      <td className="p-3 border border-gray-200">
+                    <tr
+                      key={category.id}
+                      className="border-t hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150"
+                    >
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                        {(pageIndex - 1) * pageSize + index + 1}
+                      </td>
+                      <td className="p-3 border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center">
                           <button
                             onClick={() => toggleCategoryExpansion(category.id)}
-                            className="mr-2 p-1 rounded-full hover:bg-purple-50 transition-colors"
+                            className="mr-2 p-1 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                           >
                             {expandedCategories[category.id] ? (
-                              <ChevronDown className="w-5 h-5 text-purple-500" />
+                              <ChevronDown className="w-5 h-5 text-purple-500 dark:text-purple-400" />
                             ) : (
-                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                              <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             )}
                           </button>
                           <div className="flex items-center">
                             {expandedCategories[category.id] ? (
-                              <FolderOpen className="w-5 h-5 text-purple-500 mr-2" />
+                              <FolderOpen className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2" />
                             ) : (
-                              <Folder className="w-5 h-5 text-gray-500 mr-2" />
+                              <Folder className="w-5 h-5 text-gray-500 dark:text-gray-400 mr-2" />
                             )}
                             <span
-                              className="font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]"
+                              className="font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] text-gray-700 dark:text-gray-200"
                               title={category.name}
                             >
                               {category.name}
@@ -359,19 +374,19 @@ export default function Category() {
                           </div>
                         </div>
                       </td>
-                      <td className="p-3 border border-gray-200">
+                      <td className="p-3 border border-gray-200 dark:border-gray-700">
                         <div
-                          className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[300px]"
+                          className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[300px] text-gray-600 dark:text-gray-300"
                           title={category.description}
                         >
                           {category.description}
                         </div>
                       </td>
-                      <td className="p-3 border border-gray-200 relative">
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 relative">
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleAddSubCategory(category.id)}
-                            className="p-1.5 rounded-full hover:bg-green-50 text-green-500 transition-colors"
+                            className="p-1.5 rounded-full hover:bg-green-50 dark:hover:bg-green-900/30 text-green-500 dark:text-green-400 transition-colors"
                             title="Thêm danh mục con"
                           >
                             <FolderPlus className="w-4 h-4" />
@@ -379,7 +394,7 @@ export default function Category() {
 
                           <button
                             onClick={() => handleMenuAction("edit", category.id)}
-                            className="p-1.5 rounded-full hover:bg-blue-50 text-blue-500 transition-colors"
+                            className="p-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500 dark:text-blue-400 transition-colors"
                             title="Chỉnh sửa danh mục"
                           >
                             <Edit className="w-4 h-4" />
@@ -387,7 +402,7 @@ export default function Category() {
 
                           <button
                             onClick={() => handleDeleteCategory(category.id)}
-                            className="p-1.5 rounded-full hover:bg-red-50 text-red-500 transition-colors"
+                            className="p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 transition-colors"
                             title="Xóa danh mục"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -403,9 +418,9 @@ export default function Category() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="bg-gray-50"
+                          className="bg-gray-50 dark:bg-gray-800/50"
                         >
-                          <td colSpan={4} className="p-0 border border-gray-200">
+                          <td colSpan={4} className="p-0 border border-gray-200 dark:border-gray-700">
                             <motion.div
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
@@ -414,42 +429,51 @@ export default function Category() {
                             >
                               {/* Subcategories table */}
                               {(categoryDetails[category.id]?.subCategories?.length ?? 0) > 0 ? (
-                                <div className="ml-8 bg-white rounded-lg shadow-sm overflow-hidden">
+                                <div className="ml-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/20 overflow-hidden">
                                   <table className="w-full border-collapse">
                                     <thead>
-                                      <tr className="bg-purple-50 text-left">
-                                        <th className="p-2 pl-8 border-b border-gray-200">Tên danh mục con</th>
-                                        <th className="p-2 border-b border-gray-200">Mô tả</th>
-                                        <th className="p-2 border-b border-gray-200 w-32">Thao tác</th>
+                                      <tr className="bg-purple-50 dark:bg-purple-900/20 text-left">
+                                        <th className="p-2 pl-8 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                                          Tên danh mục con
+                                        </th>
+                                        <th className="p-2 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                                          Mô tả
+                                        </th>
+                                        <th className="p-2 border-b border-gray-200 dark:border-gray-700 w-32 text-gray-700 dark:text-gray-200">
+                                          Thao tác
+                                        </th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {categoryDetails[category.id]?.subCategories?.map((subCategory: SubCategory) => (
-                                        <tr key={subCategory.id} className="hover:bg-gray-50 transition-colors">
-                                          <td className="p-2 pl-8 border-b border-gray-200">
+                                        <tr
+                                          key={subCategory.id}
+                                          className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                                        >
+                                          <td className="p-2 pl-8 border-b border-gray-200 dark:border-gray-700">
                                             <div className="flex items-center">
-                                              <div className="w-1 h-1 bg-purple-400 rounded-full mr-2"></div>
+                                              <div className="w-1 h-1 bg-purple-400 dark:bg-purple-500 rounded-full mr-2"></div>
                                               <span
-                                                className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]"
+                                                className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] text-gray-700 dark:text-gray-200"
                                                 title={subCategory.name}
                                               >
                                                 {subCategory.name}
                                               </span>
                                             </div>
                                           </td>
-                                          <td className="p-2 border-b border-gray-200">
+                                          <td className="p-2 border-b border-gray-200 dark:border-gray-700">
                                             <div
-                                              className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[300px]"
+                                              className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[300px] text-gray-600 dark:text-gray-300"
                                               title={subCategory.description}
                                             >
                                               {subCategory.description}
                                             </div>
                                           </td>
-                                          <td className="p-2 border-b border-gray-200">
+                                          <td className="p-2 border-b border-gray-200 dark:border-gray-700">
                                             <div className="flex items-center space-x-1">
                                               <button
                                                 onClick={() => handleMoveSubCategory(subCategory)}
-                                                className="p-1 rounded-full hover:bg-amber-50 text-amber-500 transition-colors"
+                                                className="p-1 rounded-full hover:bg-amber-50 dark:hover:bg-amber-900/30 text-amber-500 dark:text-amber-400 transition-colors"
                                                 title="Chuyển danh mục"
                                               >
                                                 <ArrowRightLeft className="w-4 h-4" />
@@ -457,7 +481,7 @@ export default function Category() {
 
                                               <button
                                                 onClick={() => handleEditSubCategory(subCategory)}
-                                                className="p-1 rounded-full hover:bg-blue-50 text-blue-500 transition-colors"
+                                                className="p-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500 dark:text-blue-400 transition-colors"
                                                 title="Chỉnh sửa danh mục con"
                                               >
                                                 <Edit className="w-4 h-4" />
@@ -465,7 +489,7 @@ export default function Category() {
 
                                               <button
                                                 onClick={() => handleDeleteSubCategory(subCategory.id)}
-                                                className="p-1 rounded-full hover:bg-red-50 text-red-500 transition-colors"
+                                                className="p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 transition-colors"
                                                 title="Xóa danh mục con"
                                               >
                                                 <Trash2 className="w-4 h-4" />
@@ -478,11 +502,11 @@ export default function Category() {
                                   </table>
                                 </div>
                               ) : (
-                                <div className="ml-8 p-4 bg-white rounded-lg border border-dashed border-gray-300 text-center">
-                                  <p className="text-gray-500 mb-2">Chưa có danh mục con nào</p>
+                                <div className="ml-8 p-4 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                                  <p className="text-gray-500 dark:text-gray-400 mb-2">Chưa có danh mục con nào</p>
                                   <button
                                     onClick={() => handleAddSubCategory(category.id)}
-                                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
+                                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 rounded-md hover:bg-purple-100 dark:hover:bg-purple-800/50 transition-colors"
                                   >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm danh mục con
@@ -501,13 +525,13 @@ export default function Category() {
           </div>
         ) : !isLoading && !error ? (
           <div className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 flex items-center justify-center">
-              <Folder className="w-8 h-8 text-purple-300" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+              <Folder className="w-8 h-8 text-purple-300 dark:text-purple-400" />
             </div>
-            <p className="text-gray-500 mb-4">Chưa có danh mục nào.</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Chưa có danh mục nào.</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
             >
               Thêm danh mục đầu tiên
             </button>
@@ -607,4 +631,3 @@ export default function Category() {
     </div>
   )
 }
-

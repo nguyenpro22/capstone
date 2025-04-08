@@ -2,47 +2,56 @@
 import { useState } from "react";
 import Sidebar from "@/components/common/Admin/Sidebar";
 import Navbar from "@/components/common/Admin/Navbar";
+import { ChevronRight } from "lucide-react";
 
 export default function ClinicManagerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(true)
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen)
+  }
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-md transform transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-950 shadow-md dark:shadow-gray-900 transform transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} role="clinicManager" />
+        <Sidebar
+          role="clinicManager"
+          onClose={() => setSidebarOpen(false)}
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
       </div>
 
       {/* Main Content */}
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ${
-          isSidebarOpen ? "ml-64" : "ml-0"
-        }`}
-      >
-        {/* Navbar */}
-        <div className="sticky top-0 z-50 flex items-center bg-white shadow-md px-4 py-2">
-          {/* Hamburger Button */}
-          <button
-            onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="p-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 shadow-md"
-          >
-            &#9776; {/* Icon */}
-          </button>
-
-          {/* Rest of Navbar */}
-          <Navbar />
+      <div className={`flex flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
+        {/* Navbar with toggle button when sidebar is closed */}
+        <div className="relative">
+          {!isSidebarOpen && (
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
+              <button
+                onClick={toggleSidebar}
+                className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Open sidebar"
+              >
+                <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+              </button>
+            </div>
+          )}
+          <Navbar sidebarClosed={!isSidebarOpen} />
         </div>
 
         {/* Content */}
-        <main className="p-6">{children}</main>
+        <main className="p-6 dark:bg-gray-950 dark:text-white">{children}</main>
       </div>
     </div>
-  );
+  )
 }

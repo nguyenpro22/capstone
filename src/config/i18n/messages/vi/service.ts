@@ -17,6 +17,9 @@ export const serviceMessages: Messages["serviceMessage"] = {
   editService: "Chỉnh sửa thông tin dịch vụ",
   deleteService: "Xóa phòng dịch vụ",
   addProcedure: " Thêm giai đoạn",
+  deleteServiceConfirmation: "Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác.",
+  confirmDelete: "Xác nhận xóa",
+  cancel: "Hủy",
 };
 
 export const service: Messages["service"] = {

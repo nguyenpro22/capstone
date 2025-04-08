@@ -34,22 +34,24 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+        <h3 className="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
           All Branches
         </h3>
 
         <div className="max-h-60 overflow-y-auto">
           {branches.map((branch, index) => (
-            <div key={branch.id} className="p-3 border-b border-gray-100 last:border-b-0">
+            <div key={branch.id} className="p-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
               <div className="flex flex-col">
                 <div className="flex items-center">
-                  <Building2 className="w-4 h-4 text-purple-500 mr-2" />
-                  <span className="font-medium">{branch.name}</span>
+                  <Building2 className="w-4 h-4 text-purple-500 dark:text-purple-400 mr-2" />
+                  <span className="font-medium dark:text-white">{branch.name}</span>
                 </div>
-                {branch.fullAddress && <div className="mt-1 ml-6 text-xs text-gray-500">{branch.fullAddress}</div>}
+                {branch.fullAddress && (
+                  <div className="mt-1 ml-6 text-xs text-gray-500 dark:text-gray-400">{branch.fullAddress}</div>
+                )}
               </div>
             </div>
           ))}
@@ -58,7 +60,7 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
         <div className="mt-4 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Close
           </button>
@@ -245,10 +247,10 @@ export default function StaffPage() {
   }
 
   return (
-    <div className="p-6" onClick={handleCloseMenu}>
+    <div className="p-6 dark:bg-gray-900" onClick={handleCloseMenu}>
       <ToastContainer />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
           {t("staffList") || "Staff List"}
         </h1>
 
@@ -257,13 +259,13 @@ export default function StaffPage() {
             <input
               type="text"
               placeholder={`${t("searchByName") || "Search by name"}...`}
-              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 transition-all dark:bg-gray-800 dark:text-white"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
               }}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
@@ -301,58 +303,76 @@ export default function StaffPage() {
         </div>
       </div>
 
-      <div className="bg-white p-6 shadow-md rounded-lg relative">
+      <div className="bg-white dark:bg-gray-800 p-6 shadow-md dark:shadow-gray-900/20 rounded-lg relative">
         {staffList.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-purple-50 to-pink-50 text-left">
-                  <th className="p-3 border border-gray-200 rounded-tl-lg">{t("no") || "No."}</th>
-                  <th className="p-3 border border-gray-200">{t("fullName") || "Full Name"}</th>
-                  <th className="p-3 border border-gray-200">{t("email") || "Email"}</th>
-                  <th className="p-3 border border-gray-200">{t("phoneNumber") || "Phone Number"}</th>
-                  <th className="p-3 border border-gray-200">{t("role") || "Role"}</th>
-                  <th className="p-3 border border-gray-200">{t("branches") || "Branches"}</th>
-                  <th className="p-3 border border-gray-200 rounded-tr-lg">{t("action") || "Action"}</th>
+                <tr className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 text-left">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tl-lg dark:text-gray-200">
+                    {t("no") || "No."}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                    {t("fullName") || "Full Name"}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                    {t("email") || "Email"}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                    {t("phoneNumber") || "Phone Number"}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                    {t("role") || "Role"}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                    {t("branches") || "Branches"}
+                  </th>
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tr-lg dark:text-gray-200">
+                    {t("action") || "Action"}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {staffList.map((staff: Staff, index: number) => (
-                  <tr key={staff.employeeId} className="border-t hover:bg-gray-50 transition-colors duration-150">
-                    <td className="p-3 border border-gray-200">{(pageIndex - 1) * pageSize + index + 1}</td>
-                    <td className="p-3 border border-gray-200 font-medium">
+                  <tr
+                    key={staff.employeeId}
+                    className="border-t hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors duration-150"
+                  >
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-300">
+                      {(pageIndex - 1) * pageSize + index + 1}
+                    </td>
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 font-medium dark:text-gray-200">
                       <div className="max-w-[150px] truncate" title={staff.fullName}>
                         {staff.fullName}
                       </div>
                     </td>
-                    <td className="p-3 border border-gray-200">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
                       <div className="max-w-[180px] truncate" title={staff.email}>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 font-medium">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-400 dark:to-purple-400 font-medium">
                           {staff.email}
                         </span>
                       </div>
                     </td>
-                    <td className="p-3 border border-gray-200">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-300">
                       <div className="max-w-[120px] truncate" title={staff.phoneNumber || "-"}>
                         {staff.phoneNumber || "-"}
                       </div>
                     </td>
-                    <td className="p-3 border border-gray-200">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
                         {staff.role}
                       </span>
                     </td>
-                    <td className="p-3 border border-gray-200">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700">
                       {staff.branchs && staff.branchs.length > 0 ? (
                         <div>
                           <div className="flex flex-wrap gap-1 mb-1">
                             {staff.branchs.slice(0, 2).map((branch, idx) => (
                               <div key={idx} className="relative">
                                 <span
-                                  className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full cursor-pointer hover:bg-blue-100 transition-colors max-w-[100px] inline-block truncate align-bottom"
+                                  className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors max-w-[100px] inline-block truncate align-bottom"
                                   onMouseEnter={(e) => handleBranchMouseEnter(branch.id, e)}
                                   onMouseLeave={() => setHoveredBranchId(null)}
-                                  
                                 >
                                   {branch.name}
                                 </span>
@@ -362,7 +382,7 @@ export default function StaffPage() {
                           {staff.branchs.length > 2 && (
                             <button
                               onClick={() => handleViewAllBranches(staff.branchs || [])}
-                              className="text-xs text-purple-600 flex items-center hover:text-purple-800 transition-colors"
+                              className="text-xs text-purple-600 dark:text-purple-400 flex items-center hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
                             >
                               View all ({staff.branchs.length})
                               <ChevronRight className="w-3 h-3 ml-1" />
@@ -370,12 +390,12 @@ export default function StaffPage() {
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-400 text-sm">No branches</span>
+                        <span className="text-gray-400 dark:text-gray-500 text-sm">No branches</span>
                       )}
                     </td>
-                    <td className="p-3 border border-gray-200 relative">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 relative">
                       <button
-                        className="p-2 rounded-full hover:bg-purple-50 transition-colors"
+                        className="p-2 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation()
                           e.nativeEvent.stopImmediatePropagation()
@@ -384,7 +404,7 @@ export default function StaffPage() {
                           setMenuOpen(menuOpen === staff.employeeId ? null : staff.employeeId)
                         }}
                       >
-                        <MoreVertical className="w-5 h-5 text-gray-600" />
+                        <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       </button>
 
                       <AnimatePresence>
@@ -395,38 +415,38 @@ export default function StaffPage() {
                             triggerRect={triggerRect}
                           >
                             <li
-                              className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleMenuAction("view", staff.employeeId)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-purple-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 dark:bg-purple-400"></span>
                               </span>
                               {t("viewStaffDetail") || "View Staff Detail"}
                             </li>
                             <li
-                              className="px-4 py-2 hover:bg-purple-50 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleMenuAction("edit", staff.employeeId)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
                               </span>
                               {t("editStaff") || "Edit Staff"}
                             </li>
                             <li
-                              className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                              className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleDeleteStaff(staff.employeeId)
                               }}
                             >
-                              <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                               </span>
                               {t("deleteStaff") || "Delete Staff"}
                             </li>
@@ -441,13 +461,13 @@ export default function StaffPage() {
           </div>
         ) : (
           <div className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 flex items-center justify-center">
-              <UserIcon className="w-8 h-8 text-purple-300" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
+              <UserIcon className="w-8 h-8 text-purple-300 dark:text-purple-400" />
             </div>
-            <p className="text-gray-500">{t("noStaffAvailable") || "No Staff available."}</p>
+            <p className="text-gray-500 dark:text-gray-400">{t("noStaffAvailable") || "No Staff available."}</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 transition-colors"
+              className="mt-4 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
             >
               {t("addYourFirstStaff") || "Add your first staff member"}
             </button>
@@ -461,7 +481,7 @@ export default function StaffPage() {
           staff.branchs?.some((branch) => branch.id === hoveredBranchId && branch.fullAddress),
         ) && (
           <div
-            className="fixed z-[9999] p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+            className="fixed z-[9999] p-2 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded shadow-lg"
             style={{
               top: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().bottom || 0) + 5 + "px",
               left: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().left || 0) + "px",
@@ -470,7 +490,7 @@ export default function StaffPage() {
             }}
           >
             {/* Arrow pointing up */}
-            <div className="absolute -top-2 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-gray-800" />
+            <div className="absolute -top-2 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-gray-800 dark:border-b-gray-700" />
 
             {/* Only show the address */}
             {
@@ -543,4 +563,3 @@ export default function StaffPage() {
     </div>
   )
 }
-

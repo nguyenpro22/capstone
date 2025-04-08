@@ -8,7 +8,7 @@ import "@/styles/quill.css"
 // Dynamically import ReactQuill
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
-  loading: () => <div className="h-32 w-full border rounded-md bg-muted/20 animate-pulse" />,
+  loading: () => <div className="h-32 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />,
 })
 
 interface SimpleQuillEditorProps {
@@ -163,11 +163,11 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
   ]
 
   if (!mounted) {
-    return <div className="h-32 w-full border rounded-md bg-muted/20 animate-pulse" />
+    return <div className="h-32 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />
   }
 
   return (
-    <div className={`quill-container ${error ? "border border-destructive rounded-md" : ""}`}>
+    <div className={`quill-container ${error ? "border border-destructive dark:border-red-500 rounded-md" : ""}`}>
       <ReactQuill
         theme="snow"
         value={value}
@@ -175,9 +175,72 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
         modules={modules}
         formats={formats}
         placeholder={placeholder || "Nhập nội dung..."}
-        className={`quill-editor rounded-md ${error ? "quill-error" : ""}`}
+        className={`quill-editor rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${error ? "quill-error" : ""}`}
       />
+      <style jsx global>{`
+        /* Light mode styles */
+        .ql-toolbar.ql-snow {
+          border: 1px solid #e2e8f0;
+          border-top-left-radius: 0.375rem;
+          border-top-right-radius: 0.375rem;
+          background-color: #ffffff;
+        }
+        
+        .ql-container.ql-snow {
+          border: 1px solid #e2e8f0;
+          border-bottom-left-radius: 0.375rem;
+          border-bottom-right-radius: 0.375rem;
+          background-color: #ffffff;
+          color: #1e293b;
+        }
+        
+        .ql-editor {
+          min-height: 100px;
+          max-height: 300px;
+          overflow-y: auto;
+          background-color: #ffffff;
+          color: #1e293b;
+        }
+
+        /* Dark mode styles */
+        .dark .ql-toolbar.ql-snow {
+          border-color: #4b5563;
+          background-color: #1f2937;
+        }
+        
+        .dark .ql-container.ql-snow {
+          border-color: #4b5563;
+          background-color: #1f2937;
+          color: #d1d5db;
+        }
+        
+        .dark .ql-editor {
+          background-color: #1f2937;
+          color: #d1d5db;
+        }
+
+        /* Error state for dark mode */
+        .dark .quill-error .ql-toolbar.ql-snow,
+        .dark .quill-error .ql-container.ql-snow {
+          border-color: #ef4444;
+        }
+
+        /* Toolbar button colors */
+        .dark .ql-toolbar .ql-picker,
+        .dark .ql-toolbar .ql-button {
+          color: #d1d5db;
+        }
+
+        .dark .ql-toolbar .ql-picker.ql-expanded .ql-picker-label,
+        .dark .ql-toolbar .ql-button.ql-active {
+          color: #ec4899;
+        }
+
+        /* Placeholder color */
+        .dark .ql-editor.ql-blank::before {
+          color: #9ca3af;
+        }
+      `}</style>
     </div>
   )
 }
-

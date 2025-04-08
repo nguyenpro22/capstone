@@ -1,21 +1,7 @@
 "use client"
 import type React from "react"
 import { useState } from "react"
-import {
-  Clock,
-  CreditCard,
-  CheckCircle2,
-  XCircle,
-  FileText,
-  Layers,
-  Search,
-  Download,
-  MoreVertical,
-  Loader2,
-  Eye,
-  Edit,
-  Trash2,
-} from "lucide-react"
+import { Clock, CreditCard, CheckCircle2, XCircle, FileText, Layers, Search, Download, MoreVertical, Loader2, Eye, Edit, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import { useGetClinicsQuery, useLazyGetClinicByIdQuery, useUpdateClinicMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
@@ -28,8 +14,10 @@ import Pagination from "@/components/common/Pagination/Pagination"
 import type { Clinic } from "@/features/clinic/types"
 import { MenuPortal } from "@/components/ui/menu-portal"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import { useTheme } from "next-themes"
 
 const ClinicsList: React.FC = () => {
+  const { theme } = useTheme()
   const t = useTranslations("clinic")
 
   const [pageIndex, setPageIndex] = useState(1)
@@ -148,17 +136,19 @@ const ClinicsList: React.FC = () => {
 
   return (
     <div
-      className="container mx-auto p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50 shadow-xl rounded-2xl border border-indigo-100/50"
+      className="container mx-auto p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 shadow-xl rounded-2xl border border-indigo-100/50 dark:border-indigo-900/50"
       onClick={handleCloseMenu}
     >
       {/* Toast Container */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" autoClose={3000} theme={theme === "dark" ? "dark" : "light"} />
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2 text-indigo-950 tracking-tight">{t("clinicsList")}</h1>
-          <p className="text-slate-500">
+          <h1 className="text-3xl font-bold mb-2 text-indigo-950 dark:text-indigo-100 tracking-tight">
+            {t("clinicsList")}
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400">
             {totalCount} {totalCount === 1 ? "clinic" : "clinics"} found
           </p>
         </div>
@@ -166,11 +156,11 @@ const ClinicsList: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
             <input
               type="text"
               placeholder={t("searchByName")}
-              className="pl-10 pr-4 py-2.5 w-full sm:w-64 bg-white border border-slate-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="pl-10 pr-4 py-2.5 w-full sm:w-64 bg-white dark:bg-gray-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-600 focus:border-indigo-300 dark:focus:border-indigo-600 transition-all duration-200 dark:text-gray-100"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -193,8 +183,8 @@ const ClinicsList: React.FC = () => {
       {isLoading && (
         <div className="flex justify-center items-center py-20">
           <div className="flex flex-col items-center">
-            <Loader2 className="h-10 w-10 text-indigo-500 animate-spin mb-4" />
-            <p className="text-slate-500 font-medium">Loading clinics...</p>
+            <Loader2 className="h-10 w-10 text-indigo-500 dark:text-indigo-400 animate-spin mb-4" />
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Loading clinics...</p>
           </div>
         </div>
       )}
@@ -202,12 +192,12 @@ const ClinicsList: React.FC = () => {
       {/* Error State */}
       {error && (
         <div className="flex justify-center items-center py-20">
-          <div className="flex flex-col items-center text-red-500">
+          <div className="flex flex-col items-center text-red-500 dark:text-red-400">
             <XCircle className="h-10 w-10 mb-4" />
             <p className="text-lg font-medium">Error fetching data</p>
             <button
               onClick={() => delayedRefetch()} // Use delayed refetch instead of immediate refetch
-              className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+              className="mt-4 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors duration-200"
             >
               Try Again
             </button>
@@ -217,35 +207,35 @@ const ClinicsList: React.FC = () => {
 
       {/* Table Section */}
       {!isLoading && !error && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-gray-900/30 overflow-hidden border border-slate-200 dark:border-slate-700">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-slate-50 to-indigo-50 text-slate-700">
-                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                <tr className="bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-gray-800 dark:to-indigo-950 text-slate-700 dark:text-slate-300">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                     {t("fullName")}
                   </th>
-                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                     {t("email")}
                   </th>
-                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                     {t("address")}
                   </th>
-                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                     {t("totalBranches")}
                   </th>
-                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                     {t("status")}
                   </th>
-                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200">
+                  <th className="px-6 py-4 text-left font-medium text-sm uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                     {t("action")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {clinics.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                       No clinics found
                     </td>
                   </tr>
@@ -253,26 +243,26 @@ const ClinicsList: React.FC = () => {
                   clinics.map((clinic: Clinic) => (
                     <motion.tr
                       key={clinic.id}
-                      whileHover={{ backgroundColor: "rgba(238, 242, 255, 0.5)" }}
-                      className="transition-colors duration-200 h-16"
+                      whileHover={{ backgroundColor: theme === "dark" ? "rgba(30, 41, 59, 0.5)" : "rgba(238, 242, 255, 0.5)" }}
+                      className="transition-colors duration-200 h-16 dark:text-gray-100"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                        <div className="font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                           {clinic.name}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                        <div className="text-slate-600 dark:text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                           {clinic.email}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                        <div className="text-slate-600 dark:text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                           {clinic.fullAddress || clinic.address}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300">
                           {clinic.totalBranches}
                         </span>
                       </td>
@@ -285,10 +275,14 @@ const ClinicsList: React.FC = () => {
                               className="sr-only peer"
                               onChange={() => handleToggleStatus(clinic.id)}
                             />
-                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                            <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 dark:peer-checked:bg-indigo-600"></div>
                           </label>
                           <span
-                            className={`text-sm font-medium ${clinic.isActivated ? "text-emerald-600" : "text-slate-500"}`}
+                            className={`text-sm font-medium ${
+                              clinic.isActivated
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-slate-500 dark:text-slate-400"
+                            }`}
                           >
                             {clinic.isActivated ? "Active" : "Inactive"}
                           </span>
@@ -297,10 +291,10 @@ const ClinicsList: React.FC = () => {
                       <td className="px-6 py-4 relative">
                         <motion.button
                           whileHover={{ scale: 1.1 }}
-                          className="p-2 rounded-full hover:bg-indigo-50 transition-colors duration-200"
+                          className="p-2 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors duration-200"
                           onClick={(e) => handleToggleMenu(clinic.id, e)}
                         >
-                          <MoreVertical className="w-5 h-5 text-slate-600" />
+                          <MoreVertical className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                         </motion.button>
 
                         <AnimatePresence>
@@ -311,33 +305,33 @@ const ClinicsList: React.FC = () => {
                               triggerRect={triggerRect}
                             >
                               <li
-                                className="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleMenuAction("view", clinic.id)
                                 }}
                               >
-                                <Eye className="w-4 h-4 text-indigo-600" />
+                                <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                                 {t("viewClinicDetail")}
                               </li>
                               <li
-                                className="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleMenuAction("edit", clinic.id)
                                 }}
                               >
-                                <Edit className="w-4 h-4 text-blue-600" />
+                                <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 {t("editClinic")}
                               </li>
                               <li
-                                className="px-4 py-2 hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleDeleteClinic(clinic.id)
                                 }}
                               >
-                                <Trash2 className="w-4 h-4 text-red-600" />
+                                <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                                 {t("deleteClinic")}
                               </li>
                             </MenuPortal>
@@ -370,10 +364,10 @@ const ClinicsList: React.FC = () => {
       {/* View Clinic Modal */}
       {viewClinic && (
         <Modal onClose={() => setViewClinic(null)}>
-          <div className="max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+          <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 max-h-[80vh] overflow-y-auto">
             {/* Header */}
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-indigo-900">Chi Tiết Phòng Khám</h2>
+              <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300">Chi Tiết Phòng Khám</h2>
               <div className="w-16 h-1 mx-auto bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full mt-2" />
             </div>
 
@@ -382,66 +376,66 @@ const ClinicsList: React.FC = () => {
               {/* Left Column */}
               <div className="space-y-5">
                 {/* Clinic Name */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <Layers className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Tên phòng khám</div>
-                      <div className="text-base font-medium text-slate-800">{viewClinic.name}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Tên phòng khám</div>
+                      <div className="text-base font-medium text-slate-800 dark:text-slate-200">{viewClinic.name}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Email */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Email</div>
-                      <div className="text-slate-700">{viewClinic.email}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Email</div>
+                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.email}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Phone Number */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <CreditCard className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Số điện thoại</div>
-                      <div className="text-slate-700">{viewClinic.phoneNumber}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Số điện thoại</div>
+                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.phoneNumber}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Address */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <Clock className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Địa chỉ</div>
-                      <div className="text-slate-700">{viewClinic.address}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Địa chỉ</div>
+                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.address}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Tax Code */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Mã số thuế</div>
-                      <div className="text-slate-700">{viewClinic.taxCode}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Mã số thuế</div>
+                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.taxCode}</div>
                     </div>
                   </div>
                 </div>
@@ -450,18 +444,18 @@ const ClinicsList: React.FC = () => {
               {/* Right Column */}
               <div className="space-y-5">
                 {/* Business License */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Giấy phép kinh doanh</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Giấy phép kinh doanh</div>
                       <a
                         href={viewClinic.businessLicenseUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline font-medium"
                       >
                         Xem giấy phép
                       </a>
@@ -470,18 +464,18 @@ const ClinicsList: React.FC = () => {
                 </div>
 
                 {/* Operating License */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Giấy phép hoạt động</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Giấy phép hoạt động</div>
                       <a
                         href={viewClinic.operatingLicenseUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline font-medium"
                       >
                         Xem giấy phép
                       </a>
@@ -490,14 +484,14 @@ const ClinicsList: React.FC = () => {
                 </div>
 
                 {/* Operating License Expiry Date */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <Clock className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Ngày hết hạn giấy phép</div>
-                      <div className="text-slate-700">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Ngày hết hạn giấy phép</div>
+                      <div className="text-slate-700 dark:text-slate-300">
                         {new Intl.DateTimeFormat("vi-VN").format(new Date(viewClinic.operatingLicenseExpiryDate))}
                       </div>
                     </div>
@@ -506,18 +500,18 @@ const ClinicsList: React.FC = () => {
 
                 {/* Profile Picture */}
                 {viewClinic.profilePictureUrl && (
-                  <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                  <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-indigo-100 rounded-lg">
-                        <FileText className="w-5 h-5 text-indigo-600" />
+                      <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                        <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div>
-                        <div className="text-xs text-slate-500 mb-1">Ảnh đại diện</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Ảnh đại diện</div>
                         <a
                           href={viewClinic.profilePictureUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline font-medium"
                         >
                           Xem ảnh đại diện
                         </a>
@@ -527,33 +521,33 @@ const ClinicsList: React.FC = () => {
                 )}
 
                 {/* Total Branches */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <Layers className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                      <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Tổng số chi nhánh</div>
-                      <div className="text-slate-700">{viewClinic.totalBranches}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Tổng số chi nhánh</div>
+                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.totalBranches}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Status */}
-                <div className="bg-slate-50 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${viewClinic.isActivated ? "bg-emerald-100" : "bg-red-100"}`}>
+                    <div className={`p-2 rounded-lg ${viewClinic.isActivated ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30"}`}>
                       {viewClinic.isActivated ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-red-600" />
+                        <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                       )}
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Trạng thái</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Trạng thái</div>
                       <div
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${
-                          viewClinic.isActivated ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                          viewClinic.isActivated ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
                         }`}
                       >
                         {viewClinic.isActivated ? "Đang hoạt động" : "Ngừng hoạt động"}
@@ -612,4 +606,3 @@ const ClinicsList: React.FC = () => {
 }
 
 export default ClinicsList
-

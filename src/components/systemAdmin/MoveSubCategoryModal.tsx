@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Folder, ArrowRightLeft, Loader2 } from "lucide-react"
+import { Folder, ArrowRightLeft, Loader2 } from 'lucide-react'
 import type { CategoryDetail, SubCategory } from "@/features/category-service/types"
 
 interface MoveSubCategoryModalProps {
@@ -36,10 +36,10 @@ export default function MoveSubCategoryModal({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 w-full max-w-md overflow-hidden"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="p-6 bg-gradient-to-r from-purple-500 to-pink-600">
+      <div className="p-6 bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700">
         <h3 className="text-xl font-semibold text-white flex items-center">
           <ArrowRightLeft className="w-5 h-5 mr-2" />
           Chuyển danh mục con
@@ -48,23 +48,23 @@ export default function MoveSubCategoryModal({
 
       <form onSubmit={handleSubmit} className="p-6">
         <div className="mb-6">
-          <div className="p-4 bg-purple-50 rounded-lg mb-4">
-            <p className="text-sm text-gray-600 mb-2">Bạn đang chuyển danh mục con:</p>
-            <div className="font-medium text-purple-700 flex items-center">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Bạn đang chuyển danh mục con:</p>
+            <div className="font-medium text-purple-700 dark:text-purple-400 flex items-center">
+              <div className="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
               {subCategory.name}
             </div>
           </div>
 
-          <label className="block text-sm font-medium text-gray-700 mb-2">Chọn danh mục đích</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chọn danh mục đích</label>
 
           {categories.length > 0 ? (
-            <div className="border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg max-h-60 overflow-y-auto">
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  className={`p-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-purple-50 transition-colors flex items-center ${
-                    selectedCategoryId === category.id ? "bg-purple-50" : ""
+                  className={`p-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors flex items-center ${
+                    selectedCategoryId === category.id ? "bg-purple-50 dark:bg-purple-900/30" : ""
                   }`}
                   onClick={() => setSelectedCategoryId(category.id)}
                 >
@@ -75,18 +75,18 @@ export default function MoveSubCategoryModal({
                     value={category.id}
                     checked={selectedCategoryId === category.id}
                     onChange={() => setSelectedCategoryId(category.id)}
-                    className="mr-3"
+                    className="mr-3 text-purple-600 dark:text-purple-500 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800"
                   />
                   <label htmlFor={`category-${category.id}`} className="flex items-center cursor-pointer flex-1">
-                    <Folder className="w-4 h-4 text-purple-500 mr-2" />
-                    <span>{category.name}</span>
+                    <Folder className="w-4 h-4 text-purple-500 dark:text-purple-400 mr-2" />
+                    <span className="dark:text-gray-200">{category.name}</span>
                   </label>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center border border-gray-200 rounded-lg">
-              <p className="text-gray-500">Không có danh mục đích nào khả dụng</p>
+            <div className="p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg">
+              <p className="text-gray-500 dark:text-gray-400">Không có danh mục đích nào khả dụng</p>
             </div>
           )}
         </div>
@@ -95,14 +95,14 @@ export default function MoveSubCategoryModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-purple-600 dark:focus:ring-offset-gray-800"
             disabled={isLoading}
           >
             Hủy
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-pink-600 border border-transparent rounded-md hover:from-purple-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center"
+            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 border border-transparent rounded-md hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-500 dark:hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-purple-600 dark:focus:ring-offset-gray-800 flex items-center disabled:opacity-70"
             disabled={!selectedCategoryId || isLoading}
           >
             {isLoading ? (
@@ -122,4 +122,3 @@ export default function MoveSubCategoryModal({
     </motion.div>
   )
 }
-

@@ -1,6 +1,5 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useUpdateServiceMutation } from "@/features/clinic-service/api"
@@ -18,11 +17,13 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import { toast } from "react-toastify"
 import dynamic from "next/dynamic"
 import ReactSelect from "react-select"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useTheme } from "next-themes"
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
   ssr: false,
-  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 animate-pulse" />,
+  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />,
 })
 
 interface UpdateServiceFormProps {
@@ -38,7 +39,6 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     clinicId: "",
   })
   const token = getAccessToken()
-  // Add null check for token
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
   const clinicId = tokenData?.clinicId || ""
 
@@ -51,18 +51,16 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
   const [updateService, { isLoading }] = useUpdateServiceMutation()
   const [editorLoaded, setEditorLoaded] = useState(false)
   const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([])
-  // Add a new state for validation errors
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
-  // Fetch branches data
   const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery(clinicId || "")
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
 
-  // Ensure editor is loaded
   useEffect(() => {
     setEditorLoaded(true)
   }, [])
 
-  // Initialize selected branches from initialData when component mounts
   useEffect(() => {
     if (initialData.clinics && initialData.clinics.length > 0) {
       const initialBranches = initialData.clinics.map((clinic) => ({
@@ -72,6 +70,12 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
       setSelectedBranches(initialBranches)
     }
   }, [initialData.clinics])
+
+  // Force re-render when theme changes
+  const [, forceUpdate] = useState({})
+  useEffect(() => {
+    forceUpdate({})
+  }, [theme])
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -92,7 +96,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           name: category.name,
           description: category.description || "",
         },
-        categoryId: category.id, // Set categoryId for API request
+        categoryId: category.id,
       }))
     }
   }
@@ -113,20 +117,14 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     }))
   }
 
-  // Extract branches from the response, handling both possible structures
   const getBranchesFromResponse = () => {
     if (!branchesData) return []
-
-    // Check if the response has branches in the nested structure
     if (branchesData.value?.branches?.items && Array.isArray(branchesData.value.branches.items)) {
       return branchesData.value.branches.items
     }
-
-    // If we have a single branch with nested branches
     if (branchesData.value?.id && branchesData.value?.branches?.items) {
       return branchesData.value.branches.items
     }
-
     return []
   }
 
@@ -137,14 +135,11 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     label: branch.name,
   }))
 
-  // Update the handleSaveChanges function to include validation for branches
   const handleSaveChanges = async () => {
     if (!formData.id) return
 
-    // Reset validation errors
     setValidationErrors({})
 
-    // Validate branch selection
     if (selectedBranches.length === 0) {
       setValidationErrors((prev) => ({ ...prev, branches: "At least one branch must be selected" }))
       toast.error("Please select at least one branch")
@@ -152,23 +147,17 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     }
 
     const updatedFormData = new FormData()
-
-    // Add basic fields
     updatedFormData.append("id", formData.id)
     if (formData.name) updatedFormData.append("name", formData.name)
     if (formData.description) updatedFormData.append("description", formData.description)
     updatedFormData.append("categoryId", formData.category?.id || "")
-
-    // Add selected branch IDs
     const branchIds = selectedBranches.map((branch) => branch.value)
     updatedFormData.append("clinicId", JSON.stringify(branchIds))
 
-    // Add indices of images to delete/replace as JSON array strings
     if (imagesToDelete.coverImages.length > 0) {
       updatedFormData.append("indexCoverImagesChange", JSON.stringify(imagesToDelete.coverImages))
     }
 
-    // Add files if selected
     if (selectedCoverFiles.length > 0) {
       selectedCoverFiles.forEach((file) => updatedFormData.append("coverImages", file))
     }
@@ -187,58 +176,77 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     document.getElementById(id)?.click()
   }
 
-  // Filter out deleted images for display
   const displayCoverImages = formData.coverImage?.filter((img) => !imagesToDelete.coverImages.includes(img.index)) || []
 
-  // React-select styles
+  // Define select styles based on current theme
   const selectStyles = {
     control: (base: any) => ({
       ...base,
-      border: "1px solid #e2e8f0",
+      border: validationErrors.branches ? "1px solid #ef4444" : isDark ? "1px solid #4b5563" : "1px solid #e2e8f0",
       borderRadius: "0.5rem",
       padding: "0.25rem",
-      boxShadow: "none",
+      boxShadow: validationErrors.branches ? "0 0 0 1px #ef4444" : "none",
       "&:hover": {
-        borderColor: "#cbd5e1",
+        borderColor: validationErrors.branches ? "#ef4444" : isDark ? "#6b7280" : "#cbd5e1",
       },
+      backgroundColor: isDark ? "#1f2937" : "white",
     }),
     option: (base: any, state: { isSelected: boolean }) => ({
       ...base,
-      backgroundColor: state.isSelected ? "#f8f9fa" : "white",
-      color: "#1e293b",
+      backgroundColor: isDark ? (state.isSelected ? "#374151" : "#1f2937") : state.isSelected ? "#f8f9fa" : "white",
+      color: isDark ? "#d1d5db" : "#1e293b",
       "&:hover": {
-        backgroundColor: "#f1f5f9",
+        backgroundColor: isDark ? "#4b5563" : "#f1f5f9",
       },
     }),
     multiValue: (base: any) => ({
       ...base,
-      backgroundColor: "#f1f5f9",
+      backgroundColor: isDark ? "#4b5563" : "#f1f5f9",
       borderRadius: "0.375rem",
     }),
     multiValueLabel: (base: any) => ({
       ...base,
-      color: "#4a5568",
+      color: isDark ? "#d1d5db" : "#4a5568",
     }),
     multiValueRemove: (base: any) => ({
       ...base,
-      color: "#a0aec0",
+      color: isDark ? "#9ca3af" : "#a0aec0",
       "&:hover": {
-        color: "#718096",
-        backgroundColor: "#e2e8f0",
+        color: isDark ? "#d1d5db" : "#718096",
+        backgroundColor: isDark ? "#6b7280" : "#e2e8f0",
       },
+    }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#1f2937" : "white",
+      borderColor: isDark ? "#4b5563" : "#e2e8f0",
+    }),
+    input: (base: any) => ({
+      ...base,
+      color: isDark ? "#d1d5db" : "#1e293b",
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: isDark ? "#9ca3af" : "#a0aec0",
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: isDark ? "#d1d5db" : "#1e293b",
     }),
   }
 
   return (
-    <Card className="w-[650px] max-h-[85vh] border-none shadow-lg flex flex-col">
-      <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-t-lg">
-        <CardTitle className="text-2xl font-semibold text-gray-800">Update Service</CardTitle>
-        <CardDescription className="text-gray-600">Update your service details and images</CardDescription>
+    <Card className="w-[650px] max-h-[85vh] border-none shadow-lg dark:shadow-gray-900 flex flex-col">
+      <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-t-lg">
+        <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Update Service</CardTitle>
+        <CardDescription className="text-gray-600 dark:text-gray-300">
+          Update your service details and images
+        </CardDescription>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6 max-h-[60vh] overflow-y-auto pr-6">
+      <CardContent className="p-6 space-y-6 max-h-[60vh] overflow-y-auto pr-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium">
+          <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Service Name
           </Label>
           <Input
@@ -247,20 +255,23 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             value={formData.name || ""}
             onChange={handleFormChange}
             placeholder="Enter service name"
-            className="border-gray-200 focus:border-pink-300 focus:ring-pink-200"
+            className="border-gray-200 focus:border-pink-300 focus:ring-pink-200 dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-500 dark:bg-gray-700"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description" className="text-sm font-medium flex items-center gap-1">
+          <Label
+            htmlFor="description"
+            className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300"
+          >
             <FileText className="h-4 w-4" />
             Description
           </Label>
           <div
             style={{
-              marginBottom: "80px", // Increase space below the editor
-              position: "relative", // Create a new stacking context
-              zIndex: 1, // Lower z-index
+              marginBottom: "80px",
+              position: "relative",
+              zIndex: 1,
             }}
           >
             {editorLoaded && (
@@ -273,35 +284,34 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           </div>
         </div>
 
-        {/* Clear div to prevent overlap */}
         <div className="clear-both h-4"></div>
 
         <div
           className="space-y-2"
           style={{
-            position: "relative", // Create a new stacking context
-            zIndex: 2, // Higher z-index
-            backgroundColor: "white", // Add background color
+            position: "relative",
+            zIndex: 2,
+            backgroundColor: "var(--background, white)",
           }}
         >
           <Label
             htmlFor="category"
-            className="text-sm font-medium block py-2"
+            className="text-sm font-medium block py-2 text-gray-700 dark:text-gray-300"
             style={{
-              position: "relative", // Create a new stacking context
-              zIndex: 3, // Even higher z-index
-              backgroundColor: "white", // Add background color
-              display: "block", // Ensure it's a block element
-              marginBottom: "8px", // Add some margin
+              position: "relative",
+              zIndex: 3,
+              backgroundColor: "var(--background, white)",
+              display: "block",
+              marginBottom: "8px",
             }}
           >
             Category
           </Label>
           <Select value={formData.category?.id} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="border-gray-200 focus:border-pink-300 focus:ring-pink-200">
+            <SelectTrigger className="border-gray-200 focus:border-pink-300 focus:ring-pink-200 dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-500 dark:bg-gray-700">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
@@ -311,9 +321,8 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           </Select>
         </div>
 
-        {/* Branch Selection (Multiple) */}
         <div className="space-y-2 mt-6">
-          <Label className="text-sm font-medium flex items-center gap-1">
+          <Label className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300">
             <Building className="h-4 w-4" />
             Branches <span className="text-red-500">*</span>
           </Label>
@@ -322,7 +331,6 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             value={selectedBranches}
             onChange={(selected) => {
               setSelectedBranches(selected as { value: string; label: string }[])
-              // Clear validation error when branches are selected
               if (selected && selected.length > 0) {
                 setValidationErrors((prev) => {
                   const newErrors = { ...prev }
@@ -335,24 +343,35 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             isDisabled={isLoadingBranches}
             isSearchable
             placeholder="Select Branches"
-            styles={{
-              ...selectStyles,
-              control: (base: any) => ({
-                ...base,
-                border: validationErrors.branches ? "1px solid #ef4444" : "1px solid #e2e8f0",
-                borderRadius: "0.5rem",
-                padding: "0.25rem",
-                boxShadow: validationErrors.branches ? "0 0 0 1px #ef4444" : "none",
-                "&:hover": {
-                  borderColor: validationErrors.branches ? "#ef4444" : "#cbd5e1",
-                },
-              }),
-            }}
+            styles={selectStyles}
             className="react-select-container"
             classNamePrefix="react-select"
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...theme.colors,
+                primary: "#ec4899",
+                primary75: isDark ? "#be185d" : "#f9a8d4",
+                primary50: isDark ? "#831843" : "#fbcfe8",
+                primary25: isDark ? "#500724" : "#fce7f3",
+                danger: "#ef4444",
+                dangerLight: isDark ? "#7f1d1d" : "#fee2e2",
+                neutral0: isDark ? "#1f2937" : "white",
+                neutral5: isDark ? "#374151" : "#f9fafb",
+                neutral10: isDark ? "#4b5563" : "#f3f4f6",
+                neutral20: isDark ? "#6b7280" : "#e5e7eb",
+                neutral30: isDark ? "#9ca3af" : "#d1d5db",
+                neutral40: isDark ? "#9ca3af" : "#9ca3af",
+                neutral50: isDark ? "#9ca3af" : "#9ca3af",
+                neutral60: isDark ? "#d1d5db" : "#4b5563",
+                neutral70: isDark ? "#e5e7eb" : "#374151",
+                neutral80: isDark ? "#f3f4f6" : "#1f2937",
+                neutral90: isDark ? "#f9fafb" : "#111827",
+              },
+            })}
           />
           {validationErrors.branches && (
-            <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+            <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1 mt-1">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
@@ -364,25 +383,27 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             </p>
           )}
           {branchOptions.length === 0 && !isLoadingBranches && (
-            <p className="text-sm text-amber-600">No branches available. Please create a branch first.</p>
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              No branches available. Please create a branch first.
+            </p>
           )}
           {selectedBranches.length > 0 && !validationErrors.branches && (
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-600 dark:text-green-400">
               {selectedBranches.length} branch{selectedBranches.length > 1 ? "es" : ""} selected
             </p>
           )}
         </div>
 
-        <Separator className="my-4" />
+        <Separator className="my-4 dark:bg-gray-700" />
 
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Cover Images</Label>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cover Images</Label>
 
           {displayCoverImages.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 mb-3">
               {displayCoverImages.map((img) => (
                 <div key={img.id} className="relative group">
-                  <div className="overflow-hidden rounded-lg aspect-square bg-gray-50 border border-gray-100">
+                  <div className="overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600">
                     <Image
                       src={img.url || "/placeholder.svg"}
                       alt={`Cover ${img.index}`}
@@ -393,12 +414,11 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
                     <div className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                       {img.index}
                     </div>
-                    {/* Overlay with edit and delete buttons */}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
                       <button
                         type="button"
                         onClick={() => triggerFileInput("cover-image-input")}
-                        className="p-2 rounded-full bg-white text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-2 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Change image"
                       >
                         <Edit className="w-4 h-4" />
@@ -406,7 +426,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
                       <button
                         type="button"
                         onClick={() => handleDeleteCoverImage(img.index)}
-                        className="p-2 rounded-full bg-white text-red-500 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+                        className="p-2 rounded-full bg-white dark:bg-gray-800 text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
                         title="Delete image"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -417,23 +437,25 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 italic mb-3">No existing cover images</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 italic mb-3">No existing cover images</div>
           )}
 
           {imagesToDelete.coverImages.length > 0 && (
-            <div className="text-sm text-amber-600 mb-2">
+            <div className="text-sm text-amber-600 dark:text-amber-400 mb-2">
               {imagesToDelete.coverImages.length} image(s) marked for deletion
             </div>
           )}
 
           {selectedCoverFiles.length > 0 && (
             <>
-              <Label className="text-sm font-medium">Newly Selected Cover Images:</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Newly Selected Cover Images:
+              </Label>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 {Array.from(selectedCoverFiles).map((file, index) => (
                   <div key={index} className="relative group">
-                    <div className="overflow-hidden rounded-lg aspect-square bg-gray-50 border border-gray-100 flex items-center justify-center">
-                      <div className="text-sm text-center p-2 text-gray-600">
+                    <div className="overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 flex items-center justify-center">
+                      <div className="text-sm text-center p-2 text-gray-600 dark:text-gray-300">
                         {file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name}
                       </div>
                     </div>
@@ -456,7 +478,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
               type="button"
               variant="outline"
               onClick={() => triggerFileInput("cover-image-input")}
-              className="w-full border-dashed border-gray-300 hover:border-pink-300 hover:bg-pink-50 text-gray-600 hover:text-pink-600"
+              className="w-full border-dashed border-gray-300 hover:border-pink-300 hover:bg-pink-50 dark:border-gray-600 dark:hover:border-pink-400 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400"
             >
               <ImagePlus className="mr-2 h-4 w-4" />
               {selectedCoverFiles.length > 0
@@ -467,8 +489,12 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         </div>
       </CardContent>
 
-      <CardFooter className="flex justify-end gap-3 p-6 bg-gray-50 rounded-b-lg">
-        <Button variant="outline" onClick={onClose} className="text-gray-600 hover:text-gray-800">
+      <CardFooter className="flex justify-end gap-3 p-6 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
+        <Button
+          variant="outline"
+          onClick={onClose}
+          className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
+        >
           <XCircle className="mr-2 h-4 w-4" />
           Cancel
         </Button>
@@ -491,27 +517,60 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         </Button>
       </CardFooter>
 
-      {/* Global styles to fix the QuillEditor overlap issue */}
       <style jsx global>{`
         .quill-editor-container {
           position: relative;
           z-index: 10;
-          margin-bottom: 60px; /* Add extra space below the editor */
+          margin-bottom: 60px;
         }
         
         .ql-toolbar.ql-snow,
         .ql-container.ql-snow {
           position: relative;
           z-index: 10;
+          background-color: white;
         }
         
-        /* Fix for the Quill editor to not extend beyond its bounds */
         .ql-editor {
           max-height: 150px;
           overflow-y: auto;
+          background-color: white;
+          color: #1e293b;
+        }
+
+        /* Dark mode styles for Quill */
+        [data-theme='dark'] .ql-toolbar.ql-snow,
+        [data-theme='dark'] .ql-container.ql-snow {
+          background-color: #1f2937;
+          border-color: #4b5563;
         }
         
-        /* Clear float to prevent overlap */
+        [data-theme='dark'] .ql-editor {
+          background-color: #1f2937;
+          color: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-picker-label {
+          color: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-stroke {
+          stroke: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-fill {
+          fill: #d1d5db;
+        }
+        
+        [data-theme='dark'] .ql-picker-options {
+          background-color: #1f2937;
+          border-color: #4b5563;
+        }
+        
+        [data-theme='dark'] .ql-picker-item {
+          color: #d1d5db;
+        }
+        
         .clear-both {
           clear: both;
           display: block;
@@ -523,4 +582,3 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
 }
 
 export default UpdateServiceForm
-
