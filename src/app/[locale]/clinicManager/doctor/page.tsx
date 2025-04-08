@@ -1,7 +1,7 @@
 "use client"
 import { useState, useRef } from "react"
 import type React from "react"
-import { Stethoscope, Building2, ChevronRight } from "lucide-react"
+import { Stethoscope, Building2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useGetDoctorsQuery, useLazyGetDoctorByIdQuery, useDeleteDoctorMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
@@ -369,14 +369,12 @@ export default function DoctorPage() {
                                   className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full cursor-pointer hover:bg-blue-100 transition-colors max-w-[100px] inline-block truncate align-bottom"
                                   onMouseEnter={(e) => handleBranchMouseEnter(branch.id, e)}
                                   onMouseLeave={() => setHoveredBranchId(null)}
-                                
                                 >
                                   {branch.name}
                                 </span>
                               </div>
                             ))}
                           </div>
-                          
                         </div>
                       ) : (
                         <span className="text-gray-400 text-sm">No branches</span>

@@ -10,7 +10,7 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
+import storage from "redux-persist/lib/storage";
 
 // Reducers
 import authReducer from "@/features/auth/slice";
@@ -20,7 +20,14 @@ import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
 import { addressApi } from "@/features/address/api";
 import { paymentsApi } from "@/features/payment/api";
-import { clinicsQueryApi, clinicsCommandApi } from "@/features/clinic/api";
+import {
+  clinicsQueryApi,
+  clinicsCommandApi,
+  staffQueryApi,
+  staffCommandApi,
+  doctorAdminQueryApi,
+  doctorAdminCommandApi,
+} from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api";
 import { partnershipRequestApi } from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
@@ -34,17 +41,24 @@ import {
   serviceQueryApi,
 } from "@/features/clinic-service/api";
 import { bookingCommandApi, bookingQueryApi } from "@/features/booking/api";
-import { doctorCommandApi, doctorQueryApi } from "@/features/doctor/api";
+import {
+  doctorCommandApi,
+  doctorQueryApi,
+} from "@/features/doctor/api";
+import {
+  customerScheduleCommandApi,
+  customerScheduleQueryApi,
+} from "@/features/customer-schedule/api";
+import { promotionCommandApi } from "@/features/promotion-service/api";
 
-// Configure persist options
+// Redux Persist config
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"], // Only auth will be persisted
-  // blacklist: [], // These reducers will not be persisted
+  whitelist: ["auth"], // only persist auth slice
 };
 
-// Combine all reducers
+// Combine reducers
 const rootReducer = combineReducers({
   auth: authReducer,
   [authApi.reducerPath]: authApi.reducer,
@@ -66,53 +80,63 @@ const rootReducer = combineReducers({
   [paymentsApi.reducerPath]: paymentsApi.reducer,
   [doctorQueryApi.reducerPath]: doctorQueryApi.reducer,
   [doctorCommandApi.reducerPath]: doctorCommandApi.reducer,
+  [doctorAdminQueryApi.reducerPath]: doctorAdminQueryApi.reducer,
+  [doctorAdminCommandApi.reducerPath]: doctorAdminCommandApi.reducer,
+  [staffQueryApi.reducerPath]: staffQueryApi.reducer,
+  [staffCommandApi.reducerPath]: staffCommandApi.reducer,
+  [customerScheduleQueryApi.reducerPath]: customerScheduleQueryApi.reducer,
+  [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
+  [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
 });
 
-// Create persisted reducer
+// Persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-// Create middleware array
-const apiMiddleware = [
-  authApi.middleware,
-  landingApi.middleware,
-  packageApi.middleware,
-  packageCreateApi.middleware,
-  partnershipRequestApi.middleware,
-  bookingQueryApi.middleware,
-  bookingCommandApi.middleware,
-  serviceApi.middleware,
-  categoryApi.middleware,
-  clinicsQueryApi.middleware,
-  clinicsCommandApi.middleware,
-  categoryQueryApi.middleware,
-  categoryCommandApi.middleware,
-  serviceCommandApi.middleware,
-  serviceQueryApi.middleware,
-  addressApi.middleware,
-  paymentsApi.middleware,
-  doctorQueryApi.middleware,
-  doctorCommandApi.middleware,
-];
-
-// Create store with persisted reducer
+// Store
 const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore these redux-persist action types
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(...apiMiddleware),
+    }).concat(
+      authApi.middleware,
+      landingApi.middleware,
+      packageApi.middleware,
+      packageCreateApi.middleware,
+      partnershipRequestApi.middleware,
+      bookingQueryApi.middleware,
+      bookingCommandApi.middleware,
+      serviceApi.middleware,
+      categoryApi.middleware,
+      clinicsQueryApi.middleware,
+      clinicsCommandApi.middleware,
+      categoryQueryApi.middleware,
+      categoryCommandApi.middleware,
+      serviceCommandApi.middleware,
+      serviceQueryApi.middleware,
+      addressApi.middleware,
+      paymentsApi.middleware,
+      doctorQueryApi.middleware,
+      doctorCommandApi.middleware,
+      doctorAdminQueryApi.middleware,
+      doctorAdminCommandApi.middleware,
+      staffQueryApi.middleware,
+      staffCommandApi.middleware,
+      customerScheduleQueryApi.middleware,
+      customerScheduleCommandApi.middleware,
+      promotionCommandApi.middleware
+    ),
 });
 
-// Create persistor
+// Persistor
 export const persistor = persistStore(store);
 
-// Setup listeners for RTK Query
+// RTK Query setup
 setupListeners(store.dispatch);
 
-// Export types
+// Types
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 

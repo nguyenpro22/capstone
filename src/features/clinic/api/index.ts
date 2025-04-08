@@ -178,8 +178,8 @@ export const staffCommandApi = createApi({
   }),
 });
 
-export const doctorQueryApi = createApi({
-  reducerPath: "doctorQueryApi",
+export const doctorAdminQueryApi = createApi({
+  reducerPath: "doctorAdminQueryApi",
   baseQuery: reAuthQuery("query"), // Using port 3000
   tagTypes: ["Doctor"],
   endpoints: (builder) => ({
@@ -195,6 +195,7 @@ export const doctorQueryApi = createApi({
     >({
       query: ({ clinicId, pageIndex, pageSize, searchTerm, role }) =>
         `clinics/${clinicId}/employees?role=${role}&pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
+      
       providesTags: ["Doctor"],
     }),
     getDoctorById: builder.query<
@@ -219,8 +220,8 @@ export const doctorQueryApi = createApi({
 });
 
 // Command API for POST/PUT/DELETE operations
-export const doctorCommandApi = createApi({
-  reducerPath: "doctorCommandApi",
+export const doctorAdminCommandApi = createApi({
+  reducerPath: "doctorAdminCommandApi",
   baseQuery: reAuthQuery("command"), // Using port 4000
   tagTypes: ["Doctor"],
   endpoints: (builder) => ({
@@ -309,7 +310,7 @@ export const {
   useGetDoctorsQuery,
   useLazyGetDoctorByIdQuery,
   useGetDoctorByClinicQuery,
-} = doctorQueryApi;
+} = doctorAdminQueryApi;
 
 export const {
   useAddDoctorMutation,
@@ -317,4 +318,4 @@ export const {
   useDeleteDoctorMutation,
   useChangeDoctorStatusMutation,
   useChangeDoctorBranchMutation,
-} = doctorCommandApi;
+} = doctorAdminCommandApi;
