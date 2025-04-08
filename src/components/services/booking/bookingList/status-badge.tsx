@@ -3,7 +3,7 @@ import type { BookingStatus } from "@/features/booking/types";
 import { CheckCircle, Clock, XCircle } from "lucide-react";
 
 interface StatusBadgeProps {
-  status: BookingStatus;
+  status: string;
   className?: string;
 }
 

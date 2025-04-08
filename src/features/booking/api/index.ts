@@ -1,6 +1,13 @@
 import { IListResponse, IResCommon, reAuthQuery } from "@/lib/api";
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { Booking, BookingRequest, CustomerSchedule, TimeSlot } from "../types";
+import {
+  AppointmentDetail,
+  Booking,
+  BookingRequest,
+  CustomerSchedule,
+  Order,
+  TimeSlot,
+} from "../types";
 
 // API GET chạy trên port 3000
 export const bookingQueryApi = createApi({
@@ -9,10 +16,31 @@ export const bookingQueryApi = createApi({
   endpoints: (builder) => ({
     getBookings: builder.query<
       IResCommon<IListResponse<Booking>>,
-      { pageIndex?: number; pageSize?: number; serchTerm?: string }
+      {
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+        pageIndex?: number;
+        pageSize?: number;
+      }
     >({
-      query: ({ pageIndex = 1, pageSize = 10, serchTerm = "" }) =>
-        `bookings?pageNumber=1&pageSize=10`,
+      query: ({
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+        pageIndex = 1,
+        pageSize = 10,
+      }) => ({
+        url: `/bookings`,
+        method: "GET",
+        params: {
+          searchTerm,
+          sortColumn,
+          sortOrder,
+          pageIndex,
+          pageSize,
+        },
+      }),
     }),
     getBusyTimes: builder.query<
       IResCommon<TimeSlot[]>,
@@ -26,14 +54,51 @@ export const bookingQueryApi = createApi({
     getBookingById: builder.query<IResCommon<Booking>, string>({
       query: (id) => `clinic/${id}?id=${id}`,
     }),
+    getBookingByBookingId: builder.query<
+      IResCommon<AppointmentDetail>,
+      { id: string }
+    >({
+      query: ({ id }) => ({
+        url: `bookings/${id}`,
+        method: "GET",
+      }),
+    }),
     // Get total appointments by month-year
     getAppointmentsTotal: builder.query({
       query: (date) => `bookings/appointments/total?Date=${date}`,
     }),
-    
+
     // Get appointments by specific date
     getAppointmentsByDate: builder.query({
       query: (date) => `bookings/appointments/${date}`,
+    }),
+    getOrders: builder.query<
+      IResCommon<IListResponse<Order>>,
+      {
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+        pageIndex?: number;
+        pageSize?: number;
+      }
+    >({
+      query: ({
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+        pageIndex = 1,
+        pageSize = 10,
+      }) => ({
+        url: `/orders`,
+        method: "GET",
+        params: {
+          searchTerm,
+          sortColumn,
+          sortOrder,
+          pageIndex,
+          pageSize,
+        },
+      }),
     }),
   }),
 });
@@ -65,10 +130,12 @@ export const {
   useGetBookingsQuery,
   useGetBookingByIdQuery,
   useGetBusyTimesQuery,
-  useGetAppointmentsTotalQuery, 
+  useGetAppointmentsTotalQuery,
   useLazyGetAppointmentsTotalQuery,
   useGetAppointmentsByDateQuery,
-  useLazyGetAppointmentsByDateQuery
+  useLazyGetAppointmentsByDateQuery,
+  useGetBookingByBookingIdQuery,
+  useGetOrdersQuery,
 } = bookingQueryApi;
 
 export const { useCreateBookingMutation, useUpdateBookingMutation } =

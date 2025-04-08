@@ -32,6 +32,8 @@ import LangToggle from "@/components/common/LangToggle";
 import { customerRoutes } from "@/constants";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { normalizeVietnameseText } from "@/utils/vietnamese-text";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -84,6 +86,8 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const router = useRouter();
   const { handleLogout } = useAuth();
   const token = getAccessToken() as string;
+  const user = useSelector((state: RootState) => state);
+  console.log("User data from Redux Header:", user);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
