@@ -43,6 +43,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AnimatedGradientBackground } from "@/components/ui/animated-gradient-background";
 import { BookingFlow } from "@/components/services/booking/booking/booking-flow";
+import { CalendarPicker } from "@/components/services/booking-calendar";
 
 // Loading Skeleton Component
 function ServiceDetailSkeleton() {
@@ -905,113 +906,6 @@ export default function ServiceDetail() {
                   </CardContent>
                 </Card>
 
-                {/* Booking Form Card */}
-                <Card className="border-primary/10">
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-4">{t("quickBooking")}</h3>
-                    <form className="space-y-3" onSubmit={handleBookingSubmit}>
-                      <div>
-                        <Input
-                          placeholder={t("fullName")}
-                          value={bookingData.name}
-                          onChange={(e) =>
-                            setBookingData({
-                              ...bookingData,
-                              name: e.target.value,
-                            })
-                          }
-                          required
-                          aria-label={t("fullName")}
-                        />
-                      </div>
-                      <div>
-                        <Input
-                          placeholder={t("phoneNumber")}
-                          value={bookingData.phone}
-                          onChange={(e) =>
-                            setBookingData({
-                              ...bookingData,
-                              phone: e.target.value,
-                            })
-                          }
-                          required
-                          aria-label={t("phoneNumber")}
-                          type="tel"
-                          pattern="[0-9]*"
-                        />
-                      </div>
-                      <div>
-                        <Input
-                          placeholder={t("emailOptional")}
-                          value={bookingData.email}
-                          onChange={(e) =>
-                            setBookingData({
-                              ...bookingData,
-                              email: e.target.value,
-                            })
-                          }
-                          type="email"
-                          aria-label={t("email")}
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm mb-2">
-                          {t("selectAppointmentDate")}
-                        </p>
-                        <div className="rounded-md border w-full overflow-hidden">
-                          <Calendar
-                            mode="single"
-                            selected={bookingData.date}
-                            onSelect={(date) => {
-                              if (date) {
-                                setBookingData({ ...bookingData, date });
-                              }
-                            }}
-                            disabled={(date) => {
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              return date < today;
-                            }}
-                            initialFocus
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Textarea
-                          placeholder={t("additionalNotesOptional")}
-                          value={bookingData.notes}
-                          onChange={(e) =>
-                            setBookingData({
-                              ...bookingData,
-                              notes: e.target.value,
-                            })
-                          }
-                          className="h-20"
-                          aria-label={t("notes")}
-                        />
-                      </div>
-                      <Button
-                        className="w-full"
-                        type="submit"
-                        disabled={
-                          isSubmitting ||
-                          !bookingData.name ||
-                          !bookingData.phone
-                        }
-                      >
-                        {isSubmitting ? t("sending") : t("sendBookingRequest")}
-                      </Button>
-                      {bookingSuccess && (
-                        <div className="text-sm text-green-600 text-center mt-2 p-2 bg-green-50 rounded-md">
-                          <CheckCircle className="h-4 w-4 inline mr-1" />
-                          {t("bookingSuccessMessage")}
-                        </div>
-                      )}
-                    </form>
-                  </CardContent>
-                </Card>
-
                 {/* Category Info */}
                 {service.category && (
                   <Card className="border-primary/10 mt-6">
@@ -1028,15 +922,6 @@ export default function ServiceDetail() {
                           }}
                         />
                       )}
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto mt-2"
-                        asChild
-                      >
-                        <Link href={`/categories/${service.category.id}`}>
-                          {t("viewMoreServicesInCategory")}
-                        </Link>
-                      </Button>
                     </CardContent>
                   </Card>
                 )}

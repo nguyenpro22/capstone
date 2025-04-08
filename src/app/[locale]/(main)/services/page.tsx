@@ -1109,9 +1109,7 @@ export default function ServicesPage(): JSX.Element {
                       <SelectValue placeholder={t("allCategories")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all_parents">
-                        {t("allCategories")}
-                      </SelectItem>
+                      <SelectItem value="all">{t("allCategories")}</SelectItem>
                       {parentCategories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -1147,7 +1145,7 @@ export default function ServicesPage(): JSX.Element {
                           <SelectValue placeholder={t("selectSubCategory")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all_children">
+                          <SelectItem value="all">
                             {t("allSubCategories")}
                           </SelectItem>
                           {childCategoriesByParent
@@ -1249,9 +1247,8 @@ export default function ServicesPage(): JSX.Element {
                         <div className="relative h-[60px] w-[60px] rounded-lg overflow-hidden">
                           <Image
                             src={
-                              service.coverImage?.[0]?.url ||
-                              "https://placehold.co/60x60" ||
-                              "/placeholder.svg"
+                              // service.coverImage?.[0]?.url ||
+                              "https://placehold.co/60x60"
                             }
                             alt={service.name}
                             fill
@@ -1303,9 +1300,8 @@ export default function ServicesPage(): JSX.Element {
                       <div className="relative h-[60px] w-[60px] rounded-lg overflow-hidden">
                         <Image
                           src={
-                            service.coverImage?.[0]?.url ||
-                            "https://placehold.co/60x60" ||
-                            "/placeholder.svg"
+                            // service.coverImage?.[0]?.url ||
+                            "https://placehold.co/60x60"
                           }
                           alt={service.name}
                           fill
@@ -1338,207 +1334,11 @@ export default function ServicesPage(): JSX.Element {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                     <span>{t("services")}</span>
-                    {filters.parentCategory &&
-                      categoriesMap.has(filters.parentCategory) && (
-                        <span className="flex items-center">
-                          <ChevronRight className="h-5 w-5 mx-1 text-gray-400" />
-                          <span className="text-purple-600">
-                            {categoriesMap.get(filters.parentCategory)?.name}
-                          </span>
-                        </span>
-                      )}
                   </h2>
                   <span className="text-muted-foreground bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 px-3 py-1 rounded-full text-sm font-medium">
                     {t("resultsCount", { count: filteredServices.length })}
                   </span>
                 </div>
-
-                <Tabs defaultValue="all" className="mb-8">
-                  <TabsList className="w-full justify-start overflow-x-auto bg-gray-100/80 dark:bg-gray-800/80 p-1 rounded-lg">
-                    <TabsTrigger
-                      value="all"
-                      className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400"
-                      onClick={() => {
-                        setFilters({
-                          ...filters,
-                          category: "all",
-                        });
-                        toast.success(
-                          t("selectedCategory", { category: t("all") })
-                        );
-                      }}
-                    >
-                      {t("all")}
-                    </TabsTrigger>
-                    {filters.parentCategory
-                      ? childCategoriesByParent
-                          .get(filters.parentCategory)
-                          ?.map((category) => (
-                            <TabsTrigger
-                              key={category.id}
-                              value={category.id}
-                              onClick={() => {
-                                setFilters({
-                                  ...filters,
-                                  category: category.id,
-                                });
-                                toast.success(
-                                  t("selectedCategory", {
-                                    category: category.name,
-                                  })
-                                );
-                              }}
-                              title={
-                                category.description
-                                  ? category.description.replace(/<[^>]*>/g, "")
-                                  : ""
-                              }
-                              className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400"
-                            >
-                              {category.name}
-                            </TabsTrigger>
-                          ))
-                      : parentCategories.map((category) => (
-                          <TabsTrigger
-                            key={category.id}
-                            value={category.id}
-                            onClick={() => {
-                              setFilters({
-                                ...filters,
-                                parentCategory: category.id,
-                              });
-                              toast.success(
-                                t("selectedCategory", {
-                                  category: category.name,
-                                })
-                              );
-                            }}
-                            title={
-                              category.description
-                                ? category.description.replace(/<[^>]*>/g, "")
-                                : ""
-                            }
-                            className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400"
-                          >
-                            {category.name}
-                          </TabsTrigger>
-                        ))}
-                  </TabsList>
-
-                  <TabsContent value="all" className="mt-6">
-                    {viewMode === "grid" ? (
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredServices.map((service) => (
-                          <motion.div
-                            key={service.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <ServiceCard
-                              service={service}
-                              onBookService={() => handleBookService(service)}
-                              onFavoriteToggle={() =>
-                                toggleFavorite(service.id)
-                              }
-                              isFavorite={favorites.has(service.id)}
-                              viewMode="grid"
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {filteredServices.map((service) => (
-                          <motion.div
-                            key={service.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <ServiceCard
-                              service={service}
-                              onBookService={() => handleBookService(service)}
-                              onFavoriteToggle={() =>
-                                toggleFavorite(service.id)
-                              }
-                              isFavorite={favorites.has(service.id)}
-                              viewMode="list"
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  {/* Tab content for each category */}
-                  {(filters.parentCategory
-                    ? childCategoriesByParent.get(filters.parentCategory) || []
-                    : parentCategories
-                  ).map((category) => (
-                    <TabsContent
-                      key={category.id}
-                      value={category.id}
-                      className="mt-6"
-                    >
-                      {viewMode === "grid" ? (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {filteredServices
-                            .filter(
-                              (service) => service.category?.id === category.id
-                            )
-                            .map((service) => (
-                              <motion.div
-                                key={service.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <ServiceCard
-                                  service={service}
-                                  onBookService={() =>
-                                    handleBookService(service)
-                                  }
-                                  onFavoriteToggle={() =>
-                                    toggleFavorite(service.id)
-                                  }
-                                  isFavorite={favorites.has(service.id)}
-                                  viewMode="grid"
-                                />
-                              </motion.div>
-                            ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {filteredServices
-                            .filter(
-                              (service) => service.category?.id === category.id
-                            )
-                            .map((service) => (
-                              <motion.div
-                                key={service.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <ServiceCard
-                                  service={service}
-                                  onBookService={() =>
-                                    handleBookService(service)
-                                  }
-                                  onFavoriteToggle={() =>
-                                    toggleFavorite(service.id)
-                                  }
-                                  isFavorite={favorites.has(service.id)}
-                                  viewMode="list"
-                                />
-                              </motion.div>
-                            ))}
-                        </div>
-                      )}
-                    </TabsContent>
-                  ))}
-                </Tabs>
               </>
             ) : (
               <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
@@ -1615,65 +1415,6 @@ export default function ServicesPage(): JSX.Element {
           </div>
         </div>
       </div>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-gray-900">
-        <div className="container px-4 mx-auto text-center">
-          <div className="max-w-2xl mx-auto mb-8">
-            <h2 className="text-3xl font-bold mb-4">
-              {t("readyForBeautyJourney")}
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              {t("bookFreeConsultation")}
-            </p>
-            <Button
-              size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              onClick={() => {
-                if (services.length > 0) {
-                  handleBookService(services[0]);
-                  toast.success(t("openingConsultationForm"));
-                } else {
-                  toast.error(t("noServicesAvailable"));
-                }
-              }}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              {t("bookFreeConsultationButton")}
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-8 mt-8">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-1">
-                10k+
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {t("satisfiedCustomers")}
-              </div>
-            </div>
-            <Separator
-              orientation="vertical"
-              className="h-12 hidden md:block"
-            />
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-1">4.9</div>
-              <div className="text-sm text-muted-foreground">
-                {t("averageRating")}
-              </div>
-            </div>
-            <Separator
-              orientation="vertical"
-              className="h-12 hidden md:block"
-            />
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-1">15+</div>
-              <div className="text-sm text-muted-foreground">
-                {t("yearsExperience")}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
@@ -1891,7 +1632,7 @@ export default function ServicesPage(): JSX.Element {
       </footer>
 
       {/* Booking Flow */}
-      {showBookingFlow && selectedService && (
+      {showBookingFlow && selectedService && !isLoading && (
         <BookingFlow
           service={detailData?.value as ServiceDetail}
           onClose={handleCloseBookingFlow}

@@ -62,16 +62,28 @@ export type DoctorService = {
   doctor: Doctor;
 };
 
+type Branding = {
+  id: string;
+  name: string;
+  email: string;
+  address: string | null;
+  phoneNumber: string;
+  profilePictureUrl: string | null;
+  isParent: boolean;
+  parentId: string | null;
+};
+
 // Type dùng cho danh sách services
 export type ServiceItem = {
   id: string;
   name: string;
+  branding: Branding;
   maxPrice: number;
   minPrice: number;
   discountPercent: string;
   discountMaxPrice: number;
   discountMinPrice: number;
-  coverImage: CoverImage[];
+  coverImage: string[];
   clinics: Clinic[];
   category: Category;
   doctorServices: DoctorService[];

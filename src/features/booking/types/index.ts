@@ -34,12 +34,16 @@ export interface UserBooking {
 export interface Booking {
   id: string;
   customerName: string;
-  start: string;
-  end: string;
+  start: string; // "HH:mm:ss"
+  end: string; // "HH:mm:ss"
   serviceName: string;
-  currentProcedurePriceType: string;
+  procedureId: string;
+  stepIndex: string;
+  name: string;
+  duration: number;
+  dateCompleted: string; // "YYYY-MM-DD"
   status: BookingStatus;
-  date: string;
+  date: string; // "YYYY-MM-DD"
 }
 export interface BookingParams {
   pageIndex?: number;
@@ -74,50 +78,110 @@ export type CustomerSchedule = {
   startTime: string;
 };
 
-
 export interface AppointmentCounts {
-  total: number
-  completed: number
-  inProgress: number
-  pending: number
-  cancelled: number
+  total: number;
+  completed: number;
+  inProgress: number;
+  pending: number;
+  cancelled: number;
 }
 
 export interface DailyData {
-  date: string
-  counts: AppointmentCounts
+  date: string;
+  counts: AppointmentCounts;
 }
 
 export interface Customer {
-  id: string
-  name: string
-  avatar: string | null
+  id: string;
+  name: string;
+  avatar: string | null;
 }
 
 export interface Service {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export interface Doctor {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export interface Clinic {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export interface Appointment {
-  id: string
-  customer: Customer
-  service: Service
-  startTime: string
-  endTime: string
-  duration: string
-  status: string
-  doctor: Doctor
-  clinic: Clinic
+  id: string;
+  customer: Customer;
+  service: Service;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  status: string;
+  doctor: Doctor;
+  clinic: Clinic;
 }
 
+type ProcedureStepDetail = {
+  stepIndex: string;
+  name: string;
+  duration: number;
+  dateCompleted: string | null;
+  timeCompleted: string | null;
+  status: "Pending" | "Completed" | string; // bạn có thể giới hạn thêm nếu cần
+};
+
+type ServiceDetail = {
+  id: string;
+  name: string;
+  imageUrls: string[] | null;
+};
+
+type DoctorDetail = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+};
+
+type ClinicDetail = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+};
+
+export type AppointmentDetail = {
+  id: string;
+  customerName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number | null;
+  doctorNote: string | null;
+  status:
+    | "Completed"
+    | "Pending"
+    | "In Progress"
+    | "Uncompleted"
+    | "Waiting Approval"
+    | string;
+  service: ServiceDetail;
+  doctor: DoctorDetail;
+  clinic: ClinicDetail;
+  procedureHistory: ProcedureStepDetail[];
+};
+export type Order = {
+  id: string;
+  customerName: string;
+  serviceName: string;
+  finalAmount: number;
+  orderDate: string; // ISO format: "YYYY-MM-DD"
+  status:
+    | "Completed"
+    | "Pending"
+    | "In Progress"
+    | "Uncompleted"
+    | "Waiting Approval"
+    | string;
+};
