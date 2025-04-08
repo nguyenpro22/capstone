@@ -18,6 +18,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import { useTheme } from "next-themes"
+import { RootState } from "@/store"
+import { useSelector } from "react-redux"
 
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
   ssr: false,
@@ -36,7 +38,8 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
   const name = tokenData?.name || "User"
   const role = tokenData?.roleName || "Guest"
-
+  const user = useSelector((state: RootState) => state.auth.user);
+  console.log("log user: ", user);
   const notifications = [
     { id: 1, title: "New Appointment", message: "You have a new appointment request", time: "5 minutes ago" },
     { id: 2, title: "Treatment Complete", message: "Treatment session completed successfully", time: "1 hour ago" },
