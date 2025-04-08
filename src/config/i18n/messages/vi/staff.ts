@@ -2,8 +2,8 @@ import { Messages } from "../types";
 
 export const staffMessages: Messages["staff"] = {
     // Page titles and general
-    staffList: "Danh Sách Bác Sĩ",
-  addNewStaff: "Thêm Bác Sĩ Mới",
+    staffList: "Danh Sách Nhân Viên",
+  addNewStaff: "Thêm Nhân Viên Mới",
   noStaffAvailable: "Không có nhân viên nào",
   addYourFirstStaff: "Thêm nhân viên đầu tiên của bạn",  // Table headers
   no: "STT",
