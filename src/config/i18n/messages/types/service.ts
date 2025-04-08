@@ -112,4 +112,7 @@ export type serviceMessages = {
   editService: string;
   deleteService: string;
   addProcedure: string;
+  deleteServiceConfirmation: string;
+  confirmDelete: string;
+  cancel: string
 };
