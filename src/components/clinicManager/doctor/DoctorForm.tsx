@@ -9,6 +9,7 @@ import { useAddDoctorMutation, useGetBranchesQuery } from "@/features/clinic/api
 import { toast } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+import { useTheme } from "next-themes"
 
 // Define the form schema
 const doctorSchema = z.object({
@@ -28,9 +29,10 @@ interface DoctorFormProps {
 }
 
 export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) {
-  const t = useTranslations("doctor")
+  const t = useTranslations("staffDoctor")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [addDoctor] = useAddDoctorMutation()
+  const { theme } = useTheme()
 
   // Get the token and extract clinicId
   const token = getAccessToken()
@@ -112,59 +114,72 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative"
+      className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl dark:shadow-gray-800/30 w-full max-w-md p-6 relative"
     >
-      <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors">
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+      >
         <X className="w-5 h-5" />
       </button>
 
-      <h2 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+      <h2 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
         {t("addNewDoctor") || "Add New Doctor"}
       </h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("email") || "Email"}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t("email") || "Email"}
+          </label>
           <input
             type="email"
             {...register("email")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             placeholder="email@example.com"
           />
-          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+          {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("firstName") || "First Name"}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t("firstName") || "First Name"}
+          </label>
           <input
             type="text"
             {...register("firstName")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             placeholder="John"
           />
-          {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>}
+          {errors.firstName && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.firstName.message}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("lastName") || "Last Name"}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t("lastName") || "Last Name"}
+          </label>
           <input
             type="text"
             {...register("lastName")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             placeholder="Doe"
           />
-          {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>}
+          {errors.lastName && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.lastName.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("branch") || "Branch"}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t("branch") || "Branch"}
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Building2 className="h-5 w-5 text-gray-400" />
+              <Building2 className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
             <select
               {...register("branchId")}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               disabled={isLoadingBranches}
             >
               <option value="">{isLoadingBranches ? "Loading branches..." : "Select branch"}</option>
@@ -177,7 +192,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-gray-400 dark:text-gray-500"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -191,7 +206,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
               </svg>
             </div>
           </div>
-          {errors.branchId && <p className="mt-1 text-sm text-red-600">{errors.branchId.message}</p>}
+          {errors.branchId && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.branchId.message}</p>}
         </div>
 
         {/* Hidden input for roleType */}
@@ -201,14 +216,14 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             {t("cancel") || "Cancel"}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || isLoadingBranches}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-md hover:from-purple-600 hover:to-pink-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-400 dark:to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-500 dark:hover:to-pink-600 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? t("saving") || "Saving..." : t("save") || "Save"}
           </button>
@@ -217,4 +232,3 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
     </motion.div>
   )
 }
-

@@ -26,5 +26,9 @@ export type branchMessages = {
     close: string;
     branchDetails: string;
     loading: string;
+    statusUpdateFailed:string;
+    bankInformation: string;
+    bankName: string;
+    bankAccountNumber: string;
   };
   

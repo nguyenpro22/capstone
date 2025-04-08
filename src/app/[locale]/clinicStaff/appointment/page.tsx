@@ -171,7 +171,7 @@ export default function AppointmentsPage() {
       <h1 className="text-2xl font-bold">Appointments</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
+        <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200 dark:from-pink-900/20 dark:to-purple-900/20 dark:border-pink-900/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-pink-700">Total Appointments</CardTitle>
           </CardHeader>
@@ -179,7 +179,7 @@ export default function AppointmentsPage() {
             <div className="text-3xl font-bold text-pink-700">{totalAppointments}</div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-green-200">
+        <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-green-200 dark:from-green-900/20 dark:to-teal-900/20 dark:border-green-900/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-green-700">Completed</CardTitle>
           </CardHeader>
@@ -187,7 +187,7 @@ export default function AppointmentsPage() {
             <div className="text-3xl font-bold text-green-700">{completedAppointments}</div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200">
+        <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-900/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-yellow-700">In Progress</CardTitle>
           </CardHeader>
@@ -195,7 +195,7 @@ export default function AppointmentsPage() {
             <div className="text-3xl font-bold text-yellow-700">{inProgressAppointments}</div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200">
+        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200 dark:from-red-900/20 dark:to-rose-900/20 dark:border-red-900/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-red-700">Cancelled</CardTitle>
           </CardHeader>
@@ -234,7 +234,7 @@ export default function AppointmentsPage() {
             <div className="grid grid-cols-7 gap-1">
               {/* Empty cells for days before the start of the month */}
               {Array.from({ length: monthStart.getDay() }).map((_, index) => (
-                <div key={`empty-start-${index}`} className="h-24 p-1 bg-gray-50 rounded-md"></div>
+                <div key={`empty-start-${index}`} className="h-24 p-1 bg-gray-50 dark:bg-gray-800/40 rounded-md"></div>
               ))}
 
               {/* Calendar days */}
@@ -246,9 +246,9 @@ export default function AppointmentsPage() {
                   <div
                     key={day.toString()}
                     className={cn(
-                      "h-24 p-1 border rounded-md transition-colors hover:bg-gray-50 cursor-pointer",
-                      isSameDay(day, selectedDate) && "border-blue-500 bg-blue-50",
-                      !isSameMonth(day, currentMonth) && "text-gray-300",
+                      "h-24 p-1 border rounded-md transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer",
+                      isSameDay(day, selectedDate) && "border-blue-500 bg-blue-50 dark:bg-blue-900/20",
+                      !isSameMonth(day, currentMonth) && "text-gray-300 dark:text-gray-600",
                     )}
                     onClick={() => setSelectedDate(day)}
                   >
@@ -258,22 +258,22 @@ export default function AppointmentsPage() {
                       {counts.total > 0 && (
                         <div className="mt-auto flex flex-wrap gap-1">
                           {counts.completed > 0 && (
-                            <div className="text-xs px-1.5 py-0.5 bg-green-100 text-green-800 rounded-full">
+                            <div className="text-xs px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
                               {counts.completed} completed
                             </div>
                           )}
                           {counts.inProgress > 0 && (
-                            <div className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                            <div className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
                               {counts.inProgress} in progress
                             </div>
                           )}
                           {counts.pending > 0 && (
-                            <div className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">
+                            <div className="text-xs px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-full">
                               {counts.pending} pending
                             </div>
                           )}
                           {counts.cancelled > 0 && (
-                            <div className="text-xs px-1.5 py-0.5 bg-red-100 text-red-800 rounded-full">
+                            <div className="text-xs px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
                               {counts.cancelled} cancelled
                             </div>
                           )}
@@ -286,7 +286,7 @@ export default function AppointmentsPage() {
 
               {/* Empty cells for days after the end of the month */}
               {Array.from({ length: 6 - monthEnd.getDay() }).map((_, index) => (
-                <div key={`empty-end-${index}`} className="h-24 p-1 bg-gray-50 rounded-md"></div>
+                <div key={`empty-end-${index}`} className="h-24 p-1 bg-gray-50 dark:bg-gray-800/40 rounded-md"></div>
               ))}
             </div>
           </CardContent>
@@ -342,7 +342,7 @@ export default function AppointmentsPage() {
                         </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="bg-gray-50 px-4 py-2 flex justify-between gap-2">
+                    <CardFooter className="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 flex justify-between gap-2">
                       <div className="text-sm text-muted-foreground">
                         <span className="font-medium">Doctor:</span> {appointment.doctor.name}
                       </div>
@@ -376,8 +376,8 @@ export default function AppointmentsPage() {
               ) : (
                 <div className="text-center py-8">
                   <div className="flex flex-col items-center gap-3 mb-4">
-                    <Calendar className="h-12 w-12 text-gray-300" />
-                    <h3 className="text-lg font-medium">No appointments scheduled for this day</h3>
+                    <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-600" />
+                    <h3 className="text-lg font-medium dark:text-gray-200">No appointments scheduled for this day</h3>
 
                     {/* Status summary for the selected date */}
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
@@ -419,4 +419,3 @@ export default function AppointmentsPage() {
     </div>
   )
 }
-

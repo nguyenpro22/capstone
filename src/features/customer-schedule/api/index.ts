@@ -132,8 +132,8 @@ export const customerScheduleCommandApi = createApi({
     // Update customer schedule (from the image)
     updateCustomerSchedule: builder.mutation<IResCommon<CustomerSchedule>, UpdateCustomerScheduleRequest>({
       query: (data) => ({
-        url: `customer-schedules/customer/${data.customerScheduleId}`,
-        method: "PUT",
+        url: `customer-schedules/staff/${data.customerScheduleId}`,
+        method: "PATCH",
         body: {
           customerScheduleId: data.customerScheduleId,
           date: data.date,

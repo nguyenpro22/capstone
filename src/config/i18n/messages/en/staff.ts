@@ -90,4 +90,7 @@ export const staffMessages: Messages["staff"] = {
   updateStaffInfo: "Update staff information",
   changeStaffBranch: "Change Staff's Branch",
   updateStaffBranch: "Update the branch assignment for this staff",
+  deleteStaffConfirmation:"Are you sure you want to delete this staff? This action cannot be undone.",
+  confirmDelete: "Confirm Delete",
+
 }

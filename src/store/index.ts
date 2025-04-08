@@ -50,6 +50,7 @@ import {
   customerScheduleQueryApi,
 } from "@/features/customer-schedule/api";
 import { promotionCommandApi } from "@/features/promotion-service/api";
+import { workingScheduleApi } from "@/features/working-schedule/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -87,6 +88,8 @@ const rootReducer = combineReducers({
   [customerScheduleQueryApi.reducerPath]: customerScheduleQueryApi.reducer,
   [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
   [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
+  [workingScheduleApi.reducerPath]: workingScheduleApi.reducer,
+  
 });
 
 // Persisted reducer
@@ -126,7 +129,9 @@ const store = configureStore({
       staffCommandApi.middleware,
       customerScheduleQueryApi.middleware,
       customerScheduleCommandApi.middleware,
-      promotionCommandApi.middleware
+      promotionCommandApi.middleware,
+      workingScheduleApi.middleware
+
     ),
 });
 

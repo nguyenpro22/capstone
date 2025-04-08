@@ -86,4 +86,6 @@ export type staffMessages = {
   updateStaffInfo: string
   changeStaffBranch: string
   updateStaffBranch: string
+  deleteStaffConfirmation: string
+  confirmDelete: string
   }

@@ -25,10 +25,14 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import { Button } from "@/components/ui/button"
 import ClinicEditForm from "@/components/clinicManager/profile/clinic-edit-form"
 import { motion } from "framer-motion"
+import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
 
 export default function ClinicProfilePage() {
   const router = useRouter()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { theme } = useTheme()
+  const t = useTranslations("clinicProfile")
 
   // Get clinicId from token
   const token = getAccessToken()
@@ -54,15 +58,11 @@ export default function ClinicProfilePage() {
       <div className="flex items-center justify-center h-[50vh]">
         <Card className="w-full max-w-3xl shadow-lg">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Authentication required. Please log in.</p>
+            <p className="text-center text-muted-foreground">{t("authRequired")}</p>
           </CardContent>
         </Card>
       </div>
     )
-  }
-
-  if (isLoading) {
-    return <ClinicProfileSkeleton />
   }
 
   if (error || !clinic) {
@@ -70,7 +70,7 @@ export default function ClinicProfilePage() {
       <div className="flex items-center justify-center h-[50vh]">
         <Card className="w-full max-w-3xl shadow-lg">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Failed to load clinic information.</p>
+            <p className="text-center text-muted-foreground">{t("failedToLoad")}</p>
           </CardContent>
         </Card>
       </div>
@@ -104,10 +104,10 @@ export default function ClinicProfilePage() {
               className={`absolute -bottom-2 right-0 px-3 py-1 text-xs font-medium ${
                 clinic.isActivated
                   ? "bg-green-500 hover:bg-green-500/90 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               }`}
             >
-              {clinic.isActivated ? "Active" : "Inactive"}
+              {clinic.isActivated ? t("active") : t("inactive")}
             </Badge>
           </div>
 
@@ -135,7 +135,7 @@ export default function ClinicProfilePage() {
             size="sm"
           >
             <PenSquare className="h-4 w-4 mr-2" />
-            Edit Profile
+            {t("editProfile")}
           </Button>
         </div>
       </div>
@@ -144,48 +144,48 @@ export default function ClinicProfilePage() {
         {/* Clinic Info Card */}
         <div className="md:col-span-1 space-y-6">
           <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">Clinic Details</h3>
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-600/40 dark:to-indigo-600/40 px-6 py-4 border-b dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("clinicDetails")}</h3>
             </div>
             <CardContent className="space-y-5 pt-5">
               <div className="flex items-start gap-3">
-                <div className="bg-purple-100 p-2 rounded-full">
-                  <MapPin className="w-5 h-5 text-purple-600" />
+                <div className="bg-purple-100 dark:bg-purple-500/40 p-2 rounded-full">
+                  <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-200" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Address</p>
-                  <p className="text-sm text-gray-600">{clinic.fullAddress || clinic.city}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("address")}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{clinic.fullAddress || clinic.city}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="bg-indigo-100 p-2 rounded-full">
-                  <FileText className="w-5 h-5 text-indigo-600" />
+                <div className="bg-indigo-100 dark:bg-indigo-500/40 p-2 rounded-full">
+                  <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-200" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Tax Code</p>
-                  <p className="text-sm text-gray-600">{clinic.taxCode}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("taxCode")}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{clinic.taxCode}</p>
                 </div>
               </div>
 
               {/* Business License moved here */}
               <div className="flex items-start gap-3">
-                <div className="bg-purple-100 p-2 rounded-full">
-                  <Award className="w-5 h-5 text-purple-600" />
+                <div className="bg-purple-100 dark:bg-purple-500/40 p-2 rounded-full">
+                  <Award className="w-5 h-5 text-purple-600 dark:text-purple-200" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Business License</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("businessLicense")}</p>
                   {clinic.businessLicenseUrl ? (
                     <a
                       href={clinic.businessLicenseUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-purple-600 hover:text-purple-800 hover:underline transition-colors"
+                      className="text-sm text-purple-600 dark:text-purple-300 hover:text-purple-800 dark:hover:text-purple-200 hover:underline transition-colors"
                     >
-                      View Business License
+                      {t("viewBusinessLicense")}
                     </a>
                   ) : (
-                    <p className="text-sm text-gray-500">No business license available</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">{t("noBusinessLicense")}</p>
                   )}
                 </div>
               </div>
@@ -193,17 +193,19 @@ export default function ClinicProfilePage() {
           </Card>
 
           <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">Statistics</h3>
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-600/40 dark:to-indigo-600/40 px-6 py-4 border-b dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("statistics")}</h3>
             </div>
             <CardContent className="pt-5">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-lg border border-purple-100">
-                  <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full mb-3 mx-auto">
-                    <Building2 className="w-5 h-5 text-purple-600" />
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-500/30 dark:to-indigo-500/30 p-4 rounded-lg border border-purple-100 dark:border-purple-500/50">
+                  <div className="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-500/60 rounded-full mb-3 mx-auto">
+                    <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-200" />
                   </div>
-                  <p className="text-center text-2xl font-bold text-gray-800">{clinic.totalBranches}</p>
-                  <p className="text-center text-sm text-gray-600">Branches</p>
+                  <p className="text-center text-2xl font-bold text-gray-800 dark:text-gray-100">
+                    {clinic.totalBranches}
+                  </p>
+                  <p className="text-center text-sm text-gray-600 dark:text-gray-300">{t("branches")}</p>
                 </div>
 
                 {/* <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
@@ -222,22 +224,22 @@ export default function ClinicProfilePage() {
         <div className="md:col-span-2">
           <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
             <Tabs defaultValue="bank" className="w-full">
-              <div className="border-b">
+              <div className="border-b dark:border-gray-700">
                 <div className="px-6 py-3">
                   <TabsList className="grid w-full grid-cols-2 h-11">
                     <TabsTrigger
                       value="bank"
-                      className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700"
+                      className="data-[state=active]:bg-purple-50 dark:data-[state=active]:bg-purple-500/40 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-200"
                     >
                       <BanknoteIcon className="w-4 h-4 mr-2" />
-                      Bank Information
+                      {t("bankInformation")}
                     </TabsTrigger>
                     <TabsTrigger
                       value="branches"
-                      className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700"
+                      className="data-[state=active]:bg-indigo-50 dark:data-[state=active]:bg-indigo-500/40 data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-200"
                     >
                       <Building2 className="w-4 h-4 mr-2" />
-                      Branches ({clinic.totalBranches})
+                      {t("branches")} ({clinic.totalBranches})
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -251,36 +253,41 @@ export default function ClinicProfilePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Card className="overflow-hidden border-purple-200 shadow-sm hover:shadow-md transition-shadow duration-300">
-                      <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 pb-3">
-                        <CardTitle className="text-base flex items-center gap-2 text-purple-800">
-                          <Landmark className="w-5 h-5 text-purple-600" />
-                          Bank Details
+                    <Card className="overflow-hidden border-purple-200 dark:border-purple-500/50 shadow-sm hover:shadow-md transition-shadow duration-300">
+                      <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-500/30 dark:to-purple-600/30 pb-3">
+                        <CardTitle className="text-base flex items-center gap-2 text-purple-800 dark:text-purple-200">
+                          <Landmark className="w-5 h-5 text-purple-600 dark:text-purple-300" />
+                          {t("bankDetails")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-4">
                         <div className="space-y-4">
                           <div className="grid md:grid-cols-2 gap-4">
-                            <div className="bg-purple-50 p-4 rounded-lg">
-                              <p className="text-sm font-medium text-purple-800 mb-1">Bank Name</p>
-                              <p className="text-lg font-semibold text-gray-800">{clinic.bankName}</p>
+                            <div className="bg-purple-50 dark:bg-purple-500/30 p-4 rounded-lg">
+                              <p className="text-sm font-medium text-purple-800 dark:text-purple-200 mb-1">
+                                {t("bankName")}
+                              </p>
+                              <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                {clinic.bankName}
+                              </p>
                             </div>
 
-                            <div className="bg-indigo-50 p-4 rounded-lg">
-                              <p className="text-sm font-medium text-indigo-800 mb-1">Account Number</p>
-                              <p className="text-lg font-semibold text-gray-800">{clinic.bankAccountNumber}</p>
+                            <div className="bg-indigo-50 dark:bg-indigo-500/30 p-4 rounded-lg">
+                              <p className="text-sm font-medium text-indigo-800 dark:text-indigo-200 mb-1">
+                                {t("accountNumber")}
+                              </p>
+                              <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                {clinic.bankAccountNumber}
+                              </p>
                             </div>
                           </div>
 
-                          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border border-purple-100/50">
+                          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-500/20 dark:to-indigo-500/20 p-4 rounded-lg border border-purple-100/50 dark:border-purple-500/40">
                             <div className="flex items-center gap-2 mb-2">
-                              <CreditCard className="w-5 h-5 text-purple-600" />
-                              <p className="font-medium text-gray-800">Payment Information</p>
+                              <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-300" />
+                              <p className="font-medium text-gray-800 dark:text-gray-200">{t("paymentInformation")}</p>
                             </div>
-                            <p className="text-sm text-gray-600">
-                              This bank account is used for receiving payments from patients and insurance providers.
-                              Make sure to keep your banking information up to date.
-                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{t("paymentDescription")}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -300,17 +307,17 @@ export default function ClinicProfilePage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                       >
-                        <Card className="overflow-hidden border-indigo-200 shadow-sm hover:shadow-md transition-all duration-300 hover:border-indigo-300">
-                          <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 pb-3">
-                            <CardTitle className="text-base flex items-center gap-2 text-indigo-800">
-                              <Building2 className="w-5 h-5 text-indigo-600" />
+                        <Card className="overflow-hidden border-indigo-200 dark:border-indigo-500/50 shadow-sm hover:shadow-md transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-400">
+                          <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-500/30 dark:to-purple-500/30 pb-3">
+                            <CardTitle className="text-base flex items-center gap-2 text-indigo-800 dark:text-indigo-200">
+                              <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
                               {branch.name}
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="pt-4">
                             <div className="flex items-start gap-2">
-                              <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
-                              <p className="text-sm text-gray-600">{branch.address}</p>
+                              <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400 mt-0.5" />
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{branch.address}</p>
                             </div>
                           </CardContent>
                         </Card>
@@ -319,11 +326,9 @@ export default function ClinicProfilePage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <Building2 className="w-12 h-12 text-gray-300 mb-4" />
-                    <p className="text-gray-500 mb-2">No branches available</p>
-                    <p className="text-sm text-gray-400">
-                      Branches will appear here once they are added to your clinic.
-                    </p>
+                    <Building2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">{t("noBranchesAvailable")}</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">{t("noBranchesDescription")}</p>
                   </div>
                 )}
               </TabsContent>
@@ -348,7 +353,7 @@ function ClinicProfileSkeleton() {
   return (
     <div className="container py-8 space-y-8 max-w-7xl">
       {/* Header Skeleton */}
-      <div className="relative rounded-xl bg-gradient-to-r from-purple-600/30 to-indigo-600/30 p-8 mb-8">
+      <div className="relative rounded-xl bg-gradient-to-r from-purple-600/30 to-indigo-600/30 dark:from-purple-600/40 dark:to-indigo-600/40 p-8 mb-8">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
           <Skeleton className="h-32 w-32 md:h-40 md:w-40 rounded-full" />
           <div className="flex-1 space-y-4 w-full">
@@ -365,7 +370,7 @@ function ClinicProfileSkeleton() {
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-1 space-y-6">
           <Card>
-            <div className="px-6 py-4 border-b">
+            <div className="px-6 py-4 border-b dark:border-gray-700">
               <Skeleton className="h-7 w-40" />
             </div>
             <CardContent className="space-y-5 pt-5">
@@ -384,7 +389,7 @@ function ClinicProfileSkeleton() {
           </Card>
 
           <Card>
-            <div className="px-6 py-4 border-b">
+            <div className="px-6 py-4 border-b dark:border-gray-700">
               <Skeleton className="h-7 w-40" />
             </div>
             <CardContent className="pt-5">
@@ -398,7 +403,7 @@ function ClinicProfileSkeleton() {
 
         <div className="md:col-span-2">
           <Card>
-            <div className="border-b p-6">
+            <div className="border-b dark:border-gray-700 p-6">
               <Skeleton className="h-10 w-full" />
             </div>
             <div className="p-6">
@@ -424,4 +429,3 @@ function ClinicProfileSkeleton() {
     </div>
   )
 }
-

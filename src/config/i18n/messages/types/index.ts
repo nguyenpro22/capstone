@@ -15,6 +15,7 @@ import { RegistrationTranslations } from "./register";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
 import { doctor } from "./doctor";
+import { clinicProfileMessages } from "./clinicProfile";
 
 export type Messages = {
   home: homeMessages;
@@ -35,4 +36,5 @@ export type Messages = {
   registerClinic: registerClinic;
   doctorService: doctor;
   service: service;
+  clinicProfile: clinicProfileMessages; // Add this line
 };
