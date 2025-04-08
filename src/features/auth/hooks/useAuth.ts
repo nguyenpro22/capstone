@@ -171,7 +171,6 @@ export const useAuth = () => {
 
         // Get user data
         dispatch(setUser(loginResponse));
-        console.log("User data set in Redux:", loginResponse);
 
         const { accessToken } = loginResponse;
         const userData = GetDataByToken(accessToken) as TokenData;

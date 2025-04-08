@@ -86,8 +86,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const router = useRouter();
   const { handleLogout } = useAuth();
   const token = getAccessToken() as string;
-  const user = useSelector((state: RootState) => state);
-  console.log("User data from Redux Header:", user);
+  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);

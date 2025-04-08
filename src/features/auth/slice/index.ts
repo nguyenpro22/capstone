@@ -26,7 +26,6 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<ILoginResponse>) => {
       const { accessToken, refreshToken } = action.payload;
       const user = GetDataByToken(accessToken);
-      console.log("User data set in Redux:", user);
 
       state.user = user;
       state.isAuthenticated = true;
