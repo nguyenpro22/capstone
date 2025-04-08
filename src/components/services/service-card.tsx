@@ -61,9 +61,8 @@ export default function ServiceCard({
           <div className="relative h-56 overflow-hidden">
             <Image
               src={
-                service.coverImage?.[0]?.url ||
-                "https://placehold.co/300x200.png" ||
-                "/placeholder.svg"
+                // service.coverImage?.[0]?.url ||
+                "https://placehold.co/300x200.png"
               }
               alt={service.name}
               fill
@@ -174,9 +173,8 @@ export default function ServiceCard({
           <div className="relative h-48 md:h-auto md:w-1/3">
             <Image
               src={
-                service.coverImage?.[0]?.url ||
-                "https://placehold.co/300x200.png" ||
-                "/placeholder.svg"
+                // service.coverImage?.[0]?.url ||
+                "https://placehold.co/300x200.png"
               }
               alt={service.name}
               fill

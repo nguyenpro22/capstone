@@ -73,12 +73,12 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
               <span className="font-mono">{booking.id.substring(0, 8)}...</span>
             </div>
             <div className="mt-2">
-              <StatusBadge status={booking.status} />
+              <StatusBadge status={booking.status as string} />
             </div>
           </div>
           <div className="text-right">
             <div className="text-sm font-medium text-primary">
-              {booking.currentProcedurePriceType}
+              {/* {booking.currentProcedurePriceType} */}
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
             {booking.status === "Pending" && (
               <div className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm border border-blue-100">
                 <p className="font-semibold">Quy trình hiện tại</p>
-                <p className="mt-1.5">{booking.currentProcedurePriceType}</p>
+                {/* <p className="mt-1.5">{booking.currentProcedurePriceType}</p> */}
               </div>
             )}
 
