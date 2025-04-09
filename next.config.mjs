@@ -13,7 +13,7 @@ const nextConfig = {
       "thispersondoesnotexist.com",
     ],
   },
-  reactStrictMode: true,
+  reactStrictMode: false,
   env: {
     NEXT_PUBLIC_BEAUTIFY_BACKEND_AUTH_URL:
       process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_AUTH_URL,
