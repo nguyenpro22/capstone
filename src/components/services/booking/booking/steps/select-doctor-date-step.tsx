@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -14,6 +13,7 @@ import { TimeSlotGroup } from "../time-slot-group";
 import { DoctorItem } from "../doctor-item";
 import { useGetBusyTimesQuery } from "@/features/booking/api";
 import { BookingService } from "../../utils/booking-service";
+import { CustomCalendar } from "./custom-calendar";
 
 interface SelectDoctorDateStepProps {
   bookingData: BookingData;
@@ -73,20 +73,23 @@ export function SelectDoctorDateStep({
       : bookingData.doctor;
 
   // Format date for API query
-  const formattedDate = selectedDate
-    ? selectedDate.toISOString().split("T")[0]
-    : "";
+  function formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
 
   // Use RTK Query hook to fetch busy times
   const { data, isLoading } = useGetBusyTimesQuery(
     {
       doctorId: currentDoctor?.id || "",
       clinicId: clinic?.id || "",
-      date: formattedDate,
+      date: formatDate(selectedDate as Date),
     },
     // Only run the query if we have all required parameters
     {
-      skip: !currentDoctor?.id || !clinic?.id || !formattedDate,
+      skip: !currentDoctor?.id || !clinic?.id || !formatDate,
     }
   );
 
@@ -238,7 +241,7 @@ export function SelectDoctorDateStep({
           {/* Calendar column */}
           <div className="bg-muted/30 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Chọn ngày</h4>
-            <Calendar
+            <CustomCalendar
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
@@ -252,7 +255,6 @@ export function SelectDoctorDateStep({
 
                 return date < today || date > maxDate;
               }}
-              className="rounded-md border bg-white shadow"
             />
           </div>
 

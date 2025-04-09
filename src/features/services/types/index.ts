@@ -83,7 +83,7 @@ export type ServiceItem = {
   discountPercent: string;
   discountMaxPrice: number;
   discountMinPrice: number;
-  coverImage: string[];
+  coverImage: CoverImage[];
   clinics: Clinic[];
   category: Category;
   doctorServices: DoctorService[];
@@ -116,3 +116,7 @@ export type ServiceDetail = {
   promotions: any; // Nếu có schema rõ ràng thì thay `any`
   doctorServices: DoctorService[];
 };
+
+export interface RecentlyViewedService extends ServiceItem {
+  viewedAt: number; // timestamp when the service was viewed
+}

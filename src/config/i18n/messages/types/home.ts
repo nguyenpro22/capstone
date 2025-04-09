@@ -35,6 +35,7 @@ export interface homeMessages {
       description: string;
       price: string;
     }>;
+    priceFrom: string;
     learnMore: string;
     viewAll: string;
   };
@@ -119,6 +120,22 @@ export interface homeMessages {
       features: string[];
       button: string;
     };
+  };
+  clinic: {
+    // Clinic slider section
+    ourPartners: string;
+    trustedClinics: string;
+    clinicsDescription: string;
+    viewAllClinics: string;
+    errorLoadingClinics: string;
+    tryAgain: string;
+    active: string;
+    pending: string;
+    noBranches: string;
+    branch: string;
+    branchs: string;
+    viewDetails: string;
+    favorite: string;
   };
   contact: {
     badge: string;

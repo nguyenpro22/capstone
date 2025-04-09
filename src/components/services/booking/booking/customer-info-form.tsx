@@ -1,22 +1,24 @@
-"use client"
+"use client";
 
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Mail, Phone, User } from "lucide-react"
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Mail, Phone, User } from "lucide-react";
 
 interface CustomerInfo {
-  name: string
-  phone: string
-  email: string
-  notes: string
+  name: string;
+  phone: string;
+  email: string;
+  notes: string;
 }
 
 interface CustomerInfoFormProps {
-  customerInfo: CustomerInfo
-  onChange: (field: keyof CustomerInfo, value: string) => void
+  customerInfo: CustomerInfo;
+  onChange: (field: keyof CustomerInfo, value: string) => void;
 }
-
-export function CustomerInfoForm({ customerInfo, onChange }: CustomerInfoFormProps) {
+export function CustomerInfoForm({
+  customerInfo,
+  onChange,
+}: CustomerInfoFormProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,6 +94,5 @@ export function CustomerInfoForm({ customerInfo, onChange }: CustomerInfoFormPro
         />
       </div>
     </div>
-  )
+  );
 }
-

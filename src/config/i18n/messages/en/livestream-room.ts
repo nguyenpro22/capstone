@@ -1,0 +1,35 @@
+import { Messages } from "../types";
+
+export const livestreamRoom: Messages["livestreamRoom"] = {
+  pageTitle: "Beautify Livestream",
+  viewerCount: "viewers",
+  connecting: "Connecting to livestream...",
+  connectionStatus: "Status",
+  connectionError: "Connection Error",
+  connectionErrorDesc:
+    "Failed to connect to the livestream. Please try again later.",
+  securityErrorTitle: "Security Error",
+  securityErrorDesc:
+    "The connection is being blocked because the API server is not using HTTPS.",
+  backToLivestreams: "Back to Livestreams",
+  clearDebugInfo: "Clear Debug Info",
+  debugInformation: "Debug Information:",
+  startedAt: "Started",
+  noMessages: "No messages yet",
+  beFirstToMessage: "Be the first to send a message!",
+  typeYourMessage: "Type your message...",
+  quickReactions: "Quick Reactions:",
+  looksGreat: "Looks great!",
+  loveIt: "Love it!",
+  thatsFire: "That's fire!",
+  amazingWork: "Amazing work!",
+  beautiful: "Beautiful!",
+  bookNow: "Book Now",
+  hiddenServices: "Hidden Services",
+  restoreAll: "Restore All",
+  showHiddenServices: "Show hidden services",
+  hideHiddenServices: "Hide hidden services",
+  priceRange: "Range",
+  livestreamEnded: "The livestream has ended",
+  liveChat: "Live Chat",
+};

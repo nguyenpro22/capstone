@@ -1,22 +1,25 @@
+"use client";
 import type { ReactNode } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-interface RegisterLayoutProps {
+interface AuthLayoutProps {
   children: ReactNode;
 }
 
-export default function RegisterLayout({ children }: RegisterLayoutProps) {
+export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-rose-100 via-pink-100 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950 transition-colors duration-300">
       {/* Theme and Language Controls */}
 
       {/* Left Column (Content) */}
       <div className="flex-1 flex flex-col justify-between px-8 py-12 sm:px-12 lg:px-16">
-        <div className="mb-8">
+        <Link className="mb-8" href={"/"}>
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-600 dark:from-pink-300 dark:to-purple-400">
             BEAUTIFY
           </h1>
-        </div>
+        </Link>
 
         <div className="max-w-md w-full mx-auto bg-white dark:bg-gray-900 bg-opacity-80 dark:bg-opacity-90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-pink-200 dark:border-purple-900 transition-all duration-300">
           {children}

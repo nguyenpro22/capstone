@@ -5,10 +5,10 @@ import { ArrowRight, ChevronRight, Loader2, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AnimatedText } from "@/components/ui/animated-text";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils";
 import { useGetAllServicesQuery } from "@/features/services/api";
+import { AnimatedText } from "@/components/ui/animated-text";
 
 export function ServicesSection() {
   const t = useTranslations("home");
@@ -30,7 +30,7 @@ export function ServicesSection() {
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
       <div className="container px-4 mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-5xl mx-auto mb-12 md:mb-16">
           <Badge
             variant="outline"
             className="mb-4 px-3 py-1 bg-white dark:bg-gray-800 border-primary/20 text-primary"
@@ -39,7 +39,8 @@ export function ServicesSection() {
           </Badge>
           <AnimatedText
             text={t("services.title")}
-            className="text-3xl md:text-4xl font-bold mb-4"
+            className="font-bold mb-4"
+            variant="h2"
           />
           <p className="text-muted-foreground font-light leading-relaxed">
             {t("services.description")}
@@ -82,7 +83,7 @@ export function ServicesSection() {
                   <div className="relative h-64 overflow-hidden">
                     <Image
                       src={
-                        // service.coverImage?.[0]?.url ||
+                        service.coverImage?.[0]?.url ||
                         `https://placehold.co/600x400.png`
                       }
                       alt={service.name}

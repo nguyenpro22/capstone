@@ -21,7 +21,7 @@ const ThemeToggle = memo(() => {
 
   if (!mounted) {
     return (
-      <div className="w-20 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+      <div className="w-14 h-7 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
     );
   }
 
@@ -37,8 +37,8 @@ const ThemeToggle = memo(() => {
       <button
         onClick={toggleTheme}
         className={`
-          relative w-20 h-10 rounded-full p-1 transition-all duration-500 ease-in-out 
-          focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 
+          relative w-14 h-7 rounded-full p-1 transition-all duration-500 ease-in-out 
+          focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 
           focus:ring-offset-white dark:focus:ring-offset-gray-900 overflow-hidden
         `}
         aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
@@ -70,10 +70,10 @@ const ThemeToggle = memo(() => {
             <>
               {/* Stars background */}
               <div className="absolute inset-0">
-                {[...Array(15)].map((_, i) => {
-                  const size = Math.random() * 1.5 + 0.5;
-                  const top = Math.random() * 10;
-                  const left = Math.random() * 20;
+                {[...Array(8)].map((_, i) => {
+                  const size = Math.random() * 1 + 0.5;
+                  const top = Math.random() * 7;
+                  const left = Math.random() * 14;
 
                   return (
                     <motion.div
@@ -85,7 +85,7 @@ const ThemeToggle = memo(() => {
                       }}
                       transition={{
                         duration: 1.5 + Math.random() * 2,
-                        repeat: Infinity,
+                        repeat: Number.POSITIVE_INFINITY,
                         repeatType: "loop",
                         ease: "easeInOut",
                         delay: Math.random() * 2,
@@ -106,11 +106,11 @@ const ThemeToggle = memo(() => {
                 className="absolute rounded-full bg-gray-200"
                 initial={false}
                 animate={{
-                  width: 12,
-                  height: 12,
-                  top: 4,
-                  left: 4,
-                  boxShadow: "0 0 5px rgba(255, 255, 255, 0.5)",
+                  width: 8,
+                  height: 8,
+                  top: 3,
+                  left: 3,
+                  boxShadow: "0 0 3px rgba(255, 255, 255, 0.5)",
                 }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
@@ -118,55 +118,52 @@ const ThemeToggle = memo(() => {
                 <motion.div
                   className="absolute rounded-full bg-gray-300/30"
                   style={{
-                    width: "3px",
-                    height: "3px",
-                    top: "2px",
-                    right: "3px",
+                    width: "2px",
+                    height: "2px",
+                    top: "1px",
+                    right: "2px",
                   }}
                 />
                 <motion.div
                   className="absolute rounded-full bg-gray-300/30"
                   style={{
-                    width: "2px",
-                    height: "2px",
-                    top: "6px",
-                    right: "7px",
+                    width: "1.5px",
+                    height: "1.5px",
+                    top: "4px",
+                    right: "5px",
                   }}
                 />
               </motion.div>
 
-              {/* Shooting stars */}
+              {/* Shooting star (reduced to 1) */}
               <AnimatePresence>
-                {[...Array(2)].map((_, i) => (
-                  <motion.div
-                    key={`shooting-${i}`}
-                    initial={{
-                      x: -5,
-                      y: -5,
-                      opacity: 0,
-                      scale: 0,
-                      rotate: 45 + Math.random() * 10,
-                    }}
-                    animate={{
-                      x: 25,
-                      y: 15,
-                      opacity: [0, 1, 0],
-                      scale: [0, 1, 0],
-                    }}
-                    transition={{
-                      duration: 0.8,
-                      repeat: Infinity,
-                      repeatDelay: 7 + Math.random() * 10,
-                      delay: i * 5,
-                    }}
-                    style={{
-                      top: `${Math.random() * 5}px`,
-                      left: `${Math.random() * 10}px`,
-                      position: "absolute",
-                    }}
-                    className="w-6 h-[1px] bg-gradient-to-r from-transparent via-white to-transparent"
-                  />
-                ))}
+                <motion.div
+                  key="shooting-star"
+                  initial={{
+                    x: -3,
+                    y: -3,
+                    opacity: 0,
+                    scale: 0,
+                    rotate: 45 + Math.random() * 10,
+                  }}
+                  animate={{
+                    x: 17,
+                    y: 10,
+                    opacity: [0, 1, 0],
+                    scale: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Number.POSITIVE_INFINITY,
+                    repeatDelay: 7 + Math.random() * 10,
+                  }}
+                  style={{
+                    top: `${Math.random() * 3}px`,
+                    left: `${Math.random() * 7}px`,
+                    position: "absolute",
+                  }}
+                  className="w-4 h-[1px] bg-gradient-to-r from-transparent via-white to-transparent"
+                />
               </AnimatePresence>
 
               {/* Nebula effect */}
@@ -175,17 +172,17 @@ const ThemeToggle = memo(() => {
                 style={{
                   background:
                     "radial-gradient(circle, rgba(147,51,234,0.5) 0%, rgba(79,70,229,0.2) 50%, transparent 70%)",
-                  width: "30px",
-                  height: "30px",
-                  top: "-5px",
-                  left: "5px",
+                  width: "20px",
+                  height: "20px",
+                  top: "-3px",
+                  left: "3px",
                 }}
                 animate={{
                   opacity: [0.05, 0.1, 0.05],
                 }}
                 transition={{
                   duration: 4,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   repeatType: "reverse",
                 }}
               />
@@ -199,9 +196,9 @@ const ThemeToggle = memo(() => {
               <motion.div
                 className="absolute"
                 style={{
-                  width: "24px",
-                  height: "24px",
-                  top: "-2px",
+                  width: "16px",
+                  height: "16px",
+                  top: "-1px",
                   right: "0px",
                   background:
                     "radial-gradient(circle, rgba(252,211,77,0.7) 0%, rgba(252,211,77,0.2) 50%, transparent 70%)",
@@ -212,7 +209,7 @@ const ThemeToggle = memo(() => {
                 }}
                 transition={{
                   duration: 3,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   repeatType: "reverse",
                 }}
               />
@@ -222,12 +219,12 @@ const ThemeToggle = memo(() => {
                 className="absolute rounded-full"
                 initial={false}
                 animate={{
-                  width: 16,
-                  height: 16,
+                  width: 10,
+                  height: 10,
                   top: 2,
-                  right: 4,
+                  right: 3,
                   backgroundColor: "#fcd34d",
-                  boxShadow: "0 0 15px rgba(252, 211, 77, 0.8)",
+                  boxShadow: "0 0 10px rgba(252, 211, 77, 0.8)",
                 }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               />
@@ -236,10 +233,10 @@ const ThemeToggle = memo(() => {
               <motion.div
                 className="absolute rounded-full bg-yellow-200/40"
                 style={{
-                  width: "6px",
-                  height: "6px",
-                  top: "7px",
-                  right: "9px",
+                  width: "4px",
+                  height: "4px",
+                  top: "5px",
+                  right: "6px",
                 }}
                 animate={{
                   scale: [1, 1.5, 1],
@@ -247,16 +244,16 @@ const ThemeToggle = memo(() => {
                 }}
                 transition={{
                   duration: 2,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   repeatType: "reverse",
                 }}
               />
 
-              {/* Clouds */}
+              {/* Clouds (reduced to 2) */}
               <div className="absolute inset-0 overflow-hidden">
-                {[...Array(3)].map((_, i) => {
-                  const width = 10 + i * 4;
-                  const top = 2 + i * 2.5;
+                {[...Array(2)].map((_, i) => {
+                  const width = 7 + i * 3;
+                  const top = 1.5 + i * 2;
                   const delay = i * 2;
                   const duration = 12 + i * 4;
 
@@ -268,7 +265,7 @@ const ThemeToggle = memo(() => {
                       animate={{ left: ["-20%", "120%"] }}
                       transition={{
                         duration,
-                        repeat: Infinity,
+                        repeat: Number.POSITIVE_INFINITY,
                         ease: "linear",
                         delay,
                       }}
@@ -300,7 +297,7 @@ const ThemeToggle = memo(() => {
           layout
           initial={false}
           animate={{
-            x: isDark ? 40 : 0,
+            x: isDark ? 28 : 0,
           }}
           transition={{
             type: "spring",
@@ -308,7 +305,7 @@ const ThemeToggle = memo(() => {
             damping: 25,
           }}
           className={`
-            relative z-10 w-8 h-8 rounded-full flex items-center justify-center
+            relative z-10 w-5 h-5 rounded-full flex items-center justify-center
             ${
               isDark
                 ? "bg-gradient-to-br from-gray-900 to-gray-800 shadow-inner border border-gray-700"
@@ -324,7 +321,7 @@ const ThemeToggle = memo(() => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
                 transition={{ duration: 0.2 }}
-                className="w-5 h-5 text-yellow-300"
+                className="w-3 h-3 text-yellow-300"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -341,7 +338,7 @@ const ThemeToggle = memo(() => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
                 transition={{ duration: 0.2 }}
-                className="w-5 h-5 text-amber-500"
+                className="w-3 h-3 text-amber-500"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

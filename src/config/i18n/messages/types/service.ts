@@ -1,99 +1,62 @@
 export type service = {
-  beautyServices: string;
-  ourServices: string;
-  discoverServices: string;
-  amazing: string;
-  serviceDescription: string;
-  exploreServices: string;
-  bookNow: string;
-  openingBookingForm: string;
-  noServicesAvailable: string;
-  searchServices: string;
-  searching: string;
-  sortBy: string;
-  sortedBy: string;
-  mostPopular: string;
-  priceLowToHigh: string;
-  priceHighToLow: string;
-  nameAZ: string;
-  switchedToGridView: string;
-  switchedToListView: string;
-  filtersHidden: string;
-  filtersShown: string;
-  filters: string;
-  clear: string;
-  mainCategories: string;
-  allCategories: string;
-  selectedCategory: string;
-  subCategories: string;
-  selectSubCategory: string;
-  allSubCategories: string;
-  selectedSubCategory: string;
-  priceRange: string;
-  selectedPriceRange: string;
-  promotions: string;
-  promotionsFilterOn: string;
-  promotionsFilterOff: string;
-  showPromotionsOnly: string;
-  popularServices: string;
-  noPopularServices: string;
-  contact: string;
-  services: string;
-  resultsCount: string;
-  all: string;
-  noServicesFound: string;
-  tryDifferentFilters: string;
-  clearFilters: string;
-  previous: string;
-  next: string;
-  pageChanged: string;
-  readyForBeautyJourney: string;
-  bookFreeConsultation: string;
-  bookFreeConsultationButton: string;
-  openingConsultationForm: string;
-  satisfiedCustomers: string;
-  averageRating: string;
-  yearsExperience: string;
-  aboutUs: string;
-  aboutUsDescription: string;
-  clickedFacebook: string;
-  clickedInstagram: string;
-  clickedTwitter: string;
-  links: string;
-  home: string;
-  clickedHome: string;
-  clickedServices: string;
-  clickedAboutUs: string;
-  clickedContact: string;
-  blog: string;
-  clickedBlog: string;
-  address: string;
-  calling: string;
-  openingEmail: string;
-  copyright: string;
-  errorLoading: string;
-  errorMessage: string;
-  retry: string;
-  noData: string;
-  unableToLoadServices: string;
-  filtersReset: string;
-  scrolledToServices: string;
-  addedToFavorites: string;
-  removedFromFavorites: string;
-  bookingSuccess: string;
-  date: string;
-  time: string;
-  fullName: string;
-  enterFullName: string;
-  phoneNumber: string;
-  enterPhoneNumber: string;
-  email: string;
-  enterEmail: string;
-  notes: string;
-  enterNotes: string;
-  processing: string;
-  confirmBooking: string;
-  bookService: string;
+  serviceMessage: {
+    // Banner section
+    ourServices: string;
+    discoverServices: string;
+    amazing: string;
+    serviceDescription: string;
+    exploreNow: string;
+    beautyServices: string;
+
+    // Search and filters
+    searchServices: string;
+    sortBy: string;
+    mostPopular: string;
+    priceLowToHigh: string;
+    priceHighToLow: string;
+    nameAZ: string;
+    clear: string;
+    clearFilters: string;
+
+    // Results
+    services: string;
+    resultsCount: string;
+    noServicesFound: string;
+    tryDifferentFilters: string;
+
+    // Error messages
+    noData: string;
+    unableToLoadServices: string;
+    retry: string;
+    errorLoading: string;
+    errorMessage: string;
+
+    // Footer
+    readyToStart: string;
+    findPerfectService: string;
+    bookingDescription: string;
+    bookNow: string;
+    satisfiedCustomers: string;
+    averageRating: string;
+    yearsExperience: string;
+  };
+
+  Categories: {
+    all: string;
+    facialSurgery: string;
+    earSurgery: string;
+    breastSurgery: string;
+  };
+
+  Services: {
+    viewDetails: string;
+    bookNow: string;
+    startingFrom: string;
+    contact: string;
+    errorLoading: string;
+    errorMessage: string;
+    retry: string;
+  };
 };
 export type serviceMessages = {
   servicesList: string;
@@ -114,5 +77,5 @@ export type serviceMessages = {
   addProcedure: string;
   deleteServiceConfirmation: string;
   confirmDelete: string;
-  cancel: string
+  cancel: string;
 };

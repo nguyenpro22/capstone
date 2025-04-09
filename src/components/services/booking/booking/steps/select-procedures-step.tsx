@@ -41,6 +41,19 @@ export function SelectProceduresStep({
           service
         );
         setProcedures(proceduresData);
+
+        // Automatically select all procedures with their first price type
+        if (proceduresData.length > 0) {
+          const initialSelections = proceduresData.map((procedure) => ({
+            procedure,
+            priceTypeId: procedure.procedurePriceTypes[0]?.id || "",
+          }));
+
+          // Only set if we don't already have selections
+          if (selectedProcedures.length === 0) {
+            setSelectedProcedures(initialSelections);
+          }
+        }
       } catch (error) {
         console.error("Error fetching procedures:", error);
         setProcedures([]);
@@ -50,17 +63,51 @@ export function SelectProceduresStep({
     };
 
     fetchProcedures();
-  }, [service.id]);
+  }, [service.id, selectedProcedures.length]);
 
-  // Check if a procedure is selected
-  const isProcedureSelected = useCallback(
-    (procedureId: string) => {
-      return selectedProcedures.some(
+  // Handle price type selection
+  const handlePriceTypeChange = useCallback(
+    (procedureId: string, priceTypeId: string) => {
+      console.log("Changing price type:", procedureId, priceTypeId);
+
+      // Tìm procedure tương ứng
+      const procedure = procedures.find((p) => p.id === procedureId);
+
+      if (!procedure) {
+        console.error("Procedure not found:", procedureId);
+        return;
+      }
+
+      // Kiểm tra xem procedure đã có trong selectedProcedures chưa
+      const existingIndex = selectedProcedures.findIndex(
         (item) => item.procedure.id === procedureId
       );
+
+      if (existingIndex >= 0) {
+        // Nếu đã có, cập nhật priceTypeId
+        setSelectedProcedures((prev) =>
+          prev.map((item, index) =>
+            index === existingIndex ? { ...item, priceTypeId } : item
+          )
+        );
+      } else {
+        // Nếu chưa có, thêm mới
+        setSelectedProcedures((prev) => [...prev, { procedure, priceTypeId }]);
+      }
     },
-    [selectedProcedures]
+    [procedures, selectedProcedures]
   );
+
+  // Handle default option toggle
+  const handleDefaultToggle = (checked: boolean) => {
+    setIsDefault(checked);
+    updateBookingData({ isDefault: checked });
+  };
+
+  // Update parent component when selections change
+  useEffect(() => {
+    updateBookingData({ selectedProcedures });
+  }, [selectedProcedures, updateBookingData]);
 
   // Get selected price type for a procedure
   const getSelectedPriceTypeId = useCallback(
@@ -72,59 +119,6 @@ export function SelectProceduresStep({
     },
     [selectedProcedures]
   );
-
-  // Handle procedure selection
-  const handleProcedureToggle = useCallback(
-    (procedure: Procedure, checked: boolean) => {
-      if (checked) {
-        // Select the default (first) price type when selecting a procedure
-        const defaultPriceTypeId = procedure.procedurePriceTypes[0]?.id || "";
-        setSelectedProcedures((prev) => [
-          ...prev,
-          { procedure, priceTypeId: defaultPriceTypeId },
-        ]);
-      } else {
-        setSelectedProcedures((prev) =>
-          prev.filter((item) => item.procedure.id !== procedure.id)
-        );
-      }
-    },
-    []
-  );
-
-  // Handle price type selection
-  const handlePriceTypeChange = useCallback(
-    (procedureId: string, priceTypeId: string) => {
-      setSelectedProcedures((prev) =>
-        prev.map((item) =>
-          item.procedure.id === procedureId ? { ...item, priceTypeId } : item
-        )
-      );
-    },
-    []
-  );
-
-  // Handle default option toggle
-  const handleDefaultToggle = (checked: boolean) => {
-    setIsDefault(checked);
-    updateBookingData({ isDefault: checked });
-  };
-
-  // Update parent component when selections change
-  useEffect(() => {
-    if (
-      selectedProcedures.length > 0 ||
-      bookingData.selectedProcedures.length > 0
-    ) {
-      // Only update if there's an actual change
-      if (
-        JSON.stringify(selectedProcedures) !==
-        JSON.stringify(bookingData.selectedProcedures)
-      ) {
-        updateBookingData({ selectedProcedures });
-      }
-    }
-  }, [selectedProcedures, bookingData.selectedProcedures, updateBookingData]);
 
   if (loading) {
     return (
@@ -140,7 +134,7 @@ export function SelectProceduresStep({
       <div>
         <h3 className="text-lg font-medium mb-4">Chọn dịch vụ</h3>
         <p className="text-muted-foreground mb-4">
-          Vui lòng chọn các dịch vụ bạn muốn thực hiện
+          Vui lòng chọn loại dịch vụ cho mỗi quy trình
         </p>
 
         <div className="flex items-center space-x-2 mb-4">
@@ -153,28 +147,21 @@ export function SelectProceduresStep({
             htmlFor="use-default"
             className="text-sm font-medium cursor-pointer"
           >
-            Sử dụng gói dịch vụ mặc định
+            Sử dụng gói dịch vụ mặc định (tự động chọn các dịch vụ với giá tốt
+            nhất)
           </Label>
         </div>
 
-        {!isDefault && (
+        {!isDefault && procedures.length > 0 && (
           <div className="space-y-4">
-            {procedures && procedures.length > 0 ? (
-              procedures.map((procedure) => (
-                <ProcedureItem
-                  key={procedure.id}
-                  procedure={procedure}
-                  isSelected={isProcedureSelected(procedure.id)}
-                  selectedPriceTypeId={getSelectedPriceTypeId(procedure.id)}
-                  onProcedureToggle={handleProcedureToggle}
-                  onPriceTypeChange={handlePriceTypeChange}
-                />
-              ))
-            ) : (
-              <p className="text-muted-foreground">
-                Không có thông tin quy trình chi tiết.
-              </p>
-            )}
+            {procedures.map((procedure) => (
+              <ProcedureItem
+                key={procedure.id}
+                procedure={procedure}
+                selectedPriceTypeId={getSelectedPriceTypeId(procedure.id)}
+                onPriceTypeChange={handlePriceTypeChange}
+              />
+            ))}
           </div>
         )}
       </div>

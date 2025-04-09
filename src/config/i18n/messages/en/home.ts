@@ -31,6 +31,24 @@ export const homeMessages: Messages["home"] = {
       },
     },
   },
+  clinic: {
+    // Clinic slider section
+    ourPartners: "Our Partners",
+    trustedClinics: "Trusted Clinics & Healthcare Centers",
+    clinicsDescription:
+      "Discover our network of certified clinics and healthcare centers providing high-quality services and exceptional patient care.",
+    viewAllClinics: "View All Clinics",
+    errorLoadingClinics:
+      "There was an error loading clinics. Please try again later.",
+    tryAgain: "Try Again",
+    active: "Active",
+    pending: "Pending",
+    noBranches: "No branches",
+    branchs: "branches",
+    branch: "branch",
+    viewDetails: "View Details",
+    favorite: "Add to favorites",
+  },
   services: {
     badge: "Our Services",
     title: "Premium Beauty Treatments",
@@ -53,6 +71,7 @@ export const homeMessages: Messages["home"] = {
         price: "From $249",
       },
     ],
+    priceFrom: "Price from",
     learnMore: "Learn More",
     viewAll: "View All",
   },

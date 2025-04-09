@@ -114,9 +114,7 @@ export default function ClinicDetailPage() {
       {/* Hero Section */}
       <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden mb-8">
         <Image
-          src={
-            clinic.profilePictureUrl || `/placeholder.svg?height=800&width=1600`
-          }
+          src={clinic.profilePictureUrl || `https://placehold.co/1600x800.png`}
           alt={clinic.name}
           fill
           className="object-cover"
