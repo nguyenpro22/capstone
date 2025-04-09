@@ -11,6 +11,7 @@ const nextConfig = {
       "api.dicebear.com",
       "placehold.co",
       "thispersondoesnotexist.com",
+      "cdn.nhathuoclongchau.com.vn",
     ],
   },
   reactStrictMode: true,

@@ -1,11 +1,12 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import type React from "react"
 import { Stethoscope, Building2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useGetDoctorsQuery, useLazyGetDoctorByIdQuery, useDeleteDoctorMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import { useDebounce } from "@/hooks/use-debounce"
 
 import Pagination from "@/components/common/Pagination/Pagination"
 import DoctorForm from "@/components/clinicManager/doctor/DoctorForm"
@@ -99,6 +100,7 @@ export default function DoctorPage() {
   const [showChangeBranchForm, setShowChangeBranchForm] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
 
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 5
@@ -107,9 +109,14 @@ export default function DoctorPage() {
     clinicId,
     pageIndex,
     pageSize,
-    searchTerm,
+    searchTerm: debouncedSearchTerm,
     role: 1, // Use role=1 for doctors
   })
+
+  // Reset page index when search term changes
+  useEffect(() => {
+    setPageIndex(1)
+  }, [debouncedSearchTerm])
 
   // Use the delayed refetch hook
   const delayedRefetch = useDelayedRefetch(refetch)

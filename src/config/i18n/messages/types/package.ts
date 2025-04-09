@@ -1,0 +1,38 @@
+export type packageMessages = {
+    packageLists: string;
+    searchByPackageName: string;
+    addNewPackage: string;
+    loadingPackages: string;
+    failedToLoad: string;
+    noPackagesAvailable: string;
+    packageName: string;
+    description: string;
+    price: string;
+    duration: string;
+    status: string;
+    action: string;
+    active: string;
+    inactive: string;
+    viewPackageInfo: string;
+    editPackageInfo: string;
+    deletePackage: string;
+    confirmDeletePackage: string;
+    packageAddedSuccess: string;
+    packageDeletedSuccess: string;
+    packageDeleteFailed: string;
+    statusUpdated: string;
+    errorOccurred: string;
+    cannotGetPackageInfo: string;
+    close: string;
+    no: string;
+    month: string;
+    months: string;
+    branch: string;
+    branches: string;
+    streams: string;
+    viewers: string;
+    branchLimit: string;
+    liveStreamLimit: string;
+    enhancedViewerCapacity: string;
+  };
+  

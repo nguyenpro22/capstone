@@ -46,8 +46,8 @@ export interface Doctor {
   }
   
   export interface DoctorServiceRequest {
-    doctorId: string
-    serviceIds: string[]
+    serviceIds: string
+    doctorId: string[]
   }
   
   

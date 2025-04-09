@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import type React from "react"
 
 import { UserIcon, Building2, ChevronRight } from "lucide-react"
@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useGetStaffQuery, useLazyGetStaffByIdQuery, useDeleteStaffMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import { useDebounce } from "@/hooks/use-debounce"
 
 import Pagination from "@/components/common/Pagination/Pagination"
 import StaffForm from "@/components/clinicManager/staff/StaffForm"
@@ -99,6 +100,7 @@ export default function StaffPage() {
   const [showEditForm, setShowEditForm] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
 
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 5
@@ -107,7 +109,7 @@ export default function StaffPage() {
     clinicId,
     pageIndex,
     pageSize,
-    searchTerm,
+    searchTerm: debouncedSearchTerm,
     role: 2, // Add role parameter with value 2 for Staff
   })
 
@@ -127,6 +129,11 @@ export default function StaffPage() {
 
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+
+  // Reset page index when search term changes
+  useEffect(() => {
+    setPageIndex(1)
+  }, [debouncedSearchTerm])
 
   const handleCloseMenu = () => {
     setMenuOpen(null)
@@ -221,25 +228,24 @@ export default function StaffPage() {
 
   // Update the handleDeleteStaff function to use the correct API structure
   const handleDeleteStaff = async (staffId: string) => {
-   
-      try {
-        // Check if clinicId is available
-        if (!clinicId) {
-          toast.error("Clinic ID not found. Please try again or contact support.")
-          return
-        }
-
-        await deleteStaff({
-          id: clinicId, // clinicId is now guaranteed to be a string
-          accountId: staffId, // Use staffId as the accountId parameter
-        }).unwrap()
-
-        toast.success("Nhân viên đã được xóa thành công!")
-        delayedRefetch()
-      } catch (error) {
-        console.error(error)
-        toast.error("Xóa nhân viên thất bại!")
+    try {
+      // Check if clinicId is available
+      if (!clinicId) {
+        toast.error("Clinic ID not found. Please try again or contact support.")
+        return
       }
+
+      await deleteStaff({
+        id: clinicId, // clinicId is now guaranteed to be a string
+        accountId: staffId, // Use staffId as the accountId parameter
+      }).unwrap()
+
+      toast.success("Nhân viên đã được xóa thành công!")
+      delayedRefetch()
+    } catch (error) {
+      console.error(error)
+      toast.error("Xóa nhân viên thất bại!")
+    }
   }
 
   // Handle mouse enter on branch with position capture
@@ -445,18 +451,6 @@ export default function StaffPage() {
                               </span>
                               {t("editStaff") || "Edit Staff"}
                             </li>
-                            {/* <li
-                              className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteStaff(staff.employeeId)
-                              }}
-                            >
-                              <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
-                              </span>
-                              {t("deleteStaff") || "Delete Staff"}
-                            </li> */}
                             <li
                               className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300 cursor-pointer flex items-center gap-2 transition-colors"
                               onClick={(e) => {
@@ -578,27 +572,25 @@ export default function StaffPage() {
       </div>
 
       {viewStaff && <ViewStaffModal viewStaff={viewStaff} onClose={() => setViewStaff(null)} />}
-    
-    <ConfirmationDialog
-            isOpen={confirmDialogOpen}
-            onClose={() => setConfirmDialogOpen(false)}
-            onConfirm={() => {
-              if (staffToDelete) {
-                handleDeleteStaff(staffToDelete)
-                setConfirmDialogOpen(false)
-              }
-            }}
-            title={t("confirmDelete")}
-            message={
-              t("deleteStaffConfirmation") || "Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác."
-            }
-            confirmButtonText={t("deleteStaff")}
-            cancelButtonText={t("cancel")}
-            isLoading={isDeleting}
-            type="delete"
-          />
-    </div>
 
-    
+      <ConfirmationDialog
+        isOpen={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={() => {
+          if (staffToDelete) {
+            handleDeleteStaff(staffToDelete)
+            setConfirmDialogOpen(false)
+          }
+        }}
+        title={t("confirmDelete")}
+        message={
+          t("deleteStaffConfirmation") || "Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác."
+        }
+        confirmButtonText={t("deleteStaff")}
+        cancelButtonText={t("cancel")}
+        isLoading={isDeleting}
+        type="delete"
+      />
+    </div>
   )
 }

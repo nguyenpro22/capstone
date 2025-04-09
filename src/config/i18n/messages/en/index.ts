@@ -1,3 +1,4 @@
+import { packageMessages } from './package';
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
@@ -39,6 +40,7 @@ const en = {
   clinicProfile: clinicProfileMessages,
   livestream,
   livestreamRoom,
+  package: packageMessages
 };
 
 export default en;

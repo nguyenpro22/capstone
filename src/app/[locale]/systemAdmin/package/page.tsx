@@ -71,11 +71,11 @@ export default function PackagePage() {
       setLocalPackages(updatedPackages)
 
       await changeStatusPackage({ packageId }).unwrap()
-      toast.success("Trạng thái gói đã được cập nhật!")
+      toast.success(t("statusUpdated"))
       delayedRefetch()
     } catch (error) {
       console.error(error)
-      toast.error("Có lỗi xảy ra, vui lòng thử lại!")
+      toast.error(t("errorOccurred"))
     }
   }
 
@@ -90,7 +90,7 @@ export default function PackagePage() {
         setViewPackage(result.value)
       } catch (error) {
         console.error(error)
-        toast.error("Không thể lấy thông tin gói!")
+        toast.error(t("cannotGetPackageInfo"))
         setViewPackage({
           name: "",
           description: "",
@@ -107,7 +107,7 @@ export default function PackagePage() {
         setEditPackage(result.value)
       } catch (error) {
         console.error(error)
-        toast.error("Không thể lấy thông tin gói!")
+        toast.error(t("cannotGetPackageInfo"))
         setEditPackage({
           name: "",
           description: "",
@@ -123,14 +123,14 @@ export default function PackagePage() {
   }
 
   const handleDeletePackage = async (packageId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
+    if (window.confirm(t("confirmDeletePackage"))) {
       try {
         await deletePackage(packageId).unwrap()
-        toast.success("Gói đã được xóa thành công!")
+        toast.success(t("packageDeletedSuccess"))
         delayedRefetch()
       } catch (error) {
         console.error(error)
-        toast.error("Xóa gói thất bại!")
+        toast.error(t("packageDeleteFailed"))
       }
     }
   }
@@ -139,13 +139,13 @@ export default function PackagePage() {
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen" onClick={handleCloseMenu}>
       <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Package Lists</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("packageLists")}</h1>
 
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           <div className="relative w-full md:w-64">
             <input
               type="text"
-              placeholder="Search By Package Name"
+              placeholder={t("searchByPackageName")}
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 transition-all dark:bg-gray-800 dark:text-gray-100"
               value={searchTerm}
               onChange={(e) => {
@@ -164,39 +164,39 @@ export default function PackagePage() {
             className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 text-white shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-500 dark:hover:to-pink-600 transition-all duration-300 flex items-center justify-center gap-2"
           >
             <Plus className="w-5 h-5" />
-            <span className="font-medium tracking-wide">Add New Package</span>
+            <span className="font-medium tracking-wide">{t("addNewPackage")}</span>
           </motion.button>
         </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 p-6 shadow-md dark:shadow-gray-900/30 rounded-lg relative">
-        {isLoading && <p className="text-gray-500 dark:text-gray-400">Loading packages...</p>}
-        {error && <p className="text-red-600 dark:text-red-400">Failed to load packages.</p>}
+        {isLoading && <p className="text-gray-500 dark:text-gray-400">{t("loadingPackages")}</p>}
+        {error && <p className="text-red-600 dark:text-red-400">{t("failedToLoad")}</p>}
         {!isLoading && !error && packages.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700 text-left">
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    No.
+                    {t("no")}
                   </th>
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    Package Name
+                    {t("packageName")}
                   </th>
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    Description
+                    {t("description")}
                   </th>
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    Price
+                    {t("price")}
                   </th>
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    Duration
+                    {t("duration")}
                   </th>
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    Status
+                    {t("status")}
                   </th>
                   <th className="p-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
-                    Action
+                    {t("action")}
                   </th>
                 </tr>
               </thead>
@@ -231,7 +231,7 @@ export default function PackagePage() {
                             pkg.isActivated ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                           }
                         >
-                          {pkg.isActivated ? " Active" : " Inactive"}
+                          {pkg.isActivated ? t("active") : t("inactive")}
                         </span>
                       </div>
                     </td>
@@ -251,19 +251,19 @@ export default function PackagePage() {
                             className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-700 dark:text-gray-200"
                             onClick={() => handleMenuAction("view", pkg.id)}
                           >
-                            Xem thông tin gói
+                            {t("viewPackageInfo")}
                           </li>
                           <li
                             className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-700 dark:text-gray-200"
                             onClick={() => handleMenuAction("edit", pkg.id)}
                           >
-                            Chỉnh sửa thông tin gói
+                            {t("editPackageInfo")}
                           </li>
                           <li
                             className="px-4 py-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer"
                             onClick={() => handleDeletePackage(pkg.id)}
                           >
-                            Xóa gói
+                            {t("deletePackage")}
                           </li>
                         </ul>
                       )}
@@ -274,7 +274,7 @@ export default function PackagePage() {
             </table>
           </div>
         ) : !isLoading && !error ? (
-          <p className="text-gray-500 dark:text-gray-400 py-8 text-center">No packages available.</p>
+          <p className="text-gray-500 dark:text-gray-400 py-8 text-center">{t("noPackagesAvailable")}</p>
         ) : null}
       </div>
 
@@ -302,7 +302,7 @@ export default function PackagePage() {
             onSaveSuccess={() => {
               setShowForm(false)
               delayedRefetch()
-              toast.success("Package added successfully!")
+              toast.success(t("packageAddedSuccess"))
             }}
           />
         </div>
@@ -338,7 +338,7 @@ export default function PackagePage() {
                   <span
                     className={`mr-1.5 h-2 w-2 rounded-full ${viewPackage.isActivated ? "bg-emerald-400" : "bg-gray-400"}`}
                   ></span>
-                  {viewPackage.isActivated ? "Active" : "Inactive"}
+                  {viewPackage.isActivated ? t("active") : t("inactive")}
                 </span>
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function PackagePage() {
                     <CreditCard className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Price</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("price")}</h3>
                     <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
                       {formatPrice(viewPackage.price)}
                     </p>
@@ -366,9 +366,9 @@ export default function PackagePage() {
                     <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Duration</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("duration")}</h3>
                     <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-                      {viewPackage.duration} {viewPackage.duration === 1 ? "month" : "months"}
+                      {viewPackage.duration} {viewPackage.duration === 1 ? t("month") : t("months")}
                     </p>
                   </div>
                 </div>
@@ -380,9 +380,9 @@ export default function PackagePage() {
                     <Building2 className="h-6 w-6 text-pink-600 dark:text-pink-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Branch Limit</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("branchLimit")}</h3>
                     <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-                      {viewPackage.limitBranch} {viewPackage.limitBranch === 1 ? "branch" : "branches"}
+                      {viewPackage.limitBranch} {viewPackage.limitBranch === 1 ? t("branch") : t("branches")}
                     </p>
                   </div>
                 </div>
@@ -394,9 +394,9 @@ export default function PackagePage() {
                     <Video className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Live Stream Limit</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("liveStreamLimit")}</h3>
                     <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-                      {viewPackage.limitLiveStream} streams
+                      {viewPackage.limitLiveStream} {t("streams")}
                     </p>
                   </div>
                 </div>
@@ -408,9 +408,11 @@ export default function PackagePage() {
                     <Eye className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Enhanced Viewer Capacity</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {t("enhancedViewerCapacity")}
+                    </h3>
                     <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-                      {viewPackage.enhancedViewer} viewers
+                      {viewPackage.enhancedViewer} {t("viewers")}
                     </p>
                   </div>
                 </div>
@@ -422,7 +424,7 @@ export default function PackagePage() {
                 onClick={() => setViewPackage(null)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors duration-200"
               >
-                Close
+                {t("close")}
               </button>
             </div>
           </div>
