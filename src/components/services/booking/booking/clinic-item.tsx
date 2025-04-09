@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroupItem } from "@/components/ui/radio-group";
 import type { Clinic } from "../types/booking";
 import { MapPin, Phone } from "lucide-react";
+import Image from "next/image";
 
 interface ClinicItemProps {
   clinic: Clinic;
@@ -39,12 +40,14 @@ export function ClinicItem({
       >
         <div className="flex w-full gap-4">
           <div className="relative h-16 w-16 rounded-md overflow-hidden">
-            <img
+            <Image
               src={
                 clinic.profilePictureUrl ||
                 "https://placehold.co/64x64.png" ||
                 "/placeholder.svg"
               }
+              width={64}
+              height={64}
               alt={clinic.name}
               className="object-cover h-full w-full"
             />
@@ -53,11 +56,11 @@ export function ClinicItem({
             <div className="font-medium">{clinic.name}</div>
             <div className="flex items-center text-sm text-muted-foreground mt-1">
               <MapPin className="h-3 w-3 mr-1" />
-              {clinic.address}
+              {clinic.address ?? "Địa chỉ chưa được cập nhật"}
             </div>
             <div className="flex items-center text-sm text-muted-foreground mt-1">
               <Phone className="h-3 w-3 mr-1" />
-              {clinic.phoneNumber}
+              {clinic.phoneNumber ?? "Số điện thoại chưa được cập nhật"}
             </div>
           </div>
         </div>
