@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { reAuthQuery } from "@/lib/api/reAuthQuery"
 import type { IListResponse, IResCommon } from "@/lib/api"
-import type { CustomerSchedule, UpdateCustomerScheduleRequest } from "../types"
+import type { ApproveCustomerScheduleRequest, CustomerSchedule, UpdateCustomerScheduleRequest } from "../types"
 
 // Query API for read operations
 export const customerScheduleQueryApi = createApi({
@@ -141,6 +141,19 @@ export const customerScheduleCommandApi = createApi({
         },
       }),
     }),
+    approveSchedule: builder.mutation<IResCommon<CustomerSchedule>, ApproveCustomerScheduleRequest>({
+      query: (data) => ({
+        url: `/customer-schedules/staff/approve/${data.customerScheduleId}`,
+        method: "PATCH",
+        body: {
+          customerScheduleId: data.customerScheduleId,
+          status: data.status,
+        },
+      }),
+    
+    }),
+
+    
   }),
 })
 
@@ -165,5 +178,6 @@ export const {
   useCheckInCustomerMutation,
   useGenerateSchedulesMutation,
   useUpdateCustomerScheduleMutation, // Export the new hook
+  useApproveScheduleMutation,
 } = customerScheduleCommandApi
 

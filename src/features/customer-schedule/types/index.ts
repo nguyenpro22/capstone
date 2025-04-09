@@ -22,3 +22,7 @@ export interface UpdateCustomerScheduleRequest {
   date: string
   startTime: string
 }
+export interface ApproveCustomerScheduleRequest {
+  customerScheduleId: string
+  status: string
+}
