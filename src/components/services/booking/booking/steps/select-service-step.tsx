@@ -191,9 +191,8 @@ export function SelectServiceStep({
                 <ProcedureItem
                   key={procedure.id}
                   procedure={procedure}
-                  isSelected={isProcedureSelected(procedure.id)}
                   selectedPriceTypeId={getSelectedPriceTypeId(procedure.id)}
-                  onProcedureToggle={handleProcedureToggle}
+                  // onProcedureToggle={handleProcedureToggle}
                   onPriceTypeChange={handlePriceTypeChange}
                 />
               ))
