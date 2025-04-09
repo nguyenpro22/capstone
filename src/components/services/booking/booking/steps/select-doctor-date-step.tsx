@@ -73,20 +73,23 @@ export function SelectDoctorDateStep({
       : bookingData.doctor;
 
   // Format date for API query
-  const formattedDate = selectedDate
-    ? selectedDate.toISOString().split("T")[0]
-    : "";
+  function formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
 
   // Use RTK Query hook to fetch busy times
   const { data, isLoading } = useGetBusyTimesQuery(
     {
       doctorId: currentDoctor?.id || "",
       clinicId: clinic?.id || "",
-      date: formattedDate,
+      date: formatDate(selectedDate as Date),
     },
     // Only run the query if we have all required parameters
     {
-      skip: !currentDoctor?.id || !clinic?.id || !formattedDate,
+      skip: !currentDoctor?.id || !clinic?.id || !formatDate,
     }
   );
 

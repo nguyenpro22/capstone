@@ -14,15 +14,12 @@ import { createBookingRequest } from "../utils/booking-utils";
 import { BookingService } from "../utils/booking-service";
 import { useCreateBookingMutation } from "@/features/booking/api";
 import { ServiceDetail } from "@/features/services/types";
+import { TokenData } from "@/utils";
 
 interface BookingFlowProps {
   service: ServiceDetail;
   onClose: () => void;
-  userData?: {
-    name: string;
-    phone: string;
-    email: string;
-  };
+  userData?: TokenData;
 }
 
 export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
@@ -37,7 +34,7 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
     selectedProcedures: [],
     customerInfo: {
       name: userData?.name || "",
-      phone: userData?.phone || "",
+      phone: "",
       email: userData?.email || "",
       notes: "",
     },

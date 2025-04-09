@@ -70,11 +70,12 @@ import type {
   DoctorCertificate,
   ProcedurePriceType,
 } from "@/features/services/types";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 // Loading Skeleton Component
 function ServiceDetailSkeleton() {
   const t = useTranslations("serviceDetail");
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50/50 via-rose-50/20 to-white dark:from-gray-950 dark:via-gray-900 dark:to-black">
       {/* Banner Section Skeleton */}
@@ -238,6 +239,7 @@ export default function ServiceDetail() {
   const t = useTranslations("serviceDetail");
   const { id } = useParams() as { id: string };
   const { data: serviceData, error, isLoading } = useGetServiceByIdQuery(id);
+  const user = useSelector((state: RootState) => state?.auth?.user);
 
   // Define all state variables at the top level
   const [bookingData, setBookingData] = useState({
@@ -423,7 +425,7 @@ export default function ServiceDetail() {
           <Image
             src={
               allImages[0]?.url ||
-              "https://placehold.co/1600x800/rose/white?text=Beauty+Service" ||
+              "https://placehold.co/1600x800.png" ||
               "/placeholder.svg" ||
               "/placeholder.svg"
             }
@@ -438,7 +440,7 @@ export default function ServiceDetail() {
         <div className="relative z-10 container px-4 mx-auto">
           <div className="max-w-4xl">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-1 text-xs text-white/80 mb-4">
+            <div className="flex items-center gap-1 text-md text-white/80 mb-4">
               <Link href="/" className="hover:text-rose-300 transition-colors">
                 {t("home")}
               </Link>
@@ -494,11 +496,6 @@ export default function ServiceDetail() {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 font-serif">
               {service.name}
             </h1>
-
-            {/* Short Description */}
-            <p className="text-white/90 text-lg max-w-3xl mb-6">
-              {service.description}
-            </p>
 
             {/* Price Range */}
             <div className="flex items-center gap-4 text-white mb-2">
@@ -1631,8 +1628,12 @@ export default function ServiceDetail() {
       )}
 
       {/* Booking Flow Modal */}
-      {showBookingFlow && (
-        <BookingFlow service={service} onClose={handleCloseBookingFlow} />
+      {showBookingFlow && user && (
+        <BookingFlow
+          service={service}
+          onClose={handleCloseBookingFlow}
+          userData={user}
+        />
       )}
     </div>
   );
