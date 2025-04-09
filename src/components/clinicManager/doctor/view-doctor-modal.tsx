@@ -14,7 +14,7 @@ interface ViewDoctorModalProps {
 }
 
 export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModalProps) {
-  const t = useTranslations("doctor")
+  const t = useTranslations("staffDoctor")
   const [expandedCertificates, setExpandedCertificates] = useState(false)
   const [hoveredCertificate, setHoveredCertificate] = useState<Certificate | null>(null)
   const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})

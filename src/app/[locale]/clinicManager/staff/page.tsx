@@ -21,6 +21,7 @@ import { MenuPortal } from "@/components/ui/menu-portal"
 // Add the import for getAccessToken and GetDataByToken
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Branch, Staff } from "@/features/clinic/types"
+import ConfirmationDialog from "@/components/ui/confirmation-dialog"
 
 interface BranchViewModalProps {
   branches: Array<{ id: string; name: string; fullAddress?: string }>
@@ -78,6 +79,8 @@ export default function StaffPage() {
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
   const clinicId = tokenData?.clinicId || ""
 
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [staffToDelete, setStaffToDelete] = useState<string | null>(null)
   const [viewStaff, setViewStaff] = useState<Staff | null>(null)
   const [editStaff, setEditStaff] = useState<Staff | null>(null)
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null)
@@ -112,7 +115,7 @@ export default function StaffPage() {
   const delayedRefetch = useDelayedRefetch(refetch)
 
   const [fetchStaffById] = useLazyGetStaffByIdQuery()
-  const [deleteStaff] = useDeleteStaffMutation()
+  const [deleteStaff, { isLoading: isDeleting }] = useDeleteStaffMutation()
 
   // Update to match the actual response structure
   const staffList: Staff[] = data?.value?.items || []
@@ -208,12 +211,17 @@ export default function StaffPage() {
       setShowEditForm(true)
     }
 
+    if (action === "delete") {
+      setStaffToDelete(staffId)
+      setConfirmDialogOpen(true)
+    }
+
     setMenuOpen(null)
   }
 
   // Update the handleDeleteStaff function to use the correct API structure
   const handleDeleteStaff = async (staffId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa nhân viên này?")) {
+   
       try {
         // Check if clinicId is available
         if (!clinicId) {
@@ -232,7 +240,6 @@ export default function StaffPage() {
         console.error(error)
         toast.error("Xóa nhân viên thất bại!")
       }
-    }
   }
 
   // Handle mouse enter on branch with position capture
@@ -336,7 +343,7 @@ export default function StaffPage() {
                 {staffList.map((staff: Staff, index: number) => (
                   <tr
                     key={staff.employeeId}
-                    className="border-t hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors duration-150"
+                    className="border-t hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
                   >
                     <td className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-300">
                       {(pageIndex - 1) * pageSize + index + 1}
@@ -438,7 +445,7 @@ export default function StaffPage() {
                               </span>
                               {t("editStaff") || "Edit Staff"}
                             </li>
-                            <li
+                            {/* <li
                               className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -449,6 +456,18 @@ export default function StaffPage() {
                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                               </span>
                               {t("deleteStaff") || "Delete Staff"}
+                            </li> */}
+                            <li
+                              className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300 cursor-pointer flex items-center gap-2 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleMenuAction("delete", staff.employeeId)
+                              }}
+                            >
+                              <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-300"></span>
+                              </span>
+                              {t("deleteStaff")}
                             </li>
                           </MenuPortal>
                         )}
@@ -521,7 +540,6 @@ export default function StaffPage() {
             onSaveSuccess={() => {
               setShowForm(false)
               delayedRefetch()
-              toast.success("Staff added successfully!")
             }}
           />
         </div>
@@ -560,6 +578,27 @@ export default function StaffPage() {
       </div>
 
       {viewStaff && <ViewStaffModal viewStaff={viewStaff} onClose={() => setViewStaff(null)} />}
+    
+    <ConfirmationDialog
+            isOpen={confirmDialogOpen}
+            onClose={() => setConfirmDialogOpen(false)}
+            onConfirm={() => {
+              if (staffToDelete) {
+                handleDeleteStaff(staffToDelete)
+                setConfirmDialogOpen(false)
+              }
+            }}
+            title={t("confirmDelete")}
+            message={
+              t("deleteStaffConfirmation") || "Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác."
+            }
+            confirmButtonText={t("deleteStaff")}
+            cancelButtonText={t("cancel")}
+            isLoading={isDeleting}
+            type="delete"
+          />
     </div>
+
+    
   )
 }

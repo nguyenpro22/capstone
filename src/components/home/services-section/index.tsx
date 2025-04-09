@@ -83,7 +83,7 @@ export function ServicesSection() {
                   <div className="relative h-64 overflow-hidden">
                     <Image
                       src={
-                        // service.coverImage?.[0]?.url ||
+                        service.coverImage?.[0]?.url ||
                         `https://placehold.co/600x400.png`
                       }
                       alt={service.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, use } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Star, Heart, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { useTranslations } from "next-intl";
+import { useGetClinicsQuery } from "@/features/clinic/api";
 
 export function ClinicsSliderSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -49,6 +50,14 @@ export function ClinicsSliderSection() {
         "https://placehold.co/600x400/e2e8f0/1e293b?text=Hanoi+Beauty+Spa",
     },
   ];
+
+  const { data } = useGetClinicsQuery({
+    pageIndex: 1,
+    pageSize: 3,
+    searchTerm: "",
+  });
+
+  console.log(data);
 
   const maxIndex = Math.max(0, clinics.length - 3);
 
@@ -95,90 +104,95 @@ export function ClinicsSliderSection() {
             }}
             transition={{ ease: "easeInOut", duration: 0.5 }}
           >
-            {clinics.map((clinic) => (
-              <Card
-                key={clinic.id}
-                className="flex-shrink-0 w-full md:w-[calc(33.333%-1rem)] border-0 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 rounded-xl"
-              >
-                <div className="relative">
-                  <div className="relative h-56 w-full overflow-hidden">
-                    <Image
-                      src={clinic.imageUrl || "/placeholder.svg"}
-                      alt={clinic.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+            {data?.isSuccess &&
+              data.value.items.map((clinic) => (
+                <Card
+                  key={clinic.id}
+                  className="flex-shrink-0 w-full md:w-[calc(33.333%-1rem)] border-0 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 rounded-xl"
+                >
+                  <div className="relative">
+                    <div className="relative h-56 w-full overflow-hidden">
+                      <Image
+                        src={clinic.profilePictureUrl || "/placeholder.svg"}
+                        alt={clinic.name}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
 
-                    {/* Status badge */}
-                    <div className="absolute top-4 right-4 z-10">
-                      <Badge
-                        className={cn(
-                          "px-3 py-1.5 font-medium",
-                          clinic.status === "active"
-                            ? "bg-green-500 text-white border-0"
-                            : "bg-amber-500 text-white border-0"
-                        )}
-                      >
-                        {clinic.status === "active"
-                          ? t("active")
-                          : t("pending")}
-                      </Badge>
+                      {/* Status badge */}
+                      {/* <div className="absolute top-4 right-4 z-10">
+                        <Badge
+                          className={cn(
+                            "px-3 py-1.5 font-medium",
+                            clinic. === "active"
+                              ? "bg-green-500 text-white border-0"
+                              : "bg-amber-500 text-white border-0"
+                          )}
+                        >
+                          {clinic.status === "active"
+                            ? t("active")
+                            : t("pending")}
+                        </Badge>
+                      </div> */}
+
+                      {/* Overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
                     </div>
 
-                    {/* Overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
-                  </div>
-
-                  {/* Clinic name and location */}
-                  <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                    <h3 className="font-bold text-xl mb-2">{clinic.name}</h3>
-                    <div className="flex items-center text-sm">
-                      <MapPin className="h-4 w-4 mr-1.5 text-white/80" />
-                      <span className="text-white/90">{clinic.location}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Building2 className="h-4 w-4 mr-2 text-primary/70" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {clinic.branchCount}{" "}
-                        {clinic.branchCount > 1 ? t("branchs") : t("branch")}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
-                      <span className="text-sm font-medium">
-                        {clinic.rating}
-                      </span>
+                    {/* Clinic name and location */}
+                    <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                      <h3 className="font-bold text-xl mb-2">{clinic.name}</h3>
+                      <div className="flex items-center text-sm">
+                        <MapPin className="h-4 w-4 mr-1.5 text-white/80" />
+                        <span className="text-white/90">
+                          {clinic.fullAddress}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
 
-                <CardFooter className="px-5 pb-5 pt-0 flex justify-between">
-                  <Link
-                    href={`/clinic-view/${clinic.id}`}
-                    className="flex-grow"
-                  >
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-full border-primary/20 text-primary hover:bg-primary/5"
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Building2 className="h-4 w-4 mr-2 text-primary/70" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {clinic.totalBranches}{" "}
+                          {clinic.totalBranches > 1
+                            ? t("branchs")
+                            : t("branch")}
+                        </span>
+                      </div>
+                      {/* <div className="flex items-center">
+                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
+                        <span className="text-sm font-medium">
+                          {clinic.}
+                        </span>
+                      </div> */}
+                    </div>
+                  </CardContent>
+
+                  <CardFooter className="px-5 pb-5 pt-0 flex justify-between">
+                    <Link
+                      href={`/clinic-view/${clinic.id}`}
+                      className="flex-grow"
                     >
-                      {t("viewDetails")}
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-full border-primary/20 text-primary hover:bg-primary/5"
+                      >
+                        {t("viewDetails")}
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full hover:bg-primary/5 text-primary ml-2"
+                    >
+                      <Heart className="h-4 w-4" />
                     </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full hover:bg-primary/5 text-primary ml-2"
-                  >
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                  </CardFooter>
+                </Card>
+              ))}
           </motion.div>
         </div>
 

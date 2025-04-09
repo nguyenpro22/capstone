@@ -36,9 +36,11 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
 
   const token = getAccessToken()
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const name = tokenData?.name || "User"
-  const role = tokenData?.roleName || "Guest"
+  // const name = tokenData?.name || "User"
+  // const role = tokenData?.roleName || "Guest"
   const user = useSelector((state: RootState) => state.auth.user);
+  const name = user?.name;
+  const role = user?.roleName;
   console.log("log user: ", user);
   const notifications = [
     { id: 1, title: "New Appointment", message: "You have a new appointment request", time: "5 minutes ago" },
@@ -147,7 +149,7 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
               >
                 <Avatar className="h-9 w-9 border-2 border-pink-200 dark:border-pink-600">
                   <AvatarImage src="https://via.placeholder.com/40" alt={name} />
-                  <AvatarFallback>{name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback> {(name ?? "").substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start">
                   <span className="text-sm font-medium text-foreground dark:text-white">{name}</span>
@@ -158,7 +160,10 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
             <DropdownMenuContent align="end" className="w-56 dark:bg-gray-900 dark:border-gray-800">
               <DropdownMenuLabel className="dark:text-white">My Account</DropdownMenuLabel>
               <DropdownMenuSeparator className="dark:border-gray-800" />
-              <DropdownMenuItem className="dark:text-white dark:hover:bg-gray-800 dark:focus:bg-gray-800">
+              <DropdownMenuItem
+                onClick={() => router.push("/clinicManager/profile")}
+                className="dark:text-white dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+              >
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem className="dark:text-white dark:hover:bg-gray-800 dark:focus:bg-gray-800">

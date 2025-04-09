@@ -1,0 +1,25 @@
+import { Messages } from "../types";
+
+export const clinicProfileMessages: Messages["clinicProfile"] = {
+  clinicDetails: "Clinic Details",
+  address: "Address",
+  taxCode: "Tax Code",
+  businessLicense: "Business License",
+  viewBusinessLicense: "View Business License",
+  noBusinessLicense: "No business license available",
+  statistics: "Statistics",
+  branches: "Branches",
+  bankInformation: "Bank Information",
+  bankDetails: "Bank Details",
+  bankName: "Bank Name",
+  accountNumber: "Account Number",
+  paymentInformation: "Payment Information",
+  paymentDescription: "This bank account is used for receiving payments from patients and insurance providers. Make sure to keep your banking information up to date.",
+  noBranchesAvailable: "No branches available",
+  noBranchesDescription: "Branches will appear here once they are added to your clinic.",
+  editProfile: "Edit Profile",
+  active: "Active",
+  inactive: "Inactive",
+  authRequired: "Authentication required. Please log in.",
+  failedToLoad: "Failed to load clinic information."
+};

@@ -87,5 +87,7 @@ export const staffMessages: Messages["staff"] = {
   updateStaffInfo: "Cập nhật thông tin nhân viên",
   changeStaffBranch: "Thay đổi chi nhánh nhân viên",
   updateStaffBranch: "Cập nhật chi nhánh cho nhân viên này",
+  deleteStaffConfirmation: "Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác.",
+  confirmDelete: "Xác nhận xóa",
   }
   
