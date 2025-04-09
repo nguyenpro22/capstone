@@ -89,6 +89,7 @@ const menuItems = {
   ],
   clinicStaff: [
     { label: "Dashboard", path: "/clinicStaff/dashboard", icon: LayoutDashboard },
+    { label: "Schedule Approval", path: "/clinicStaff/schedule-approval", icon: Layers },
     { label: "Customer Schedules", path: "/clinicStaff/customer-schedule", icon: Calendar },
     { label: "Appointments", path: "/clinicStaff/appointment", icon: Clock },
     { label: "Branch Doctors", path: "/clinicStaff/doctor", icon: Stethoscope },

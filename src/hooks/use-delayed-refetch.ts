@@ -9,22 +9,25 @@ import { APP_CONFIG } from "@/config/app-config"
  * @param delayMs The delay in milliseconds (defaults to global config)
  * @returns A function that will call the refetch function after the specified delay
  */
-export function useDelayedRefetch<T extends (...args: any[]) => any>(
+export function useDelayedRefetch<T extends (...args: any[]) => Promise<any>>(
   refetchFn: T,
   delayMs: number = APP_CONFIG.REFETCH_DELAY_MS,
 ) {
   const delayedRefetch = useCallback(
     (...args: Parameters<T>) => {
-      return new Promise<ReturnType<T>>((resolve) => {
-        setTimeout(() => {
-          const result = refetchFn(...args)
-          resolve(result as ReturnType<T>)
-        }, delayMs)
-      })
+      return new Promise<Awaited<ReturnType<T>>>((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            const result = await refetchFn(...args);
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
+        }, delayMs);
+      });
     },
     [refetchFn, delayMs],
-  )
+  );
 
-  return delayedRefetch
+  return delayedRefetch;
 }
-

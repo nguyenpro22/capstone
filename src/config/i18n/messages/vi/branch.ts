@@ -9,6 +9,9 @@ export const branchMessages: Messages["branch"] = {
   phoneNumber: "SĐT",
   taxCode: "Mã Số Thuế",
   operatingLicenseExpiryDate: "Ngày Hết Hạn Giấy Phép Hoạt Động",
+  bankInformation: "Thông Tin Bank",
+  bankName: "Tên Ngân Hàng",
+  bankAccountNumber:"Số Tài Khoản",
   status: "Trạng Thái",
   action: "Hành Động",
   exportExcel: "Xuất Excel",
@@ -27,5 +30,6 @@ export const branchMessages: Messages["branch"] = {
   licenses: "Giấy phép",
   close: "Đóng",
   branchDetails: "Chi tiết chi nhánh",
-  loading: "Đang tải"
+  loading: "Đang tải",
+  statusUpdateFailed: "Cập nhật trạng thái thất bại"
 };

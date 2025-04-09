@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useState } from "react"
-import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from 'lucide-react'
+import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   useGetBranchesQuery,
@@ -196,7 +196,9 @@ const BranchesList: React.FC = () => {
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-pink-950 shadow-xl rounded-xl">
       {/* Toast Container */}
       <ToastContainer />
-      <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 dark:text-gray-100 tracking-wide">{t("branchesList")}</h1>
+      <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 dark:text-gray-100 tracking-wide">
+        {t("branchesList")}
+      </h1>
 
       {/* Buttons and Search */}
       <div className="flex items-center justify-between mb-6">
@@ -262,8 +264,8 @@ const BranchesList: React.FC = () => {
           {filteredBranches.map((branch: Branch, index: number) => (
             <React.Fragment key={branch.id}>
               <motion.tr
-                whileHover={{ backgroundColor: "rgba(250, 245, 255, 0.7)" }}
-                className={`transition-colors duration-200 ${
+                whileHover={{ scale: 1.005 }}
+                className={`transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/70 ${
                   index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-purple-50 dark:bg-purple-900/10"
                 } border-b border-gray-200 dark:border-gray-700 last:border-b-0`}
               >
@@ -311,7 +313,9 @@ const BranchesList: React.FC = () => {
                       onChange={() => handleToggleStatus(branch.id)}
                       className="w-4 h-4 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 dark:focus:ring-purple-400"
                     />
-                    <span className={`text-sm font-medium ${branch.isActivated ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                    <span
+                      className={`text-sm font-medium ${branch.isActivated ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    >
                       {branch.isActivated ? t("active") : t("inactive")}
                     </span>
                   </div>
@@ -383,7 +387,9 @@ const BranchesList: React.FC = () => {
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 border-t border-b border-gray-200 dark:border-gray-700">
                       <div className="flex items-center mb-3">
                         <div className="w-1 h-6 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
-                        <h3 className="text-lg font-medium text-purple-700 dark:text-purple-300">Staff in {branch.name}</h3>
+                        <h3 className="text-lg font-medium text-purple-700 dark:text-purple-300">
+                          Staff in {branch.name}
+                        </h3>
                       </div>
 
                       {getStaffForBranch(branch.id).length > 0 ? (

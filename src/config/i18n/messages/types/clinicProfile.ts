@@ -1,0 +1,23 @@
+export type clinicProfileMessages = {
+    clinicDetails: string;
+    address: string;
+    taxCode: string;
+    businessLicense: string;
+    viewBusinessLicense: string;
+    noBusinessLicense: string;
+    statistics: string;
+    branches: string;
+    bankInformation: string;
+    bankDetails: string;
+    bankName: string;
+    accountNumber: string;
+    paymentInformation: string;
+    paymentDescription: string;
+    noBranchesAvailable: string;
+    noBranchesDescription: string;
+    editProfile: string;
+    active: string;
+    inactive: string;
+    authRequired: string;
+    failedToLoad: string;
+  };

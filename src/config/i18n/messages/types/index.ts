@@ -17,6 +17,7 @@ import { registerClinic } from "./registerClinic";
 import { doctor } from "./doctor";
 import { livestream } from "./livestream";
 import { LivestreamRoomTranslations } from "./livestream-room";
+import { clinicProfileMessages } from "./clinicProfile";
 
 export type Messages = {
   home: homeMessages;
@@ -39,4 +40,5 @@ export type Messages = {
   service: service;
   livestream: livestream;
   livestreamRoom: LivestreamRoomTranslations;
+  clinicProfile: clinicProfileMessages; // Add this line
 };

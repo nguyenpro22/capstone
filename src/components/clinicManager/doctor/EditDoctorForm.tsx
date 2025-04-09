@@ -28,6 +28,7 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Staff } from "@/features/clinic/types"
 import Image from "next/image"
 import type { AddressDetail } from "@/features/address/types"
+import { useTheme } from "next-themes"
 
 // Define certificate type
 interface Certificate {
@@ -59,12 +60,13 @@ interface EditDoctorFormProps {
 }
 
 export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: EditDoctorFormProps) {
-  const t = useTranslations("doctor")
+  const t = useTranslations("staffDoctor")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [updateDoctor] = useUpdateDoctorMutation()
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string>("basic")
+  const { theme } = useTheme()
 
   // Get the token and extract clinicId
   const token = getAccessToken()
@@ -257,19 +259,21 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden"
         style={{ maxHeight: "90vh" }}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 p-6 text-white relative">
           <h2 className="text-2xl font-bold">{t("editDoctor") || "Edit Doctor"}</h2>
-          <p className="text-purple-100 mt-1">{t("updateDoctorInfo") || "Update doctor information"}</p>
+          <p className="text-purple-100 dark:text-purple-50 mt-1">
+            {t("updateDoctorInfo") || "Update doctor information"}
+          </p>
           <button
             onClick={onClose}
             className="absolute right-4 top-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -279,13 +283,13 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-gray-200 bg-gray-50 px-4 overflow-x-auto">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 overflow-x-auto">
           <button
             onClick={() => setActiveSection("basic")}
             className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
               activeSection === "basic"
-                ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <User className="w-4 h-4" />
@@ -295,8 +299,8 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
             onClick={() => setActiveSection("certificates")}
             className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
               activeSection === "certificates"
-                ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -306,8 +310,8 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
             onClick={() => setActiveSection("address")}
             className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
               activeSection === "address"
-                ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <MapPin className="w-4 h-4" />
@@ -317,8 +321,8 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
             onClick={() => setActiveSection("photo")}
             className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
               activeSection === "photo"
-                ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <Upload className="w-4 h-4" />
@@ -327,7 +331,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
         </div>
 
         {/* Form Content - Scrollable */}
-        <div className="overflow-y-auto flex-1 p-6">
+        <div className="overflow-y-auto flex-1 p-6 dark:bg-gray-900">
           <form id="doctor-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <input type="hidden" {...register("id")} />
             <input type="hidden" {...register("clinicId")} />
@@ -337,67 +341,83 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t("firstName") || "First Name"}</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("firstName") || "First Name"}
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
                         {...register("firstName")}
                         className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                          errors.firstName ? "border-red-300" : "border-gray-300"
-                        }`}
+                          errors.firstName
+                            ? "border-red-300 dark:border-red-700"
+                            : "border-gray-300 dark:border-gray-600"
+                        } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                         placeholder="John"
                       />
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
-                    {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>}
+                    {errors.firstName && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.firstName.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t("lastName") || "Last Name"}</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("lastName") || "Last Name"}
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
                         {...register("lastName")}
                         className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                          errors.lastName ? "border-red-300" : "border-gray-300"
-                        }`}
+                          errors.lastName
+                            ? "border-red-300 dark:border-red-700"
+                            : "border-gray-300 dark:border-gray-600"
+                        } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                         placeholder="Doe"
                       />
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
-                    {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>}
+                    {errors.lastName && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.lastName.message}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">{t("email") || "Email"}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("email") || "Email"}
+                  </label>
                   <div className="relative">
                     <input
                       type="email"
                       {...register("email")}
                       className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                        errors.email ? "border-red-300" : "border-gray-300"
-                      }`}
+                        errors.email ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
+                      } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                       placeholder="email@example.com"
                       readOnly
                     />
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
-                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     {t("phoneNumber") || "Phone Number"}
                   </label>
                   <div className="relative">
                     <input
                       type="text"
                       {...register("phoneNumber")}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       placeholder="+1234567890"
                     />
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                 </div>
               </motion.div>
@@ -407,8 +427,8 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
             {activeSection === "certificates" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                    <Stethoscope className="w-5 h-5 text-purple-500" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <Stethoscope className="w-5 h-5 text-purple-500 dark:text-purple-400" />
                     {t("doctorCertificates") || "Doctor Certificates"}
                   </h3>
                 </div>
@@ -422,32 +442,32 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                         animate={{ opacity: 1, y: 0 }}
                         className={`p-4 rounded-lg border ${
                           isExpired(cert.expiryDate)
-                            ? "border-red-200 bg-red-50"
-                            : "border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50"
+                            ? "border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/30"
+                            : "border-purple-100 dark:border-purple-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30"
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-purple-500" />
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-purple-500 dark:text-purple-400" />
                               {cert.certificateName}
                               {isExpired(cert.expiryDate) && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300">
                                   <AlertCircle className="w-3 h-3 mr-1" />
                                   {t("expired") || "Expired"}
                                 </span>
                               )}
                             </h4>
 
-                            <div className="mt-2 text-sm text-gray-600 flex items-center gap-1">
-                              <Calendar className="w-4 h-4 text-gray-400" />
+                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                              <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                               <span>
                                 {t("expiryDate") || "Expiry Date"}: {formatDate(cert.expiryDate)}
                               </span>
                             </div>
 
                             {cert.note && (
-                              <p className="mt-2 text-sm text-gray-600">
+                              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 <span className="font-medium">{t("note") || "Note"}:</span> {cert.note}
                               </p>
                             )}
@@ -456,7 +476,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                           <button
                             type="button"
                             onClick={() => openCertificate(cert.certificateUrl)}
-                            className="ml-2 p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-full transition-colors"
+                            className="ml-2 p-2 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-full transition-colors"
                             title={t("viewCertificate") || "View Certificate"}
                           >
                             <ExternalLink className="w-5 h-5" />
@@ -466,16 +486,18 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                    <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">{t("noCertificates") || "No certificates available"}</p>
+                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {t("noCertificates") || "No certificates available"}
+                    </p>
                   </div>
                 )}
 
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                  <p className="text-sm text-blue-700 flex items-start gap-2">
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-lg">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
                     <svg
-                      className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -502,12 +524,14 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Province Selection */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t("city") || "Province/City"}</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("city") || "Province/City"}
+                    </label>
                     <select
                       name="provinceId"
                       value={addressDetail.provinceId}
                       onChange={handleAddressChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">{addressDetail.provinceName || "Select Province/City"}</option>
                       {isLoadingProvinces ? (
@@ -524,12 +548,14 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
 
                   {/* District Selection */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t("district") || "District"}</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("district") || "District"}
+                    </label>
                     <select
                       name="districtId"
                       value={addressDetail.districtId}
                       onChange={handleAddressChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       disabled={!addressDetail.provinceId || isLoadingDistricts}
                     >
                       <option value="">
@@ -552,12 +578,14 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Ward Selection */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t("ward") || "Ward"}</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("ward") || "Ward"}
+                    </label>
                     <select
                       name="wardId"
                       value={addressDetail.wardId}
                       onChange={handleAddressChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       disabled={!addressDetail.districtId || isLoadingWards}
                     >
                       <option value="">
@@ -578,7 +606,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
 
                   {/* Street Address */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("address") || "Street Address"}
                     </label>
                     <input
@@ -586,7 +614,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                       name="streetAddress"
                       value={addressDetail.streetAddress}
                       onChange={handleAddressChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       placeholder="123 Main St"
                     />
                   </div>
@@ -597,10 +625,12 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100"
+                    className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 border border-purple-100 dark:border-purple-700"
                   >
-                    <p className="text-sm text-gray-600 font-medium">{t("fullAddress") || "Full Address"}:</p>
-                    <p className="text-sm text-gray-800 mt-1">{getFullAddress()}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      {t("fullAddress") || "Full Address"}:
+                    </p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{getFullAddress()}</p>
                   </motion.div>
                 )}
               </motion.div>
@@ -611,15 +641,17 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                 <div className="flex flex-col items-center justify-center py-6">
                   <div className="mb-6 text-center">
-                    <h3 className="text-lg font-medium mb-2">{t("profilePicture") || "Profile Picture"}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">
+                      {t("profilePicture") || "Profile Picture"}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {t("uploadProfilePictureDesc") || "Upload a profile picture for this doctor"}
                     </p>
                   </div>
 
                   {initialData.profilePictureUrl && !profilePicture && (
                     <div className="mb-6">
-                      <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                      <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
                         <Image
                           src={initialData.profilePictureUrl || "/placeholder.svg"}
                           alt={initialData.fullName || "Doctor"}
@@ -628,11 +660,13 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                           height={160}
                         />
                       </div>
-                      <p className="mt-2 text-sm text-gray-500 text-center">{t("currentPhoto") || "Current photo"}</p>
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                        {t("currentPhoto") || "Current photo"}
+                      </p>
                     </div>
                   )}
 
-                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 rounded-full cursor-pointer hover:border-purple-500 transition-colors bg-gray-50 overflow-hidden relative">
+                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-full cursor-pointer hover:border-purple-500 dark:hover:border-purple-400 transition-colors bg-gray-50 dark:bg-gray-800 overflow-hidden relative">
                     <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                     <div className="flex flex-col items-center justify-center h-full w-full">
                       {profilePicture ? (
@@ -644,9 +678,9 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <Check className="w-10 h-10 text-green-500" />
+                            <Check className="w-10 h-10 text-green-500 dark:text-green-400" />
                           )}
-                          <p className="text-sm text-gray-600 mt-2 text-center absolute bottom-2 bg-white bg-opacity-70 w-full py-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 text-center absolute bottom-2 bg-white/70 dark:bg-gray-800/70 w-full py-1">
                             {profilePicture.name.length > 20
                               ? profilePicture.name.substring(0, 20) + "..."
                               : profilePicture.name}
@@ -654,8 +688,10 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                         </div>
                       ) : (
                         <>
-                          <Upload className="w-10 h-10 text-gray-400" />
-                          <span className="mt-2 text-sm text-gray-500">{t("uploadImage") || "Upload Image"}</span>
+                          <Upload className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                          <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            {t("uploadImage") || "Upload Image"}
+                          </span>
                         </>
                       )}
                     </div>
@@ -673,7 +709,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                           setPreviewUrl(null)
                         }
                       }}
-                      className="mt-4 px-3 py-1 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                      className="mt-4 px-3 py-1 text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-700 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       {t("remove") || "Remove"}
                     </motion.button>
@@ -685,11 +721,11 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
         </div>
 
         {/* Footer with Actions */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full bg-purple-500 mr-2"></div>
-              <span className="text-sm text-gray-500">
+              <div className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400 mr-2"></div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 {activeSection === "basic"
                   ? t("editingBasicInfo") || "Editing basic information"
                   : activeSection === "certificates"
@@ -703,7 +739,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 {t("cancel") || "Cancel"}
               </button>
@@ -711,7 +747,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                 type="submit"
                 form="doctor-form"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-md hover:from-purple-600 hover:to-pink-700 transition-colors disabled:opacity-50 flex items-center"
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-400 dark:to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-500 dark:hover:to-pink-600 transition-colors disabled:opacity-50 flex items-center"
               >
                 {isSubmitting ? (
                   <>
@@ -748,4 +784,3 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
     </div>
   )
 }
-

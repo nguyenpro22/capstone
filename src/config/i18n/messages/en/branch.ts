@@ -27,5 +27,9 @@ export const branchMessages: Messages["branch"] = {
   licenses: "Licenses",
   close: "Close",
   branchDetails: "Branch Details",
-  loading: "Loading"
+  loading: "Loading",
+  statusUpdateFailed: "Update status Failed",
+  bankInformation: "Bank Information",
+  bankName: "Bank Name",
+  bankAccountNumber:"Bank Account Number",
 };
