@@ -6,6 +6,7 @@ import * as signalR from "@microsoft/signalr";
 import HostPageStreamScreen from "@/components/clinicManager/livestream/host-page-stream-screen";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
+import { is } from "date-fns/locale";
 
 // Define types for our data structures
 interface AnalyticsData {
@@ -107,36 +108,6 @@ export default function HostPage() {
   };
 
   useEffect(() => {
-    // Get livestream data from sessionStorage if available
-    const livestreamDataString = sessionStorage.getItem("livestreamData");
-    if (livestreamDataString) {
-      try {
-        const livestreamData = JSON.parse(livestreamDataString);
-        // Use the data to create a room
-        if (livestreamData.name) {
-          // Clear the sessionStorage to avoid reusing the data
-          sessionStorage.removeItem("livestreamData");
-          sessionStorage.removeItem("coverImagePreview");
-
-          // Create the room with the data from sessionStorage
-          const roomData: RoomData = {
-            name: livestreamData.name,
-            description: livestreamData.description || "",
-            image: livestreamData.image || "",
-          };
-
-          // We'll create the room once the SignalR connection is established
-          // So we'll store the data for later use
-          sessionStorage.setItem("pendingRoomData", JSON.stringify(roomData));
-        }
-      } catch (error) {
-        console.error(
-          "Error parsing livestream data from sessionStorage:",
-          error
-        );
-      }
-    }
-
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(
         `https://api.beautify.asia/signaling-api/LivestreamHub?clinicId=${user?.clinicId}&userId=${user?.userId}`,
@@ -163,17 +134,20 @@ export default function HostPage() {
       // Now set ref clearly (guaranteed connected)
       signalR_Connection.current = conn;
 
-      // Check if we have pending room data to create
-      const pendingRoomDataString = sessionStorage.getItem("pendingRoomData");
-      if (pendingRoomDataString) {
-        try {
-          const pendingRoomData = JSON.parse(pendingRoomDataString);
-          // Clear the sessionStorage
-          sessionStorage.removeItem("pendingRoomData");
-          // Create the room
-          createRoom(pendingRoomData);
-        } catch (error) {
-          console.error("Error parsing pending room data:", error);
+      if (!isCreateRoom) {
+        // Check if we have pending room data to create
+        const pendingRoomDataString = sessionStorage.getItem("livestreamData");
+        console.log(pendingRoomDataString);
+        if (pendingRoomDataString) {
+          try {
+            const pendingRoomData = JSON.parse(pendingRoomDataString);
+            // Clear the sessionStorage
+            sessionStorage.removeItem("pendingRoomData");
+            // Create the room
+            conn.invoke("HostCreateRoom", pendingRoomData);
+          } catch (error) {
+            console.error("Error parsing pending room data:", error);
+          }
         }
       }
 
@@ -388,29 +362,26 @@ export default function HostPage() {
           );
         }
       });
-
-      console.log("✅ Connected to SignalR");
-      signalR_Connection.current = conn;
     });
 
-    return () => {
-      if (conn && conn.state === signalR.HubConnectionState.Connected) {
-        conn
-          .stop()
-          .catch((err) => console.error("Error stopping connection:", err));
-      }
-    };
-  }, [router, user?.clinicId, user?.userId]);
+    // return () => {
+    //   if (conn && conn.state === signalR.HubConnectionState.Connected) {
+    //     conn
+    //       .stop()
+    //       .catch((err) => console.error("Error stopping connection:", err));
+    //   }
+    // };
+  }, [isCreateRoom]);
 
-  const createRoom = (roomData: RoomData): void => {
-    if (
-      signalR_Connection.current?.state === signalR.HubConnectionState.Connected
-    ) {
-      signalR_Connection.current.invoke("HostCreateRoom", roomData);
-    } else {
-      alert("🚨 SignalR connection not ready yet!");
-    }
-  };
+  // const createRoom = (roomData: RoomData): void => {
+  //   if (
+  //     signalR_Connection.current?.state === signalR.HubConnectionState.Connected
+  //   ) {
+  //     signalR_Connection.current.invoke("HostCreateRoom", roomData);
+  //   } else {
+  //     alert("🚨 SignalR connection not ready yet!");
+  //   }
+  // };
 
   const endLive = (): void => {
     if (!signalR_Connection.current) {

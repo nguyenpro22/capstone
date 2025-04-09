@@ -91,6 +91,12 @@ interface HostPageStreamScreenProps {
   getAnalyticsData: () => AnalyticsData;
 }
 
+interface RoomData {
+  name: string;
+  description: string;
+  image: string;
+}
+
 export default function HostPageStreamScreen({
   view,
   localVideoRef,
@@ -113,10 +119,6 @@ export default function HostPageStreamScreen({
   const [activeTab, setActiveTab] = useState<string>("session"); // "session", "products", or "chat"
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [promotionValue, setPromotionValue] = useState<number>(0);
-  // Thêm state để theo dõi các service đang được cập nhật
-  const [updatingServices, setUpdatingServices] = useState<Set<string>>(
-    new Set()
-  );
 
   // Add refs and state for chat scrolling
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
@@ -125,7 +127,7 @@ export default function HostPageStreamScreen({
 
   useEffect(() => {
     fetchServices();
-  }, [fetchServices]);
+  }, []);
 
   const toggleConfig = () => {
     setIsConfigCollapsed(!isConfigCollapsed);
