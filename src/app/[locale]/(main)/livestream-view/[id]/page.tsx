@@ -20,7 +20,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
 
 // Define CSS animation for floating reactions
 const reactionAnimationStyle = `
@@ -202,11 +202,6 @@ export default function LivestreamRoomPage() {
     };
   }, []);
 
-  // Helper function to add debug info
-  const addDebugInfo = (info: string) => {
-    setDebugInfo((prev) => [...prev, `[${new Date().toISOString()}] ${info}`]);
-  };
-
   // Fetch livestream info
   useEffect(() => {
     if (!isBrowser || !id) return;
@@ -233,7 +228,7 @@ export default function LivestreamRoomPage() {
         }
       } catch (error) {
         console.error("Error fetching livestream info:", error);
-        addDebugInfo(
+        console.debug(
           `Error fetching livestream info: ${
             error instanceof Error ? error.message : String(error)
           }`
@@ -260,17 +255,17 @@ export default function LivestreamRoomPage() {
     let isComponentMounted = true;
     setIsLoading(true);
     setConnectionStatus("connecting");
-    addDebugInfo("Initializing SignalR connection...");
+    console.log("Initializing SignalR connection...");
 
     // Check if we're using HTTPS
     const isSecureContext = window.isSecureContext;
     const protocol = window.location.protocol;
-    addDebugInfo(
+    console.log(
       `Current protocol: ${protocol}, Secure context: ${isSecureContext}`
     );
 
     if (protocol !== "https:") {
-      addDebugInfo(
+      console.log(
         "Warning: Using insecure connection (HTTP). This may cause issues with media streaming."
       );
     }
@@ -306,7 +301,7 @@ export default function LivestreamRoomPage() {
 
     // Try to use HTTPS for the SignalR connection
     const baseUrl = "https://api.beautify.asia/signaling-api/LivestreamHub";
-    addDebugInfo(`Connecting to: ${baseUrl}`);
+    console.log(`Connecting to: ${baseUrl}`);
 
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(`${baseUrl}?userId=${user?.userId}`, {
@@ -320,16 +315,16 @@ export default function LivestreamRoomPage() {
     // Add connection closed handler
     conn.onclose((error) => {
       console.log("SignalR connection closed", error);
-      addDebugInfo(
+      console.debug(
         `Connection closed: ${error ? error.message : "No error details"}`
       );
 
       // Try to reconnect if component is still mounted
       if (isComponentMounted && error) {
-        addDebugInfo("Attempting to reconnect in 5 seconds...");
+        console.debug("Attempting to reconnect in 5 seconds...");
         setTimeout(() => {
           if (isComponentMounted) {
-            addDebugInfo("Reconnecting...");
+            console.debug("Reconnecting...");
             // The reconnection will be handled by the cleanup and re-run of this effect
           }
         }, 5000);
@@ -339,11 +334,11 @@ export default function LivestreamRoomPage() {
     conn
       .start()
       .then(() => {
-        addDebugInfo("✅ Connected to SignalR");
+        console.log("✅ Connected to SignalR");
         setConnectionStatus("connected");
 
         if (!isComponentMounted) {
-          addDebugInfo("Component unmounted during connection, stopping");
+          console.debug("Component unmounted during connection, stopping");
           conn
             .stop()
             .catch((err) =>
@@ -357,9 +352,9 @@ export default function LivestreamRoomPage() {
         // Join as listener immediately after connection is established
         if (id && !joinAttemptedRef.current) {
           joinAttemptedRef.current = true;
-          addDebugInfo(`Joining room as listener: ${id}`);
+          console.log(`Joining room as listener: ${id}`);
           conn.invoke("JoinAsListener", id).catch((err) => {
-            addDebugInfo(`Error invoking JoinAsListener: ${err.message}`);
+            console.debug(`Error invoking JoinAsListener: ${err.message}`);
             setConnectionStatus("error");
 
             // If we fail to join, try again after a delay
@@ -369,16 +364,16 @@ export default function LivestreamRoomPage() {
                   conn.state === signalR.HubConnectionState.Connected &&
                   isComponentMounted
                 ) {
-                  addDebugInfo("Retrying JoinAsListener...");
+                  console.debug("Retrying JoinAsListener...");
                   conn.invoke("JoinAsListener", id).catch((e) => {
-                    addDebugInfo(`Error in retry join: ${e.message}`);
+                    console.debug(`Error in retry join: ${e.message}`);
                   });
                 }
               }, 3000);
             }
           });
         } else {
-          addDebugInfo(
+          console.debug(
             "Join already attempted, skipping duplicate join request"
           );
         }
@@ -396,57 +391,82 @@ export default function LivestreamRoomPage() {
             sessionId: string;
             handleId: string;
           }) => {
-            addDebugInfo("Received JoinRoomResponse");
+            console.log("Received JoinRoomResponse");
             if (jsep && isComponentMounted) {
               try {
-                addDebugInfo("Creating RTCPeerConnection");
+                console.log("Creating RTCPeerConnection");
                 // Use an empty configuration to avoid STUN/TURN server issues
                 const pc = new RTCPeerConnection({
                   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
                 });
 
                 pc.onicecandidate = (event) => {
-                  addDebugInfo(
+                  console.log(
                     `ICE candidate: ${event.candidate ? "generated" : "null"}`
                   );
                 };
 
                 pc.oniceconnectionstatechange = () => {
-                  addDebugInfo(
-                    `ICE connection state: ${pc.iceConnectionState}`
-                  );
+                  console.log(`ICE connection state: ${pc.iceConnectionState}`);
                 };
 
                 pc.onsignalingstatechange = () => {
-                  addDebugInfo(`Signaling state: ${pc.signalingState}`);
+                  console.log(`Signaling state: ${pc.signalingState}`);
                 };
 
                 pc.ontrack = (event) => {
-                  addDebugInfo(`Track received: ${event.track.kind}`);
-                  if (videoRef.current && event.streams[0]) {
+                  console.log(`Track received: ${event.track.kind}`);
+                  if (videoRef.current) {
                     videoRef.current.srcObject = event.streams[0];
                     setIsLoading(false);
-                    addDebugInfo("Video stream attached to element");
+                    console.log("Video stream attached to element");
+
+                    // Make sure audio is enabled
+                    videoRef.current.muted = false;
+                    videoRef.current.volume = 1.0;
 
                     // Add event listeners to debug video playback
                     videoRef.current.onloadedmetadata = () => {
-                      addDebugInfo("Video metadata loaded");
+                      console.log("Video metadata loaded");
                       if (videoRef.current) {
+                        // Double-check audio is enabled
+                        videoRef.current.muted = false;
+                        videoRef.current.volume = 1.0;
+
                         videoRef.current
                           .play()
-                          .then(() => addDebugInfo("Video playback started"))
+                          .then(() => {
+                            console.log(
+                              "Video playback started with audio enabled"
+                            );
+                            // Ensure audio is unmuted after autoplay
+                            if (videoRef.current) {
+                              videoRef.current.muted = false;
+                            }
+                          })
                           .catch((e) => {
-                            addDebugInfo(`Error playing video: ${e.message}`);
-                            // Try again with muted flag
+                            console.log(`Error playing video: ${e.message}`);
+                            // Try again with muted flag for autoplay, then unmute
                             if (videoRef.current) {
                               videoRef.current.muted = true;
                               videoRef.current
                                 .play()
-                                .then(() =>
-                                  addDebugInfo("Video playback started (muted)")
-                                )
+                                .then(() => {
+                                  console.log(
+                                    "Video playback started (initially muted)"
+                                  );
+                                  // Unmute after successful autoplay
+                                  setTimeout(() => {
+                                    if (videoRef.current) {
+                                      videoRef.current.muted = false;
+                                      console.log(
+                                        "Audio unmuted after autoplay"
+                                      );
+                                    }
+                                  }, 1000);
+                                })
                                 .catch((e2) =>
-                                  addDebugInfo(
+                                  console.log(
                                     `Still can't play video: ${e2.message}`
                                   )
                                 );
@@ -455,21 +475,21 @@ export default function LivestreamRoomPage() {
                       }
                     };
                   } else {
-                    addDebugInfo(
+                    console.log(
                       "Video element reference is null or no streams available"
                     );
                   }
                 };
 
-                addDebugInfo("Setting remote description");
+                console.log("Setting remote description");
                 await pc.setRemoteDescription(
                   new RTCSessionDescription({ type: "offer", sdp: jsep })
                 );
 
-                addDebugInfo("Creating answer");
+                console.log("Creating answer");
                 const answer = await pc.createAnswer();
 
-                addDebugInfo("Setting local description");
+                console.log("Setting local description");
                 await pc.setLocalDescription(answer);
 
                 // Store the peer connection reference
@@ -479,7 +499,7 @@ export default function LivestreamRoomPage() {
                   conn.state === signalR.HubConnectionState.Connected &&
                   isComponentMounted
                 ) {
-                  addDebugInfo("Sending answer to Janus");
+                  console.log("Sending answer to Janus");
                   sessionIdRef.current = sessionId;
                   setIsJoinRoom(true);
                   conn
@@ -491,7 +511,7 @@ export default function LivestreamRoomPage() {
                       answer.sdp
                     )
                     .catch((err) => {
-                      addDebugInfo(`Error sending answer: ${err.message}`);
+                      console.debug(`Error sending answer: ${err.message}`);
 
                       // Try again after a delay
                       setTimeout(() => {
@@ -499,7 +519,7 @@ export default function LivestreamRoomPage() {
                           conn.state === signalR.HubConnectionState.Connected &&
                           isComponentMounted
                         ) {
-                          addDebugInfo("Retrying SendAnswerToJanus...");
+                          console.debug("Retrying SendAnswerToJanus...");
                           conn
                             .invoke(
                               "SendAnswerToJanus",
@@ -509,7 +529,7 @@ export default function LivestreamRoomPage() {
                               answer.sdp
                             )
                             .catch((e) =>
-                              addDebugInfo(
+                              console.debug(
                                 `Error in retry send answer: ${e.message}`
                               )
                             );
@@ -517,12 +537,12 @@ export default function LivestreamRoomPage() {
                       }, 2000);
                     });
                 } else {
-                  addDebugInfo(
+                  console.debug(
                     "SignalR connection not ready or component unmounted"
                   );
                 }
               } catch (error) {
-                addDebugInfo(
+                console.debug(
                   `WebRTC error: ${
                     error instanceof Error ? error.message : String(error)
                   }`
@@ -530,7 +550,7 @@ export default function LivestreamRoomPage() {
                 setConnectionStatus("error");
               }
             } else {
-              addDebugInfo("No JSEP in JoinRoomResponse");
+              console.debug("No JSEP in JoinRoomResponse");
             }
           }
         );
@@ -576,7 +596,7 @@ export default function LivestreamRoomPage() {
         });
 
         conn.on("LivestreamEnded", async () => {
-          addDebugInfo("Livestream has ended");
+          console.log("Livestream has ended");
           if (videoRef.current?.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             const tracks = stream.getTracks();
@@ -616,13 +636,13 @@ export default function LivestreamRoomPage() {
         );
 
         conn.on("JanusError", async (message: string) => {
-          addDebugInfo(`Janus Error: ${message}`);
+          console.debug(`Janus Error: ${message}`);
           setConnectionStatus("error");
         });
       })
       .catch((err) => {
         console.error("Failed to connect to SignalR:", err);
-        addDebugInfo(`SignalR connection error: ${err.message}`);
+        console.debug(`SignalR connection error: ${err.message}`);
         setConnectionStatus("error");
         setIsLoading(false);
 
@@ -643,7 +663,7 @@ export default function LivestreamRoomPage() {
 
       // Clean up connection when component unmounts
       if (conn && conn.state === signalR.HubConnectionState.Connected) {
-        addDebugInfo("Stopping SignalR connection (component unmounting)");
+        console.log("Stopping SignalR connection (component unmounting)");
         conn
           .stop()
           .catch((err) => console.error("Error stopping connection:", err));
@@ -677,10 +697,10 @@ export default function LivestreamRoomPage() {
           signalR.HubConnectionState.Connected &&
         isJoinRoom
       ) {
-        addDebugInfo("Sending keep alive");
+        console.log("Sending keep alive");
         signalR_Connection.current
           .invoke("KeepAlive", sessionIdRef.current)
-          .catch((err) => addDebugInfo(`Keep alive error: ${err.message}`));
+          .catch((err) => console.debug(`Keep alive error: ${err.message}`));
       }
     }, 25000);
 
@@ -731,7 +751,7 @@ export default function LivestreamRoomPage() {
     ) {
       signalR_Connection.current
         .invoke("SendMessage", id, message)
-        .catch((err) => addDebugInfo(`Error sending message: ${err.message}`));
+        .catch((err) => console.debug(`Error sending message: ${err.message}`));
 
       // Clear the input field
       setText("");
@@ -747,7 +767,9 @@ export default function LivestreamRoomPage() {
     ) {
       signalR_Connection.current
         .invoke("SendReaction", id, reaction)
-        .catch((err) => addDebugInfo(`Error sending reaction: ${err.message}`));
+        .catch((err) =>
+          console.debug(`Error sending reaction: ${err.message}`)
+        );
     }
   };
 
@@ -925,15 +947,6 @@ export default function LivestreamRoomPage() {
                   >
                     Back to Livestreams
                   </button>
-
-                  <div className="mt-4">
-                    <button
-                      onClick={() => setDebugInfo([])}
-                      className="text-xs text-gray-400 hover:text-white"
-                    >
-                      Clear Debug Info
-                    </button>
-                  </div>
                 </div>
               </div>
             ) : null}
@@ -942,23 +955,8 @@ export default function LivestreamRoomPage() {
               ref={videoRef}
               autoPlay
               playsInline
-              muted
               className="w-full h-full object-contain rounded-lg pointer-events-none touch-none"
             />
-
-            {/* Debug info overlay - only visible in error state */}
-            {connectionStatus === "error" && debugInfo.length > 0 && (
-              <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-80 text-green-400 p-4 rounded-lg max-h-60 overflow-y-auto text-xs font-mono">
-                <h4 className="text-white mb-2 font-bold">
-                  Debug Information:
-                </h4>
-                {debugInfo.map((info, index) => (
-                  <div key={index} className="mb-1">
-                    {info}
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Livestream info overlay */}
             {livestreamInfo && (

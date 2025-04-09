@@ -62,6 +62,14 @@ interface Service {
   images?: string[];
 }
 
+interface AnalyticsData {
+  joinCount: number;
+  messageCount: number;
+  reactionCount: number;
+  totalActivities: number;
+  totalBooking: number;
+}
+
 interface HostPageStreamScreenProps {
   view: number;
   localVideoRef: React.RefObject<HTMLVideoElement>;
@@ -71,11 +79,16 @@ interface HostPageStreamScreenProps {
   endLive: () => void;
   chatMessage: ChatMessage[];
   activeReactions: Reaction[];
-  setPromotionService: (serviceId: string, percent: number) => Promise<void>;
+  setPromotionService: (
+    serviceId: string,
+    percent: number | string
+  ) => Promise<void>;
   services: Service[];
   fetchServices: () => Promise<void>;
   setServices: React.Dispatch<React.SetStateAction<Service[]>>;
   displayService: (serviceId: string, isDisplay?: boolean) => Promise<void>;
+  analyticsData: AnalyticsData;
+  getAnalyticsData: () => AnalyticsData;
 }
 
 export default function HostPageStreamScreen({
@@ -92,6 +105,8 @@ export default function HostPageStreamScreen({
   fetchServices,
   setServices,
   displayService,
+  analyticsData,
+  getAnalyticsData,
 }: HostPageStreamScreenProps) {
   const [isConfigCollapsed, setIsConfigCollapsed] = useState<boolean>(false);
   const [text, setText] = useState<string>("");
@@ -110,7 +125,7 @@ export default function HostPageStreamScreen({
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [fetchServices]);
 
   const toggleConfig = () => {
     setIsConfigCollapsed(!isConfigCollapsed);
@@ -302,7 +317,7 @@ export default function HostPageStreamScreen({
             {/* Start Livestream Button */}
             {!isPublish && (
               <button
-                onClick={startPublishing}
+                onClick={() => startPublishing()}
                 className="absolute top-6 right-0 transform -translate-x-1/2 bg-gradient-to-r from-rose-400 to-pink-500 text-white font-medium px-6 py-3 rounded-full hover:from-rose-500 hover:to-pink-600 transition shadow-lg"
               >
                 Start Live
