@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -14,6 +13,7 @@ import { TimeSlotGroup } from "../time-slot-group";
 import { DoctorItem } from "../doctor-item";
 import { useGetBusyTimesQuery } from "@/features/booking/api";
 import { BookingService } from "../../utils/booking-service";
+import { CustomCalendar } from "./custom-calendar";
 
 interface SelectDoctorDateStepProps {
   bookingData: BookingData;
@@ -238,7 +238,7 @@ export function SelectDoctorDateStep({
           {/* Calendar column */}
           <div className="bg-muted/30 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Chọn ngày</h4>
-            <Calendar
+            <CustomCalendar
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
@@ -252,7 +252,6 @@ export function SelectDoctorDateStep({
 
                 return date < today || date > maxDate;
               }}
-              className="rounded-md border bg-white shadow"
             />
           </div>
 

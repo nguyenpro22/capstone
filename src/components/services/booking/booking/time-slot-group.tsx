@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TimeSlotGroupProps {
   title: string;
@@ -25,24 +25,40 @@ export function TimeSlotGroup({
     return `${hour}:00 - ${hour + 1}:00`;
   };
 
+  // Get background color class based on title
+  const getBackgroundClass = () => {
+    switch (title) {
+      case "Buổi sáng":
+        return "bg-amber-50";
+      case "Buổi chiều":
+        return "bg-blue-50";
+      case "Buổi tối":
+        return "bg-purple-50";
+      default:
+        return "bg-gray-50";
+    }
+  };
+
   return (
-    <Card>
-      <CardContent className="p-4">
-        <h4 className="font-medium mb-3">{title}</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {timeSlots.map((time) => (
-            <Button
-              key={time}
-              variant={selectedTime === time ? "default" : "outline"}
-              className="flex items-center justify-center"
-              onClick={() => onTimeSelect(time)}
-            >
-              <Clock className="h-3 w-3 mr-1" />
-              {formatTimeRange(time)}
-            </Button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className={cn("rounded-lg p-3 border", getBackgroundClass())}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {timeSlots.map((time) => (
+          <Button
+            key={time}
+            variant={selectedTime === time ? "default" : "outline"}
+            className={cn(
+              "flex items-center justify-center h-11 shadow-sm border-0",
+              selectedTime === time
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-white hover:bg-primary/10 text-foreground"
+            )}
+            onClick={() => onTimeSelect(time)}
+          >
+            {/* <Clock className="h-3.5 w-3.5 mr-1.5" /> */}
+            <span className="font-medium">{formatTimeRange(time)}</span>
+          </Button>
+        ))}
+      </div>
+    </div>
   );
 }
