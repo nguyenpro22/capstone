@@ -502,7 +502,7 @@ export default function HostPageStreamScreen({
                                 alt={service.name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  e.currentTarget.src = `/placeholder.svg?height=40&width=40`;
+                                  e.currentTarget.src = `https://placehold.co/40x40.png`;
                                 }}
                               />
                             </div>
@@ -563,7 +563,7 @@ export default function HostPageStreamScreen({
                                 alt={selectedService.name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  e.currentTarget.src = `/placeholder.svg?height=64&width=64`;
+                                  e.currentTarget.src = `https://placehold.co/64x64.png`;
                                 }}
                               />
                             </div>

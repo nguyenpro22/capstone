@@ -1,0 +1,27 @@
+export type livestream = {
+  pageTitle: string;
+  heroTitle: string;
+  heroDescription: string;
+  searchPlaceholder: string;
+  haveRoomId: string;
+  enterRoomId: string;
+  joinButton: string;
+  availableLivestreams: string;
+  noLivestreamsTitle: string;
+  noLivestreamsDescription: string;
+  noMatchingLivestreams: string;
+  clearSearch: string;
+  howItWorksTitle: string;
+  step1Title: string;
+  step1Description: string;
+  step2Title: string;
+  step2Description: string;
+  step3Title: string;
+  step3Description: string;
+  loading: string;
+  errorTitle: string;
+  tryAgain: string;
+  joinNow: string;
+  joinLivestream: string;
+  live: string;
+};

@@ -9,11 +9,30 @@ export const serviceApi = createApi({
   endpoints: (builder) => ({
     getAllServices: builder.query<
       IResCommon<IListResponse<ServiceItem>>,
-      { pageIndex?: number; pageSize?: number }
+      {
+        pageIndex?: number;
+        pageSize?: number;
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+      }
     >({
-      query: ({ pageIndex = 1, pageSize = 10 }) => ({
-        url: `/services?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+      query: ({
+        pageIndex = 1,
+        pageSize = 10,
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+      }) => ({
+        url: `/services`,
         method: "GET",
+        params: {
+          pageIndex,
+          pageSize,
+          searchTerm,
+          sortColumn,
+          sortOrder,
+        },
       }),
     }),
 

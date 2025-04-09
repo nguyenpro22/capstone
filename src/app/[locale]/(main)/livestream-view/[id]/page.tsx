@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useEffect, useRef, useState } from "react";
-import * as signalr from "@microsoft/signalr";
+import * as signalR from "@microsoft/signalr";
 import { useRouter, useParams } from "next/navigation";
 import {
   Heart,
@@ -128,13 +128,13 @@ interface LivestreamInfo {
   description?: string;
 }
 
-export default function CustomerPageStreamScreen() {
+export default function LivestreamRoomPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
   const [view, setView] = useState<number>(0);
-  const signalR_Connection = useRef<signalr.HubConnection | null>(null);
+  const signalR_Connection = useRef<signalR.HubConnection | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const [chatMessage, setChatMessage] = useState<ChatMessage[]>([]);
@@ -155,26 +155,16 @@ export default function CustomerPageStreamScreen() {
     useState<string>("connecting");
   const [securityError, setSecurityError] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [isBrowser, setIsBrowser] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
-  // Nuevo estado para rastrear servicios ocultos por el cliente actual
+  // State to track hidden services
   const [hiddenServices, setHiddenServices] = useState<Set<string>>(new Set());
   const [showHiddenServices, setShowHiddenServices] = useState<boolean>(false);
 
-  // Añadir una función para restaurar un servicio oculto
-  const restoreService = (serviceId: string) => {
-    setHiddenServices((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(serviceId);
-      return newSet;
-    });
-  };
-
-  // Añadir una función para restaurar todos los servicios ocultos
-  const restoreAllServices = () => {
-    setHiddenServices(new Set());
-  };
-  // Añadir una variable de referencia para evitar múltiples intentos de unirse a la sala
+  // Reference to avoid multiple join attempts
   const joinAttemptedRef = useRef<boolean>(false);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
   // Define the reactions map
   const reactionsMap: Record<
@@ -200,19 +190,45 @@ export default function CustomerPageStreamScreen() {
     5: { emoji: "😍", text: "Beautiful!", icon: <Smile className="h-4 w-4" /> },
   };
 
+  // Check if we're in the browser environment
+  useEffect(() => {
+    setIsBrowser(true);
+    setIsMounted(true);
+
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
+
+  // Helper function to add debug info
+  const addDebugInfo = (info: string) => {
+    setDebugInfo((prev) => [...prev, `[${new Date().toISOString()}] ${info}`]);
+  };
+
   // Fetch livestream info
   useEffect(() => {
+    if (!isBrowser || !id) return;
+
     const fetchLivestreamInfo = async () => {
       try {
-        // Simulate data since the real API has security issues
-        const data: LivestreamInfo = {
-          id: id || "123",
-          name: "Beauty Livestream",
-          clinicName: "Beauty Clinic",
-          startDate: new Date().toISOString(),
-          description: "Join us for a live beauty session!",
-        };
-        setLivestreamInfo(data);
+        // In a real app, you would fetch this from your API
+        const response = await fetch(
+          `https://api.beautify.asia/signaling-api/LiveStream/Rooms/${id}`
+        );
+        const data = await response.json();
+
+        if (data.isSuccess) {
+          setLivestreamInfo(data.value);
+        } else {
+          // Fallback to simulated data if API fails
+          setLivestreamInfo({
+            id: id,
+            name: "Beauty Livestream",
+            clinicName: "Beauty Clinic",
+            startDate: new Date().toISOString(),
+            description: "Join us for a live beauty session!",
+          });
+        }
       } catch (error) {
         console.error("Error fetching livestream info:", error);
         addDebugInfo(
@@ -220,17 +236,26 @@ export default function CustomerPageStreamScreen() {
             error instanceof Error ? error.message : String(error)
           }`
         );
+
+        // Fallback data
+        setLivestreamInfo({
+          id: id,
+          name: "Beauty Livestream",
+          clinicName: "Beauty Clinic",
+          startDate: new Date().toISOString(),
+          description: "Join us for a live beauty session!",
+        });
       }
     };
 
     fetchLivestreamInfo();
-  }, [id]);
+  }, [id, isBrowser]);
 
-  const addDebugInfo = (info: string) => {
-    setDebugInfo((prev) => [...prev, `[${new Date().toISOString()}] ${info}`]);
-  };
-
+  // Setup SignalR connection
   useEffect(() => {
+    if (!isBrowser || !id || !isMounted) return;
+
+    let isComponentMounted = true;
     setIsLoading(true);
     setConnectionStatus("connecting");
     addDebugInfo("Initializing SignalR connection...");
@@ -248,18 +273,66 @@ export default function CustomerPageStreamScreen() {
       );
     }
 
+    // Clean up previous connection
+    if (signalR_Connection.current) {
+      console.log("Cleaning up previous SignalR connection");
+      signalR_Connection.current
+        .stop()
+        .catch((err) => console.error("Error stopping connection:", err));
+      signalR_Connection.current = null;
+    }
+
+    // Clean up previous video stream
+    if (videoRef.current?.srcObject) {
+      console.log("Cleaning up previous video stream");
+      const stream = videoRef.current.srcObject as MediaStream;
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+
+    // Clean up previous peer connection
+    if (peerConnectionRef.current) {
+      console.log("Cleaning up previous peer connection");
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+
+    sessionIdRef.current = null;
+    setIsJoinRoom(false);
+    joinAttemptedRef.current = false;
+
     // Try to use HTTPS for the SignalR connection
     const baseUrl = "https://api.beautify.asia/signaling-api/LivestreamHub";
     addDebugInfo(`Connecting to: ${baseUrl}`);
 
-    const conn = new signalr.HubConnectionBuilder()
-      .withUrl(baseUrl, {
+    const conn = new signalR.HubConnectionBuilder()
+      .withUrl(`${baseUrl}?userId=5D5A5055-BC2F-43F1-9B75-E08AB7FD0BFB`, {
         skipNegotiation: true,
-        transport: signalr.HttpTransportType.WebSockets,
+        transport: signalR.HttpTransportType.WebSockets,
       })
-      .withAutomaticReconnect()
-      .configureLogging(signalr.LogLevel.Information)
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 15000, 30000]) // More aggressive reconnection strategy
+      .configureLogging(signalR.LogLevel.Information)
       .build();
+
+    // Add connection closed handler
+    conn.onclose((error) => {
+      console.log("SignalR connection closed", error);
+      addDebugInfo(
+        `Connection closed: ${error ? error.message : "No error details"}`
+      );
+
+      // Try to reconnect if component is still mounted
+      if (isComponentMounted && error) {
+        addDebugInfo("Attempting to reconnect in 5 seconds...");
+        setTimeout(() => {
+          if (isComponentMounted) {
+            addDebugInfo("Reconnecting...");
+            // The reconnection will be handled by the cleanup and re-run of this effect
+          }
+        }, 5000);
+      }
+    });
 
     conn
       .start()
@@ -267,16 +340,41 @@ export default function CustomerPageStreamScreen() {
         addDebugInfo("✅ Connected to SignalR");
         setConnectionStatus("connected");
 
+        if (!isComponentMounted) {
+          addDebugInfo("Component unmounted during connection, stopping");
+          conn
+            .stop()
+            .catch((err) =>
+              console.error("Error stopping connection after unmount:", err)
+            );
+          return;
+        }
+
         signalR_Connection.current = conn;
-        if (!joinAttemptedRef.current) {
+
+        // Join as listener immediately after connection is established
+        if (id && !joinAttemptedRef.current) {
           joinAttemptedRef.current = true;
           addDebugInfo(`Joining room as listener: ${id}`);
-          signalR_Connection.current
-            .invoke("JoinAsListener", id)
-            .catch((err) => {
-              addDebugInfo(`Error invoking JoinAsListener: ${err.message}`);
-              setConnectionStatus("error");
-            });
+          conn.invoke("JoinAsListener", id).catch((err) => {
+            addDebugInfo(`Error invoking JoinAsListener: ${err.message}`);
+            setConnectionStatus("error");
+
+            // If we fail to join, try again after a delay
+            if (isComponentMounted) {
+              setTimeout(() => {
+                if (
+                  conn.state === signalR.HubConnectionState.Connected &&
+                  isComponentMounted
+                ) {
+                  addDebugInfo("Retrying JoinAsListener...");
+                  conn.invoke("JoinAsListener", id).catch((e) => {
+                    addDebugInfo(`Error in retry join: ${e.message}`);
+                  });
+                }
+              }, 3000);
+            }
+          });
         } else {
           addDebugInfo(
             "Join already attempted, skipping duplicate join request"
@@ -297,7 +395,7 @@ export default function CustomerPageStreamScreen() {
             handleId: string;
           }) => {
             addDebugInfo("Received JoinRoomResponse");
-            if (jsep) {
+            if (jsep && isComponentMounted) {
               try {
                 addDebugInfo("Creating RTCPeerConnection");
                 // Use an empty configuration to avoid STUN/TURN server issues
@@ -317,12 +415,47 @@ export default function CustomerPageStreamScreen() {
                   );
                 };
 
+                pc.onsignalingstatechange = () => {
+                  addDebugInfo(`Signaling state: ${pc.signalingState}`);
+                };
+
                 pc.ontrack = (event) => {
                   addDebugInfo(`Track received: ${event.track.kind}`);
-                  if (videoRef.current) {
+                  if (videoRef.current && event.streams[0]) {
                     videoRef.current.srcObject = event.streams[0];
                     setIsLoading(false);
                     addDebugInfo("Video stream attached to element");
+
+                    // Add event listeners to debug video playback
+                    videoRef.current.onloadedmetadata = () => {
+                      addDebugInfo("Video metadata loaded");
+                      if (videoRef.current) {
+                        videoRef.current
+                          .play()
+                          .then(() => addDebugInfo("Video playback started"))
+                          .catch((e) => {
+                            addDebugInfo(`Error playing video: ${e.message}`);
+                            // Try again with muted flag
+                            if (videoRef.current) {
+                              videoRef.current.muted = true;
+                              videoRef.current
+                                .play()
+                                .then(() =>
+                                  addDebugInfo("Video playback started (muted)")
+                                )
+                                .catch((e2) =>
+                                  addDebugInfo(
+                                    `Still can't play video: ${e2.message}`
+                                  )
+                                );
+                            }
+                          });
+                      }
+                    };
+                  } else {
+                    addDebugInfo(
+                      "Video element reference is null or no streams available"
+                    );
                   }
                 };
 
@@ -337,14 +470,17 @@ export default function CustomerPageStreamScreen() {
                 addDebugInfo("Setting local description");
                 await pc.setLocalDescription(answer);
 
+                // Store the peer connection reference
+                peerConnectionRef.current = pc;
+
                 if (
-                  signalR_Connection.current?.state ===
-                  signalr.HubConnectionState.Connected
+                  conn.state === signalR.HubConnectionState.Connected &&
+                  isComponentMounted
                 ) {
+                  addDebugInfo("Sending answer to Janus");
                   sessionIdRef.current = sessionId;
                   setIsJoinRoom(true);
-                  addDebugInfo("Sending answer to Janus");
-                  signalR_Connection.current
+                  conn
                     .invoke(
                       "SendAnswerToJanus",
                       roomId,
@@ -354,10 +490,34 @@ export default function CustomerPageStreamScreen() {
                     )
                     .catch((err) => {
                       addDebugInfo(`Error sending answer: ${err.message}`);
+
+                      // Try again after a delay
+                      setTimeout(() => {
+                        if (
+                          conn.state === signalR.HubConnectionState.Connected &&
+                          isComponentMounted
+                        ) {
+                          addDebugInfo("Retrying SendAnswerToJanus...");
+                          conn
+                            .invoke(
+                              "SendAnswerToJanus",
+                              roomId,
+                              sessionId,
+                              handleId,
+                              answer.sdp
+                            )
+                            .catch((e) =>
+                              addDebugInfo(
+                                `Error in retry send answer: ${e.message}`
+                              )
+                            );
+                        }
+                      }, 2000);
                     });
                 } else {
-                  addDebugInfo("SignalR connection not ready");
-                  setConnectionStatus("error");
+                  addDebugInfo(
+                    "SignalR connection not ready or component unmounted"
+                  );
                 }
               } catch (error) {
                 addDebugInfo(
@@ -373,15 +533,21 @@ export default function CustomerPageStreamScreen() {
           }
         );
 
-        conn.on("ListenerCountUpdated", async (view: number) => {
-          setView(view);
+        conn.on("ListenerCountUpdated", async (viewCount: number) => {
+          if (isComponentMounted) {
+            setView(viewCount);
+          }
         });
 
         conn.on("ReceiveMessage", async (message: ChatMessage) => {
-          setChatMessage((prev) => [...prev, message]);
+          if (isComponentMounted) {
+            setChatMessage((prev) => [...prev, message]);
+          }
         });
 
         conn.on("ReceiveReaction", async ({ id }: { id: string | number }) => {
+          if (!isComponentMounted) return;
+
           const reactionId =
             typeof id === "string" ? Number.parseInt(id, 10) : (id as number);
 
@@ -398,9 +564,11 @@ export default function CustomerPageStreamScreen() {
             setActiveReactions((prev) => [...prev, reaction]);
 
             setTimeout(() => {
-              setActiveReactions((prev) =>
-                prev.filter((r) => r.key !== reaction.key)
-              );
+              if (isComponentMounted) {
+                setActiveReactions((prev) =>
+                  prev.filter((r) => r.key !== reaction.key)
+                );
+              }
             }, 3000);
           }
         });
@@ -415,10 +583,13 @@ export default function CustomerPageStreamScreen() {
           }
 
           sessionIdRef.current = null;
-          setChatMessage([]);
-          setIsJoinRoom(false);
-          alert("The livestream has ended");
-          router.push(`/home`);
+
+          if (isComponentMounted) {
+            setChatMessage([]);
+            setIsJoinRoom(false);
+            alert("The livestream has ended");
+            router.push(`/livestream-view`);
+          }
         });
 
         conn.on(
@@ -432,6 +603,8 @@ export default function CustomerPageStreamScreen() {
             isDisplay: boolean;
             service: Service;
           }) => {
+            if (!isComponentMounted) return;
+
             if (isDisplay) {
               setDisplayServices((prev) => [...prev, service]);
             } else {
@@ -464,49 +637,45 @@ export default function CustomerPageStreamScreen() {
       });
 
     return () => {
-      if (conn && conn.state === signalr.HubConnectionState.Connected) {
-        conn.stop();
+      isComponentMounted = false;
+
+      // Clean up connection when component unmounts
+      if (conn && conn.state === signalR.HubConnectionState.Connected) {
+        addDebugInfo("Stopping SignalR connection (component unmounting)");
+        conn
+          .stop()
+          .catch((err) => console.error("Error stopping connection:", err));
+      }
+
+      // Clean up peer connection
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+        peerConnectionRef.current = null;
+      }
+
+      // Clean up video stream
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
       }
     };
-  }, [router, id]);
+  }, [id, isBrowser, isMounted, router]);
 
-  const sendMessage = async (message: string) => {
-    if (
-      signalR_Connection.current?.state ===
-        signalr.HubConnectionState.Connected &&
-      id != null
-    ) {
-      if (message) {
-        signalR_Connection.current
-          .invoke("SendMessage", id, message)
-          .catch((err) =>
-            addDebugInfo(`Error sending message: ${err.message}`)
-          );
-      }
-    }
-  };
-
-  const sendReaction = (reaction: number) => {
-    if (
-      signalR_Connection.current?.state ===
-        signalr.HubConnectionState.Connected &&
-      id != null
-    ) {
-      signalR_Connection.current
-        .invoke("SendReaction", id, reaction)
-        .catch((err) => addDebugInfo(`Error sending reaction: ${err.message}`));
-    }
-  };
-
+  // Keep alive interval
   useEffect(() => {
+    if (!isBrowser || !isMounted) return;
+
     const keepAliveInterval = setInterval(() => {
       if (
         sessionIdRef.current &&
         signalR_Connection.current &&
         signalR_Connection.current.state ===
-          signalr.HubConnectionState.Connected &&
+          signalR.HubConnectionState.Connected &&
         isJoinRoom
       ) {
+        addDebugInfo("Sending keep alive");
         signalR_Connection.current
           .invoke("KeepAlive", sessionIdRef.current)
           .catch((err) => addDebugInfo(`Keep alive error: ${err.message}`));
@@ -514,8 +683,9 @@ export default function CustomerPageStreamScreen() {
     }, 25000);
 
     return () => clearInterval(keepAliveInterval);
-  }, [isJoinRoom]);
+  }, [isJoinRoom, isBrowser, isMounted]);
 
+  // Chat scroll handling
   const handleScroll = () => {
     if (chatContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } =
@@ -535,15 +705,72 @@ export default function CustomerPageStreamScreen() {
     }
   };
 
+  // Initial scroll to bottom
   useEffect(() => {
-    scrollToBottom();
-  }, []);
+    if (isBrowser) {
+      scrollToBottom();
+    }
+  }, [isBrowser]);
 
+  // Auto-scroll on new messages
   useEffect(() => {
     if (messagesEndRef.current && !userScrolled) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatMessage]);
+  }, [chatMessage, userScrolled]);
+
+  // Send message function
+  const sendMessage = async (message: string) => {
+    if (
+      signalR_Connection.current?.state ===
+        signalR.HubConnectionState.Connected &&
+      id != null &&
+      message.trim()
+    ) {
+      signalR_Connection.current
+        .invoke("SendMessage", id, message)
+        .catch((err) => addDebugInfo(`Error sending message: ${err.message}`));
+
+      // Clear the input field
+      setText("");
+    }
+  };
+
+  // Send reaction function
+  const sendReaction = (reaction: number) => {
+    if (
+      signalR_Connection.current?.state ===
+        signalR.HubConnectionState.Connected &&
+      id != null
+    ) {
+      signalR_Connection.current
+        .invoke("SendReaction", id, reaction)
+        .catch((err) => addDebugInfo(`Error sending reaction: ${err.message}`));
+    }
+  };
+
+  // Hide service function
+  const hideService = (serviceId: string) => {
+    setHiddenServices((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(serviceId);
+      return newSet;
+    });
+  };
+
+  // Restore service function
+  const restoreService = (serviceId: string) => {
+    setHiddenServices((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(serviceId);
+      return newSet;
+    });
+  };
+
+  // Restore all services function
+  const restoreAllServices = () => {
+    setHiddenServices(new Set());
+  };
 
   // Helper function to format price in Vietnamese currency
   const formatPrice = (price: number) => {
@@ -587,22 +814,18 @@ export default function CustomerPageStreamScreen() {
     }).format(date);
   };
 
-  // Nueva función para ocultar un servicio
-  const hideService = (serviceId: string) => {
-    setHiddenServices((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(serviceId);
-      return newSet;
-    });
-  };
-
-  // Filtrar servicios para no mostrar los que el usuario ha ocultado
+  // Filter services to not show the ones the user has hidden
   const visibleServices = displayServices.filter(
     (service) => !hiddenServices.has(service.id)
   );
   const hiddenServicesList = displayServices.filter((service) =>
     hiddenServices.has(service.id)
   );
+
+  if (!isBrowser) {
+    return null; // Return nothing during SSR
+  }
+
   return (
     <>
       <style>{reactionAnimationStyle}</style>
@@ -627,7 +850,7 @@ export default function CustomerPageStreamScreen() {
                 </span>
               </div>
               <button
-                onClick={() => router.push("/customer")}
+                onClick={() => router.push("/livestream-view")}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X className="h-5 w-5" />
@@ -695,7 +918,7 @@ export default function CustomerPageStreamScreen() {
                   )}
 
                   <button
-                    onClick={() => router.push("/customer")}
+                    onClick={() => router.push("/livestream-view")}
                     className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg transition"
                   >
                     Back to Livestreams
@@ -717,6 +940,7 @@ export default function CustomerPageStreamScreen() {
               ref={videoRef}
               autoPlay
               playsInline
+              muted
               className="w-full h-full object-contain rounded-lg pointer-events-none touch-none"
             />
 
@@ -772,7 +996,7 @@ export default function CustomerPageStreamScreen() {
                     >
                       {/* Service Header with Icon and Name */}
                       <div className="relative">
-                        {/* Botón para ocultar el servicio - Nuevo */}
+                        {/* Button to hide the service */}
                         <button
                           onClick={() => hideService(service.id)}
                           className="absolute top-2 right-2 bg-white bg-opacity-70 p-1 rounded-full hover:bg-opacity-100 transition-all z-10"
@@ -857,7 +1081,15 @@ export default function CustomerPageStreamScreen() {
 
                       {/* Book Now Button */}
                       <div className="p-3 pt-1">
-                        <button className="w-full bg-rose-500 text-white font-medium py-2 text-sm rounded-lg hover:bg-rose-600 transition shadow-sm">
+                        <button
+                          onClick={() =>
+                            window.open(
+                              `/services/${service.id}?livestreamId=${id}`,
+                              "_blank"
+                            )
+                          }
+                          className="w-full bg-rose-500 text-white font-medium py-2 text-sm rounded-lg hover:bg-rose-600 transition shadow-sm"
+                        >
                           Book Now
                         </button>
                       </div>
@@ -900,7 +1132,7 @@ export default function CustomerPageStreamScreen() {
                   </div>
                 )}
 
-                {/* Panel de servicios ocultos */}
+                {/* Panel of hidden services */}
                 {showHiddenServices && hiddenServicesList.length > 0 && (
                   <div className="mt-2 bg-white bg-opacity-90 rounded-lg p-3 shadow-lg">
                     <div className="flex justify-between items-center mb-2">
@@ -1062,7 +1294,6 @@ export default function CustomerPageStreamScreen() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     sendMessage(text);
-                    setText("");
                   }}
                 >
                   <div className="flex items-center">

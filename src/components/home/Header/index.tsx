@@ -171,7 +171,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
     },
     {
       label: t("footer.quickLinks.links.3.label"),
-      href: "/register-clinic",
+      href: "/registerClinic",
     },
   ];
 

@@ -30,10 +30,7 @@ export function ClinicCard({ clinic, featured = false }: ClinicCardProps) {
       <CardContent className="p-0">
         <div className="relative h-48 overflow-hidden">
           <Image
-            src={
-              clinic.profilePictureUrl ||
-              `/placeholder.svg?height=400&width=600`
-            }
+            src={clinic.profilePictureUrl || `https://placehold.co/600x400.png`}
             alt={clinic.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"

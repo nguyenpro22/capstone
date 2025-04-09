@@ -10,6 +10,7 @@ const nextConfig = {
       "qr.sepay.vn",
       "api.dicebear.com",
       "placehold.co",
+      "thispersondoesnotexist.com",
     ],
   },
   reactStrictMode: true,

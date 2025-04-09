@@ -36,6 +36,7 @@ interface Service {
 interface LivestreamData {
   name: string;
   description?: string;
+  image: string;
 }
 
 export default function HostLivestreamPage() {
@@ -171,10 +172,13 @@ export default function HostLivestreamPage() {
     }
 
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl("https://api.beautify.asia/signaling-api/LivestreamHub", {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
-      })
+      .withUrl(
+        "https://api.beautify.asia/signaling-api/LivestreamHub?clinicId=E5A759CD-AF8D-4A1C-8C05-43CC2C95E067&userId=A283EB13-8D68-46C9-8A1D-450E0CC7AD13",
+        {
+          skipNegotiation: true,
+          transport: signalR.HttpTransportType.WebSockets,
+        }
+      )
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
       .build();
@@ -396,7 +400,7 @@ export default function HostLivestreamPage() {
           setRoomCreationInProgress(true);
 
           conn
-            .invoke("HostCreateRoom")
+            .invoke("HostCreateRoom", livestreamData)
             .then(() => {
               console.log("Room creation request sent successfully");
               // El evento RoomCreatedAndJoined manejará el resto

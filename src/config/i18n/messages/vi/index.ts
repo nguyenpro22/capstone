@@ -14,6 +14,8 @@ import { forgotPassword } from "./forgot-password";
 import { register } from "./register";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
+import { livestream } from "./livestream";
+import { livestreamRoom } from "./livestream-room";
 
 const vi = {
   home: homeMessages,
@@ -33,6 +35,8 @@ const vi = {
   register,
   serviceDetail,
   registerClinic,
+  livestream,
+  livestreamRoom,
 };
 
 export default vi;

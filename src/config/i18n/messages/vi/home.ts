@@ -32,6 +32,7 @@ export const homeMessages: Messages["home"] = {
     },
   },
   services: {
+    priceFrom: "Giá chỉ từ",
     badge: "Dịch Vụ Của Chúng Tôi",
     title: "Các Liệu Pháp Làm Đẹp Cao Cấp",
     description:
@@ -258,6 +259,24 @@ export const homeMessages: Messages["home"] = {
       button: "Yêu Cầu Cuộc Hẹn",
     },
   },
+  clinic: {
+    // Clinic slider section
+    ourPartners: "Đối Tác Của Chúng Tôi",
+    trustedClinics: "Các Phòng Khám & Trung Tâm Y Tế Tin Cậy",
+    clinicsDescription:
+      "Khám phá mạng lưới các phòng khám và trung tâm y tế được chứng nhận, cung cấp dịch vụ chất lượng cao và chăm sóc bệnh nhân xuất sắc.",
+    viewAllClinics: "Xem Tất Cả Phòng Khám",
+    errorLoadingClinics:
+      "Đã xảy ra lỗi khi tải danh sách phòng khám. Vui lòng thử lại sau.",
+    tryAgain: "Thử Lại",
+    active: "Hoạt Động",
+    pending: "Chờ Duyệt",
+    noBranches: "Không có chi nhánh",
+    branch: "chi nhánh",
+    branchs: "chi nhánh",
+    viewDetails: "Xem Chi Tiết",
+    favorite: "Thêm vào yêu thích",
+  },
   footer: {
     about: {
       title: "Trung Tâm Thẩm Mỹ",
@@ -273,6 +292,7 @@ export const homeMessages: Messages["home"] = {
         { label: "Đăng ký phòng khám", href: "#" },
       ],
     },
+
     services: {
       title: "Dịch Vụ",
       links: [
