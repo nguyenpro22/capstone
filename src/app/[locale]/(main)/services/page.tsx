@@ -741,41 +741,6 @@ export default function ServicesPage(): JSX.Element {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Featured Service */}
-            <Card className="overflow-hidden border-0 shadow-lg dark:bg-gray-800 dark:border dark:border-gray-700">
-              <div className="relative h-40">
-                <Image
-                  src="https://placehold.co/320x160.png"
-                  alt="Featured Service"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                  <div>
-                    <Badge className="bg-purple-500 text-white mb-2">
-                      Nổi bật
-                    </Badge>
-                    <h3 className="text-white font-medium">
-                      Phẫu Thuật Thẩm Mỹ
-                    </h3>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground dark:text-gray-300 mb-3">
-                  Trải nghiệm dịch vụ phẫu thuật thẩm mỹ cao cấp với ưu đãi đặc
-                  biệt.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-                >
-                  Tìm hiểu thêm
-                </Button>
-              </CardContent>
-            </Card>
           </motion.div>
 
           {/* Services Grid - Redesigned */}

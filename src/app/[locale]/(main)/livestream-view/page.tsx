@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import * as signalR from "@microsoft/signalr";
 import { Loader2, Sun, Moon, Users, Clock, Calendar, Play } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface Room {
   id: string;
@@ -25,7 +27,7 @@ export default function LivestreamViewPage() {
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [isBrowser, setIsBrowser] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-
+  const user = useSelector((state: RootState) => state?.auth?.user);
   // Refs for video and SignalR connection
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const signalR_Connection = useRef<signalR.HubConnection | null>(null);
@@ -165,7 +167,7 @@ export default function LivestreamViewPage() {
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(
         // Add userId parameter like in the React version
-        "https://api.beautify.asia/signaling-api/LivestreamHub?userId=5D5A5055-BC2F-43F1-9B75-E08AB7FD0BFB",
+        `https://api.beautify.asia/signaling-api/LivestreamHub?userId=${user?.userId}`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
