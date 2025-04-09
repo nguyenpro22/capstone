@@ -14,6 +14,8 @@ import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
 import { doctorMessages } from "./staffDoctor";
 import { staffMessages } from "./staff";
+import { livestream } from "./livestream";
+import { livestreamRoom } from "./livestream-room";
 
 const en = {
   home: homeMessages,
@@ -33,6 +35,8 @@ const en = {
   staffDoctor: doctorMessages,
   staff: staffMessages,
   serviceMessage: service,
+  livestream,
+  livestreamRoom,
 };
 
 export default en;
