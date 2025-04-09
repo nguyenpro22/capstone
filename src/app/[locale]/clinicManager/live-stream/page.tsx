@@ -6,6 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Upload, History, ArrowRight, Loader2 } from "lucide-react";
 import { url } from "inspector";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface LivestreamRoom {
   id: string;
@@ -28,7 +30,7 @@ export default function LiveStreamPage() {
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [pastLivestreams, setPastLivestreams] = useState<LivestreamRoom[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
-
+  const user = useSelector((state: RootState) => state?.auth?.user);
   // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -97,7 +99,7 @@ export default function LiveStreamPage() {
     try {
       setIsLoadingHistory(true);
       const response = await fetch(
-        "https://api.beautify.asia/signaling-api/LiveStream/Rooms?clinicId=78705cfa-7097-408f-93e2-70950fc886a3"
+        `https://api.beautify.asia/signaling-api/LiveStream/Rooms?clinicId=${user?.clinicId}`
       );
       const data = await response.json();
 

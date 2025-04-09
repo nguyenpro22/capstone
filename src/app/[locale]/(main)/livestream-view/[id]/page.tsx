@@ -19,6 +19,8 @@ import {
   AlertTriangle,
   EyeOff,
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 // Define CSS animation for floating reactions
 const reactionAnimationStyle = `
@@ -157,7 +159,7 @@ export default function LivestreamRoomPage() {
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [isBrowser, setIsBrowser] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
-
+  const user = useSelector((state: RootState) => state?.auth?.user);
   // State to track hidden services
   const [hiddenServices, setHiddenServices] = useState<Set<string>>(new Set());
   const [showHiddenServices, setShowHiddenServices] = useState<boolean>(false);
@@ -307,7 +309,7 @@ export default function LivestreamRoomPage() {
     addDebugInfo(`Connecting to: ${baseUrl}`);
 
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl(`${baseUrl}?userId=5D5A5055-BC2F-43F1-9B75-E08AB7FD0BFB`, {
+      .withUrl(`${baseUrl}?userId=${user?.userId}`, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
       })

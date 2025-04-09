@@ -173,7 +173,7 @@ export default function HostLivestreamPage() {
 
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(
-        "https://api.beautify.asia/signaling-api/LivestreamHub?clinicId=E5A759CD-AF8D-4A1C-8C05-43CC2C95E067&userId=A283EB13-8D68-46C9-8A1D-450E0CC7AD13",
+        `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${clinicId}&userId=${userId}`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,

@@ -8,27 +8,37 @@ import { SelectClinicStep } from "./steps/select-clinic-step";
 import { SelectDoctorDateStep } from "./steps/select-doctor-date-step";
 import { SelectServiceStep } from "./steps/select-service-step";
 import { BookingSummaryStep } from "./steps/booking-summary-step";
-import { BookingConfirmation } from "./booking-confirmation";
+import { BookingSuccess } from "./steps/booking-success-step"; // Import the new component
 import { BookingData, Doctor } from "../types/booking";
 import { createBookingRequest } from "../utils/booking-utils";
 import { BookingService } from "../utils/booking-service";
 import { useCreateBookingMutation } from "@/features/booking/api";
-import { ServiceDetail } from "@/features/services/types";
+import { Clinic, ServiceDetail } from "@/features/services/types";
 import { TokenData } from "@/utils";
 
 interface BookingFlowProps {
   service: ServiceDetail;
   onClose: () => void;
   userData?: TokenData;
+  clinic?: Clinic | null; // Optional clinic prop
+  doctor?: Doctor | null; // Optional doctor prop
+  liveStreamRoomId?: string | null;
 }
 
-export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
+export function BookingFlow({
+  service,
+  onClose,
+  userData,
+  clinic,
+  doctor,
+  liveStreamRoomId,
+}: BookingFlowProps) {
   const [submitBooking] = useCreateBookingMutation();
   const [currentStep, setCurrentStep] = useState(0);
   const [bookingData, setBookingData] = useState<BookingData>({
     service,
-    doctor: null,
-    clinic: null,
+    doctor: doctor || null,
+    clinic: clinic || null,
     date: null,
     time: null,
     selectedProcedures: [],
@@ -54,6 +64,7 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
     { title: "Chọn bác sĩ & ngày", component: SelectDoctorDateStep },
     { title: "Chọn dịch vụ", component: SelectServiceStep },
     { title: "Xác nhận thông tin", component: BookingSummaryStep },
+    { title: "Hoàn tất", component: BookingSuccess }, // Add the success step
   ];
 
   // Fetch highest rated doctor when service changes
@@ -92,21 +103,27 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
   }, [bookingData.skipDoctorSelection, highestRatedDoctor]);
 
   const handleNext = useCallback(() => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < steps.length - 2) {
+      // Changed from steps.length - 1
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
-    } else {
-      // Submit booking on the last step
+    } else if (currentStep === steps.length - 2) {
+      // This is the summary step
+      // Submit booking on the summary step
       handleSubmit();
+    } else {
+      // On success step, just close
+      onClose();
     }
-  }, [currentStep, steps.length]);
+  }, [currentStep, steps.length, onClose]);
 
   const handleBack = useCallback(() => {
-    if (currentStep > 0) {
+    if (currentStep > 0 && currentStep < steps.length - 1) {
+      // Don't allow going back from success step
       setCurrentStep(currentStep - 1);
       window.scrollTo(0, 0);
     }
-  }, [currentStep]);
+  }, [currentStep, steps.length]);
 
   const updateBookingData = useCallback((data: Partial<BookingData>) => {
     setBookingData((prev) => {
@@ -122,19 +139,24 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
     setIsSubmitting(true);
     try {
       // Create booking request from booking data
-      const bookingRequest = createBookingRequest(bookingData);
-
+      let bookingRequest = createBookingRequest(bookingData);
+      if (liveStreamRoomId) {
+        bookingRequest = { ...bookingRequest, liveStreamRoomId };
+      }
       // Call API to submit booking
       const result = await submitBooking(bookingRequest).unwrap();
 
       setBookingId(result.bookingId);
       setBookingComplete(true);
+
+      // Move to success step
+      setCurrentStep(steps.length - 1);
     } catch (error) {
       console.error("Error submitting booking:", error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [bookingData]);
+  }, [bookingData, steps.length]);
 
   // Check if current step is valid and can proceed
   const canProceed = useCallback(() => {
@@ -156,23 +178,57 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
           bookingData.customerInfo.name.trim() !== "" &&
           bookingData.customerInfo.phone.trim() !== ""
         );
+      case 4: // Success step - always can proceed (to close)
+        return true;
       default:
         return false;
     }
   }, [currentStep, bookingData]);
 
-  // Render booking confirmation if complete
-  if (bookingComplete && bookingId) {
-    return (
-      <BookingConfirmation
-        bookingId={bookingId}
-        bookingData={bookingData}
-        onClose={onClose}
-      />
-    );
-  }
-
-  const CurrentStepComponent = steps[currentStep].component;
+  // Render the appropriate step component based on currentStep
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <SelectClinicStep
+            bookingData={bookingData}
+            updateBookingData={updateBookingData}
+          />
+        );
+      case 1:
+        return (
+          <SelectDoctorDateStep
+            bookingData={bookingData}
+            updateBookingData={updateBookingData}
+            highestRatedDoctor={highestRatedDoctor}
+          />
+        );
+      case 2:
+        return (
+          <SelectServiceStep
+            bookingData={bookingData}
+            updateBookingData={updateBookingData}
+          />
+        );
+      case 3:
+        return (
+          <BookingSummaryStep
+            bookingData={bookingData}
+            updateBookingData={updateBookingData}
+          />
+        );
+      case 4:
+        return (
+          <BookingSuccess
+            bookingId={bookingId || ""}
+            bookingData={bookingData}
+            onClose={onClose}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -182,7 +238,11 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
             {/* Header */}
             <div className="bg-primary/5 p-4 border-b">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Đặt lịch dịch vụ</h2>
+                <h2 className="text-xl font-bold">
+                  {currentStep === steps.length - 1
+                    ? "Đặt lịch thành công"
+                    : "Đặt lịch dịch vụ"}
+                </h2>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -208,68 +268,66 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
                 </Button>
               </div>
 
-              {/* Progress steps */}
-              <div className="flex justify-between mt-4">
-                {steps.map((step, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center space-y-1"
-                    style={{ width: `${100 / steps.length}%` }}
-                  >
+              {/* Progress steps - hide on success step */}
+              {currentStep < steps.length - 1 && (
+                <div className="flex justify-between mt-4">
+                  {steps.slice(0, steps.length - 1).map((step, index) => (
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        index < currentStep
-                          ? "bg-primary text-white"
-                          : index === currentStep
-                          ? "bg-primary/80 text-white"
-                          : "bg-muted text-muted-foreground"
-                      }`}
+                      key={index}
+                      className="flex flex-col items-center space-y-1"
+                      style={{ width: `${100 / (steps.length - 1)}%` }}
                     >
-                      {index < currentStep ? (
-                        <CheckCircle className="h-5 w-5" />
-                      ) : (
-                        index + 1
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                          index < currentStep
+                            ? "bg-primary text-white"
+                            : index === currentStep
+                            ? "bg-primary/80 text-white"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {index < currentStep ? (
+                          <CheckCircle className="h-5 w-5" />
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
+                      <div
+                        className={`text-xs text-center ${
+                          index <= currentStep
+                            ? "text-primary font-medium"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {step.title}
+                      </div>
+                      {index < steps.length - 2 && (
+                        <div
+                          className={`h-0.5 absolute w-[calc(${
+                            100 / (steps.length - 1)
+                          }%-2rem)] ${
+                            index < currentStep ? "bg-primary" : "bg-muted"
+                          }`}
+                          style={{
+                            left: `calc(${
+                              (index * 100) / (steps.length - 1)
+                            }% + 1rem)`,
+                            top: "1.6rem",
+                          }}
+                        ></div>
                       )}
                     </div>
-                    <div
-                      className={`text-xs text-center ${
-                        index <= currentStep
-                          ? "text-primary font-medium"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {step.title}
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div
-                        className={`h-0.5 absolute w-[calc(${
-                          100 / steps.length
-                        }%-2rem)] ${
-                          index < currentStep ? "bg-primary" : "bg-muted"
-                        }`}
-                        style={{
-                          left: `calc(${(index * 100) / steps.length}% + 1rem)`,
-                          top: "1.6rem",
-                        }}
-                      ></div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Step content */}
-            <div className="p-6 overflow-y-auto">
-              <CurrentStepComponent
-                bookingData={bookingData}
-                updateBookingData={updateBookingData}
-                highestRatedDoctor={highestRatedDoctor}
-              />
-            </div>
+            <div className="p-6 overflow-y-auto">{renderStepContent()}</div>
 
-            {/* Footer */}
+            {/* Footer - modified for success step */}
             <div className="p-4 border-t bg-muted/30 flex justify-between">
-              {currentStep > 0 ? (
+              {currentStep > 0 && currentStep < steps.length - 1 ? (
                 <Button
                   variant="outline"
                   onClick={handleBack}
@@ -278,28 +336,36 @@ export function BookingFlow({ service, onClose, userData }: BookingFlowProps) {
                   <ChevronLeft className="h-4 w-4" />
                   Quay lại
                 </Button>
-              ) : (
+              ) : currentStep === 0 ? (
                 <Button variant="outline" onClick={onClose}>
                   Hủy
                 </Button>
+              ) : (
+                <div></div> // Empty div for spacing on success step
               )}
 
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed() || isSubmitting}
-                className="flex items-center gap-1"
-              >
-                {currentStep < steps.length - 1 ? (
-                  <>
-                    Tiếp tục
-                    <ChevronRight className="h-4 w-4" />
-                  </>
-                ) : isSubmitting ? (
-                  "Đang xử lý..."
-                ) : (
-                  "Hoàn tất đặt lịch"
-                )}
-              </Button>
+              {currentStep < steps.length - 1 ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed() || isSubmitting}
+                  className="flex items-center gap-1"
+                >
+                  {currentStep < steps.length - 2 ? (
+                    <>
+                      Tiếp tục
+                      <ChevronRight className="h-4 w-4" />
+                    </>
+                  ) : isSubmitting ? (
+                    "Đang xử lý..."
+                  ) : (
+                    "Hoàn tất đặt lịch"
+                  )}
+                </Button>
+              ) : (
+                <Button onClick={onClose} className="ml-auto">
+                  Đóng
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -59,6 +59,7 @@ export interface BookingRequest {
   serviceId: string;
   procedurePriceTypeIds: string[] | null;
   isDefault: boolean;
+  liveStreamRoomId?: string | null;
 }
 export interface TimeSlot {
   start: string; // Định dạng HH:mm:ss
