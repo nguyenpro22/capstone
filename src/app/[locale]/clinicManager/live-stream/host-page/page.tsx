@@ -7,6 +7,7 @@ import HostPageStreamScreen from "@/components/clinicManager/livestream/host-pag
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { is } from "date-fns/locale";
+import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
 
 // Define types for our data structures
 interface AnalyticsData {
@@ -77,12 +78,15 @@ export default function HostPage() {
   const [activeReactions, setActiveReactions] = useState<Reaction[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [showAnalyticsPopup, setShowAnalyticsPopup] = useState<boolean>(false);
-  const user = useSelector((state: RootState) => state?.auth?.user);
+  const token = getAccessToken();
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
+  const userId = tokenData?.userId || "";
 
   const fetchServices = async (): Promise<void> => {
     try {
       const response = await fetch(
-        `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${user?.clinicId}&userId=${user?.userId}&roomId=${roomGuidRef.current}`
+        `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${clinicId}&userId=${userId}&roomId=${roomGuidRef.current}`
       );
       const data = await response.json();
 
@@ -110,7 +114,7 @@ export default function HostPage() {
   useEffect(() => {
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(
-        `https://api.beautify.asia/signaling-api/LivestreamHub?clinicId=${user?.clinicId}&userId=${user?.userId}`,
+        `https://api.beautify.asia/signaling-api/LivestreamHub?clinicId=${clinicId}&userId=${userId}`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
@@ -134,7 +138,7 @@ export default function HostPage() {
       // Now set ref clearly (guaranteed connected)
       signalR_Connection.current = conn;
 
-      if (!isCreateRoom) {
+      if (roomGuidRef.current == null) {
         // Check if we have pending room data to create
         const pendingRoomDataString = sessionStorage.getItem("livestreamData");
         console.log(pendingRoomDataString);
@@ -304,63 +308,9 @@ export default function HostPage() {
         }
       );
 
-      conn.on("JanusError", async (message: string) => {
+      conn.on("JanusError", async (message) => {
         console.error("🚨 Janus Error:", message);
-
-        // Log additional context that might help diagnose the issue
-        console.log("Current room GUID:", roomGuidRef.current);
-        console.log("Current session ID:", sessionIdRef.current);
-        console.log("Connection state:", conn.state);
-        console.log("Is publishing:", isPublish);
-        console.log("User ID:", user?.userId);
-        console.log("Clinic ID:", user?.clinicId);
-
-        // Check if this is related to ending the livestream
-        if (message.includes("Unauthorized") && isPublish) {
-          console.log(
-            "This appears to be an authorization error while the stream is active"
-          );
-          console.log("Attempting to clean up resources locally");
-
-          // Clean up UI state
-          setIsCreateRoom(false);
-          setIsPublish(false);
-          setView(0);
-          setChatMessage([]);
-
-          // Clean up video stream
-          if (localVideoRef.current?.srcObject) {
-            const stream = localVideoRef.current.srcObject as MediaStream;
-            const tracks = stream.getTracks();
-            tracks.forEach((track) => track.stop());
-            localVideoRef.current.srcObject = null;
-          }
-
-          // Clean up peer connection
-          if (peerConnectionRef.current) {
-            peerConnectionRef.current.getSenders().forEach((sender) => {
-              peerConnectionRef.current?.removeTrack(sender);
-            });
-            peerConnectionRef.current.close();
-            peerConnectionRef.current = null;
-          }
-
-          // Reset connection states
-          roomGuidRef.current = null;
-          janusRoomIdRef.current = null;
-          sessionIdRef.current = null;
-
-          // Navigate back to the livestream page
-          alert(
-            "The livestream has been ended due to an authorization issue. Redirecting to the livestream page."
-          );
-          router.push("/clinicManager/live-stream");
-        } else {
-          // Show a more detailed error message to the user
-          alert(
-            `Error from streaming server: ${message}\nPlease try refreshing the page if the issue persists.`
-          );
-        }
+        alert(`Error: ${message}`);
       });
     });
 
@@ -371,7 +321,7 @@ export default function HostPage() {
     //       .catch((err) => console.error("Error stopping connection:", err));
     //   }
     // };
-  }, [isCreateRoom]);
+  }, []);
 
   // const createRoom = (roomData: RoomData): void => {
   //   if (
