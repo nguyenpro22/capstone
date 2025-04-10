@@ -11,22 +11,25 @@ export const systemAdminRoutes = {
   DEFAULT: `${privateSystemAdminPath}/dashboard`,
   DASHBOARD: `${privateSystemAdminPath}/dashboard`,
   PACKAGE: `${privateSystemAdminPath}/package`,
-  CLINICS: `${privateSystemAdminPath}/clinics`,
-  CATEGORIES: `${privateSystemAdminPath}/categories`,
-  SERVICES: `${privateSystemAdminPath}/services`,
+  CATEGORIES: `${privateSystemAdminPath}/category-service`,
   SETTINGS: `${privateSystemAdminPath}/settings`,
+  VOUCHER: `${privateSystemAdminPath}/voucher`,
+  USERS: `${privateSystemAdminPath}/voucher`,
 };
 
 // CLINIC ADMIN ROUTES
 export const clinicAdminRoutes = {
   DEFAULT: `${privateClinicAdminPath}/dashboard`,
   DASHBOARD: `${privateClinicAdminPath}/dashboard`,
-  STAFFS: `${privateClinicAdminPath}/staffs`,
-  DOCTORS: `${privateClinicAdminPath}/doctors`,
-  SERVICES: `${privateClinicAdminPath}/services`,
-  BOOKINGS: `${privateClinicAdminPath}/bookings`,
-  CUSTOMERS: `${privateClinicAdminPath}/customers`,
-  REPORTS: `${privateClinicAdminPath}/reports`,
+  STAFF: `${privateClinicAdminPath}/staff`,
+  DOCTOR: `${privateClinicAdminPath}/doctor`,
+  SERVICE: `${privateClinicAdminPath}/service`,
+  PROFILE: `${privateClinicAdminPath}/profile`,
+  BRANCH: `${privateClinicAdminPath}/branch`,
+  PACKAGE: `${privateClinicAdminPath}/buy-package`,
+  ORDER: `${privateClinicAdminPath}/order`,
+  INBOX: `${privateClinicAdminPath}/inbox`,
+  LIVESTREAM: `${privateClinicAdminPath}/live-stream`,
 };
 
 // DOCTOR ROUTES
@@ -40,8 +43,13 @@ export const doctorRoutes = {
 export const clinicStaffRoutes = {
   DEFAULT: `${privateClinicStaffPath}/dashboard`,
   DASHBOARD: `${privateClinicStaffPath}/dashboard`,
-  BOOKINGS: `${privateClinicStaffPath}/bookings`,
-  CUSTOMERS: `${privateClinicStaffPath}/customers`,
+  CUSTOMER_SCHEDULE: `${privateClinicStaffPath}/customer-schedule`,
+  APPOINTMENT: `${privateClinicStaffPath}/appointment`,
+  DOCTOR: `${privateClinicStaffPath}/doctor`,
+  ORDER: `${privateClinicStaffPath}/order`,
+  SCHEDULE_APPROVAL: `${privateClinicStaffPath}/schedule-approval`,
+  PROFILE: `${privateClinicStaffPath}/profile`,
+  SERVICES: `${privateClinicStaffPath}/service`,
 };
 
 // CUSTOMER ROUTES
@@ -49,18 +57,18 @@ export const customerRoutes = {
   DEFAULT: `${publicCustomerPath}/`,
   HOME: `${publicCustomerPath}/home`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
+  PROFILE: `${publicCustomerPath}/profile`,
   LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
   ORDERS: `${publicCustomerPath}/orders`,
   SERVICES: `${publicCustomerPath}/services`,
   SERVICE_DETAIL: `${publicCustomerPath}/services/[id]`,
-  PROFILE: `${publicCustomerPath}/profile`,
 };
 export const systemStaffRoutes = {
   DEFAULT: `${privateSystemStaffPath}/clinic`,
-  DASHBOARD: `${privateSystemStaffPath}/dashboard`,
-  BOOKINGS: `${privateSystemStaffPath}/bookings`,
-  CUSTOMERS: `${privateSystemStaffPath}/customers`,
-  CLINICS: `${privateSystemStaffPath}/clinics`,
+  PARTNERSHIP: `${privateSystemStaffPath}/partnership`,
+  SETTINGS: `${privateSystemStaffPath}/setting`,
+  USERS: `${privateSystemStaffPath}/user`,
+  CLINICS: `${privateSystemStaffPath}/clinic`,
 };
 
 export const publicRoutes = {
