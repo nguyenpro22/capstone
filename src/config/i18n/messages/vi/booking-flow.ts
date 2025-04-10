@@ -88,7 +88,7 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
    loadingServices: "Đang tải danh sách dịch vụ...",
  
    // Select doctor date step
-   skipDoctorSelection: "Bỏ qua chọn bác sĩ (hệ thống sẽ tự động chọn bác sĩ có đánh giá cao nhất)",
+   skipDoctorSelection: "Bỏ qua chọn bác sĩ (hệ thống sẽ tự động chọn bác sĩ ngẫu nhiên)",
    automaticallySelectedDoctor: "Bác sĩ được chọn tự động",
     // Customer info form
   fullName: "Họ và tên",

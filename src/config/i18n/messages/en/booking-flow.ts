@@ -86,7 +86,7 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   loadingServices: "Loading services list...",
 
   // Select doctor date step
-  skipDoctorSelection: "Skip doctor selection (system will automatically select the highest rated doctor)",
+  skipDoctorSelection: "Skip doctor selection (system will automatically select the random doctor)",
   automaticallySelectedDoctor: "Automatically selected doctor",
   // Customer info form
   fullName: "Full Name",
