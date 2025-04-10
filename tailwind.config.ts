@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class", "class"],
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -67,52 +67,24 @@ export default {
       },
       keyframes: {
         fadeIn: {
-          from: {
-            opacity: "0",
-          },
-          to: {
-            opacity: "1",
-          },
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
         slideUpAndFade: {
-          from: {
-            opacity: "0",
-            transform: "translateY(2px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          from: { opacity: "0", transform: "translateY(2px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         slideRightAndFade: {
-          from: {
-            opacity: "0",
-            transform: "translateX(-2px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateX(0)",
-          },
+          from: { opacity: "0", transform: "translateX(-2px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
         },
         slideDownAndFade: {
-          from: {
-            opacity: "0",
-            transform: "translateY(-2px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          from: { opacity: "0", transform: "translateY(-2px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         slideLeftAndFade: {
-          from: {
-            opacity: "0",
-            transform: "translateX(2px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateX(0)",
-          },
+          from: { opacity: "0", transform: "translateX(2px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
         },
         shimmer: {
           "100%": {
@@ -120,46 +92,24 @@ export default {
           },
         },
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
         "fade-in": {
-          from: {
-            opacity: "0",
-          },
-          to: {
-            opacity: "1",
-          },
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
         "slide-in": {
-          from: {
-            transform: "translateY(10px)",
-            opacity: "0",
-          },
-          to: {
-            transform: "translateY(0)",
-            opacity: "1",
-          },
+          from: { transform: "translateY(10px)", opacity: "0" },
+          to: { transform: "translateY(0)", opacity: "1" },
         },
         scale: {
-          from: {
-            transform: "scale(0.95)",
-          },
-          to: {
-            transform: "scale(1)",
-          },
+          from: { transform: "scale(0.95)" },
+          to: { transform: "scale(1)" },
         },
         spotlight: {
           "0%": {

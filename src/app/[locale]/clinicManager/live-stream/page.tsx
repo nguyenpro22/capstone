@@ -2,12 +2,12 @@
 
 import type React from "react";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Upload, History, ArrowRight, Loader2 } from "lucide-react";
-import { url } from "inspector";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
+import Image from "next/image";
 
 interface LivestreamRoom {
   id: string;
@@ -31,6 +31,7 @@ export default function LiveStreamPage() {
   const [pastLivestreams, setPastLivestreams] = useState<LivestreamRoom[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
   const user = useSelector((state: RootState) => state?.auth?.user);
+
   // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -51,7 +52,7 @@ export default function LiveStreamPage() {
   const handleCreateLivestream = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Evitar múltiples envíos simultáneos
+    // Avoid multiple simultaneous submissions
     if (isCreating) {
       console.log("Room creation already in progress, please wait...");
       return;
@@ -65,25 +66,24 @@ export default function LiveStreamPage() {
     try {
       setIsCreating(true);
 
-      // Crear un objeto con la información del livestream
+      // Create an object with the livestream information
       const livestreamData = {
         name: livestreamName,
         description: livestreamDescription,
         image: coverImage,
-        // Si necesitas enviar la imagen, puedes convertirla a base64 o usar FormData
       };
 
-      // Guardar la información en sessionStorage para usarla en la página de host
+      // Save the information in sessionStorage to use it in the host page
       sessionStorage.setItem("livestreamData", JSON.stringify(livestreamData));
 
-      // Si tienes la imagen, también puedes guardarla (aunque esto puede ser grande para sessionStorage)
+      // If you have the image, you can also save it (although this might be large for sessionStorage)
       if (coverImagePreview) {
         sessionStorage.setItem("coverImagePreview", coverImagePreview);
       }
 
       console.log("Navigating to host page with data:", livestreamData);
 
-      // Navegar a la página de host
+      // Navigate to the host page
       router.push("/clinicManager/live-stream/host-page");
     } catch (error) {
       console.error("Error preparing livestream:", error);
@@ -95,7 +95,7 @@ export default function LiveStreamPage() {
   };
 
   // Fetch past livestreams
-  const fetchPastLivestreams = async () => {
+  const fetchPastLivestreams = useCallback(async () => {
     try {
       setIsLoadingHistory(true);
       const response = await fetch(
@@ -116,11 +116,11 @@ export default function LiveStreamPage() {
     } finally {
       setIsLoadingHistory(false);
     }
-  };
+  }, [user?.clinicId]);
 
   useEffect(() => {
     fetchPastLivestreams();
-  }, []);
+  }, [fetchPastLivestreams]);
 
   // Format date for better readability
   const formatDate = (dateString: string) => {
@@ -221,9 +221,11 @@ export default function LiveStreamPage() {
                 >
                   {coverImagePreview ? (
                     <div className="relative w-full h-full">
-                      <img
+                      <Image
                         src={coverImagePreview || "/placeholder.svg"}
                         alt="Cover preview"
+                        width={200}
+                        height={200}
                         className="w-full h-full object-cover rounded-lg"
                       />
                       <button
@@ -388,9 +390,11 @@ export default function LiveStreamPage() {
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center">
                               {room.coverImage ? (
-                                <img
+                                <Image
                                   src={room.coverImage || "/placeholder.svg"}
                                   alt=""
+                                  width={40}
+                                  height={40}
                                   className="h-10 w-10 rounded-full object-cover"
                                 />
                               ) : (

@@ -1,10 +1,22 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import * as signalR from "@microsoft/signalr";
 import HostPageStreamScreen from "@/components/clinicManager/livestream/host-page-stream-screen";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
+import { is } from "date-fns/locale";
 import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+
+// Define types for our data structures
+interface AnalyticsData {
+  joinCount: number;
+  messageCount: number;
+  reactionCount: number;
+  totalActivities: number;
+  totalBooking: number;
+}
 
 interface ChatMessage {
   message: string;
@@ -33,29 +45,30 @@ interface Service {
   images?: string[];
 }
 
-interface LivestreamData {
+interface RoomData {
   name: string;
-  description?: string;
+  description: string;
   image: string;
 }
 
-export default function HostLivestreamPage() {
+interface ReactionMapItem {
+  emoji: string;
+  text: string;
+}
+
+export default function HostPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const roomIdParam = searchParams.get("roomId");
-
-  // Estado para almacenar los datos del livestream
-  const [livestreamData, setLivestreamData] = useState<LivestreamData | null>(
-    null
-  );
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
-    null
-  );
-
   const signalR_Connection = useRef<signalR.HubConnection | null>(null);
+  const analyst = useRef<AnalyticsData>({
+    joinCount: 0,
+    messageCount: 0,
+    reactionCount: 0,
+    totalActivities: 0,
+    totalBooking: 0,
+  });
   const sessionIdRef = useRef<string | null>(null);
   const roomGuidRef = useRef<string | null>(null);
-  const janusRoomIdRef = useRef<number | null>(null);
+  const janusRoomIdRef = useRef<string | null>(null);
   const [view, setView] = useState<number>(0);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
@@ -64,51 +77,13 @@ export default function HostLivestreamPage() {
   const [chatMessage, setChatMessage] = useState<ChatMessage[]>([]);
   const [activeReactions, setActiveReactions] = useState<Reaction[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [connectionAttempted, setConnectionAttempted] =
-    useState<boolean>(false);
+  const [showAnalyticsPopup, setShowAnalyticsPopup] = useState<boolean>(false);
+  const token = getAccessToken();
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
+  const userId = tokenData?.userId || "";
 
-  // Thêm state để theo dõi trạng thái kết nối
-  const [connectionState, setConnectionState] =
-    useState<string>("disconnected");
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [joinAttempts, setJoinAttempts] = useState<number>(0);
-  const [roomCreationInProgress, setRoomCreationInProgress] =
-    useState<boolean>(false);
-
-  const roomCreationAttemptedRef = useRef<boolean>(false);
-  const token = getAccessToken() as string;
-  const { clinicId, userId } = GetDataByToken(token) as TokenData;
-  // Cargar los datos del livestream desde sessionStorage
-  useEffect(() => {
-    try {
-      const storedData = sessionStorage.getItem("livestreamData");
-      if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        setLivestreamData(parsedData);
-        console.log("Loaded livestream data:", parsedData);
-      } else {
-        console.warn("No livestream data found in sessionStorage");
-      }
-
-      const storedImage = sessionStorage.getItem("coverImagePreview");
-      if (storedImage) {
-        setCoverImagePreview(storedImage);
-      }
-    } catch (error) {
-      console.error("Error loading livestream data:", error);
-    }
-  }, []);
-
-  // Sử dụng một hàm riêng để kiểm tra kết nối
-  const isConnectionReady = () => {
-    return (
-      signalR_Connection.current !== null &&
-      connectionState === "connected" &&
-      signalR_Connection.current.state === signalR.HubConnectionState.Connected
-    );
-  };
-
-  const fetchServices = async () => {
+  const fetchServices = async (): Promise<void> => {
     try {
       const response = await fetch(
         `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${clinicId}&userId=${userId}&roomId=${roomGuidRef.current}`
@@ -116,19 +91,19 @@ export default function HostLivestreamPage() {
       const data = await response.json();
 
       if (data.isSuccess) {
-        const services = data.value.map((service: Service) => ({
+        const services = data.value.map((service: any) => ({
           ...service,
           visible: false,
         }));
         setServices(services);
       }
-    } catch (err) {
-      console.log(err instanceof Error ? err.message : "Unknown error");
+    } catch (err: any) {
+      console.log(err.message);
     }
   };
 
   // Define the reactions map
-  const reactionsMap: Record<number, { emoji: string; text: string }> = {
+  const reactionsMap: Record<number, ReactionMapItem> = {
     1: { emoji: "👍", text: "Looks great!" },
     2: { emoji: "❤️", text: "Love it!" },
     3: { emoji: "🔥", text: "That's fire!" },
@@ -136,393 +111,269 @@ export default function HostLivestreamPage() {
     5: { emoji: "😍", text: "Beautiful!" },
   };
 
-  // Hoàn toàn viết lại phần khởi tạo kết nối SignalR
   useEffect(() => {
-    // Si tenemos un roomId en la URL, no necesitamos esperar los datos del livestream
-    const canProceed = roomIdParam || livestreamData;
-
-    // Verificar si podemos proceder
-    if (!canProceed) {
-      console.log("Waiting for livestream data or room ID...");
-      return;
-    }
-
-    // Prevent multiple connection attempts
-    if (connectionAttempted) {
-      console.log(
-        "Connection already attempted, skipping duplicate connection"
-      );
-      return;
-    }
-    setConnectionAttempted(true);
-
-    // Đánh dấu đang trong quá trình kết nối
-    setIsConnecting(true);
-    setConnectionState("connecting");
-
-    console.log("Initializing SignalR connection...");
-
-    // Limpiar cualquier conexión existente antes de crear una nueva
-    if (signalR_Connection.current) {
-      console.log("Cleaning up existing connection before creating a new one");
-      signalR_Connection.current.stop().catch((err) => {
-        console.error("Error stopping existing connection:", err);
-      });
-      signalR_Connection.current = null;
-    }
-
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(
-        `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${clinicId}&userId=${userId}`,
+        `https://api.beautify.asia/signaling-api/LivestreamHub?clinicId=${clinicId}&userId=${userId}`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
         }
       )
-      .withAutomaticReconnect()
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 15000, 30000])
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
-    // Cập nhật state khi trạng thái kết nối thay đổi
-    conn.onreconnecting(() => {
-      console.log("SignalR reconnecting...");
-      setConnectionState("reconnecting");
+    // Add connection error handler
+    conn.onclose((error) => {
+      console.error("SignalR connection closed", error);
+      if (error) {
+        console.log("Attempting to reconnect...");
+      }
     });
 
-    conn.onreconnected(() => {
-      console.log("SignalR reconnected!");
-      setConnectionState("connected");
-    });
+    conn.start().then(() => {
+      console.log("✅ Connected to SignalR");
 
-    conn.onclose(() => {
-      console.log("SignalR connection closed");
-      setConnectionState("disconnected");
-    });
+      // Now set ref clearly (guaranteed connected)
+      signalR_Connection.current = conn;
 
-    // Thiết lập các event handler cho các sự kiện từ server
-    conn.on(
-      "RoomCreatedAndJoined",
-      async ({
-        roomGuid,
-        janusRoomId,
-        sessionId,
-      }: {
-        roomGuid: string;
-        janusRoomId: number;
-        sessionId: string;
-      }) => {
-        console.log("✅ RoomCreatedAndJoined:", roomGuid, janusRoomId);
-        sessionIdRef.current = sessionId;
-        roomGuidRef.current = roomGuid;
-        janusRoomIdRef.current = janusRoomId;
-        setIsCreateRoom(true);
-        setRoomCreationInProgress(false);
-
-        // Después de crear la sala, actualizar la información con los datos del formulario
-        if (roomGuid && livestreamData) {
+      if (roomGuidRef.current == null) {
+        // Check if we have pending room data to create
+        const pendingRoomDataString = sessionStorage.getItem("livestreamData");
+        console.log(pendingRoomDataString);
+        if (pendingRoomDataString) {
           try {
-            console.log("Updating room information:", livestreamData);
-            // Aquí podrías hacer una llamada API para actualizar la información de la sala
-            // Por ejemplo:
-            // await fetch(`https://api.beautify.asia/signaling-api/LiveStream/Rooms/${roomGuid}`, {
-            //   method: 'PUT',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({
-            //     name: livestreamData.name,
-            //     description: livestreamData.description,
-            //     // otros campos como coverImage si es necesario
-            //   })
-            // });
+            const pendingRoomData = JSON.parse(pendingRoomDataString);
+            // Clear the sessionStorage
+            sessionStorage.removeItem("pendingRoomData");
+            // Create the room
+            conn.invoke("HostCreateRoom", pendingRoomData);
           } catch (error) {
-            console.error("Error updating room information:", error);
+            console.error("Error parsing pending room data:", error);
           }
         }
-
-        // Fetch services for this room
-        fetchServices();
       }
-    );
 
-    conn.on(
-      "PublishStarted",
-      async ({ sessionId, jsep }: { sessionId: string; jsep: string }) => {
-        if (peerConnectionRef.current) {
+      conn.on(
+        "RoomCreatedAndJoined",
+        async ({
+          roomGuid,
+          janusRoomId,
+          sessionId,
+        }: {
+          roomGuid: string;
+          janusRoomId: string;
+          sessionId: string;
+        }) => {
+          console.log("✅ RoomCreatedAndJoined:", roomGuid, janusRoomId);
           sessionIdRef.current = sessionId;
-          await peerConnectionRef.current.setRemoteDescription(
-            new RTCSessionDescription({
-              type: "answer",
-              sdp: jsep,
-            })
-          );
-          setIsPublish(true);
-        }
-      }
-    );
-
-    conn.on("ListenerCountUpdated", async (view: number) => {
-      setView(view);
-    });
-
-    conn.on("ReceiveMessage", async (message: ChatMessage) => {
-      setChatMessage((prev) => [...prev, message]);
-    });
-
-    // Updated ReceiveReaction handler
-    conn.on("ReceiveReaction", async ({ id }: { id: string | number }) => {
-      console.log("Received reaction ID:", id);
-
-      // Convert to number if it's a string
-      const reactionId =
-        typeof id === "string" ? Number.parseInt(id, 10) : (id as number);
-
-      if (reactionsMap[reactionId]) {
-        const reaction: Reaction = {
-          id: reactionId,
-          emoji: reactionsMap[reactionId].emoji,
-          left: Math.floor(Math.random() * 70) + 10, // Random position 10-80% from left
-          key: `reaction-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 9)}`, // Unique key
-        };
-
-        console.log("Adding new reaction:", reaction);
-        setActiveReactions((prev) => [...prev, reaction]);
-
-        // Remove the reaction after animation completes
-        setTimeout(() => {
-          setActiveReactions((prev) =>
-            prev.filter((r) => r.key !== reaction.key)
-          );
-        }, 3000);
-      } else {
-        console.warn("Received unknown reaction ID:", reactionId);
-      }
-    });
-
-    conn.on("LivestreamEnded", async () => {
-      console.log("🚨 Livestream has ended");
-      alert("The livestream has ended");
-      // Clean up UI state (if needed)
-      setIsCreateRoom(false);
-      setIsPublish(false);
-      setView(0);
-      setChatMessage([]);
-
-      // ✅ Stop and reset local video stream
-      if (localVideoRef.current?.srcObject) {
-        const stream = localVideoRef.current.srcObject as MediaStream;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => track.stop()); // Stop each track (audio + video)
-        localVideoRef.current.srcObject = null; // Remove stream reference
-      }
-
-      // ✅ Cleanup peer connection
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.getSenders().forEach((sender) => {
-          peerConnectionRef.current?.removeTrack(sender);
-        });
-        peerConnectionRef.current.close();
-        peerConnectionRef.current = null;
-      }
-
-      // ✅ Reset connection states
-      roomGuidRef.current = null;
-      janusRoomIdRef.current = null;
-      sessionIdRef.current = null;
-
-      // Navigate back to host page
-      router.push("/clinicManager/live-stream");
-    });
-
-    conn.on(
-      "UpdateServicePromotion",
-      async ({
-        id,
-        discountLivePercent,
-      }: {
-        id: string;
-        discountLivePercent: number;
-      }) => {
-        setServices((prev) =>
-          prev.map((service) =>
-            service.id === id ? { ...service, discountLivePercent } : service
-          )
-        );
-      }
-    );
-
-    conn.on("JanusError", async (message: string) => {
-      console.error("🚨 Janus Error:", message);
-      alert(`Error: ${message}`);
-    });
-
-    // Store the connection reference before starting
-    signalR_Connection.current = conn;
-
-    // Bắt đầu kết nối
-    console.log("Starting SignalR connection...");
-    conn
-      .start()
-      .then(() => {
-        console.log("✅ SignalR Connected successfully!");
-        setConnectionState("connected");
-        setIsConnecting(false);
-
-        // Si tenemos un roomId en la URL, usarlo directamente
-        if (
-          roomIdParam &&
-          !roomCreationAttemptedRef.current &&
-          !roomCreationInProgress
-        ) {
-          console.log("Using existing room ID from URL:", roomIdParam);
-          roomCreationAttemptedRef.current = true;
-
-          // Establecer el ID de sala directamente
-          roomGuidRef.current = roomIdParam;
+          roomGuidRef.current = roomGuid;
+          janusRoomIdRef.current = janusRoomId;
           setIsCreateRoom(true);
-
-          // Intentar obtener servicios para esta sala
-          fetchServices();
-
-          console.log("Room setup complete with existing ID");
         }
-        // Crear una nueva sala solo si tenemos datos del livestream y no hay roomId
-        else if (
-          livestreamData &&
-          !roomCreationAttemptedRef.current &&
-          !roomCreationInProgress
-        ) {
-          console.log(
-            "Creating new room with livestream data:",
-            livestreamData
-          );
-          roomCreationAttemptedRef.current = true;
-          setRoomCreationInProgress(true);
+      );
 
-          conn
-            .invoke("HostCreateRoom", livestreamData)
-            .then(() => {
-              console.log("Room creation request sent successfully");
-              // El evento RoomCreatedAndJoined manejará el resto
-            })
-            .catch((err) => {
-              console.error("Error creating room:", err);
-              setRoomCreationInProgress(false);
-              alert("Failed to create livestream room. Please try again.");
-            });
+      conn.on(
+        "PublishStarted",
+        async ({ sessionId, jsep }: { sessionId: string; jsep: string }) => {
+          if (peerConnectionRef.current) {
+            sessionIdRef.current = sessionId;
+            await peerConnectionRef.current.setRemoteDescription(
+              new RTCSessionDescription({
+                type: "answer",
+                sdp: jsep,
+              })
+            );
+            setIsPublish(true);
+          }
         }
-      })
-      .catch((err) => {
-        console.error("❌ Error connecting to SignalR:", err);
-        setConnectionState("error");
-        setIsConnecting(false);
-        alert(
-          "Failed to connect to SignalR. Please refresh the page and try again."
-        );
+      );
+
+      conn.on("ListenerCountUpdated", async (viewCount: number) => {
+        setView(viewCount);
       });
 
-    // Cleanup khi component unmount
-    return () => {
-      console.log("Cleaning up SignalR connection...");
-      if (conn && conn.state === signalR.HubConnectionState.Connected) {
-        conn
-          .stop()
-          .then(() => console.log("SignalR connection stopped"))
-          .catch((err) =>
-            console.error("Error stopping SignalR connection:", err)
+      conn.on("ReceiveMessage", async (message: ChatMessage) => {
+        setChatMessage((prev) => [...prev, message]);
+      });
+
+      conn.on("ReceiveReaction", async ({ id }: { id: string | number }) => {
+        console.log("Received reaction ID:", id);
+
+        // Convert to number if it's a string
+        const reactionId =
+          typeof id === "string" ? Number.parseInt(id, 10) : (id as number);
+
+        if (reactionsMap[reactionId]) {
+          const reaction: Reaction = {
+            id: reactionId,
+            emoji: reactionsMap[reactionId].emoji,
+            left: Math.floor(Math.random() * 70) + 10, // Random position 10-80% from left
+            key: `reaction-${Date.now()}-${Math.random()
+              .toString(36)
+              .substring(2, 9)}`, // Unique key
+          };
+
+          console.log("Adding new reaction:", reaction);
+          setActiveReactions((prev) => [...prev, reaction]);
+
+          // Remove the reaction after animation completes
+          setTimeout(() => {
+            setActiveReactions((prev) =>
+              prev.filter((r) => r.key !== reaction.key)
+            );
+          }, 3000);
+        } else {
+          console.warn("Received unknown reaction ID:", reactionId);
+        }
+      });
+
+      conn.on(
+        "LivestreamEnded",
+        async ({
+          joinCount,
+          messageCount,
+          reactionCount,
+          totalActivities,
+          totalBooking,
+        }: {
+          joinCount: number;
+          messageCount: number;
+          reactionCount: number;
+          totalActivities: number;
+          totalBooking: number;
+        }) => {
+          // Update the analyst ref with the latest data
+          analyst.current = {
+            joinCount: joinCount || 0,
+            messageCount: messageCount || 0,
+            reactionCount: reactionCount || 0,
+            totalActivities: totalActivities || 0,
+            totalBooking: totalBooking || 0,
+          };
+
+          console.log("Livestream analytics:", analyst.current);
+
+          // Show the analytics popup
+          setShowAnalyticsPopup(true);
+
+          // Clean up UI state (if needed)
+          setIsCreateRoom(false);
+          setIsPublish(false);
+          setView(0);
+          setChatMessage([]);
+
+          // ✅ Stop and reset local video stream
+          if (localVideoRef.current?.srcObject) {
+            const stream = localVideoRef.current.srcObject as MediaStream;
+            const tracks = stream.getTracks();
+            tracks.forEach((track) => track.stop()); // Stop each track (audio + video)
+            localVideoRef.current.srcObject = null; // Remove stream reference
+          }
+
+          // ✅ Cleanup peer connection
+          if (peerConnectionRef.current) {
+            peerConnectionRef.current.getSenders().forEach((sender) => {
+              peerConnectionRef.current?.removeTrack(sender);
+            });
+            peerConnectionRef.current.close();
+            peerConnectionRef.current = null;
+          }
+
+          // ✅ Reset connection states
+          roomGuidRef.current = null;
+          janusRoomIdRef.current = null;
+          sessionIdRef.current = null;
+
+          // Navigate back to the livestream page
+          router.push("/clinicManager/live-stream");
+        }
+      );
+
+      conn.on(
+        "UpdateServicePromotion",
+        async ({
+          id,
+          discountLivePercent,
+        }: {
+          id: string;
+          discountLivePercent: number;
+        }) => {
+          setServices((prev) =>
+            prev.map((service) =>
+              service.id === id ? { ...service, discountLivePercent } : service
+            )
           );
-      }
-    };
-  }, [
-    livestreamData,
-    router,
-    connectionAttempted,
-    roomCreationInProgress,
-    roomIdParam,
-  ]);
+        }
+      );
 
-  // Añadir un nuevo efecto para manejar la desconexión y limpieza cuando el usuario abandona la página
-  useEffect(() => {
-    // Función para manejar el evento beforeunload
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Si estamos transmitiendo, intentar detener la transmisión
-      if (isPublish && roomGuidRef.current && isConnectionReady()) {
-        signalR_Connection
-          .current!.invoke("EndLivestream", roomGuidRef.current)
-          .catch((err) => {
-            console.error("Error ending livestream on page unload:", err);
-          });
-      }
+      conn.on("JanusError", async (message) => {
+        console.error("🚨 Janus Error:", message);
+        alert(`Error: ${message}`);
+      });
+    });
 
-      // Detener todas las pistas de medios
-      if (localVideoRef.current?.srcObject) {
-        const stream = localVideoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach((track) => track.stop());
-      }
+    // return () => {
+    //   if (conn && conn.state === signalR.HubConnectionState.Connected) {
+    //     conn
+    //       .stop()
+    //       .catch((err) => console.error("Error stopping connection:", err));
+    //   }
+    // };
+  }, []);
 
-      // Cerrar la conexión peer
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-      }
-    };
+  // const createRoom = (roomData: RoomData): void => {
+  //   if (
+  //     signalR_Connection.current?.state === signalR.HubConnectionState.Connected
+  //   ) {
+  //     signalR_Connection.current.invoke("HostCreateRoom", roomData);
+  //   } else {
+  //     alert("🚨 SignalR connection not ready yet!");
+  //   }
+  // };
 
-    // Añadir el evento
-    window.addEventListener("beforeunload", handleBeforeUnload);
+  const endLive = (): void => {
+    if (!signalR_Connection.current) {
+      console.error("SignalR connection is not established");
+      alert("Cannot end livestream: Connection not established");
+      return;
+    }
 
-    // Limpiar el evento cuando el componente se desmonte
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-
-      // También intentar detener la transmisión si el componente se desmonta mientras está transmitiendo
-      if (isPublish && roomGuidRef.current && isConnectionReady()) {
-        signalR_Connection
-          .current!.invoke("EndLivestream", roomGuidRef.current)
-          .catch((err) => {
-            console.error("Error ending livestream on component unmount:", err);
-          });
-      }
-    };
-  }, [isPublish]);
-
-  // Modificar la función endLive para manejar mejor los diferentes IDs de sala
-  const endLive = () => {
     if (
-      !(
-        signalR_Connection.current !== null &&
-        connectionState === "connected" &&
-        signalR_Connection.current.state ===
-          signalR.HubConnectionState.Connected
-      )
+      signalR_Connection.current.state !== signalR.HubConnectionState.Connected
     ) {
-      alert("SignalR connection not ready. Please try again.");
+      console.error(
+        "SignalR connection is not in Connected state:",
+        signalR_Connection.current.state
+      );
+      alert("Cannot end livestream: Connection not ready");
       return;
     }
 
     if (!roomGuidRef.current) {
-      alert(
-        "No room ID available to end livestream. Please refresh and try again."
-      );
+      console.error("Room GUID is missing");
+      alert("Cannot end livestream: Room ID is missing");
       return;
     }
 
-    console.log(
-      "Attempting to end livestream with room ID:",
-      roomGuidRef.current
-    );
+    console.log("Ending livestream for room:", roomGuidRef.current);
 
-    signalR_Connection
-      .current!.invoke("EndLivestream", roomGuidRef.current)
+    // Use the simple approach that works in the reference implementation
+    signalR_Connection.current
+      .invoke("EndLivestream", roomGuidRef.current)
       .then(() => {
-        console.log("Successfully ended livestream");
-        // El evento LivestreamEnded manejará la limpieza y navegación
+        console.log("EndLivestream request sent successfully");
       })
       .catch((err) => {
         console.error("Error ending livestream:", err);
         alert(
-          "Error ending livestream. This may happen if you're not the owner of this livestream or if the session has expired."
+          `Error ending livestream: ${
+            err.message || "Unknown error"
+          }. Please try refreshing the page.`
         );
 
-        // Opcionalmente, podemos intentar limpiar el estado de la UI para permitir al usuario salir
+        // Even if the server call fails, try to clean up client-side resources
         if (localVideoRef.current?.srcObject) {
           const stream = localVideoRef.current.srcObject as MediaStream;
           const tracks = stream.getTracks();
@@ -530,27 +381,38 @@ export default function HostLivestreamPage() {
           localVideoRef.current.srcObject = null;
         }
 
-        // Preguntar al usuario si desea volver a la página principal
+        if (peerConnectionRef.current) {
+          peerConnectionRef.current.close();
+          peerConnectionRef.current = null;
+        }
+
+        // Ask if the user wants to return to the main page
         if (confirm("Would you like to return to the main page?")) {
           router.push("/clinicManager/live-stream");
         }
       });
   };
 
-  const sendMessage = async (message: string) => {
-    if (isConnectionReady() && roomGuidRef.current != null) {
+  const sendMessage = async (message: string): Promise<void> => {
+    if (
+      signalR_Connection.current?.state ===
+        signalR.HubConnectionState.Connected &&
+      roomGuidRef.current != null
+    ) {
       if (message) {
-        signalR_Connection
-          .current!.invoke("SendMessage", roomGuidRef.current, message)
-          .catch((err) => {
-            console.error("Error sending message:", err);
-          });
+        signalR_Connection.current.invoke(
+          "SendMessage",
+          roomGuidRef.current,
+          message
+        );
       }
     }
   };
 
-  const startPublishing = async () => {
-    if (isConnectionReady()) {
+  const startPublishing = async (): Promise<void> => {
+    if (
+      signalR_Connection.current?.state === signalR.HubConnectionState.Connected
+    ) {
       try {
         const constraints: MediaStreamConstraints = {
           video: {
@@ -585,158 +447,298 @@ export default function HostLivestreamPage() {
 
         peerConnectionRef.current = peerConnection;
 
-        if (roomGuidRef.current) {
-          signalR_Connection
-            .current!.invoke(
-              "StartPublish",
-              roomGuidRef.current,
-              offer.type,
-              offer.sdp
-            )
-            .catch((err) => {
-              console.error("Error starting publishing:", err);
-              alert("Error starting publishing. Please try again.");
-            });
+        if (roomGuidRef.current && offer.sdp) {
+          signalR_Connection.current.invoke(
+            "StartPublish",
+            roomGuidRef.current,
+            offer.type,
+            offer.sdp
+          );
         }
       } catch (error) {
         console.error("🚨 Error starting publishing:", error);
-        alert(
-          "Error accessing camera and microphone. Please check your permissions and try again."
-        );
       }
     } else {
       alert("🚨 SignalR connection not ready yet!");
     }
   };
 
-  const setPromotionService = async (serviceId: string, percent: number) => {
-    if (isConnectionReady() && roomGuidRef.current != null) {
+  const setPromotionService = async (
+    serviceId: string,
+    percent: string | number
+  ): Promise<void> => {
+    if (
+      signalR_Connection.current?.state ===
+        signalR.HubConnectionState.Connected &&
+      roomGuidRef.current != null
+    ) {
       if (serviceId && percent) {
-        signalR_Connection
-          .current!.invoke(
-            "SetPromotionService",
-            serviceId,
-            roomGuidRef.current,
-            Number.parseInt(percent.toString())
-          )
-          .catch((err) => {
-            console.error("Error setting promotion:", err);
-          });
+        signalR_Connection.current.invoke(
+          "SetPromotionService",
+          serviceId,
+          roomGuidRef.current,
+          typeof percent === "string" ? Number.parseInt(percent, 10) : percent
+        );
       }
     }
   };
 
-  // Sửa lại hàm displayService để sử dụng hàm kiểm tra kết nối mới
-  const displayService = async (serviceId: string, isDisplay = true) => {
-    console.log(
-      `displayService called for service ${serviceId}, isDisplay=${isDisplay}`
-    );
-    console.log("Connection state:", connectionState);
-
-    if (!isConnectionReady()) {
-      console.error("SignalR connection not ready for displayService");
-      return;
-    }
-
-    if (roomGuidRef.current == null) {
-      console.error("Room GUID not set");
-      return;
-    }
-
-    if (serviceId) {
-      console.log(`Displaying service ${serviceId}, isDisplay=${isDisplay}`);
-      // Đảm bảo isDisplay là boolean
-      const displayValue = Boolean(isDisplay);
-      try {
-        await signalR_Connection.current!.invoke(
+  const displayService = async (
+    serviceId: string,
+    isDisplay = true
+  ): Promise<void> => {
+    if (
+      signalR_Connection.current?.state ===
+        signalR.HubConnectionState.Connected &&
+      roomGuidRef.current != null
+    ) {
+      if (serviceId) {
+        signalR_Connection.current.invoke(
           "DisplayService",
           serviceId,
           roomGuidRef.current,
-          displayValue
+          Boolean(isDisplay)
         );
-        console.log(`Service ${serviceId} display status updated successfully`);
-      } catch (error) {
-        console.error("Error displaying service:", error);
       }
     }
+  };
+
+  const getAnalyticsData = (): AnalyticsData => {
+    return analyst.current;
   };
 
   useEffect(() => {
     const keepAliveInterval = setInterval(() => {
       if (
         sessionIdRef.current &&
-        signalR_Connection.current !== null &&
-        connectionState === "connected" &&
-        signalR_Connection.current.state ===
-          signalR.HubConnectionState.Connected &&
-        isCreateRoom &&
+        signalR_Connection.current &&
         signalR_Connection.current.state ===
           signalR.HubConnectionState.Connected &&
         isCreateRoom
       ) {
         console.log("alive");
-        signalR_Connection
-          .current!.invoke("KeepAlive", sessionIdRef.current)
-          .catch((err) => {
-            console.error("Error sending keep alive:", err);
-          });
+        signalR_Connection.current.invoke("KeepAlive", sessionIdRef.current);
       }
     }, 25000);
 
     return () => clearInterval(keepAliveInterval);
-  }, [isCreateRoom, connectionState]);
+  }, [isCreateRoom]);
 
-  // If we're not in a room yet, show loading
-  if (!isCreateRoom) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-rose-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500 mb-4"></div>
-        <p className="text-rose-800">Setting up your livestream...</p>
-        <p className="text-sm text-gray-600 mt-2">
-          Connection status: {connectionState}
-        </p>
-        {roomIdParam ? (
-          <p className="text-sm text-amber-600 mt-1">
-            Connecting to existing room: {roomIdParam.substring(0, 8)}...
-          </p>
-        ) : !livestreamData ? (
-          <p className="text-sm text-amber-600 mt-1">
-            Waiting for livestream data...
-          </p>
-        ) : null}
-        {roomCreationInProgress && (
-          <p className="text-sm text-amber-600 mt-1">
-            Creating your livestream room...
-          </p>
-        )}
-        {joinAttempts > 0 && (
-          <div className="mt-4 text-amber-600 max-w-md text-center">
-            <p>
-              Having trouble setting up the livestream. Attempting alternative
-              methods...
-            </p>
-            <p className="text-sm mt-2">Attempt: {joinAttempts}</p>
-          </div>
-        )}
-      </div>
-    );
-  }
+  const closeAnalyticsPopup = () => {
+    setShowAnalyticsPopup(false);
+    // Navigate back to the livestream page
+    router.push("/clinicManager/live-stream");
+  };
 
   return (
-    <HostPageStreamScreen
-      view={view}
-      localVideoRef={localVideoRef}
-      startPublishing={startPublishing}
-      isPublish={isPublish}
-      endLive={endLive}
-      chatMessage={chatMessage}
-      sendMessage={sendMessage}
-      activeReactions={activeReactions}
-      setPromotionService={setPromotionService}
-      services={services}
-      fetchServices={fetchServices}
-      setServices={setServices}
-      displayService={displayService}
-    />
+    <>
+      {/* Analytics Popup - Only shown after a livestream ends */}
+      {showAnalyticsPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-xl shadow-xl max-w-5xl mx-auto relative">
+            <button
+              onClick={closeAnalyticsPopup}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold mb-1">Hiệu Suất Livestream</h2>
+              <p className="text-gray-400">
+                Tổng quan về tương tác livestream gần đây của bạn
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Viewers Card */}
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
+                <div className="p-3 bg-blue-500/20 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-blue-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Tổng Số Người Xem</p>
+                  <p className="text-2xl font-bold">
+                    {analyst.current.joinCount}
+                  </p>
+                </div>
+              </div>
+
+              {/* Messages Card */}
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
+                <div className="p-3 bg-purple-500/20 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-purple-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Tin Nhắn Chat</p>
+                  <p className="text-2xl font-bold">
+                    {analyst.current.messageCount}
+                  </p>
+                </div>
+              </div>
+
+              {/* Reactions Card */}
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
+                <div className="p-3 bg-pink-500/20 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-pink-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Biểu Cảm</p>
+                  <p className="text-2xl font-bold">
+                    {analyst.current.reactionCount}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 grid grid-cols-2 gap-6">
+              {/* Total Activities Card */}
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
+                <div className="p-3 bg-green-500/20 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Tổng Tương Tác</p>
+                  <p className="text-2xl font-bold">
+                    {analyst.current.totalActivities}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bookings Card - Changed to match width of other cards */}
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
+                <div className="p-3 bg-amber-500/20 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-amber-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Dịch Vụ Đã Đặt</p>
+                  <p className="text-2xl font-bold">
+                    {analyst.current.totalBooking}
+                  </p>
+                  <p className="text-xs text-amber-400 font-semibold mt-1">
+                    {analyst.current.totalBooking > 0
+                      ? "✅ Đã tạo doanh thu!"
+                      : "Chưa có đặt dịch vụ"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={closeAnalyticsPopup}
+                className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2 rounded-lg transition"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Livestream Screen */}
+      {isCreateRoom && !showAnalyticsPopup && (
+        <HostPageStreamScreen
+          view={view}
+          localVideoRef={localVideoRef}
+          startPublishing={startPublishing}
+          isPublish={isPublish}
+          endLive={endLive}
+          chatMessage={chatMessage}
+          sendMessage={sendMessage}
+          activeReactions={activeReactions}
+          setPromotionService={setPromotionService}
+          services={services}
+          fetchServices={fetchServices}
+          setServices={setServices}
+          displayService={displayService}
+          analyticsData={analyst.current}
+          getAnalyticsData={getAnalyticsData}
+        />
+      )}
+    </>
   );
 }

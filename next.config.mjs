@@ -14,7 +14,7 @@ const nextConfig = {
       "cdn.nhathuoclongchau.com.vn",
     ],
   },
-  reactStrictMode: true,
+  reactStrictMode: false,
   env: {
     NEXT_PUBLIC_BEAUTIFY_BACKEND_AUTH_URL:
       process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_AUTH_URL,
