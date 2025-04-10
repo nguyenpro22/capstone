@@ -13,6 +13,8 @@ export const getAccessToken = (): string | null => {
 };
 
 export const setAccessToken = (value: unknown) => {
+  console.log("setAccessToken", value);
+
   return setCookie(CookieStorageKey.ACCESS_TOKEN, value as string, 1);
 };
 

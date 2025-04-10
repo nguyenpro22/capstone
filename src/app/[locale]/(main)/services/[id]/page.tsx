@@ -1511,7 +1511,7 @@ export default function ServiceDetail() {
 
                 {/* Category Info */}
                 {service.category && (
-                  <Card className="border-none overflow-hidden shadow-xl bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
+                  <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                     <CardHeader className="bg-gradient-to-r from-green-100 to-teal-100 dark:from-green-800/50 dark:to-teal-800/50 p-4 dark:border-b dark:border-gray-700">
                       <h3 className="font-serif text-lg font-semibold flex items-center">
                         <Globe className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
@@ -1530,17 +1530,6 @@ export default function ServiceDetail() {
                           }}
                         />
                       )}
-                      <Button
-                        variant="outline"
-                        className="w-full dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-                        asChild
-                      >
-                        <Link
-                          href={`/services/category/${service.category.id}`}
-                        >
-                          {t("exploreCategory")}
-                        </Link>
-                      </Button>
                     </CardContent>
                   </Card>
                 )}

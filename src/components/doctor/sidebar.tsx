@@ -30,8 +30,7 @@ import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { clearToken, showError, showSuccess } from "@/utils";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { supabase } from "@/utils/supabaseClient";
+import { handleLogout } from "@/features/auth/utils";
 
 export function Sidebar() {
   const t = useTranslations("doctor.sidebar");
@@ -62,25 +61,8 @@ export function Sidebar() {
       icon: Settings,
     },
   ];
-  const handleLogout = async () => {
-    try {
-      clearToken();
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error("Error signing out:", error.message);
-        showError(t("logoutError"));
-        return;
-      }
-
-      // Mostrar mensaje de éxito
-      showSuccess(t("logoutSuccess"));
-
-      // Redirigir a la página de inicio de sesión
-      router.push("/login");
-    } catch (error) {
-      console.log("error at 202");
-    }
+  const onLogout = async () => {
+    await handleLogout({ t, router });
   };
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -215,7 +197,7 @@ export function Sidebar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              <span onClick={handleLogout}>{t("logout")}</span>
+              <span onClick={onLogout}>{t("logout")}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
