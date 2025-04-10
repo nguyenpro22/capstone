@@ -13,7 +13,7 @@ class PaymentService {
 
   constructor() {
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://160.187.240.214:4000/paymentHub", {
+      .withUrl("https://api.beautify.asia/command-api/PaymentHub", {
         // withCredentials: true, // Optional, if you need cookies/credentials
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
