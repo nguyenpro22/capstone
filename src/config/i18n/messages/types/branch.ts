@@ -62,4 +62,6 @@ export type branchMessages = {
   loadingProvinces: string
   loadingDistricts: string
   loadingWards: string
+  operatingLicense: string
+  businessLicense: string
 }
