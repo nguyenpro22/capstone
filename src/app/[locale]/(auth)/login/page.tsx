@@ -10,32 +10,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createLoginSchema, type LoginFormValues } from "@/validations";
-import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getAccessToken } from "@/utils";
+import { useDispatch } from "react-redux";
+import {
+  useLoginMutation,
+  useLoginWithGoogleMutation,
+} from "@/features/auth/api";
+
+import {
+  getAccessToken,
+  rememberMe as rememberMeCookie,
+  isRememberMe,
+  clearToken,
+  getCookie,
+} from "@/utils";
+import { CookieStorageKey } from "@/constants";
+import {
+  handleLogin,
+  handleGoogleLogin,
+  handleLogout,
+  checkAuthStatus,
+} from "@/features/auth/utils";
 
 export default function LoginPage() {
   const t = useTranslations("login");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [login] = useLoginMutation();
+  const [loginGoogle] = useLoginWithGoogleMutation();
 
-  const {
-    handleLogin,
-    signInWithProvider,
-    isAuthenticated,
-    isAuthenticating,
-    authStatus,
-    authError,
-  } = useAuth();
-
-  // Configurar react-hook-form con Zod validation
+  // Initialize form
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(createLoginSchema),
     defaultValues: {
@@ -44,26 +62,127 @@ export default function LoginPage() {
     },
   });
 
-  // Manejar inicio de sesión con Google
-  const handleLoginGoogle = () => {
-    signInWithProvider("google");
-  };
+  // Kiểm tra trạng thái đăng nhập khi trang được tải
+  useEffect(() => {
+    const { isAuthenticated: isAuth, userData: user } = checkAuthStatus();
+    setIsAuthenticated(isAuth);
+    setUserData(user);
 
-  // Manejar envío del formulario
+    // Khôi phục thông tin "Remember Me"
+    if (isRememberMe()) {
+      const token = getAccessToken();
+      if (token) {
+        const user = checkAuthStatus().userData;
+        if (user?.email) {
+          setValue("email", user.email);
+          setRememberMe(true);
+        }
+      }
+    }
+  }, [setValue]);
+
+  // Xử lý đăng nhập
   const onSubmit = async (data: LoginFormValues) => {
-    await handleLogin({
-      email: data.email,
-      password: data.password,
-    });
+    setIsAuthenticating(true);
+    setAuthError(null);
 
-    // Si no se recuerda al usuario, limpiar el formulario
-    if (!rememberMe) {
-      reset();
+    try {
+      const result = await handleLogin({
+        email: data.email,
+        password: data.password,
+        t,
+        login,
+        dispatch,
+        router,
+        rememberMe,
+        setRememberMeCookie: rememberMeCookie,
+        getCookie,
+        CookieStorageKey,
+      });
+
+      if (result.success) {
+        // Cập nhật trạng thái đăng nhập
+        const { isAuthenticated: isAuth, userData: user } = checkAuthStatus();
+        setIsAuthenticated(isAuth);
+        setUserData(user);
+        reset();
+      } else {
+        setAuthError(result.error || null);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setAuthError(t("generalError") || "Lỗi đăng nhập");
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
-  // Determinar si se debe mostrar el formulario
-  const showForm = authStatus !== "authenticated";
+  // Xử lý đăng nhập Google
+  const onGoogleLogin = async () => {
+    setIsAuthenticating(true);
+    setAuthError(null);
+
+    try {
+      const result = await handleGoogleLogin({
+        t,
+        loginGoogle,
+        dispatch,
+        router,
+        rememberMe,
+        setRememberMeCookie: rememberMeCookie,
+        getCookie,
+        CookieStorageKey,
+      });
+
+      if (result.success) {
+        // Cập nhật trạng thái đăng nhập
+        const { isAuthenticated: isAuth, userData: user } = checkAuthStatus();
+        setIsAuthenticated(isAuth);
+        setUserData(user);
+      } else {
+        setAuthError(result.error || null);
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      setAuthError(
+        t("providerLoginError", { provider: "Google" }) ||
+          "Đăng nhập với Google thất bại"
+      );
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Xử lý đăng xuất
+  const onLogout = async () => {
+    setIsAuthenticating(true);
+
+    try {
+      const result = await handleLogout({
+        t,
+        router,
+      });
+
+      if (result.success) {
+        // Cập nhật trạng thái đăng nhập
+        setIsAuthenticated(false);
+        setUserData(null);
+        setRememberMe(false);
+        reset();
+        clearToken();
+      } else {
+        setAuthError(result.error || null);
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      setAuthError(t("logoutError") || "Đăng xuất thất bại");
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Kiểm tra trạng thái để hiển thị form
+  const showForm = !isAuthenticated;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-900 transition-colors duration-300">
@@ -77,7 +196,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Mostrar errores de autenticación */}
+        {/* Hiển thị lỗi xác thực */}
         {authError && (
           <Alert variant="destructive" className="animate-fadeIn">
             <AlertDescription>{authError}</AlertDescription>
@@ -196,6 +315,23 @@ export default function LoginPage() {
           </form>
         )}
 
+        {/* Logout Button (hiển thị khi đã xác thực) */}
+        {isAuthenticated && (
+          <Button
+            onClick={onLogout}
+            className="w-full h-14 text-lg font-medium bg-red-600 hover:bg-red-700 text-white transition-all duration-300 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1"
+            disabled={isAuthenticating}
+          >
+            {(() => {
+              try {
+                return t("logout");
+              } catch (error) {
+                return "Đăng xuất";
+              }
+            })()}
+          </Button>
+        )}
+
         {/* Divider */}
         {showForm && (
           <>
@@ -216,7 +352,7 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="h-14 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 relative"
-                onClick={handleLoginGoogle}
+                onClick={onGoogleLogin}
                 disabled={isAuthenticating}
               >
                 {isAuthenticating ? (
@@ -232,7 +368,7 @@ export default function LoginPage() {
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        d="M22.56 12.25c0-.78-.07-1.53-.20-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
                       />
                       <path
