@@ -32,4 +32,74 @@ export const register: Messages["register"] = {
   confirm: "Xác nhận",
   emailAlreadyExists:
     "Email hoặc số điện thoại đã tồn tại. Vui lòng sử dụng một cái khác.",
+  // New translation fields
+  mustBe18YearsOld: "Bạn phải đủ 18 tuổi trở lên",
+  selectYourBirthday: "Chọn ngày sinh của bạn",
+  validationError: "Lỗi xác thực",
+  unexpectedError: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+  verificationFailed: "Xác minh không thành công. Vui lòng thử lại.",
+  // Backend validation error messages
+  invalidEmailFormat: "Định dạng email không hợp lệ",
+  passwordTooShort: "Mật khẩu phải có ít nhất 8 ký tự",
+  passwordTooLong: "Mật khẩu không được vượt quá 20 ký tự",
+  firstNameOnlyLetters: "Tên chỉ được chứa chữ cái",
+  firstNameTooShort: "Tên phải có ít nhất 2 ký tự",
+  firstNameTooLong: "Tên không được vượt quá 30 ký tự",
+  lastNameOnlyLetters: "Họ chỉ được chứa chữ cái",
+  lastNameTooShort: "Họ phải có ít nhất 2 ký tự",
+  lastNameTooLong: "Họ không được vượt quá 30 ký tự",
+  mustBeAtLeast18: "Người dùng phải đủ 18 tuổi trở lên",
+  addressTooShort: "Địa chỉ phải có ít nhất 10 ký tự",
+  addressTooLong: "Địa chỉ không được vượt quá 100 ký tự",
+};
+
+export type RegistrationTranslations = {
+  createAccount: string;
+  fillDetails: string;
+  email: string;
+  emailPlaceholder: string;
+  password: string;
+  passwordPlaceholder: string;
+  confirmPassword: string;
+  confirmPasswordPlaceholder: string;
+  firstName: string;
+  firstNamePlaceholder: string;
+  lastName: string;
+  lastNamePlaceholder: string;
+  phoneNumber: string;
+  phoneNumberPlaceholder: string;
+  dateOfBirth: string;
+  address: string;
+  addressPlaceholder: string;
+  register: string;
+  registering: string;
+  alreadyHaveAccount: string;
+  signIn: string;
+  registrationSuccess: string;
+  verificationCodeSent: string;
+  enterVerificationCode: string;
+  checkEmail: string;
+  verificationCodePlaceholder: string;
+  timeRemaining: string;
+  confirm: string;
+  emailAlreadyExists: string;
+  // New translation fields
+  mustBe18YearsOld: string;
+  selectYourBirthday: string;
+  validationError: string;
+  unexpectedError: string;
+  verificationFailed: string;
+  // Backend validation error messages
+  invalidEmailFormat: string;
+  passwordTooShort: string;
+  passwordTooLong: string;
+  firstNameOnlyLetters: string;
+  firstNameTooShort: string;
+  firstNameTooLong: string;
+  lastNameOnlyLetters: string;
+  lastNameTooShort: string;
+  lastNameTooLong: string;
+  mustBeAtLeast18: string;
+  addressTooShort: string;
+  addressTooLong: string;
 };

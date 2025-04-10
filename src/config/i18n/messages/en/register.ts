@@ -32,4 +32,23 @@ export const register: Messages["register"] = {
   confirm: "Confirm",
   emailAlreadyExists:
     "Email or phone number already exists. Please use a different one.",
+  // New translation fields
+  mustBe18YearsOld: "You must be at least 18 years old",
+  selectYourBirthday: "Select your date of birth",
+  validationError: "Validation Error",
+  unexpectedError: "An unexpected error occurred. Please try again.",
+  verificationFailed: "Verification failed. Please try again.",
+  // Backend validation error messages
+  invalidEmailFormat: "Invalid email format",
+  passwordTooShort: "Password must be at least 8 characters long",
+  passwordTooLong: "Password must be at most 20 characters long",
+  firstNameOnlyLetters: "First name must contain only letters",
+  firstNameTooShort: "First name must be at least 2 characters long",
+  firstNameTooLong: "First name must not exceed 30 characters",
+  lastNameOnlyLetters: "Last name must contain only letters",
+  lastNameTooShort: "Last name must be at least 2 characters long",
+  lastNameTooLong: "Last name must not exceed 30 characters",
+  mustBeAtLeast18: "User must be at least 18 years old",
+  addressTooShort: "Address must be at least 10 characters long",
+  addressTooLong: "Address must not exceed 100 characters",
 };
