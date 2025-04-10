@@ -33,6 +33,7 @@ import {
 import type { CategoryDetail, SubCategory } from "@/features/category-service/types"
 import MoveSubCategoryModal from "@/components/systemAdmin/MoveSubCategoryModal"
 import { useTheme } from "next-themes"
+import React from "react"
 
 export default function Category() {
   const { theme } = useTheme()
@@ -339,11 +340,8 @@ export default function Category() {
               </thead>
               <tbody>
                 {categories.map((category: CategoryDetail, index: number) => (
-                  <>
-                    <tr
-                      key={category.id}
-                      className="border-t hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150"
-                    >
+                  <React.Fragment key={category.id}>
+                    <tr className="border-t hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150">
                       <td className="p-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
                         {(pageIndex - 1) * pageSize + index + 1}
                       </td>
@@ -518,7 +516,7 @@ export default function Category() {
                         </motion.tr>
                       )}
                     </AnimatePresence>
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

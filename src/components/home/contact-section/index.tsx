@@ -1,47 +1,63 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Upload } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { showError, showSuccess } from "@/utils";
-import { useClinicRegistrationMutation } from "@/features/landing/api";
+import type React from "react"
 
-// Componente para la carga de archivos
+import { useState, useEffect, useRef } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Loader2, Upload, Building, Phone, MapPin, FileText, Calendar } from 'lucide-react'
+import { showError, showSuccess } from "@/utils"
+import { useClinicRegistrationMutation } from "@/features/landing/api"
+import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
+
+// Validation errors interface
+interface ValidationErrors {
+  name?: string
+  email?: string
+  phoneNumber?: string
+  address?: string
+  city?: string
+  district?: string
+  ward?: string
+  operatingLicense?: string
+  operatingLicenseExpiryDate?: string
+  profilePictureUrl?: string
+  taxCode?: string
+  bankName?: string
+  bankAccountNumber?: string
+}
+
+// File upload component
 const FileUploadField = ({
   label,
   file,
   onChange,
   accept = "image/*,.pdf",
   t,
+  error,
 }: {
-  label: string;
-  file: File | null;
-  onChange: (file: File | null) => void;
-  accept?: string;
-  t: any;
+  label: string
+  file: File | null
+  onChange: (file: File | null) => void
+  accept?: string
+  t: any
+  error?: string
 }) => {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        {label}
+        <span className="text-purple-500">*</span>
+      </p>
       {file ? (
-        <div className="relative h-32 w-full group">
+        <div className="relative h-28 w-full group">
           {file.type.startsWith("image/") ? (
-            <div className="h-full w-full rounded-lg border-2 border-primary overflow-hidden">
+            <div className="h-full w-full rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
               <img
                 src={URL.createObjectURL(file) || "/placeholder.svg"}
                 alt={`Preview of ${label}`}
@@ -49,23 +65,20 @@ const FileUploadField = ({
               />
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full w-full rounded-lg border-2 border-primary bg-primary/5">
-              <p className="text-sm font-medium text-center px-2">
-                {file.name}
-                <br />
-                <span className="text-xs text-muted-foreground">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </span>
-              </p>
+            <div className="flex items-center justify-center h-full w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 shadow-sm">
+              <div className="text-center">
+                <FileText className="h-8 w-8 mx-auto mb-1 text-purple-500/70" />
+                <p className="text-sm font-medium text-center px-2 truncate max-w-[200px]">{file.name}</p>
+                <span className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+              </div>
             </div>
           )}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
             <Button
               type="button"
               size="sm"
-              variant="destructive"
               onClick={() => onChange(null)}
-              className="h-8"
+              className="h-8 bg-purple-600 hover:bg-purple-700"
             >
               {t("form.fileUpload.remove")}
             </Button>
@@ -84,18 +97,17 @@ const FileUploadField = ({
         <div className="flex items-center justify-center w-full">
           <label
             htmlFor={`${label}-input`}
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500"
+            className={`flex flex-col items-center justify-center w-full h-28 border border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+              error ? "border-red-300 dark:border-red-600" : "border-gray-300 dark:border-gray-600"
+            } transition-colors duration-200`}
           >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
-              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold">
-                  {t("form.fileUpload.clickToUpload")}
-                </span>{" "}
-                {t("form.fileUpload.orDragAndDrop")}
+            <div className="flex flex-col items-center justify-center pt-4 pb-4">
+              <Upload className={`w-8 h-8 mb-2 ${error ? "text-red-500/70" : "text-purple-500/70"}`} />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">{t("form.fileUpload.clickToUpload")}</span>
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t("form.fileUpload.fileTypes")}
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                {accept === "image/*,.pdf" ? "JPG, PNG, PDF" : "JPG, PNG"} (max 10MB)
               </p>
             </div>
             <Input
@@ -104,59 +116,99 @@ const FileUploadField = ({
               className="hidden"
               accept={accept}
               onChange={(e) => {
-                const file = e.target.files?.[0];
+                const file = e.target.files?.[0]
                 if (file) {
                   if (file.size > 10 * 1024 * 1024) {
-                    alert(t("form.fileUpload.sizeError"));
-                    return;
+                    alert(t("form.fileUpload.sizeError"))
+                    return
                   }
-                  onChange(file);
+                  onChange(file)
                 }
               }}
             />
           </label>
         </div>
       )}
+      {error && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{error}</p>}
     </div>
-  );
-};
+  )
+}
 
 export function RegisterClinicForm() {
-  const t = useTranslations("registerClinic");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registerClinic] = useClinicRegistrationMutation();
-  // Estado para los archivos
+  const t = useTranslations("registerClinic")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [registerClinic] = useClinicRegistrationMutation()
+  const [fileErrors, setFileErrors] = useState<{
+    operatingLicense?: string
+    businessLicense?: string
+    profilePictureUrl?: string
+  }>({})
+
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+
+  // Files state
   const [files, setFiles] = useState<{
-    operatingLicense: File | null;
-    businessLicense: File | null;
-    profilePictureUrl: File | null;
+    operatingLicense: File | null
+    businessLicense: File | null
+    profilePictureUrl: File | null
   }>({
     operatingLicense: null,
     businessLicense: null,
     profilePictureUrl: null,
-  });
+  })
 
-  // Esquema de validación con Zod
+  // Address details state
+  const [addressDetail, setAddressDetail] = useState({
+    provinceId: "",
+    provinceName: "",
+    districtId: "",
+    districtName: "",
+    wardId: "",
+    wardName: "",
+    streetAddress: "",
+  })
+
+  // New state for general error message
+  const [generalError, setGeneralError] = useState<string | null>(null)
+
+  // Fetch address data
+  const { data: provinces, isLoading: isLoadingProvinces } = useGetProvincesQuery()
+  const { data: districts, isLoading: isLoadingDistricts } = useGetDistrictsQuery(addressDetail.provinceId, {
+    skip: !addressDetail.provinceId,
+  })
+  const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(addressDetail.districtId, {
+    skip: !addressDetail.districtId,
+  })
+
+  // Form validation schema - bank fields are optional now
   const formSchema = z.object({
-    name: z.string().min(1, t("form.validation.nameRequired")),
+    name: z.string().min(2, t("form.validation.nameRequired")),
     email: z.string().email(t("form.validation.emailInvalid")),
-    phoneNumber: z.string().min(1, t("form.validation.phoneRequired")),
-    taxCode: z.string().min(1, t("form.validation.taxCodeRequired")),
-    bankName: z.string().min(1, t("form.validation.bankNameRequired")),
-    bankAccountNumber: z
+    phoneNumber: z
       .string()
-      .min(1, t("form.validation.bankAccountRequired")),
+      .min(1, t("form.validation.phoneRequired"))
+      .regex(/^[0-9]{10,11}$/, t("form.validation.phoneInvalid")),
+    taxCode: z.string().min(1, t("form.validation.taxCodeRequired")),
+    bankName: z.string().optional(), // Optional now
+    bankAccountNumber: z.string().optional(), // Optional now
     address: z.string().min(1, t("form.validation.addressRequired")),
     city: z.string().min(1, t("form.validation.cityRequired")),
     district: z.string().min(1, t("form.validation.districtRequired")),
     ward: z.string().min(1, t("form.validation.wardRequired")),
-    operatingLicenseExpiryDate: z
-      .string()
-      .min(1, t("form.validation.expiryDateRequired")),
-  });
+    operatingLicenseExpiryDate: z.string().min(1, t("form.validation.expiryDateRequired")),
+  })
 
-  // Configuración del formulario con React Hook Form
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitted },
+    setValue,
+    clearErrors,
+    trigger,
+    getValues,
+  } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -171,367 +223,827 @@ export function RegisterClinicForm() {
       ward: "",
       operatingLicenseExpiryDate: "",
     },
-  });
+  })
 
-  // Función para manejar el envío del formulario
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Validar que se hayan cargado todos los archivos requeridos
-    if (
-      !files.operatingLicense ||
-      !files.businessLicense ||
-      !files.profilePictureUrl
-    ) {
-      showError(
-        t("form.validation.fileUploadRequired") +
-          " " +
-          t("form.validation.fileUploadRequiredTitle")
-      );
-      return;
+  // Refs for input elements to handle autofill
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const phoneInputRef = useRef<HTMLInputElement>(null)
+  const taxCodeInputRef = useRef<HTMLInputElement>(null)
+  const addressInputRef = useRef<HTMLInputElement>(null)
+
+  // Handle autofill detection
+  useEffect(() => {
+    // Function to check if inputs have been autofilled
+    const checkAutofill = () => {
+      if (nameInputRef.current && nameInputRef.current.value) {
+        setValue("name", nameInputRef.current.value)
+      }
+      if (emailInputRef.current && emailInputRef.current.value) {
+        setValue("email", emailInputRef.current.value)
+      }
+      if (phoneInputRef.current && phoneInputRef.current.value) {
+        setValue("phoneNumber", phoneInputRef.current.value.replace(/[^0-9]/g, ""))
+      }
+      if (taxCodeInputRef.current && taxCodeInputRef.current.value) {
+        setValue("taxCode", taxCodeInputRef.current.value)
+      }
+      if (addressInputRef.current && addressInputRef.current.value) {
+        const value = addressInputRef.current.value
+        setAddressDetail(prev => ({
+          ...prev,
+          streetAddress: value
+        }))
+        setValue("address", value)
+      }
     }
 
-    setIsSubmitting(true);
+    // Check immediately and then periodically
+    checkAutofill()
+    const intervalId = setInterval(checkAutofill, 1000)
+
+    // Clean up interval
+    return () => clearInterval(intervalId)
+  }, [setValue])
+
+  // Update validation errors when React Hook Form errors change
+  useEffect(() => {
+    if (isSubmitted && Object.keys(errors).length > 0) {
+      const newValidationErrors: ValidationErrors = {}
+
+      if (errors.name) {
+        newValidationErrors.name = errors.name.message as string
+      }
+      if (errors.email) {
+        newValidationErrors.email = errors.email.message as string
+      }
+      if (errors.phoneNumber) {
+        newValidationErrors.phoneNumber = errors.phoneNumber.message as string
+      }
+      if (errors.taxCode) {
+        newValidationErrors.taxCode = errors.taxCode.message as string
+      }
+      if (errors.address) {
+        newValidationErrors.address = errors.address.message as string
+      }
+      if (errors.city) {
+        newValidationErrors.city = errors.city.message as string
+      }
+      if (errors.district) {
+        newValidationErrors.district = errors.district.message as string
+      }
+      if (errors.ward) {
+        newValidationErrors.ward = errors.ward.message as string
+      }
+      if (errors.operatingLicenseExpiryDate) {
+        newValidationErrors.operatingLicenseExpiryDate = errors.operatingLicenseExpiryDate.message as string
+      }
+
+      setValidationErrors(newValidationErrors)
+    }
+  }, [errors, isSubmitted])
+
+  // Handle input change to clear validation errors
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    console.log(`Input change: ${name} = ${value}`)
+    
+    if (validationErrors[name as keyof ValidationErrors]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name as keyof ValidationErrors]
+        return newErrors
+      })
+    }
+  }
+
+  // Handle address field changes
+  const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const { name, value } = e.target
+
+    // Clear validation errors for address fields
+    if (validationErrors.address || validationErrors.city || validationErrors.district || validationErrors.ward) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        if (name === "streetAddress" || name === "address") delete newErrors.address
+        if (name === "provinceId") delete newErrors.city
+        if (name === "districtId") delete newErrors.district
+        if (name === "wardId") delete newErrors.ward
+        return newErrors
+      })
+    }
+
+    if (name === "provinceId" && provinces) {
+      const province = provinces.data.find((p) => p.id === value)
+      setAddressDetail((prev) => ({
+        ...prev,
+        provinceId: value,
+        provinceName: province?.name || "",
+        districtId: "",
+        districtName: "",
+        wardId: "",
+        wardName: "",
+      }))
+      setValue("city", province?.name || "")
+    } else if (name === "districtId" && districts) {
+      const district = districts.data.find((d) => d.id === value)
+      setAddressDetail((prev) => ({
+        ...prev,
+        districtId: value,
+        districtName: district?.name || "",
+        wardId: "",
+        wardName: "",
+      }))
+      setValue("district", district?.name || "")
+    } else if (name === "wardId" && wards) {
+      const ward = wards.data.find((w) => w.id === value)
+      setAddressDetail((prev) => ({
+        ...prev,
+        wardId: value,
+        wardName: ward?.name || "",
+      }))
+      setValue("ward", ward?.name || "")
+    } else if (name === "streetAddress") {
+      setAddressDetail((prev) => ({
+        ...prev,
+        streetAddress: value,
+      }))
+      setValue("address", value)
+    }
+  }
+
+  // Validate form manually
+  const validateForm = () => {
+    // Get values directly from React Hook Form
+    const formValues = getValues()
+    console.log("Form values from getValues():", formValues)
+
+    // Manual validation for required fields
+    const newValidationErrors: ValidationErrors = {}
+    let hasValidationError = false
+
+    // Check each field
+    if (!formValues.name || formValues.name.trim() === "") {
+      newValidationErrors.name = t("form.validation.nameRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.email || formValues.email.trim() === "") {
+      newValidationErrors.email = t("form.validation.emailInvalid")
+      hasValidationError = true
+    }
+
+    if (!formValues.phoneNumber || formValues.phoneNumber.trim() === "") {
+      newValidationErrors.phoneNumber = t("form.validation.phoneRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.taxCode || formValues.taxCode.trim() === "") {
+      newValidationErrors.taxCode = t("form.validation.taxCodeRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.address || formValues.address.trim() === "") {
+      newValidationErrors.address = t("form.validation.addressRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.city || formValues.city.trim() === "") {
+      newValidationErrors.city = t("form.validation.cityRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.district || formValues.district.trim() === "") {
+      newValidationErrors.district = t("form.validation.districtRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.ward || formValues.ward.trim() === "") {
+      newValidationErrors.ward = t("form.validation.wardRequired")
+      hasValidationError = true
+    }
+
+    if (!formValues.operatingLicenseExpiryDate || formValues.operatingLicenseExpiryDate.trim() === "") {
+      newValidationErrors.operatingLicenseExpiryDate = t("form.validation.expiryDateRequired")
+      hasValidationError = true
+    }
+
+    // Check for file errors
+    const newFileErrors: any = {}
+    let hasFileError = false
+
+    if (!files.operatingLicense) {
+      newFileErrors.operatingLicense = t("form.validation.operatingLicenseRequired")
+      hasFileError = true
+    }
+
+    if (!files.businessLicense) {
+      newFileErrors.businessLicense = t("form.validation.businessLicenseRequired")
+      hasFileError = true
+    }
+
+    if (!files.profilePictureUrl) {
+      newFileErrors.profilePictureUrl = t("form.validation.profilePictureRequired")
+      hasFileError = true
+    }
+
+    // Set validation errors
+    if (hasValidationError) {
+      console.log("Manual validation errors:", newValidationErrors)
+      setValidationErrors(newValidationErrors)
+    }
+
+    // Set file errors
+    if (hasFileError) {
+      console.log("File errors:", newFileErrors)
+      setFileErrors(newFileErrors)
+    }
+
+    return !hasValidationError && !hasFileError
+  }
+
+  // Form submission handler
+  const onSubmit = async (data: z.infer<typeof formSchema>, e?: React.BaseSyntheticEvent) => {
+    // Prevent default form submission
+    e?.preventDefault()
+
+    console.log("Form submitted with data:", data)
+
+    // Reset errors
+    setFileErrors({})
+    setValidationErrors({})
+    setGeneralError(null)
+
+    // Validate form
+    if (!validateForm()) {
+      return
+    }
+
+    setIsSubmitting(true)
 
     try {
-      // Crear FormData para enviar los datos
-      const formData = new FormData();
+      // Rest of your submission code...
+      data.city = addressDetail.provinceName
+      data.district = addressDetail.districtName
+      data.ward = addressDetail.wardName
+      data.address = addressDetail.streetAddress
 
-      // Agregar campos de texto
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+      // Bank fields are passed as undefined
+      data.bankName = data.bankName || undefined
+      data.bankAccountNumber = data.bankAccountNumber || undefined
 
-      // Agregar archivos
-      formData.append("operatingLicense", files.operatingLicense);
-      formData.append("businessLicense", files.businessLicense);
-      formData.append("profilePictureUrl", files.profilePictureUrl);
+      // Create FormData
+      const formData = new FormData()
 
-      // Enviar datos a la API
-      const response = await registerClinic(formData).unwrap();
+      // Add text fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined) {
+          formData.append(key, value)
+        } else {
+          formData.append(key, "")
+        }
+      })
 
-      // Mostrar mensaje de éxito
-      showSuccess(
-        t("form.toast.success.title") +
-          " " +
-          t("form.toast.success.description")
-      );
+      // Add files with null checks
+      if (files.operatingLicense) {
+        formData.append("operatingLicense", files.operatingLicense)
+      }
+      if (files.businessLicense) {
+        formData.append("businessLicense", files.businessLicense)
+      }
+      if (files.profilePictureUrl) {
+        formData.append("profilePictureUrl", files.profilePictureUrl)
+      }
 
-      // Limpiar formulario
-      form.reset();
+      // Submit to API
+      await registerClinic(formData).unwrap()
+
+      // Show success message
+      showSuccess(t("form.toast.success.title"))
+
+      // Reset form
+      clearErrors()
+      setFileErrors({})
+      setValidationErrors({})
+      setValue("name", "")
+      setValue("email", "")
+      setValue("phoneNumber", "")
+      setValue("taxCode", "")
+      setValue("bankName", "")
+      setValue("bankAccountNumber", "")
+      setValue("address", "")
+      setValue("city", "")
+      setValue("district", "")
+      setValue("ward", "")
+      setValue("operatingLicenseExpiryDate", "")
+
       setFiles({
         operatingLicense: null,
         businessLicense: null,
         profilePictureUrl: null,
-      });
-    } catch (error: any) {
-      console.error("Error submitting form:", error);
+      })
 
-      // Manejar diferentes tipos de errores
-      if (error.status === 400) {
-        if (error.data?.detail === "Clinics Request is handling !") {
-          showError(t("form.toast.error.pendingRequest"));
-        } else if (error.data?.detail === "Information Already Exist") {
-          showError(t("form.toast.error.duplicateInfo"));
-        } else {
-          showError(
-            t("form.toast.error.title") +
-              " " +
-              t("form.toast.error.description")
-          );
+      setAddressDetail({
+        provinceId: "",
+        provinceName: "",
+        districtId: "",
+        districtName: "",
+        wardId: "",
+        wardName: "",
+        streetAddress: "",
+      })
+    } catch (error: any) {
+      // Keep the existing error handling code
+      console.error("Error submitting form:", error)
+
+      // Clear previous errors
+      clearErrors()
+      setFileErrors({})
+      setValidationErrors({})
+      setGeneralError(null)
+
+      // Handle validation errors
+      if (error.data.status === 422) {
+        // Map field codes to form field names
+        const fieldMapping: Record<string, string> = {
+          Name: "name",
+          Email: "email",
+          PhoneNumber: "phoneNumber",
+          TaxCode: "taxCode",
+          BankName: "bankName",
+          BankAccountNumber: "bankAccountNumber",
+          Address: "address",
+          City: "city",
+          District: "district",
+          Ward: "ward",
+          OperatingLicenseExpiryDate: "operatingLicenseExpiryDate",
+          BusinessLicense: "businessLicense",
+          OperatingLicense: "operatingLicense",
+          ProfilePictureUrl: "profilePictureUrl",
         }
-      } else if (error.status === 422) {
-        // Error de validación
-        const validationErrors = error.data?.errors;
-        if (validationErrors && validationErrors.length > 0) {
-          const errorMessages = validationErrors
-            .map((err: any) => err.message)
-            .join(", ");
-          showError(t("form.toast.error.validation") + " " + errorMessages);
+
+        if (error.data?.errors && error.data.errors.length > 0) {
+          // Create new validation errors object
+          const newValidationErrors: ValidationErrors = {}
+          const newFileErrors: any = {}
+
+          // Set errors for each field
+          error.data.errors.forEach((err: { code: string; message: string }) => {
+            const fieldName = fieldMapping[err.code] || err.code.toLowerCase()
+            console.log(`Setting error for field: ${fieldName}, message: ${err.message}`)
+
+            // Check if it's a file field
+            if (
+              fieldName === "operatingLicense" ||
+              fieldName === "businessLicense" ||
+              fieldName === "profilePictureUrl"
+            ) {
+              newFileErrors[fieldName] = err.message
+            } else if (fieldName) {
+              newValidationErrors[fieldName as keyof ValidationErrors] = err.message
+            }
+          })
+
+          // Update validation errors state
+          setValidationErrors(newValidationErrors)
+          setFileErrors(newFileErrors)
+
+          // Don't set general error for validation errors
         } else {
-          showError(t("form.toast.error.validation"));
+          // Don't show toast for validation errors
+          showError(t("form.toast.error.validation"))
+        }
+      } else if (error.status === 400) {
+        // Handle 400 errors
+        if (error.data?.detail) {
+          if (error.data.detail === "Clinics Request is handling !") {
+            setGeneralError(t("form.toast.error.pendingRequest"))
+            showError(t("form.toast.error.pendingRequest"))
+          } else if (error.data.detail.includes("already exists")) {
+            // Extract which fields already exist
+            const detailMessage = error.data.detail
+            const newValidationErrors: ValidationErrors = {}
+
+            // Check for each field in the error message
+            if (detailMessage.includes("Email")) {
+              newValidationErrors.email = t("form.validation.emailExists") || "Email already exists"
+            }
+            if (detailMessage.includes("Tax Code")) {
+              newValidationErrors.taxCode = t("form.validation.taxCodeExists") || "Tax Code already exists"
+            }
+            if (detailMessage.includes("Phone Number")) {
+              newValidationErrors.phoneNumber = t("form.validation.phoneNumberExists") || "Phone Number already exists"
+            }
+
+            // Set validation errors for the specific fields
+            setValidationErrors(newValidationErrors)
+
+            // Don't show toast for duplicate info errors
+            showError(t("form.toast.error.duplicateInfo"))
+          } else {
+            // Only show toast for other types of errors
+            showError(error.data.detail || t("form.toast.error.title"))
+          }
+        } else {
+          // Only show toast for general errors
+          showError(t("form.toast.error.title"))
         }
       } else {
-        showError(
-          t("form.toast.error.title") + " " + t("form.toast.error.description")
-        );
+        // Only show toast for general errors
+        showError(t("form.toast.error.title"))
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
-    <Card className="border-primary/10 shadow-md">
+    <Card className="border-purple-200/30 shadow-lg">
       <CardContent className="p-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Clinic Information */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-medium">
-                {t("form.sections.clinicInfo")}
-              </h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.name")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.name")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Clinic Information */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+              <Building className="h-5 w-5 text-purple-500" />
+              {t("form.sections.clinicInfo")}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.name")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  {...register("name")}
+                  ref={nameInputRef}
+                  placeholder={t("form.placeholders.name")}
+                  onChange={(e) => {
+                    handleInputChange(e)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.name
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                 />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.email")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder={t("form.placeholders.email")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-medium">
-                {t("form.sections.contactInfo")}
-              </h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.phoneNumber")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.phoneNumber")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="taxCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.taxCode")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.taxCode")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-medium">
-                {t("form.sections.address")}
-              </h2>
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("form.fields.address")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={t("form.placeholders.address")}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                {validationErrors.name && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.name}</p>
                 )}
-              />
-              <div className="grid sm:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.city")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.city")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="district"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.district")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.district")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="ward"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.ward")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.ward")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-            </div>
 
-            {/* Bank Information */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-medium">
-                {t("form.sections.bankInfo")}
-              </h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="bankName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("form.fields.bankName")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.bankName")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.email")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  {...register("email")}
+                  ref={emailInputRef}
+                  placeholder={t("form.placeholders.email")}
+                  onChange={(e) => {
+                    handleInputChange(e)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.email
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                 />
-                <FormField
-                  control={form.control}
-                  name="bankAccountNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t("form.fields.bankAccountNumber")}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("form.placeholders.bankAccountNumber")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* License Information */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-medium">
-                {t("form.sections.licenseInfo")}
-              </h2>
-              <FormField
-                control={form.control}
-                name="operatingLicenseExpiryDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t("form.fields.operatingLicenseExpiryDate")}
-                    </FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                {validationErrors.email && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.email}</p>
                 )}
-              />
+              </div>
             </div>
+          </div>
 
-            {/* File Uploads */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-medium">
-                {t("form.sections.documents")}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <FileUploadField
-                  label={t("form.fields.operatingLicense")}
-                  file={files.operatingLicense}
-                  onChange={(file) =>
-                    setFiles({ ...files, operatingLicense: file })
-                  }
-                  t={t}
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+              <Phone className="h-5 w-5 text-purple-500" />
+              {t("form.sections.contactInfo")}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.phoneNumber")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="phoneNumber"
+                  {...register("phoneNumber")}
+                  ref={phoneInputRef}
+                  placeholder={t("form.placeholders.phoneNumber")}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "")
+                    setValue("phoneNumber", value)
+                    handleInputChange({...e, target: {...e.target, value}})
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.phoneNumber
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                 />
-                <FileUploadField
-                  label={t("form.fields.businessLicense")}
-                  file={files.businessLicense}
-                  onChange={(file) =>
-                    setFiles({ ...files, businessLicense: file })
-                  }
-                  t={t}
+                {validationErrors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.phoneNumber}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.taxCode")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="taxCode"
+                  {...register("taxCode")}
+                  ref={taxCodeInputRef}
+                  placeholder={t("form.placeholders.taxCode")}
+                  onChange={(e) => {
+                    handleInputChange(e)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.taxCode
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                 />
-                <FileUploadField
-                  label={t("form.fields.profilePictureUrl")}
-                  file={files.profilePictureUrl}
-                  onChange={(file) =>
-                    setFiles({ ...files, profilePictureUrl: file })
-                  }
-                  t={t}
+                {validationErrors.taxCode && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.taxCode}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Hidden bank fields - not displayed but still included in the form */}
+          <input type="hidden" {...register("bankName")} />
+          <input type="hidden" {...register("bankAccountNumber")} />
+
+          {/* Address */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+              <MapPin className="h-5 w-5 text-purple-500" />
+              {t("form.sections.address")}
+            </h2>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.address")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  {...register("address")}
+                  ref={addressInputRef}
+                  placeholder={t("form.placeholders.address")}
+                  value={addressDetail.streetAddress}
+                  onChange={(e) => {
+                    handleAddressChange({
+                      ...e,
+                      target: { ...e.target, name: "streetAddress" },
+                    } as React.ChangeEvent<HTMLInputElement>)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.address
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                 />
+                {validationErrors.address && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.address}</p>
+                )}
               </div>
             </div>
 
-            {/* Submit Button */}
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.city")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <select
+                  id="city"
+                  name="provinceId"
+                  value={addressDetail.provinceId}
+                  onChange={(e) => {
+                    const selectedProvince = provinces?.data.find((p) => p.id === e.target.value)
+                    setValue("city", selectedProvince?.name || "")
+                    handleAddressChange(e)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.city
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                >
+                  <option value="">{t("form.placeholders.city")}</option>
+                  {isLoadingProvinces ? (
+                    <option disabled>Loading provinces...</option>
+                  ) : (
+                    provinces?.data.map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {validationErrors.city && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.city}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.district")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <select
+                  id="district"
+                  name="districtId"
+                  value={addressDetail.districtId}
+                  onChange={(e) => {
+                    const selectedDistrict = districts?.data.find((d) => d.id === e.target.value)
+                    setValue("district", selectedDistrict?.name || "")
+                    handleAddressChange(e)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.district
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-70 disabled:cursor-not-allowed`}
+                  disabled={!addressDetail.provinceId || isLoadingDistricts}
+                >
+                  <option value="">
+                    {!addressDetail.provinceId
+                      ? t("form.placeholders.selectCityFirst")
+                      : isLoadingDistricts
+                        ? "Loading districts..."
+                        : t("form.placeholders.district")}
+                  </option>
+                  {districts?.data.map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.district && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.district}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                  {t("form.fields.ward")}
+                  <span className="text-purple-500">*</span>
+                </label>
+                <select
+                  id="ward"
+                  name="wardId"
+                  value={addressDetail.wardId}
+                  onChange={(e) => {
+                    const selectedWard = wards?.data.find((w) => w.id === e.target.value)
+                    setValue("ward", selectedWard?.name || "")
+                    handleAddressChange(e)
+                  }}
+                  className={`w-full px-3 py-2 h-10 border ${
+                    validationErrors.ward
+                      ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                  } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-70 disabled:cursor-not-allowed`}
+                  disabled={!addressDetail.districtId || isLoadingWards}
+                >
+                  <option value="">
+                    {!addressDetail.districtId
+                      ? t("form.placeholders.selectDistrictFirst")
+                      : isLoadingWards
+                        ? "Loading wards..."
+                        : t("form.placeholders.ward")}
+                  </option>
+                  {wards?.data.map((ward) => (
+                    <option key={ward.id} value={ward.id}>
+                      {ward.name}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.ward && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{validationErrors.ward}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* License Information */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+              <FileText className="h-5 w-5 text-purple-500" />
+              {t("form.sections.licenseInfo")}
+            </h2>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                {t("form.fields.operatingLicenseExpiryDate")}
+                <span className="text-purple-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="operatingLicenseExpiryDate"
+                {...register("operatingLicenseExpiryDate")}
+                onChange={(e) => {
+                  handleInputChange(e)
+                }}
+                className={`w-full px-3 py-2 h-10 border ${
+                  validationErrors.operatingLicenseExpiryDate
+                    ? "border-red-300 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-700/50 focus:border-red-500 dark:focus:border-red-500"
+                    : "border-gray-300 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent"
+                } rounded-md focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+              />
+              {validationErrors.operatingLicenseExpiryDate && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                  {validationErrors.operatingLicenseExpiryDate}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* File Uploads */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+              <FileText className="h-5 w-5 text-purple-500" />
+              {t("form.sections.documents")}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FileUploadField
+                label={t("form.fields.operatingLicense")}
+                file={files.operatingLicense}
+                onChange={(file) => {
+                  setFiles({ ...files, operatingLicense: file })
+                  if (fileErrors.operatingLicense) {
+                    setFileErrors((prev) => ({ ...prev, operatingLicense: undefined }))
+                  }
+                }}
+                t={t}
+                error={fileErrors.operatingLicense}
+              />
+              <FileUploadField
+                label={t("form.fields.businessLicense")}
+                file={files.businessLicense}
+                onChange={(file) => {
+                  setFiles({ ...files, businessLicense: file })
+                  if (fileErrors.businessLicense) {
+                    setFileErrors((prev) => ({ ...prev, businessLicense: undefined }))
+                  }
+                }}
+                t={t}
+                error={fileErrors.businessLicense}
+              />
+              <FileUploadField
+                label={t("form.fields.profilePictureUrl")}
+                file={files.profilePictureUrl}
+                onChange={(file) => {
+                  setFiles({ ...files, profilePictureUrl: file })
+                  if (fileErrors.profilePictureUrl) {
+                    setFileErrors((prev) => ({ ...prev, profilePictureUrl: undefined }))
+                  }
+                }}
+                t={t}
+                accept="image/*"
+                error={fileErrors.profilePictureUrl}
+              />
+            </div>
+          </div>
+
+          {/* Hidden inputs to connect with React Hook Form */}
+          <input type="hidden" {...register("city")} />
+          <input type="hidden" {...register("district")} />
+          <input type="hidden" {...register("ward")} />
+
+          {/* Submit Button */}
+          <div className="pt-2">
+            <Button
+              type="submit"
+              className="w-full h-11 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   {t("form.submitting")}
                 </>
               ) : (
                 t("form.submit")
               )}
             </Button>
-          </form>
-        </Form>
+          </div>
+        </form>
       </CardContent>
     </Card>
-  );
+  )
 }

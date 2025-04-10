@@ -21,5 +21,9 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   active: "Hoạt Động",
   inactive: "Ngưng Hoạt Động",
   authRequired: "Yêu cầu xác thực. Vui lòng đăng nhập.",
-  failedToLoad: "Không thể tải thông tin phòng khám."
+  failedToLoad: "Không thể tải thông tin phòng khám.",
+  currentSubscription: "Gói Hiện Tại",
+  days: "Ngày",
+    livestreams: "Luồng trực tiếp",
+    price: "Giá"
 };

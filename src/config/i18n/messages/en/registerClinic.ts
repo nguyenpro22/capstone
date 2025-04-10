@@ -40,6 +40,8 @@ export const registerClinic: Messages["registerClinic"] = {
       ward: "Enter ward",
       bankName: "Enter bank name",
       bankAccountNumber: "Enter bank account number",
+      selectCityFirst: "Please select a city first",
+      selectDistrictFirst: "Please select a district first",
     },
     fileUpload: {
       clickToUpload: "Click to upload",
@@ -61,6 +63,12 @@ export const registerClinic: Messages["registerClinic"] = {
       bankNameRequired: "Bank name is required",
       bankAccountRequired: "Bank account number is required",
       expiryDateRequired: "Operating license expiry date is required",
+      emailExists: "This email already exists in the system",
+      taxCodeExists: "This tax code already exists in the system",
+      phoneNumberExists: "This phone number already exists in the system",
+      profilePictureRequired: "Profile picture is required",
+      businessLicenseRequired: "Business license document is required",
+      operatingLicenseRequired: "Operating license document is required"
     },
     toast: {
       missingFiles: {

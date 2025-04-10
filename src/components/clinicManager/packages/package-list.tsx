@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import type { Package } from "@/features/package/types"
 import Pagination from "@/components/common/Pagination/Pagination"
 import { useRouter } from "next/navigation"
@@ -32,6 +32,7 @@ import PaymentService from "@/hooks/usePaymentStatus"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { useDebounce } from "@/hooks/use-debounce"
 
 export default function PackageList() {
   const { theme } = useTheme()
@@ -39,6 +40,7 @@ export default function PackageList() {
   const [showQR, setShowQR] = useState(false)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
   const [pageIndex, setPageIndex] = useState(1)
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "success" | "failed">("pending")
   const [transactionId, setTransactionId] = useState<string | null>(null)
@@ -57,7 +59,7 @@ export default function PackageList() {
   const { data, isLoading, error } = useGetPackagesQuery({
     pageIndex,
     pageSize,
-    searchTerm,
+    searchTerm: debouncedSearchTerm,
   })
 
   const [createPayment, { isLoading: isCreatingPayment }] = useCreatePaymentMutation()
@@ -128,7 +130,8 @@ export default function PackageList() {
     }
   }, [transactionId, router, selectedPackage])
 
-  const packages = data?.value?.items || []
+  // Filter out the Trial package with ID 4b7171f4-3219-4688-9f7c-625687a95867
+  const packages = (data?.value?.items || []).filter((pkg: Package) => pkg.id !== "4b7171f4-3219-4688-9f7c-625687a95867")
   const totalCount = data?.value?.totalCount || 0
   const hasNextPage = data?.value?.hasNextPage
   const hasPreviousPage = data?.value?.hasPreviousPage
@@ -142,9 +145,10 @@ export default function PackageList() {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
-    setPageIndex(1) // Reset to first page when searching
+    // Page index will be reset by the useEffect when debouncedSearchTerm changes
   }
 
+  // Update the handlePurchase function to handle the specific error response
   const handlePurchase = async (pkg: Package) => {
     try {
       setSelectedPackage(pkg)
@@ -161,12 +165,28 @@ export default function PackageList() {
       } else {
         toast.error("Failed to generate payment QR code")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment error:", error)
-      toast.error("Failed to initiate payment")
+
+      // Handle structured error response
+      if (error.data) {
+        const errorData = error.data
+
+        // Check for specific error cases
+        if (errorData.status === 400 && errorData.detail === "Clinic is not activated") {
+          toast.error("Không thể thanh toán: Phòng khám chưa được kích hoạt")
+        } else if (errorData.title) {
+          toast.error(`${errorData.title}: ${errorData.detail || ""}`)
+        } else {
+          toast.error(errorData.detail || "Failed to initiate payment")
+        }
+      } else {
+        toast.error("Failed to initiate payment")
+      }
     }
   }
 
+  // Also update the handleRetryPayment function with similar error handling
   const handleRetryPayment = async () => {
     if (!selectedPackage) return
 
@@ -184,11 +204,30 @@ export default function PackageList() {
       } else {
         toast.error("Failed to generate payment QR code")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment retry error:", error)
-      toast.error("Failed to retry payment")
+
+      // Handle structured error response
+      if (error.data) {
+        const errorData = error.data
+
+        // Check for specific error cases
+        if (errorData.status === 400 && errorData.detail === "Clinic is not activated") {
+          toast.error("Không thể thanh toán: Phòng khám chưa được kích hoạt")
+        } else if (errorData.title) {
+          toast.error(`${errorData.title}: ${errorData.detail || ""}`)
+        } else {
+          toast.error(errorData.detail || "Failed to retry payment")
+        }
+      } else {
+        toast.error("Failed to retry payment")
+      }
     }
   }
+
+  useEffect(() => {
+    setPageIndex(1) // Reset to first page when search term changes
+  }, [debouncedSearchTerm])
 
   if (isLoading) {
     return (
@@ -232,6 +271,7 @@ export default function PackageList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 p-8">
+      <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -353,6 +393,20 @@ export default function PackageList() {
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                   <Clock className="h-4 w-4" />
                   <span>Duration: {pkg.duration} days</span>
+                </div>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                    <Zap className="h-4 w-4" />
+                    <span>Live Streams: {pkg.limitLiveStream}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>Branches: {pkg.limitBranch}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                    <Sparkles className="h-4 w-4" />
+                    <span>Enhanced Viewers: {pkg.enhancedViewer}</span>
+                  </div>
                 </div>
               </div>
 

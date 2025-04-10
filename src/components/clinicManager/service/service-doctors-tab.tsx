@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, X, Search, Trash2, Mail } from 'lucide-react'
+import { Plus, X, Search, Trash2, Mail } from "lucide-react"
 import Image from "next/image"
 import { toast } from "react-toastify"
 import { useAddDoctorToServiceMutation, useRemoveDoctorFromServiceMutation } from "@/features/doctor-service/api"
@@ -56,19 +56,9 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
 
     try {
       await addDoctorToService({
-        doctorId: selectedDoctors[0],
-        serviceIds: [serviceId],
+        doctorId: selectedDoctors,
+        serviceIds: serviceId,
       }).unwrap()
-
-      if (selectedDoctors.length > 1) {
-        const promises = selectedDoctors.slice(1).map((doctorId) =>
-          addDoctorToService({
-            doctorId,
-            serviceIds: [serviceId],
-          }).unwrap(),
-        )
-        await Promise.all(promises)
-      }
 
       toast.success("Thêm bác sĩ thành công")
       setIsAddingDoctor(false)
@@ -148,7 +138,10 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
+              size={18}
+            />
           </div>
 
           <div className="max-h-60 overflow-y-auto mb-4">
@@ -159,7 +152,10 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
             ) : searchFilteredDoctors.length > 0 ? (
               <div className="space-y-2">
                 {searchFilteredDoctors.map((doctor: Doctor) => (
-                  <div key={doctor.employeeId} className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg">
+                  <div
+                    key={doctor.employeeId}
+                    className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg"
+                  >
                     <input
                       type="checkbox"
                       id={`doctor-${doctor.employeeId}`}
@@ -187,7 +183,10 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                         />
                       </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
-                        <h4 className="font-medium text-gray-800 dark:text-gray-100 truncate w-full" title={doctor.fullName}>
+                        <h4
+                          className="font-medium text-gray-800 dark:text-gray-100 truncate w-full"
+                          title={doctor.fullName}
+                        >
                           {doctor.fullName}
                         </h4>
                         {doctor.email && (

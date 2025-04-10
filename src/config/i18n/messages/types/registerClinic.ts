@@ -37,6 +37,8 @@ export type registerClinic = {
       ward: string;
       bankName: string;
       bankAccountNumber: string;
+      selectCityFirst: string;
+      selectDistrictFirst: string;
     };
     fileUpload: {
       clickToUpload: string;
@@ -58,6 +60,12 @@ export type registerClinic = {
       bankNameRequired: string;
       bankAccountRequired: string;
       expiryDateRequired: string;
+      emailExists: string;
+      taxCodeExists: string;
+      phoneNumberExists: string;
+      profilePictureRequired: string;
+      businessLicenseRequired: string;
+      operatingLicenseRequired: string
     };
     toast: {
       missingFiles: {

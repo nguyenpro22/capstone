@@ -1,3 +1,4 @@
+import { packageMessages } from './package';
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
 import { apiMessages } from "./api";
@@ -38,7 +39,8 @@ const vi = {
   registerClinic,
   livestream,
   livestreamRoom,
-  clinicProfile: clinicProfileMessages
+  clinicProfile: clinicProfileMessages,
+  package: packageMessages
 };
 
 export default vi;

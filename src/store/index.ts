@@ -29,7 +29,7 @@ import {
   doctorAdminCommandApi,
 } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api";
-import { partnershipRequestApi } from "@/features/partnership/api";
+import { partnershipRequestApi, partnershipRequestCommandApi } from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
 import { categoryApi } from "@/features/home/api";
 import {
@@ -67,6 +67,8 @@ const rootReducer = combineReducers({
   [packageApi.reducerPath]: packageApi.reducer,
   [packageCreateApi.reducerPath]: packageCreateApi.reducer,
   [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
+  [partnershipRequestCommandApi.reducerPath]: partnershipRequestCommandApi.reducer,
+
   [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
   [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
   [serviceApi.reducerPath]: serviceApi.reducer,
@@ -109,6 +111,7 @@ const store = configureStore({
       packageApi.middleware,
       packageCreateApi.middleware,
       partnershipRequestApi.middleware,
+      partnershipRequestCommandApi.middleware,
       bookingQueryApi.middleware,
       bookingCommandApi.middleware,
       serviceApi.middleware,

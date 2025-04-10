@@ -34,12 +34,15 @@ export const registerClinic: Messages["registerClinic"] = {
       email: "Nhập địa chỉ email",
       phoneNumber: "Nhập số điện thoại",
       taxCode: "Nhập mã số thuế",
-      address: "Nhập địa chỉ đầy đủ",
+      address: "Nhập địa chỉ cụ thể",
       city: "Nhập thành phố",
       district: "Nhập quận/huyện",
       ward: "Nhập phường/xã",
       bankName: "Nhập tên ngân hàng",
       bankAccountNumber: "Nhập số tài khoản ngân hàng",
+      selectCityFirst: "Vui lòng chọn thành phố trước",
+    selectDistrictFirst: "Vui lòng chọn quận/huyện trước",
+
     },
     fileUpload: {
       clickToUpload: "Nhấp để tải lên",
@@ -61,6 +64,12 @@ export const registerClinic: Messages["registerClinic"] = {
       bankNameRequired: "Tên ngân hàng là bắt buộc",
       bankAccountRequired: "Số tài khoản ngân hàng là bắt buộc",
       expiryDateRequired: "Ngày hết hạn giấy phép hoạt động là bắt buộc",
+      emailExists: "Email đã tồn tại trong hệ thống",
+      taxCodeExists: "Mã số thuế đã tồn tại trong hệ thống",
+      phoneNumberExists: "Số điện thoại đã tồn tại trong hệ thống",
+      profilePictureRequired: "Ảnh đại diện là bắt buộc",
+      businessLicenseRequired: "Giấy phép kinh doanh là bắt buộc",
+      operatingLicenseRequired: "Giấy phép hoạt động là bắt buộc"
     },
     toast: {
       missingFiles: {

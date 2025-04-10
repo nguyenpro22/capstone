@@ -148,7 +148,7 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
                 className="relative h-12 w-fit space-x-3 hover:bg-pink-50 dark:hover:bg-gray-800 transition-colors duration-200"
               >
                 <Avatar className="h-9 w-9 border-2 border-pink-200 dark:border-pink-600">
-                  <AvatarImage src="https://via.placeholder.com/40" alt={name} />
+                  <AvatarImage src="https://placehold.co/40x40.png" alt={name} />
                   <AvatarFallback> {(name ?? "").substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start">

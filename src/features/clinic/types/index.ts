@@ -27,6 +27,16 @@ export interface Clinic {
     hasNextPage: boolean
     hasPreviousPage: boolean
   }
+  currentSubscription: {
+    id: string,
+    name: string
+    description: string,
+    price: number,
+    duration: number,
+    isActivated: boolean,
+    limitBranch: number,
+    limitLiveStream: number
+},
   services: Service[]
 }
 export interface ProfileClinic {
