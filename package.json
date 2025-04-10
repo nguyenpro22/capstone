@@ -54,6 +54,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.5.2",
     "file-api": "^0.10.4",
+    "firebase": "^11.6.0",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.460.0",
     "mock-aws-s3": "^4.0.2",
