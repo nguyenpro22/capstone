@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RadioGroup } from "@/components/ui/radio-group";
+import {
+  RadioGroup,
+  RadioGroupItem
+} from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import type { BookingData, Clinic, Doctor } from "../../types/booking";
 import { DoctorItem } from "../doctor-item";
 import { ClinicItem } from "../clinic-item";
 import { BookingService } from "../../utils/booking-service";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface SelectDoctorStepProps {
   bookingData: BookingData;
@@ -27,6 +31,7 @@ export function SelectDoctorStep({
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
 
   const { service } = bookingData;
 
@@ -50,7 +55,7 @@ export function SelectDoctorStep({
     };
 
     fetchData();
-  }, [service.id]);
+  }, [service]);
 
   const handleDoctorSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
@@ -70,7 +75,7 @@ export function SelectDoctorStep({
       <div className="flex flex-col items-center justify-center py-12">
         <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-muted-foreground">
-          Đang tải danh sách bác sĩ và cơ sở...
+          {t("loadingDoctorsAndClinics")}
         </p>
       </div>
     );
@@ -79,9 +84,9 @@ export function SelectDoctorStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">Chọn bác sĩ</h3>
+        <h3 className="text-lg font-medium mb-4">{t("selectDoctor")}</h3>
         <p className="text-muted-foreground mb-4">
-          Vui lòng chọn bác sĩ bạn muốn thực hiện dịch vụ
+          {t("pleaseSelectDoctor")}
         </p>
 
         <RadioGroup
@@ -101,15 +106,15 @@ export function SelectDoctorStep({
       </div>
 
       <div>
-        <h3 className="text-lg font-medium mb-4">Chọn cơ sở</h3>
+        <h3 className="text-lg font-medium mb-4">{t("selectClinic")}</h3>
         <p className="text-muted-foreground mb-4">
-          Vui lòng chọn cơ sở bạn muốn thực hiện dịch vụ
+          {t("pleaseSelectClinic")}
         </p>
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="list">Danh sách</TabsTrigger>
-            <TabsTrigger value="map">Bản đồ</TabsTrigger>
+            <TabsTrigger value="list">{t("list")}</TabsTrigger>
+            <TabsTrigger value="map">{t("map")}</TabsTrigger>
           </TabsList>
           <TabsContent value="list" className="mt-4">
             <RadioGroup
@@ -130,7 +135,7 @@ export function SelectDoctorStep({
             <Card>
               <CardContent className="p-4">
                 <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">Bản đồ các cơ sở</p>
+                  <p className="text-muted-foreground">{t("clinicMap")}</p>
                 </div>
               </CardContent>
             </Card>

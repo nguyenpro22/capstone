@@ -6,9 +6,13 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import Pagination from "@/components/common/Pagination/Pagination"
 import type { RequestItem } from "@/features/partnership/types"
-import { Filter, Search, CheckCircle, XCircle, Ban, Calendar, RefreshCw, X, AlertCircle, Loader2 } from "lucide-react"
+import { Search, CheckCircle, XCircle, Ban, X, AlertCircle, Loader2, Eye, ChevronDown } from "lucide-react"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import { useDebounce } from "@/hooks/use-debounce"
 import { useTheme } from "next-themes"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import PartnershipRequestDetail from "@/components/systemStaff/partnership-request-detail"
 
 const PartnershipRequest: React.FC = () => {
   const { theme } = useTheme()
@@ -16,13 +20,16 @@ const PartnershipRequest: React.FC = () => {
   const pageSize = 5
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState<string>("")
-  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [searchInput, setSearchInput] = useState<string>("")
+  const searchTerm = useDebounce(searchInput, 500) // Debounce search input with 500ms delay
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionType, setActionType] = useState<"reject" | "ban" | null>(null)
   const [processingAction, setProcessingAction] = useState<{
     id: string
     action: "accept" | "reject" | "ban" | null
   } | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [detailRequestId, setDetailRequestId] = useState<string | null>(null)
 
   const { data, isLoading, isError, refetch } = useGetPartnershipRequestsQuery({
     pageIndex,
@@ -44,9 +51,6 @@ const PartnershipRequest: React.FC = () => {
           requestId: id,
           action: 0,
         })
-
-        // Log the entire response to see its structure
-        console.log("API Response:", result)
 
         // Check if the response has the expected structure
         if ("data" in result && result.data && result.data.isSuccess) {
@@ -87,9 +91,6 @@ const PartnershipRequest: React.FC = () => {
         rejectReason: reason,
       })
 
-      // Log the entire response to see its structure
-      console.log("API Response:", result)
-
       // Check if the response has the expected structure
       if ("data" in result && result.data && result.data.isSuccess) {
         toast.success(`Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`)
@@ -114,6 +115,16 @@ const PartnershipRequest: React.FC = () => {
     }
   }
 
+  const handleViewDetail = (id: string) => {
+    setDetailRequestId(id)
+    setIsDetailModalOpen(true)
+  }
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false)
+    setDetailRequestId(null)
+  }
+
   const requests: RequestItem[] =
     data?.value?.items?.filter(
       (request: RequestItem) =>
@@ -124,6 +135,9 @@ const PartnershipRequest: React.FC = () => {
   const totalCount = data?.value?.totalCount || 0
   const hasNextPage = data?.value?.hasNextPage || false
   const hasPreviousPage = data?.value?.hasPreviousPage || false
+
+  // Calculate the starting index for the current page
+  const startIndex = (pageIndex - 1) * pageSize
 
   return (
     <div className="container mx-auto p-6 bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
@@ -144,33 +158,9 @@ const PartnershipRequest: React.FC = () => {
             type="text"
             placeholder="Search by name or email..."
             className="pl-10 pr-4 py-2.5 w-full md:w-64 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring focus:ring-blue-200 dark:focus:ring-blue-700 focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-        <div className="flex flex-wrap gap-3">
-          <button className="flex items-center px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">
-            <Filter className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <span>Filter By</span>
-          </button>
-
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-            <select className="pl-10 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 appearance-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring focus:ring-blue-200 dark:focus:ring-blue-700 focus:ring-opacity-50 transition-all duration-200">
-              <option>14 Feb 2019</option>
-              <option>15 Feb 2019</option>
-              <option>16 Feb 2019</option>
-            </select>
-          </div>
-
-          <button className="flex items-center px-4 py-2.5 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors duration-200">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            <span>Reset Filter</span>
-          </button>
         </div>
       </div>
 
@@ -207,12 +197,12 @@ const PartnershipRequest: React.FC = () => {
             <table className="w-full border-collapse table-auto text-left">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm">
-                  <th className="px-6 py-4 font-medium">ID</th>
+                  <th className="px-6 py-4 font-medium w-16">STT</th>
                   <th className="px-6 py-4 font-medium">Clinic Name</th>
                   <th className="px-6 py-4 font-medium">Email</th>
                   <th className="px-6 py-4 font-medium">Address</th>
-                  <th className="px-6 py-4 font-medium">Total Apply</th>
-                  <th className="px-6 py-4 font-medium">Action</th>
+                  <th className="px-6 py-4 font-medium w-24 text-center">Total Apply</th>
+                  <th className="px-6 py-4 font-medium w-48 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -223,75 +213,90 @@ const PartnershipRequest: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  requests.map((request: RequestItem) => (
+                  requests.map((request: RequestItem, index: number) => (
                     <tr
                       key={request.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
                     >
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{request.id}</td>
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">{request.name}</div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{request.email}</td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300 max-w-xs truncate">
-                        {request.address}
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 text-center">
+                        {startIndex + index + 1}
                       </td>
                       <td className="px-6 py-4">
+                        <div
+                          className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]"
+                          title={request.name}
+                        >
+                          {request.name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]" title={request.email}>
+                          {request.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div
+                          className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]"
+                          title={request.fullAddress}
+                        >
+                          {request.fullAddress}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                           {request.totalApply}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          {/* Accept Button */}
-                          {processingAction?.id === request.id && processingAction?.action === "accept" ? (
-                            <button className="inline-flex items-center justify-center w-28 px-3 py-2 bg-emerald-500 text-white rounded-lg">
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
-                            </button>
-                          ) : (
-                            <button
-                              className="inline-flex items-center justify-center w-24 px-3 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-colors duration-200"
-                              onClick={() => handleAction(request.id, "accept")}
-                              disabled={processingAction !== null}
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Accept
-                            </button>
-                          )}
+                        <div className="flex items-center justify-center space-x-2">
+                          {/* View Detail Button */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="inline-flex items-center justify-center px-3 py-2 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                            onClick={() => handleViewDetail(request.id)}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Detail
+                          </Button>
 
-                          {/* Reject Button */}
-                          {processingAction?.id === request.id && processingAction?.action === "reject" ? (
-                            <button className="inline-flex items-center justify-center w-28 px-3 py-2 bg-red-500 text-white rounded-lg">
+                          {/* Action Dropdown Menu */}
+                          {processingAction?.id === request.id ? (
+                            <Button disabled className="h-9 px-3 py-2 bg-gray-400 text-white rounded-lg">
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Processing...
-                            </button>
+                            </Button>
                           ) : (
-                            <button
-                              className="inline-flex items-center justify-center w-24 px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors duration-200"
-                              onClick={() => handleAction(request.id, "reject")}
-                              disabled={processingAction !== null}
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Reject
-                            </button>
-                          )}
-
-                          {/* Ban Button */}
-                          {processingAction?.id === request.id && processingAction?.action === "ban" ? (
-                            <button className="inline-flex items-center justify-center w-28 px-3 py-2 bg-amber-500 text-white rounded-lg">
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
-                            </button>
-                          ) : (
-                            <button
-                              className="inline-flex items-center justify-center w-24 px-3 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-colors duration-200"
-                              onClick={() => handleAction(request.id, "ban")}
-                              disabled={processingAction !== null}
-                            >
-                              <Ban className="mr-2 h-4 w-4" />
-                              Ban
-                            </button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9 px-3">
+                                  Actions <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem
+                                  className="flex items-center text-emerald-600 dark:text-emerald-400 focus:text-emerald-700 dark:focus:text-emerald-300 focus:bg-emerald-50 dark:focus:bg-emerald-900/20"
+                                  onClick={() => handleAction(request.id, "accept")}
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Accept
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="flex items-center text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300 focus:bg-red-50 dark:focus:bg-red-900/20"
+                                  onClick={() => handleAction(request.id, "reject")}
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Reject
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="flex items-center text-amber-600 dark:text-amber-400 focus:text-amber-700 dark:focus:text-amber-300 focus:bg-amber-50 dark:focus:bg-amber-900/20"
+                                  onClick={() => handleAction(request.id, "ban")}
+                                >
+                                  <Ban className="mr-2 h-4 w-4" />
+                                  Ban
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                         </div>
                       </td>
@@ -385,6 +390,13 @@ const PartnershipRequest: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Partnership Request Detail Component */}
+      <PartnershipRequestDetail
+        requestId={detailRequestId}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+      />
     </div>
   )
 }

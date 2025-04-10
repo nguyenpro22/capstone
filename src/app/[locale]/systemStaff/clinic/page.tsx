@@ -1,20 +1,20 @@
 "use client"
 import type React from "react"
 import { useState } from "react"
-import { Clock, CreditCard, CheckCircle2, XCircle, FileText, Layers, Search, Download, MoreVertical, Loader2, Eye, Edit, Trash2 } from 'lucide-react'
+import { XCircle, Search, Download, MoreVertical, Loader2, Eye, Edit } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGetClinicsQuery, useLazyGetClinicByIdQuery, useUpdateClinicMutation } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import * as XLSX from "xlsx"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import Modal from "@/components/systemStaff/Modal"
 import EditClinicForm from "@/components/systemStaff/EditClinicForm"
 import Pagination from "@/components/common/Pagination/Pagination"
 import type { Clinic } from "@/features/clinic/types"
 import { MenuPortal } from "@/components/ui/menu-portal"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 import { useTheme } from "next-themes"
+import ClinicDetailModal from "@/components/systemStaff/ClinicDetailModal"
 
 const ClinicsList: React.FC = () => {
   const { theme } = useTheme()
@@ -82,19 +82,6 @@ const ClinicsList: React.FC = () => {
     }
 
     setMenuOpen(null)
-  }
-
-  const handleDeleteClinic = async (clinicId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa gói này?")) {
-      try {
-        // await deleteClinic(clinicId).unwrap();
-        toast.success("Gói đã được xóa thành công!" + clinicId)
-        delayedRefetch() // Use delayed refetch instead of immediate refetch
-      } catch (error) {
-        console.error(error)
-        toast.error("Xóa gói thất bại!")
-      }
-    }
   }
 
   const handleCloseEditForm = () => {
@@ -243,7 +230,9 @@ const ClinicsList: React.FC = () => {
                   clinics.map((clinic: Clinic) => (
                     <motion.tr
                       key={clinic.id}
-                      whileHover={{ backgroundColor: theme === "dark" ? "rgba(30, 41, 59, 0.5)" : "rgba(238, 242, 255, 0.5)" }}
+                      whileHover={{
+                        backgroundColor: theme === "dark" ? "rgba(30, 41, 59, 0.5)" : "rgba(238, 242, 255, 0.5)",
+                      }}
                       className="transition-colors duration-200 h-16 dark:text-gray-100"
                     >
                       <td className="px-6 py-4">
@@ -324,16 +313,6 @@ const ClinicsList: React.FC = () => {
                                 <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 {t("editClinic")}
                               </li>
-                              <li
-                                className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDeleteClinic(clinic.id)
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                                {t("deleteClinic")}
-                              </li>
                             </MenuPortal>
                           )}
                         </AnimatePresence>
@@ -361,217 +340,8 @@ const ClinicsList: React.FC = () => {
         </div>
       )}
 
-      {/* View Clinic Modal */}
-      {viewClinic && (
-        <Modal onClose={() => setViewClinic(null)}>
-          <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 max-h-[80vh] overflow-y-auto">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300">Chi Tiết Phòng Khám</h2>
-              <div className="w-16 h-1 mx-auto bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full mt-2" />
-            </div>
-
-            {/* Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-5">
-                {/* Clinic Name */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Tên phòng khám</div>
-                      <div className="text-base font-medium text-slate-800 dark:text-slate-200">{viewClinic.name}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Email</div>
-                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.email}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phone Number */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Số điện thoại</div>
-                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.phoneNumber}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Địa chỉ</div>
-                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.address}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tax Code */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Mã số thuế</div>
-                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.taxCode}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-5">
-                {/* Business License */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Giấy phép kinh doanh</div>
-                      <a
-                        href={viewClinic.businessLicenseUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline font-medium"
-                      >
-                        Xem giấy phép
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Operating License */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Giấy phép hoạt động</div>
-                      <a
-                        href={viewClinic.operatingLicenseUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline font-medium"
-                      >
-                        Xem giấy phép
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Operating License Expiry Date */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Ngày hết hạn giấy phép</div>
-                      <div className="text-slate-700 dark:text-slate-300">
-                        {new Intl.DateTimeFormat("vi-VN").format(new Date(viewClinic.operatingLicenseExpiryDate))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Profile Picture */}
-                {viewClinic.profilePictureUrl && (
-                  <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                        <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Ảnh đại diện</div>
-                        <a
-                          href={viewClinic.profilePictureUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline font-medium"
-                        >
-                          Xem ảnh đại diện
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Total Branches */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
-                      <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Tổng số chi nhánh</div>
-                      <div className="text-slate-700 dark:text-slate-300">{viewClinic.totalBranches}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${viewClinic.isActivated ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30"}`}>
-                      {viewClinic.isActivated ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      ) : (
-                        <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Trạng thái</div>
-                      <div
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${
-                          viewClinic.isActivated ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
-                        }`}
-                      >
-                        {viewClinic.isActivated ? "Đang hoạt động" : "Ngừng hoạt động"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-8 text-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setViewClinic(null)}
-                className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
-              >
-                Đóng
-              </motion.button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {/* Clinic Detail Modal */}
+      <ClinicDetailModal clinic={viewClinic} onClose={() => setViewClinic(null)} />
 
       {/* Edit Clinic Form */}
       {showEditForm && editClinic && (

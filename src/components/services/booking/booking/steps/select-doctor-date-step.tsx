@@ -2,18 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup } from "@/components/ui/radio-group";
+import {
+  RadioGroup,
+  RadioGroupItem
+} from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { BookingData, Doctor } from "../../types/booking";
 import { formatDate, groupTimeSlots } from "../../utils/booking-utils";
-import { Clock, AlertCircle } from "lucide-react";
+import { Clock, AlertCircle } from 'lucide-react';
 import { TimeSlotGroup } from "../time-slot-group";
 import { DoctorItem } from "../doctor-item";
 import { useGetBusyTimesQuery } from "@/features/booking/api";
 import { BookingService } from "../../utils/booking-service";
 import { CustomCalendar } from "./custom-calendar";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface SelectDoctorDateStepProps {
   bookingData: BookingData;
@@ -41,6 +45,7 @@ export function SelectDoctorDateStep({
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
 
   const { service, clinic } = bookingData;
 
@@ -73,7 +78,7 @@ export function SelectDoctorDateStep({
       : bookingData.doctor;
 
   // Format date for API query
-  function formatDate(date: Date): string {
+  function formatDateForApi(date: Date): string {
     const year = date?.getFullYear();
     const month = `${date?.getMonth() + 1}`.padStart(2, "0");
     const day = `${date?.getDate()}`.padStart(2, "0");
@@ -85,11 +90,11 @@ export function SelectDoctorDateStep({
     {
       doctorId: currentDoctor?.id || "",
       clinicId: clinic?.id || "",
-      date: formatDate(selectedDate as Date),
+      date: selectedDate ? formatDateForApi(selectedDate) : "",
     },
     // Only run the query if we have all required parameters
     {
-      skip: !currentDoctor?.id || !clinic?.id || !formatDate,
+      skip: !currentDoctor?.id || !clinic?.id || !selectedDate,
     }
   );
 
@@ -160,7 +165,7 @@ export function SelectDoctorDateStep({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-muted-foreground">Đang tải danh sách bác sĩ...</p>
+        <p className="text-muted-foreground">{t("loadingDoctors")}</p>
       </div>
     );
   }
@@ -168,7 +173,7 @@ export function SelectDoctorDateStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">Chọn bác sĩ</h3>
+        <h3 className="text-lg font-medium mb-4">{t("selectDoctor")}</h3>
 
         <div className="flex items-center space-x-2 mb-4">
           <Checkbox
@@ -179,8 +184,7 @@ export function SelectDoctorDateStep({
             }
           />
           <Label htmlFor="skip-doctor" className="text-sm cursor-pointer">
-            Bỏ qua chọn bác sĩ (hệ thống sẽ tự động chọn bác sĩ có đánh giá cao
-            nhất)
+            {t("skipDoctorSelection")}
           </Label>
         </div>
 
@@ -203,7 +207,7 @@ export function SelectDoctorDateStep({
         ) : (
           highestRatedDoctor && (
             <div className="bg-primary/5 p-4 rounded-lg mb-4">
-              <p className="font-medium">Bác sĩ được chọn tự động:</p>
+              <p className="font-medium">{t("automaticallySelectedDoctor")}:</p>
               <div className="mt-2">
                 <DoctorItem
                   doctor={highestRatedDoctor}
@@ -218,21 +222,21 @@ export function SelectDoctorDateStep({
       </div>
 
       <div className="mt-8">
-        <h3 className="text-lg font-medium mb-4">Chọn ngày và giờ</h3>
+        <h3 className="text-lg font-medium mb-4">{t("selectDateTime")}</h3>
         <p className="text-muted-foreground mb-4">
-          Vui lòng chọn thời gian bạn muốn thực hiện dịch vụ
+          {t("pleaseSelectTime")}
         </p>
 
         {missingRequirements && (
           <Alert variant="default" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Thiếu thông tin</AlertTitle>
+            <AlertTitle>{t("missingInfo")}</AlertTitle>
             <AlertDescription>
               {!currentDoctor && !clinic
-                ? "Vui lòng chọn bác sĩ và cơ sở trước khi chọn ngày và giờ."
+                ? t("selectDoctorClinicFirst")
                 : !currentDoctor
-                ? "Vui lòng chọn bác sĩ trước khi chọn ngày và giờ."
-                : "Vui lòng chọn cơ sở trước khi chọn ngày và giờ."}
+                ? t("selectDoctorFirst")
+                : t("selectClinicFirst")}
             </AlertDescription>
           </Alert>
         )}
@@ -240,7 +244,7 @@ export function SelectDoctorDateStep({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Calendar column */}
           <div className="bg-muted/30 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">Chọn ngày</h4>
+            <h4 className="font-medium mb-2">{t("selectDate")}</h4>
             <CustomCalendar
               mode="single"
               selected={selectedDate}
@@ -260,33 +264,33 @@ export function SelectDoctorDateStep({
 
           {/* Time slots column */}
           <div>
-            <h4 className="font-medium mb-2">Chọn giờ</h4>
+            <h4 className="font-medium mb-2">{t("selectTime")}</h4>
             {selectedDate ? (
               isLoading ? (
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
                   <p className="text-muted-foreground">
-                    Đang tải khung giờ trống...
+                    {t("loadingTimeSlots")}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <TimeSlotGroup
-                    title="Buổi sáng"
+                    title={t("morning")}
                     timeSlots={timeSlotGroups.morning}
                     selectedTime={selectedTime}
                     onTimeSelect={handleTimeSelect}
                   />
 
                   <TimeSlotGroup
-                    title="Buổi chiều"
+                    title={t("afternoon")}
                     timeSlots={timeSlotGroups.afternoon}
                     selectedTime={selectedTime}
                     onTimeSelect={handleTimeSelect}
                   />
 
                   <TimeSlotGroup
-                    title="Buổi tối"
+                    title={t("evening")}
                     timeSlots={timeSlotGroups.evening}
                     selectedTime={selectedTime}
                     onTimeSelect={handleTimeSelect}
@@ -295,8 +299,7 @@ export function SelectDoctorDateStep({
                   {availableTimeSlots.length === 0 && (
                     <div className="p-4 text-center bg-muted/30 rounded-lg">
                       <p className="text-muted-foreground">
-                        Không có khung giờ trống cho ngày này. Vui lòng chọn
-                        ngày khác.
+                        {t("noAvailableSlots")}
                       </p>
                     </div>
                   )}
@@ -305,7 +308,7 @@ export function SelectDoctorDateStep({
             ) : (
               <div className="p-8 text-center bg-muted/30 rounded-lg h-full flex items-center justify-center">
                 <p className="text-muted-foreground">
-                  Vui lòng chọn ngày trước
+                  {t("selectDateFirst")}
                 </p>
               </div>
             )}
@@ -314,7 +317,7 @@ export function SelectDoctorDateStep({
 
         {selectedDate && selectedTime && (
           <div className="mt-4 p-4 bg-primary/5 rounded-lg">
-            <p className="font-medium">Bạn đã chọn:</p>
+            <p className="font-medium">{t("youSelected")}</p>
             <div className="flex items-center mt-2">
               <Badge variant="outline" className="mr-2">
                 {selectedDate ? formatDate(selectedDate) : ""}

@@ -19,6 +19,7 @@ import { livestream } from "./livestream";
 import { LivestreamRoomTranslations } from "./livestream-room";
 import { clinicProfileMessages } from "./clinicProfile";
 import { packageMessages } from './package';
+import { BookingFlowMessages } from "./booking-flow";
 
 export type Messages = {
   home: homeMessages;
@@ -43,4 +44,5 @@ export type Messages = {
   livestreamRoom: LivestreamRoomTranslations;
   clinicProfile: clinicProfileMessages; // Add this line
   package: packageMessages;
+  bookingFlow: BookingFlowMessages;
 };

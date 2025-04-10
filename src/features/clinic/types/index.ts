@@ -13,7 +13,7 @@ export interface Clinic {
   taxCode: string
   businessLicenseUrl: string
   operatingLicenseUrl: string
-  operatingLicenseExpiryDate: string | null
+  operatingLicenseExpiryDate: string 
   profilePictureUrl: string | null
   totalBranches: number
   isActivated: boolean

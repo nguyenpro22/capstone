@@ -18,6 +18,7 @@ import { staffMessages } from "./staff";
 import { clinicProfileMessages } from "./clinicProfile";
 import { livestream } from "./livestream";
 import { livestreamRoom } from "./livestream-room";
+import { bookingFlowMessages } from './booking-flow';
 
 const en = {
   home: homeMessages,
@@ -40,7 +41,8 @@ const en = {
   clinicProfile: clinicProfileMessages,
   livestream,
   livestreamRoom,
-  package: packageMessages
+  package: packageMessages,
+  bookingFlow : bookingFlowMessages
 };
 
 export default en;
