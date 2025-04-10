@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -207,6 +207,7 @@ export function RegisterClinicForm() {
     setValue,
     clearErrors,
     trigger,
+    getValues,
   } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -224,11 +225,52 @@ export function RegisterClinicForm() {
     },
   })
 
+  // Refs for input elements to handle autofill
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const phoneInputRef = useRef<HTMLInputElement>(null)
+  const taxCodeInputRef = useRef<HTMLInputElement>(null)
+  const addressInputRef = useRef<HTMLInputElement>(null)
+
+  // Handle autofill detection
+  useEffect(() => {
+    // Function to check if inputs have been autofilled
+    const checkAutofill = () => {
+      if (nameInputRef.current && nameInputRef.current.value) {
+        setValue("name", nameInputRef.current.value)
+      }
+      if (emailInputRef.current && emailInputRef.current.value) {
+        setValue("email", emailInputRef.current.value)
+      }
+      if (phoneInputRef.current && phoneInputRef.current.value) {
+        setValue("phoneNumber", phoneInputRef.current.value.replace(/[^0-9]/g, ""))
+      }
+      if (taxCodeInputRef.current && taxCodeInputRef.current.value) {
+        setValue("taxCode", taxCodeInputRef.current.value)
+      }
+      if (addressInputRef.current && addressInputRef.current.value) {
+        const value = addressInputRef.current.value
+        setAddressDetail(prev => ({
+          ...prev,
+          streetAddress: value
+        }))
+        setValue("address", value)
+      }
+    }
+
+    // Check immediately and then periodically
+    checkAutofill()
+    const intervalId = setInterval(checkAutofill, 1000)
+
+    // Clean up interval
+    return () => clearInterval(intervalId)
+  }, [setValue])
+
   // Update validation errors when React Hook Form errors change
   useEffect(() => {
     if (isSubmitted && Object.keys(errors).length > 0) {
       const newValidationErrors: ValidationErrors = {}
-      
+
       if (errors.name) {
         newValidationErrors.name = errors.name.message as string
       }
@@ -256,14 +298,16 @@ export function RegisterClinicForm() {
       if (errors.operatingLicenseExpiryDate) {
         newValidationErrors.operatingLicenseExpiryDate = errors.operatingLicenseExpiryDate.message as string
       }
-      
+
       setValidationErrors(newValidationErrors)
     }
   }, [errors, isSubmitted])
 
   // Handle input change to clear validation errors
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name } = e.target
+    const { name, value } = e.target
+    console.log(`Input change: ${name} = ${value}`)
+    
     if (validationErrors[name as keyof ValidationErrors]) {
       setValidationErrors((prev) => {
         const newErrors = { ...prev }
@@ -330,73 +374,56 @@ export function RegisterClinicForm() {
 
   // Validate form manually
   const validateForm = () => {
-    // Trigger React Hook Form validation
-    trigger().then((isValid) => {
-      if (!isValid) {
-        // React Hook Form validation failed, errors will be updated in the useEffect
-        console.log("Form validation failed:", errors)
-      }
-    })
+    // Get values directly from React Hook Form
+    const formValues = getValues()
+    console.log("Form values from getValues():", formValues)
 
     // Manual validation for required fields
     const newValidationErrors: ValidationErrors = {}
     let hasValidationError = false
 
-    // Get form values
-    const formValues = {
-      name: document.querySelector<HTMLInputElement>('input[name="name"]')?.value || "",
-      email: document.querySelector<HTMLInputElement>('input[name="email"]')?.value || "",
-      phoneNumber: document.querySelector<HTMLInputElement>('input[name="phoneNumber"]')?.value || "",
-      taxCode: document.querySelector<HTMLInputElement>('input[name="taxCode"]')?.value || "",
-      address: addressDetail.streetAddress,
-      city: addressDetail.provinceName,
-      district: addressDetail.districtName,
-      ward: addressDetail.wardName,
-      operatingLicenseExpiryDate: document.querySelector<HTMLInputElement>('input[name="operatingLicenseExpiryDate"]')?.value || "",
-    }
-
     // Check each field
-    if (!formValues.name.trim()) {
+    if (!formValues.name || formValues.name.trim() === "") {
       newValidationErrors.name = t("form.validation.nameRequired")
       hasValidationError = true
     }
 
-    if (!formValues.email.trim()) {
+    if (!formValues.email || formValues.email.trim() === "") {
       newValidationErrors.email = t("form.validation.emailInvalid")
       hasValidationError = true
     }
 
-    if (!formValues.phoneNumber.trim()) {
+    if (!formValues.phoneNumber || formValues.phoneNumber.trim() === "") {
       newValidationErrors.phoneNumber = t("form.validation.phoneRequired")
       hasValidationError = true
     }
 
-    if (!formValues.taxCode.trim()) {
+    if (!formValues.taxCode || formValues.taxCode.trim() === "") {
       newValidationErrors.taxCode = t("form.validation.taxCodeRequired")
       hasValidationError = true
     }
 
-    if (!formValues.address.trim()) {
+    if (!formValues.address || formValues.address.trim() === "") {
       newValidationErrors.address = t("form.validation.addressRequired")
       hasValidationError = true
     }
 
-    if (!formValues.city.trim()) {
+    if (!formValues.city || formValues.city.trim() === "") {
       newValidationErrors.city = t("form.validation.cityRequired")
       hasValidationError = true
     }
 
-    if (!formValues.district.trim()) {
+    if (!formValues.district || formValues.district.trim() === "") {
       newValidationErrors.district = t("form.validation.districtRequired")
       hasValidationError = true
     }
 
-    if (!formValues.ward.trim()) {
+    if (!formValues.ward || formValues.ward.trim() === "") {
       newValidationErrors.ward = t("form.validation.wardRequired")
       hasValidationError = true
     }
 
-    if (!formValues.operatingLicenseExpiryDate.trim()) {
+    if (!formValues.operatingLicenseExpiryDate || formValues.operatingLicenseExpiryDate.trim() === "") {
       newValidationErrors.operatingLicenseExpiryDate = t("form.validation.expiryDateRequired")
       hasValidationError = true
     }
@@ -439,6 +466,8 @@ export function RegisterClinicForm() {
   const onSubmit = async (data: z.infer<typeof formSchema>, e?: React.BaseSyntheticEvent) => {
     // Prevent default form submission
     e?.preventDefault()
+
+    console.log("Form submitted with data:", data)
 
     // Reset errors
     setFileErrors({})
@@ -646,7 +675,9 @@ export function RegisterClinicForm() {
                 </label>
                 <input
                   type="text"
+                  id="name"
                   {...register("name")}
+                  ref={nameInputRef}
                   placeholder={t("form.placeholders.name")}
                   onChange={(e) => {
                     handleInputChange(e)
@@ -669,7 +700,9 @@ export function RegisterClinicForm() {
                 </label>
                 <input
                   type="email"
+                  id="email"
                   {...register("email")}
+                  ref={emailInputRef}
                   placeholder={t("form.placeholders.email")}
                   onChange={(e) => {
                     handleInputChange(e)
@@ -701,12 +734,14 @@ export function RegisterClinicForm() {
                 </label>
                 <input
                   type="text"
+                  id="phoneNumber"
                   {...register("phoneNumber")}
+                  ref={phoneInputRef}
                   placeholder={t("form.placeholders.phoneNumber")}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, "")
                     setValue("phoneNumber", value)
-                    handleInputChange(e)
+                    handleInputChange({...e, target: {...e.target, value}})
                   }}
                   className={`w-full px-3 py-2 h-10 border ${
                     validationErrors.phoneNumber
@@ -726,7 +761,9 @@ export function RegisterClinicForm() {
                 </label>
                 <input
                   type="text"
+                  id="taxCode"
                   {...register("taxCode")}
+                  ref={taxCodeInputRef}
                   placeholder={t("form.placeholders.taxCode")}
                   onChange={(e) => {
                     handleInputChange(e)
@@ -763,7 +800,9 @@ export function RegisterClinicForm() {
                 </label>
                 <input
                   type="text"
+                  id="address"
                   {...register("address")}
+                  ref={addressInputRef}
                   placeholder={t("form.placeholders.address")}
                   value={addressDetail.streetAddress}
                   onChange={(e) => {
@@ -915,6 +954,7 @@ export function RegisterClinicForm() {
               </label>
               <input
                 type="date"
+                id="operatingLicenseExpiryDate"
                 {...register("operatingLicenseExpiryDate")}
                 onChange={(e) => {
                   handleInputChange(e)

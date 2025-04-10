@@ -95,4 +95,6 @@ export type doctorMessages = {
   updateDoctorInfo: string
   changeDoctorBranch: string
   updateDoctorBranch: string
+  deleteDoctorConfirmation: string
+  confirmDelete: string
   }

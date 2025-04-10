@@ -22,6 +22,7 @@ import { MenuPortal } from "@/components/ui/menu-portal"
 // Add the import for getAccessToken and GetDataByToken
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Doctor } from "@/features/clinic/types"
+import ConfirmationDialog from "@/components/ui/confirmation-dialog"
 
 interface BranchViewModalProps {
   branches: Array<{ id: string; name: string; fullAddress?: string }>
@@ -80,6 +81,8 @@ export default function DoctorPage() {
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
   const clinicId = tokenData?.clinicId || ""
 
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [doctorToDelete, setDoctorToDelete] = useState<string | null>(null)
   const [viewDoctor, setViewDoctor] = useState<Doctor | null>(null)
   const [editDoctor, setEditDoctor] = useState<Doctor | null>(null)
   const [changeBranchDoctor, setChangeBranchDoctor] = useState<Doctor | null>(null)
@@ -122,7 +125,7 @@ export default function DoctorPage() {
   const delayedRefetch = useDelayedRefetch(refetch)
 
   const [fetchDoctorById] = useLazyGetDoctorByIdQuery()
-  const [deleteDoctor] = useDeleteDoctorMutation()
+  const [deleteDoctor, { isLoading: isDeleting }] = useDeleteDoctorMutation()
 
   // Update to match the actual response structure with nested items
   const doctorList: Doctor[] = data?.value?.items || []
@@ -252,31 +255,38 @@ export default function DoctorPage() {
       }
       setShowChangeBranchForm(true)
     }
+    if (action === "delete") {
+      setDoctorToDelete(doctorId)
+      setConfirmDialogOpen(true)
+    }
 
     setMenuOpen(null)
   }
 
   // Update the handleDeleteDoctor function to use the correct API structure
-  const handleDeleteDoctor = async (doctorId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa bác sĩ này?")) {
-      try {
-        // Check if clinicId is available
-        if (!clinicId) {
-          toast.error("Clinic ID not found. Please try again or contact support.")
-          return
-        }
+  const handleDeleteDoctor = async (doctorId: string, branchId?: string) => {
+    try {
+      // Find the doctor to get their branch ID if not provided
+      const doctorToDelete = doctorList.find((doc) => doc.employeeId === doctorId)
+      const branchIdToUse =
+        branchId || (doctorToDelete?.branchs && doctorToDelete.branchs.length > 0 ? doctorToDelete.branchs[0].id : null)
 
-        await deleteDoctor({
-          id: clinicId, // clinicId is now guaranteed to be a string
-          accountId: doctorId, // Use doctorId as the accountId parameter
-        }).unwrap()
-
-        toast.success("Bác sĩ đã được xóa thành công!")
-        delayedRefetch() // Use delayed refetch instead of immediate refetch
-      } catch (error) {
-        console.error(error)
-        toast.error("Xóa bác sĩ thất bại!")
+      // Check if we have a valid branch ID
+      if (!branchIdToUse) {
+        toast.error("Branch ID not found. Please try again or contact support.")
+        return
       }
+
+      await deleteDoctor({
+        id: branchIdToUse,
+        accountId: doctorId,
+      }).unwrap()
+
+      toast.success("Bác sĩ đã được xóa thành công!")
+      delayedRefetch()
+    } catch (error) {
+      console.error(error)
+      toast.error("Xóa bác sĩ thất bại!")
     }
   }
 
@@ -522,12 +532,19 @@ export default function DoctorPage() {
                   {t("changeBranch") || "Change Branch"}
                 </li>
                 <li
+                  className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300 cursor-pointer flex items-center gap-2 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleMenuAction("delete", doctor.employeeId)
+                  }}
+                >
+                  {/* <li
                   className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleDeleteDoctor(doctor.employeeId)
+                    handleDeleteDoctor(doctor.employeeId, doctor.branchs?.[0]?.id)
                   }}
-                >
+                > */}
                   <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                   </span>
@@ -616,6 +633,25 @@ export default function DoctorPage() {
       </div>
 
       {viewDoctor && <ViewDoctorModal viewDoctor={viewDoctor} onClose={() => setViewDoctor(null)} />}
+
+      <ConfirmationDialog
+        isOpen={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={() => {
+          if (doctorToDelete) {
+            handleDeleteDoctor(doctorToDelete)
+            setConfirmDialogOpen(false)
+          }
+        }}
+        title={t("confirmDelete")}
+        message={
+          t("deleteDoctorConfirmation") || "Bạn có chắc chắn muốn xóa bác sĩ này? Hành động này không thể hoàn tác."
+        }
+        confirmButtonText={t("deleteDoctor")}
+        cancelButtonText={t("cancel")}
+        isLoading={isDeleting}
+        type="delete"
+      />
     </div>
   )
 }

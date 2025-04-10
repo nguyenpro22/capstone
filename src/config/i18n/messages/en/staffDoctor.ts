@@ -98,4 +98,6 @@ export const doctorMessages: Messages["staffDoctor"] = {
   updateDoctorInfo: "Update doctor information",
   changeDoctorBranch: "Change Doctor's Branch",
   updateDoctorBranch: "Update the branch assignment for this doctor",
+  deleteDoctorConfirmation:"Are you sure you want to delete this doctor? This action cannot be undone.",
+  confirmDelete: "Confirm Delete",
 }

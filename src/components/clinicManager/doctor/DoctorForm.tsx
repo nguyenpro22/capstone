@@ -96,7 +96,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
       formData.append("clinicId", data.branchId) // Use selected branchId as clinicId
 
       await addDoctor({
-        id: clinicId, // Main clinicId for the API endpoint
+        id: data.branchId, // Main clinicId for the API endpoint
         data: formData,
       }).unwrap()
 
