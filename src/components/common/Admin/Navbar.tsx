@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import type React from "react"
-import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { Bell, Search, Moon, Sun } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import type React from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Bell, Search, Moon, Sun } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,28 +14,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import { useTheme } from "next-themes"
-import { RootState } from "@/store"
-import { useSelector } from "react-redux"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import { useTheme } from "next-themes";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
   ssr: false,
-})
+});
 
 interface NavbarProps {
-  children?: React.ReactNode
-  sidebarClosed?: boolean
+  children?: React.ReactNode;
+  sidebarClosed?: boolean;
 }
 
-export default function Navbar({ children, sidebarClosed = false }: NavbarProps) {
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
+export default function Navbar({
+  children,
+  sidebarClosed = false,
+}: NavbarProps) {
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
-  const token = getAccessToken()
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
+  const token = getAccessToken();
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
   // const name = tokenData?.name || "User"
   // const role = tokenData?.roleName || "Guest"
   const user = useSelector((state: RootState) => state.auth.user);
@@ -43,19 +46,34 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
   const role = user?.roleName;
   console.log("log user: ", user);
   const notifications = [
-    { id: 1, title: "New Appointment", message: "You have a new appointment request", time: "5 minutes ago" },
-    { id: 2, title: "Treatment Complete", message: "Treatment session completed successfully", time: "1 hour ago" },
-    { id: 3, title: "Review Received", message: "New customer review received", time: "2 hours ago" },
-  ]
+    {
+      id: 1,
+      title: "New Appointment",
+      message: "You have a new appointment request",
+      time: "5 minutes ago",
+    },
+    {
+      id: 2,
+      title: "Treatment Complete",
+      message: "Treatment session completed successfully",
+      time: "1 hour ago",
+    },
+    {
+      id: 3,
+      title: "Review Received",
+      message: "New customer review received",
+      time: "2 hours ago",
+    },
+  ];
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    router.push("/login")
-  }
+    localStorage.removeItem("access_token");
+    router.push("/login");
+  };
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   return (
     <motion.header
@@ -107,11 +125,18 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 dark:bg-gray-900 dark:border-gray-800">
+            <DropdownMenuContent
+              align="end"
+              className="w-80 dark:bg-gray-900 dark:border-gray-800"
+            >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none dark:text-white">Notifications</p>
-                  <p className="text-xs text-muted-foreground dark:text-gray-400">You have 3 unread messages</p>
+                  <p className="text-sm font-medium leading-none dark:text-white">
+                    Notifications
+                  </p>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">
+                    You have 3 unread messages
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="dark:border-gray-800" />
@@ -125,9 +150,15 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
                       <Bell className="h-4 w-4 text-pink-500" />
                     </div>
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none dark:text-white">{notification.title}</p>
-                      <p className="text-xs text-muted-foreground dark:text-gray-400">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground dark:text-gray-400">{notification.time}</p>
+                      <p className="text-sm font-medium leading-none dark:text-white">
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground dark:text-gray-400">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground dark:text-gray-400">
+                        {notification.time}
+                      </p>
                     </div>
                   </div>
                 </DropdownMenuItem>
@@ -148,17 +179,32 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
                 className="relative h-12 w-fit space-x-3 hover:bg-pink-50 dark:hover:bg-gray-800 transition-colors duration-200"
               >
                 <Avatar className="h-9 w-9 border-2 border-pink-200 dark:border-pink-600">
-                  <AvatarImage src="https://placehold.co/40x40.png" alt={name} />
-                  <AvatarFallback> {(name ?? "").substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarImage
+                    src="https://placehold.co/40x40.png"
+                    alt={name}
+                  />
+                  <AvatarFallback>
+                    {" "}
+                    {(name ?? "").substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium text-foreground dark:text-white">{name}</span>
-                  <span className="text-xs text-muted-foreground dark:text-gray-400">{role}</span>
+                  <span className="text-sm font-medium text-foreground dark:text-white">
+                    {name}
+                  </span>
+                  <span className="text-xs text-muted-foreground dark:text-gray-400">
+                    {role}
+                  </span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 dark:bg-gray-900 dark:border-gray-800">
-              <DropdownMenuLabel className="dark:text-white">My Account</DropdownMenuLabel>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 dark:bg-gray-900 dark:border-gray-800"
+            >
+              <DropdownMenuLabel className="dark:text-white">
+                My Account
+              </DropdownMenuLabel>
               <DropdownMenuSeparator className="dark:border-gray-800" />
               <DropdownMenuItem
                 onClick={() => router.push("/clinicManager/profile")}
@@ -184,5 +230,5 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
         </div>
       </div>
     </motion.header>
-  )
+  );
 }

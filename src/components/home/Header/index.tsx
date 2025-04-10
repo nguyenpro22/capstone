@@ -30,10 +30,10 @@ import { Badge } from "@/components/ui/badge";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import LangToggle from "@/components/common/LangToggle";
 import { customerRoutes } from "@/constants";
-import { useAuth } from "@/features/auth/hooks/useAuth";
 import { normalizeVietnameseText } from "@/utils/vietnamese-text";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { handleLogout } from "@/features/auth/utils";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -84,10 +84,11 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const t = useTranslations("home");
   const router = useRouter();
-  const { handleLogout } = useAuth();
   const token = getAccessToken() as string;
   const user = useSelector((state: RootState) => state.auth.user);
-
+  const onLogout = async () => {
+    await handleLogout({ t, router });
+  };
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
@@ -289,7 +290,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                     <span>Lịch hẹn</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={onLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>
@@ -400,7 +401,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                             <Button
                               variant="outline"
                               className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                              onClick={handleLogout}
+                              onClick={onLogout}
                             >
                               <LogOut className="mr-2 h-4 w-4" />
                               Đăng xuất
