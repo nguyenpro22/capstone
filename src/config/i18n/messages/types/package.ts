@@ -25,8 +25,8 @@ export type packageMessages = {
     cannotGetPackageInfo: string;
     close: string;
     no: string;
-    month: string;
-    months: string;
+    day: string;
+    days: string;
     branch: string;
     branches: string;
     streams: string;

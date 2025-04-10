@@ -51,6 +51,8 @@ import {
 } from "@/features/customer-schedule/api";
 import { promotionCommandApi } from "@/features/promotion-service/api";
 import { workingScheduleApi } from "@/features/working-schedule/api";
+import { bankApi } from "@/features/bank/api";
+import { doctorServiceCommandApi } from "@/features/doctor-service/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -91,6 +93,9 @@ const rootReducer = combineReducers({
   [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
   [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
   [workingScheduleApi.reducerPath]: workingScheduleApi.reducer,
+  [bankApi.reducerPath]: bankApi.reducer,
+  [doctorServiceCommandApi.reducerPath]: doctorServiceCommandApi.reducer,
+
   
 });
 
@@ -133,8 +138,11 @@ const store = configureStore({
       customerScheduleQueryApi.middleware,
       customerScheduleCommandApi.middleware,
       promotionCommandApi.middleware,
-      workingScheduleApi.middleware
+      workingScheduleApi.middleware,
+      bankApi.middleware,
+      doctorServiceCommandApi.middleware
 
+      
     ),
 });
 

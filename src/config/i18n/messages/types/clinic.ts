@@ -1,19 +1,76 @@
 export type clinicMessages = {
-    clinicsList: string;
-    fullName: string;
-    email: string;
-    address: string;
-    totalBranches: string;
-    status: string;
-    action: string;
-    exportExcel: string;
-    searchByName: string;
-    active: string;
-    inactive: string;
-    viewClinicDetail: string;
-    editClinic: string;
-    deleteClinic : string;
-    previous: string;
-    next: string;
-  };
-  
+  clinicsList: string
+  fullName: string
+  email: string
+  address: string
+  totalBranches: string
+  status: string
+  action: string
+  exportExcel: string
+  searchByName: string
+  active: string
+  inactive: string
+  viewClinicDetail: string
+  editClinic: string
+  deleteClinic: string
+  previous: string
+  next: string
+
+  // Added keys for ClinicDetailModal
+  clinicDetails: string
+  clinicName: string
+  phoneNumber: string
+  taxCode: string
+  businessLicense: string
+  viewBusinessLicense: string
+  operatingLicense: string
+  viewOperatingLicense: string
+  operatingLicenseExpiryDate: string
+  profilePicture: string
+  viewProfilePicture: string
+  close: string
+
+  // Added keys for clinic-form
+  updateClinicInfo: string
+  basicInfo: string
+  bankingInfo: string
+  bankName: string
+  bankAccountNumber: string
+  addressDetails: string
+  provinceCity: string
+  district: string
+  ward: string
+  streetAddress: string
+  fullAddress: string
+  optional: string
+  acceptedFormats: string
+  currentImage: string
+  cancel: string
+  saveChanges: string
+  saving: string
+  enterClinicName: string
+  enterEmail: string
+  enterPhoneNumber: string
+  enterBankName: string
+  enterAccountNumber: string
+  selectProvinceCity: string
+  selectDistrict: string
+  selectWard: string
+  enterStreetAddress: string
+  loadingProvinces: string
+  loadingDistricts: string
+  loadingWards: string
+  selectProvinceFirst: string
+  selectDistrictFirst: string
+  current: string
+  clinicIdMissing: string
+  updateSuccess: string
+  updateFailed: string
+  fixErrors: string
+
+  // Added keys for bank selection
+  loadingBanks: string
+  searchBank: string
+  noBanksFound: string
+  bankingInfoHelp: string
+}

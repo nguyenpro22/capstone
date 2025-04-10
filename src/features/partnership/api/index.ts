@@ -10,6 +10,10 @@ export const partnershipRequestApi = createApi({
       query: ({ pageIndex, pageSize, searchTerm }) =>
         `/clinics/application?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
     }),
+    // New endpoint to get a specific partnership request by ID
+    getPartnershipRequestById: builder.query({
+      query: (id) => `clinics/application/${id}`,
+    }),
   }),
 })
 
@@ -28,7 +32,6 @@ export const partnershipRequestCommandApi = createApi({
   }),
 })
 
-export const { useGetPartnershipRequestsQuery } = partnershipRequestApi
+export const { useGetPartnershipRequestsQuery, useGetPartnershipRequestByIdQuery } = partnershipRequestApi
 
 export const { useUpdatePartnershipRequestMutation } = partnershipRequestCommandApi
-

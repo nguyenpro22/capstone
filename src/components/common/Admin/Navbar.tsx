@@ -20,6 +20,7 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import { useTheme } from "next-themes"
 import { RootState } from "@/store"
 import { useSelector } from "react-redux"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
   ssr: false,
@@ -48,10 +49,8 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
     { id: 3, title: "Review Received", message: "New customer review received", time: "2 hours ago" },
   ]
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    router.push("/login")
-  }
+    const { handleLogout } = useAuth();
+  
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark")
