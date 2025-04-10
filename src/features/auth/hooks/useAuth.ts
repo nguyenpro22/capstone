@@ -29,15 +29,15 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../slice";
 
 // Firebase imports
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
-  signOut
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
-import { firebaseApp } from "../../../utils/firebaseClient"; // Đường dẫn đến file firebase client
+import { firebaseApp } from "../../../utils/firebaseClient"; 
 
 // Types for authentication status
 type AuthStatus = "idle" | "authenticating" | "authenticated" | "error";
@@ -57,7 +57,7 @@ export const useAuth = () => {
   const [loginGoogle] = useLoginWithGoogleMutation();
   // Move the dispatch hook to the top level
   const dispatch = useDispatch();
-  
+
   // Initialize Firebase auth
   const auth = getAuth(firebaseApp);
   const googleProvider = new GoogleAuthProvider();
@@ -322,7 +322,10 @@ export const useAuth = () => {
           }).unwrap();
 
           // Process authentication success
-          const provider = user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'OAuth';
+          const provider =
+            user.providerData[0]?.providerId === "google.com"
+              ? "Google"
+              : "OAuth";
           const userName = user.displayName || user.email || "";
 
           await processAuthSuccess(
@@ -454,11 +457,15 @@ export const useAuth = () => {
 
         // Try Firebase authentication first
         try {
-          await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+          await signInWithEmailAndPassword(
+            auth,
+            credentials.email,
+            credentials.password
+          );
           // Firebase auth state change listener will handle the rest
         } catch (firebaseError: any) {
           console.error("Firebase login error:", firebaseError);
-          
+
           // Fall back to API login for Firebase errors
           const response = await login(credentials).unwrap();
 
@@ -545,14 +552,19 @@ export const useAuth = () => {
         if (provider === "google") {
           // Configure Google provider
           googleProvider.setCustomParameters({
-            prompt: 'select_account',
-            access_type: 'offline'
+            prompt: "select_account",
+            access_type: "offline",
           });
-          
-          // Sign in with Google popup
-          await signInWithPopup(auth, googleProvider);
-          // The auth state change listener will handle the rest
-          
+
+          try {
+            // Sign in with Google popup
+            await signInWithPopup(auth, googleProvider);
+            // Important: Reset processing flag, since auth state listener will handle the rest
+            setProcessingAuth(false);
+          } catch (popupError) {
+            // Handle popup-specific errors here
+            throw popupError;
+          }
         } else if (provider === "github") {
           // GitHub authentication would need to be implemented if needed
           setAuthStatus("error");
@@ -561,13 +573,13 @@ export const useAuth = () => {
         }
       } catch (error: any) {
         console.error("Unexpected error during provider auth:", error);
-        
+
         // Handle Firebase authentication errors
-        if (error.code === 'auth/popup-closed-by-user') {
+        if (error.code === "auth/popup-closed-by-user") {
           setAuthStatus("error");
           setAuthError(t("authCancelled"));
           showError(t("authCancelled"));
-        } else if (error.code === 'auth/popup-blocked') {
+        } else if (error.code === "auth/popup-blocked") {
           setAuthStatus("error");
           setAuthError(t("popupBlocked"));
           showError(t("popupBlocked"));
