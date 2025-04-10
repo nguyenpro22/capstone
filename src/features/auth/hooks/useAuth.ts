@@ -437,8 +437,10 @@ export const useAuth = () => {
       // Sign out from Firebase
       await signOut(auth);
 
-      // Clear tokens and state
-      clearToken();
+
+      // clearToken();
+      await fetch("/api/logout", { method: "POST" });
+
       setUserData(null);
       setAuthStatus("idle");
       setAuthError(null);

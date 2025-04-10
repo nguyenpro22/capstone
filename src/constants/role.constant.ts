@@ -5,4 +5,5 @@ export const ROLE = {
   CUSTOMER: "Customer",
   CLINIC_ADMIN: "Clinic Admin",
   CLINIC_STAFF: "Clinic Staff",
+  GUEST: "Guest",
 };

@@ -38,7 +38,7 @@ export interface Booking {
   end: string; // "HH:mm:ss"
   serviceName: string;
   procedureId: string;
-  stepIndex: string;
+  stepIndex: number;
   name: string;
   duration: number;
   dateCompleted: string; // "YYYY-MM-DD"

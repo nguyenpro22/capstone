@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ export default function NotFound() {
   const [typedText, setTypedText] = useState("");
   const fullText = "Trang mà bạn tìm kiếm không tồn tại hoặc đã bị xóa";
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     const top = Math.random() * 100;
     const left = Math.random() * 100;
@@ -31,7 +33,9 @@ export default function NotFound() {
   }, []);
 
   const handleBackToHome = () => {
-    router.push("/");
+    if (isLoading) return; // tránh click nhiều lần
+    setIsLoading(true);
+    router.back(); // hoặc router.push("/") nếu muốn redirect home
   };
 
   return (
@@ -98,9 +102,43 @@ export default function NotFound() {
         {/* Enhanced button with hover effect */}
         <Button
           onClick={handleBackToHome}
-          className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 hover:animate-pulse"
+          className={`bg-gradient-to-r from-purple-500 to-indigo-500 text-white 
+            hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 
+            ${
+              isLoading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:animate-pulse"
+            }`}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Trở về trang chủ
+          {isLoading ? (
+            <span className="flex items-center">
+              <svg
+                className="animate-spin mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
+              </svg>
+              Đang quay lại...
+            </span>
+          ) : (
+            <React.Fragment>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Trở về trang trước đó
+            </React.Fragment>
+          )}
         </Button>
       </motion.div>
 
