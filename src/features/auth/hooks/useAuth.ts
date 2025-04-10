@@ -28,16 +28,16 @@ import { useLocale } from "next-intl";
 import { useDispatch } from "react-redux";
 import { setUser } from "../slice";
 
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
+// Firebase imports
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
   signOut,
-  User as FirebaseUser
 } from "firebase/auth";
-import { firebaseApp } from "../../../utils/firebaseClient";
+import { firebaseApp } from "../../../utils/firebaseClient"; 
 
 // Types for authentication status
 type AuthStatus = "idle" | "authenticating" | "authenticated" | "error";
@@ -57,7 +57,7 @@ export const useAuth = () => {
   const [loginGoogle] = useLoginWithGoogleMutation();
   // Move the dispatch hook to the top level
   const dispatch = useDispatch();
-  
+
   // Initialize Firebase auth
   const auth = getAuth(firebaseApp);
   const googleProvider = new GoogleAuthProvider();
@@ -70,7 +70,10 @@ export const useAuth = () => {
   const [processingAuth, setProcessingAuth] = useState(false);
   const [hasShownLoginSuccess, setHasShownLoginSuccess] = useState(false);
 
-  // References for handling timeouts
+  // References for handling timeouts and popups
+  const authTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const popupRef = useRef<Window | null>(null);
+  const authCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialAuthCheckRef = useRef(false);
   const initialSignInProcessedRef = useRef(false);
@@ -211,6 +214,17 @@ export const useAuth = () => {
           // Only redirect for new logins
           handleRedirectByRole(userData.roleName);
         }
+
+        // Clean up timeouts
+        if (authTimeoutRef.current) {
+          clearTimeout(authTimeoutRef.current);
+          authTimeoutRef.current = null;
+        }
+
+        if (authCheckIntervalRef.current) {
+          clearInterval(authCheckIntervalRef.current);
+          authCheckIntervalRef.current = null;
+        }
       } catch (error) {
         console.error("Error processing authentication:", error);
         setAuthStatus("error");
@@ -242,10 +256,9 @@ export const useAuth = () => {
 
       if (token) {
         try {
-          // Firebase will handle session state through onAuthStateChanged
-          // We just need to verify our cached token is valid
+          // Verify if token is valid using Firebase
           const user = auth.currentUser;
-          
+
           if (user) {
             // Valid token, get user data
             const userData = GetDataByToken(token) as TokenData;
@@ -300,17 +313,19 @@ export const useAuth = () => {
           console.log("Environment:", process.env.NODE_ENV);
           console.log("Current path:", window.location.pathname);
 
-          // Get ID token from Firebase
+          // Get Google token from Firebase
           const idToken = await user.getIdToken();
-          console.log("Got Firebase ID token");
 
-          // Exchange Firebase token for your backend token
+          // Get Google token from session
           const loginGoogleResponse = await loginGoogle({
             googleToken: idToken,
           }).unwrap();
 
           // Process authentication success
-          const provider = user.providerData[0]?.providerId || "Firebase";
+          const provider =
+            user.providerData[0]?.providerId === "google.com"
+              ? "Google"
+              : "OAuth";
           const userName = user.displayName || user.email || "";
 
           await processAuthSuccess(
@@ -328,7 +343,6 @@ export const useAuth = () => {
           setProcessingAuth(false);
         }
       } else if (!user) {
-        // User is signed out
         clearToken();
         setUserData(null);
         setAuthStatus("idle");
@@ -344,8 +358,26 @@ export const useAuth = () => {
     return () => {
       unsubscribe();
 
+      // Clean up timeouts
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+      }
+
+      if (authCheckIntervalRef.current) {
+        clearInterval(authCheckIntervalRef.current);
+      }
+
       if (redirectTimeoutRef.current) {
         clearTimeout(redirectTimeoutRef.current);
+      }
+
+      // Close popup if open
+      if (popupRef.current && !popupRef.current.closed) {
+        try {
+          popupRef.current.close();
+        } catch (e) {
+          // Ignore errors when closing popup
+        }
       }
     };
   }, [
@@ -358,6 +390,52 @@ export const useAuth = () => {
     processAuthSuccess,
     authStatus,
   ]);
+
+  // Listen for messages from popup window - giữ nguyên để tương thích với code cũ
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Verify message origin
+      if (event.origin !== window.location.origin) return;
+
+      console.log(
+        "Received message:",
+        event.data,
+        "from origin:",
+        event.origin
+      );
+
+      // Verify message type
+      if (event.data?.type === "AUTH_COMPLETE") {
+        console.log("Received AUTH_COMPLETE message from popup", event.data);
+
+        // Check if we should process this event
+        if (!shouldProcessAuthEvent()) {
+          return;
+        }
+
+        // Clear intervals
+        if (authCheckIntervalRef.current) {
+          clearInterval(authCheckIntervalRef.current);
+          authCheckIntervalRef.current = null;
+        }
+
+        // Handle error
+        if (event.data?.error) {
+          setAuthStatus("error");
+          setAuthError(event.data.error);
+          showError(event.data.error);
+        }
+
+        // Note: Token processing is now handled by the Firebase auth listener
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [t, handleRedirectByRole, shouldProcessAuthEvent]);
 
   // Function to login with credentials
   const handleLogin = useCallback(
@@ -377,35 +455,27 @@ export const useAuth = () => {
         setHasShownLoginSuccess(false);
         localStorage.removeItem(LOGIN_SUCCESS_SHOWN_KEY);
 
-        // First sign in with Firebase
+        // Try Firebase authentication first
         try {
-          await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+          await signInWithEmailAndPassword(
+            auth,
+            credentials.email,
+            credentials.password
+          );
           // Firebase auth state change listener will handle the rest
         } catch (firebaseError: any) {
           console.error("Firebase login error:", firebaseError);
-          
-          // Handle Firebase-specific errors
-          if (firebaseError.code === 'auth/invalid-credential' || 
-              firebaseError.code === 'auth/wrong-password') {
-            setAuthStatus("error");
-            setAuthError(t("invalidCredentials"));
-            showError(t("invalidCredentials"));
-          } else if (firebaseError.code === 'auth/user-not-found') {
-            setAuthStatus("error");
-            setAuthError(t("userNotFound"));
-            showError(t("userNotFound"));
-          } else {
-            // Fall back to backend authentication for other errors
-            const response = await login(credentials).unwrap();
 
-            if (response.isSuccess) {
-              // Process authentication success
-              await processAuthSuccess(response.value);
-            } else {
-              setAuthStatus("error");
-              setAuthError(t("loginError"));
-              showError(t("loginError"));
-            }
+          // Fall back to API login for Firebase errors
+          const response = await login(credentials).unwrap();
+
+          if (response.isSuccess) {
+            // Process authentication success
+            await processAuthSuccess(response.value);
+          } else {
+            setAuthStatus("error");
+            setAuthError(t("loginError"));
+            showError(t("loginError"));
           }
         }
       } catch (error: any) {
@@ -460,43 +530,58 @@ export const useAuth = () => {
     }
   }, [auth, router, t]);
 
-  // Function to sign in with Google
+  // Function to sign in with providers (Google, GitHub, etc.)
   const signInWithProvider = useCallback(
     async (provider: "github" | "google") => {
+      // Check if authentication is already in progress
       if (authStatus === "authenticating" || processingAuth) {
         console.log("Authentication already in progress, ignoring request");
         return;
       }
 
       try {
+        // Set processing flag
         setProcessingAuth(true);
 
+        // Reset login message state for new login attempts
         setHasShownLoginSuccess(false);
         localStorage.removeItem(LOGIN_SUCCESS_SHOWN_KEY);
 
+        // Update state
         setAuthStatus("authenticating");
         setAuthError(null);
 
         if (provider === "google") {
+          // Configure Google provider
           googleProvider.setCustomParameters({
-            prompt: 'select_account',
+            prompt: "select_account",
+            access_type: "offline",
           });
-          
-          await signInWithPopup(auth, googleProvider);
-          
+
+          try {
+            // Sign in with Google popup
+            await signInWithPopup(auth, googleProvider);
+            // Important: Reset processing flag, since auth state listener will handle the rest
+            setProcessingAuth(false);
+          } catch (popupError) {
+            // Handle popup-specific errors here
+            throw popupError;
+          }
         } else if (provider === "github") {
+          // GitHub authentication would need to be implemented if needed
           setAuthStatus("error");
           setAuthError(t("providerNotSupported", { provider }));
           showError(t("providerNotSupported", { provider }));
         }
       } catch (error: any) {
         console.error("Unexpected error during provider auth:", error);
-        
-        if (error.code === 'auth/popup-closed-by-user') {
+
+        // Handle Firebase authentication errors
+        if (error.code === "auth/popup-closed-by-user") {
           setAuthStatus("error");
           setAuthError(t("authCancelled"));
           showError(t("authCancelled"));
-        } else if (error.code === 'auth/popup-blocked') {
+        } else if (error.code === "auth/popup-blocked") {
           setAuthStatus("error");
           setAuthError(t("popupBlocked"));
           showError(t("popupBlocked"));
@@ -506,6 +591,7 @@ export const useAuth = () => {
           showError(t("providerLoginError", { provider }));
         }
 
+        // Clear processing flag
         setProcessingAuth(false);
       }
     },
