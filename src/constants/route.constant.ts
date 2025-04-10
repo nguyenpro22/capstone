@@ -1,3 +1,5 @@
+import { ROLE } from "./role.constant";
+import { match } from "path-to-regexp";
 const privateSystemAdminPath = "/systemAdmin";
 const privateClinicAdminPath = "/clinicManager";
 const privateDoctorPath = "/doctor";
@@ -45,7 +47,7 @@ export const clinicStaffRoutes = {
 // CUSTOMER ROUTES
 export const customerRoutes = {
   DEFAULT: `${publicCustomerPath}/`,
-  HOME: `${publicCustomerPath}/`,
+  HOME: `${publicCustomerPath}/home`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
   LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
   ORDERS: `${publicCustomerPath}/orders`,
@@ -58,4 +60,51 @@ export const systemStaffRoutes = {
   BOOKINGS: `${privateSystemStaffPath}/bookings`,
   CUSTOMERS: `${privateSystemStaffPath}/customers`,
   CLINICS: `${privateSystemStaffPath}/clinics`,
+};
+
+export const publicRoutes = {
+  DEFAULT: "/",
+  HOME: "/home",
+  SERVICES: "/services",
+  SERVICE_DETAIL: "/services/[id]",
+  LIVESTREAM_VIEW: "/livestream-view",
+  REGISTER_CLINIC: "/registerClinic",
+};
+export const authRoutes = {
+  REGISTER: "/register",
+  LOGIN: "/login",
+  FORGOT_PASSWORD: "/forgot-password",
+};
+export const routeAccess = (path: string, role: string): boolean => {
+  const roleRoutes = {
+    [ROLE.SYSTEM_ADMIN]: systemAdminRoutes,
+    [ROLE.CLINIC_ADMIN]: clinicAdminRoutes,
+    [ROLE.DOCTOR]: doctorRoutes,
+    [ROLE.CLINIC_STAFF]: clinicStaffRoutes,
+    [ROLE.CUSTOMER]: customerRoutes,
+    [ROLE.SYSTEM_STAFF]: systemStaffRoutes,
+    [ROLE.GUEST]: publicRoutes,
+  };
+
+  // ✅ Cho phép tất cả role truy cập authRoutes
+  const authRoutePaths = Object.values(authRoutes).map((route) =>
+    route.replace(/\[([^\]]+)\]/g, ":$1")
+  );
+  if (
+    authRoutePaths.some((route) => {
+      const isMatch = match(route, { decode: decodeURIComponent });
+      return isMatch(path);
+    })
+  ) {
+    return true;
+  }
+
+  const routes = roleRoutes[role];
+  if (!routes) return false;
+
+  return Object.values(routes).some((route) => {
+    const normalized = route.replace(/\[([^\]]+)\]/g, ":$1");
+    const isMatch = match(normalized, { decode: decodeURIComponent });
+    return isMatch(path) !== false;
+  });
 };

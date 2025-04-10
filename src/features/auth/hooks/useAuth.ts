@@ -495,6 +495,7 @@ export const useAuth = () => {
 
       // Clear tokens and state
       // clearToken();
+      await fetch("/api/logout", { method: "POST" });
       setUserData(null);
       setAuthStatus("idle");
       setAuthError(null);

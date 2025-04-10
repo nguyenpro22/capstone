@@ -322,9 +322,6 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                           className="h-8 w-auto object-contain"
                         />
                       </Link>
-                      <SheetClose className="rounded-full h-8 w-8 flex items-center justify-center">
-                        <X className="h-4 w-4" />
-                      </SheetClose>
                     </div>
                   </div>
 

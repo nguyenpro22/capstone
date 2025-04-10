@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
-  // Usar el hook de autenticación mejorado
   const {
     handleLogin,
     signInWithProvider,
