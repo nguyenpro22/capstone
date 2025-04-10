@@ -53,6 +53,7 @@ export const customerRoutes = {
   ORDERS: `${publicCustomerPath}/orders`,
   SERVICES: `${publicCustomerPath}/services`,
   SERVICE_DETAIL: `${publicCustomerPath}/services/[id]`,
+  PROFILE: `${publicCustomerPath}/profile`,
 };
 export const systemStaffRoutes = {
   DEFAULT: `${privateSystemStaffPath}/clinic`,
@@ -74,6 +75,7 @@ export const authRoutes = {
   REGISTER: "/register",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
+  POPUP_CALLBACK: "/popup-callback",
 };
 export const routeAccess = (path: string, role: string): boolean => {
   const roleRoutes = {

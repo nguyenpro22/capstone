@@ -3,10 +3,11 @@
 import type React from "react";
 
 import { useState } from "react";
+import { format, parseISO } from "date-fns";
+import { vi } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -21,9 +22,10 @@ import {
   Clock3,
   Receipt,
   User,
+  X,
+  PlusCircle,
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { vi } from "date-fns/locale";
+import { Progress } from "@/components/ui/progress";
 
 interface Order {
   id: string;
@@ -50,47 +52,56 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
     }).format(amount);
   };
 
+  // Get status progress
+  const getStatusProgress = (status: string) => {
+    switch (status) {
+      case "Completed":
+        return 100;
+      case "In Progress":
+        return 50;
+      case "Pending":
+        return 25;
+      default:
+        return 0;
+    }
+  };
+
   // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Completed":
         return (
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
-            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 border-0 text-white">
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-green-500"></span>
               Hoàn thành
-            </Badge>
-          </div>
+            </div>
+          </Badge>
         );
       case "Pending":
         return (
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-            </span>
-            <Badge className="bg-gradient-to-r from-yellow-400 to-amber-500 border-0 text-white">
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-0">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-amber-500"></span>
               Chờ xử lý
-            </Badge>
-          </div>
+            </div>
+          </Badge>
         );
       case "In Progress":
         return (
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-            </span>
-            <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 border-0 text-white">
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-0">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-blue-500"></span>
               Đang xử lý
-            </Badge>
-          </div>
+            </div>
+          </Badge>
         );
       default:
-        return <Badge className="bg-gray-500">{status}</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200 border-0">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -100,7 +111,7 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
       case "Completed":
         return <CheckCircle2 className="h-6 w-6 text-green-500" />;
       case "Pending":
-        return <AlertCircle className="h-6 w-6 text-yellow-500" />;
+        return <AlertCircle className="h-6 w-6 text-amber-500" />;
       case "In Progress":
         return <Clock3 className="h-6 w-6 text-blue-500" />;
       default:
@@ -111,52 +122,65 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
-        <div
-          className={`h-2 ${
-            order.status === "Completed"
-              ? "bg-gradient-to-r from-green-500 to-emerald-500"
-              : order.status === "In Progress"
-              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-              : "bg-gradient-to-r from-yellow-400 to-amber-500"
-          }`}
-        ></div>
-        <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <Receipt className="h-6 w-6 text-primary" />
-            Chi tiết đơn hàng
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden border-0 shadow-xl">
+        <div className="relative">
+          <div className="absolute top-2 right-2 z-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-black/10 hover:bg-black/20"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-4 w-4 text-white" />
+              <span className="sr-only">Đóng</span>
+            </Button>
+          </div>
+
+          <div className="bg-gradient-to-r from-primary to-purple-600 h-28 flex items-center p-6">
+            <div className="w-full relative z-10">
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2 mb-2">
+                <Receipt className="h-5 w-5" />
+                Chi tiết đơn hàng
+              </DialogTitle>
+              <div className="flex justify-between items-center">
+                <p className="text-white text-opacity-90 text-sm">
+                  Mã đơn hàng: {order.id.substring(0, 8)}...
+                </p>
+                {getStatusBadge(order.status)}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="font-semibold text-xl">{order.serviceName}</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Mã đơn hàng: {order.id}
-              </p>
+          <div className="mb-6">
+            <h3 className="font-semibold text-xl mb-2">{order.serviceName}</h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(order.status)}
+                  <span className="font-medium">
+                    {order.status === "Completed"
+                      ? "Đơn hàng đã hoàn thành"
+                      : order.status === "In Progress"
+                      ? "Đơn hàng đang được xử lý"
+                      : "Đơn hàng đang chờ xử lý"}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {getStatusProgress(order.status)}%
+                </span>
+              </div>
+              <Progress
+                value={getStatusProgress(order.status)}
+                className="h-2"
+              />
             </div>
-            {getStatusBadge(order.status)}
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-center mb-4">
-              {getStatusIcon(order.status)}
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-500">Trạng thái đơn hàng</p>
-              <p className="font-medium">
-                {order.status === "Completed"
-                  ? "Đơn hàng đã hoàn thành"
-                  : order.status === "In Progress"
-                  ? "Đơn hàng đang được xử lý"
-                  : "Đơn hàng đang chờ xử lý"}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex items-start">
+              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
                 <Calendar className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -169,8 +193,8 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-4">
+            <div className="flex items-start">
+              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -179,8 +203,8 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-4">
+            <div className="flex items-start">
+              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
                 <Package className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -189,8 +213,8 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-4">
+            <div className="flex items-start">
+              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
                 <CreditCard className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -202,12 +226,14 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
             </div>
           </div>
 
-          <div className="mt-8">
-            <Button
-              className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white"
-              onClick={() => setIsOpen(false)}
-            >
+          <div className="mt-8 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setIsOpen(false)}>
               Đóng
+            </Button>
+
+            <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white">
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Đặt lại dịch vụ
             </Button>
           </div>
         </div>
