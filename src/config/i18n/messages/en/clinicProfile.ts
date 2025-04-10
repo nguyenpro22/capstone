@@ -21,5 +21,9 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   active: "Active",
   inactive: "Inactive",
   authRequired: "Authentication required. Please log in.",
-  failedToLoad: "Failed to load clinic information."
+  failedToLoad: "Failed to load clinic information.",
+  currentSubscription: "Current Subscription",
+  days: "Days",
+  livestreams: "Live Streams",
+  price: "Price"
 };

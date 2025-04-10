@@ -18,6 +18,7 @@ import {
   Award,
   Landmark,
   BanknoteIcon,
+  Clock,
 } from "lucide-react"
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -192,32 +193,113 @@ export default function ClinicProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-600/40 dark:to-indigo-600/40 px-6 py-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("statistics")}</h3>
-            </div>
-            <CardContent className="pt-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-500/30 dark:to-indigo-500/30 p-4 rounded-lg border border-purple-100 dark:border-purple-500/50">
-                  <div className="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-500/60 rounded-full mb-3 mx-auto">
-                    <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-200" />
-                  </div>
-                  <p className="text-center text-2xl font-bold text-gray-800 dark:text-gray-100">
-                    {clinic.totalBranches}
-                  </p>
-                  <p className="text-center text-sm text-gray-600 dark:text-gray-300">{t("branches")}</p>
-                </div>
-
-                {/* <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
-                  <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 rounded-full mb-3 mx-auto">
-                    <Award className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <p className="text-center text-2xl font-bold text-gray-800">{clinic.services?.length || 0}</p>
-                  <p className="text-center text-sm text-gray-600">Services</p>
-                </div> */}
+          {/* Current Subscription Card - Redesigned to match the new image */}
+          {clinic.currentSubscription && (
+            <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="bg-purple-100 dark:bg-purple-600/40 px-6 py-4 border-b dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("currentSubscription")}</h3>
               </div>
-            </CardContent>
-          </Card>
+              <CardContent className="p-6">
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-6 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-purple-600 dark:text-purple-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                          fill="currentColor"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <h4 className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                        {clinic.currentSubscription.name}
+                      </h4>
+                    </div>
+                    <Badge
+                      variant={clinic.currentSubscription.isActivated ? "default" : "outline"}
+                      className={`px-3 py-1 text-xs font-medium ${
+                        clinic.currentSubscription.isActivated
+                          ? "bg-green-500 hover:bg-green-500/90 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      {clinic.currentSubscription.isActivated ? t("active") : t("inactive")}
+                    </Badge>
+                  </div>
+
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 ml-7">{clinic.currentSubscription.description}</p>
+
+                  <div className="flex flex-wrap justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+                      <div>
+                        <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                          {clinic.currentSubscription.duration}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-1">{t("days")}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+                      <div>
+                        <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                          {clinic.currentSubscription.limitBranch}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-1">{t("branches")}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-purple-500 dark:text-purple-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M15 10L19.5528 7.72361C19.8343 7.58281 20 7.30339 20 7V5C20 4.44772 19.5523 4 19 4H5C4.44772 4 4 4.44772 4 5V7C4 7.30339 4.16571 7.58281 4.44721 7.72361L9 10M15 10L9 10M15 10L15 16M9 10L9 16"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M5 20H19C19.5523 20 20 19.5523 20 19V16.5C20 16.2239 19.8343 15.9445 19.5528 15.8037L15 13.5M9 13.5L4.44721 15.8037C4.16571 15.9445 4 16.2239 4 16.5V19C4 19.5523 4.44772 20 5 20Z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <div>
+                        <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                          {clinic.currentSubscription.limitLiveStream}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-1">{t("livestreams")}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">{t("price")}:</span>
+                    <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                      {clinic.currentSubscription.price === 0
+                        ? "Free"
+                        : `${clinic.currentSubscription.price.toFixed(2)}`}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Main Content */}

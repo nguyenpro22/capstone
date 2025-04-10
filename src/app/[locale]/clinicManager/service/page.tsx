@@ -1,7 +1,7 @@
 "use client"
 import { MdEditSquare } from "react-icons/md"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ImageIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -12,6 +12,7 @@ import {
 import { useGetCategoriesQuery } from "@/features/category-service/api"
 import ServiceForm from "@/components/clinicManager/ServiceForm"
 import PromotionForm from "@/components/clinicManager/PromotionForm"
+import { useDebounce } from "@/hooks/use-debounce"
 
 import EditServiceForm from "@/components/clinicManager/EditServiceForm"
 import AddProcedure from "@/components/clinicManager/AddProcedure"
@@ -48,6 +49,7 @@ export default function ServicePage() {
   const [showPromotionForm, setShowPromotionForm] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
 
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 5
@@ -55,8 +57,14 @@ export default function ServicePage() {
   const { data, refetch } = useGetServicesQuery({
     pageIndex,
     pageSize,
-    searchTerm,
+    searchTerm: debouncedSearchTerm,
   })
+
+  // Reset page index when search term changes
+  useEffect(() => {
+    setPageIndex(1)
+  }, [debouncedSearchTerm])
+
   // Use the delayed refetch hook
   const delayedRefetch = useDelayedRefetch(refetch)
   const { data: categoriesData } = useGetCategoriesQuery({

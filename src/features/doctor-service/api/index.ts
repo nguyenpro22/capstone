@@ -46,7 +46,7 @@ export const doctorServiceCommandApi = createApi({
           "Content-Type": "application/json",
         },
       }),
-      invalidatesTags: (result, error, { serviceIds }) => serviceIds.map((id) => ({ type: "DoctorServices", id })),
+      invalidatesTags: (result, error, { doctorId }) => doctorId.map((id) => ({ type: "DoctorServices", id })),
     }),
 
     // Xóa bác sĩ khỏi dịch vụ

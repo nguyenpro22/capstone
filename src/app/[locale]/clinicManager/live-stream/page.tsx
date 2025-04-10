@@ -2,11 +2,12 @@
 
 import type React from "react";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Upload, History, ArrowRight, Loader2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
+import Image from "next/image";
 
 interface LivestreamRoom {
   id: string;
@@ -94,7 +95,7 @@ export default function LiveStreamPage() {
   };
 
   // Fetch past livestreams
-  const fetchPastLivestreams = async () => {
+  const fetchPastLivestreams = useCallback(async () => {
     try {
       setIsLoadingHistory(true);
       const response = await fetch(
@@ -115,11 +116,11 @@ export default function LiveStreamPage() {
     } finally {
       setIsLoadingHistory(false);
     }
-  };
+  }, [user?.clinicId]);
 
   useEffect(() => {
     fetchPastLivestreams();
-  }, []);
+  }, [fetchPastLivestreams]);
 
   // Format date for better readability
   const formatDate = (dateString: string) => {
@@ -220,9 +221,11 @@ export default function LiveStreamPage() {
                 >
                   {coverImagePreview ? (
                     <div className="relative w-full h-full">
-                      <img
+                      <Image
                         src={coverImagePreview || "/placeholder.svg"}
                         alt="Cover preview"
+                        width={200}
+                        height={200}
                         className="w-full h-full object-cover rounded-lg"
                       />
                       <button
@@ -387,9 +390,11 @@ export default function LiveStreamPage() {
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center">
                               {room.coverImage ? (
-                                <img
+                                <Image
                                   src={room.coverImage || "/placeholder.svg"}
                                   alt=""
+                                  width={40}
+                                  height={40}
                                   className="h-10 w-10 rounded-full object-cover"
                                 />
                               ) : (

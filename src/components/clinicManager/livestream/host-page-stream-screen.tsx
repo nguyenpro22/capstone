@@ -91,12 +91,6 @@ interface HostPageStreamScreenProps {
   getAnalyticsData: () => AnalyticsData;
 }
 
-interface RoomData {
-  name: string;
-  description: string;
-  image: string;
-}
-
 export default function HostPageStreamScreen({
   view,
   localVideoRef,

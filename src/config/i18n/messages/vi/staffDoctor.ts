@@ -98,5 +98,7 @@ export const doctorMessages: Messages["staffDoctor"] = {
   updateDoctorInfo: "Cập nhật thông tin bác sĩ",
   changeDoctorBranch: "Thay đổi chi nhánh bác sĩ",
   updateDoctorBranch: "Cập nhật chi nhánh cho bác sĩ này",
+  deleteDoctorConfirmation: "Bạn có chắc chắn muốn xóa bác sĩ này? Hành động này không thể hoàn tác.",
+  confirmDelete: "Xác nhận xóa",  
   }
   

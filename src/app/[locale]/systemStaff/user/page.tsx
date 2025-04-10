@@ -5,7 +5,7 @@ const UserList: React.FC = () => {
   const users = [
     {
       id: 1,
-      image: "https://via.placeholder.com/40",
+      image: "https://placehold.co/40x40.png",
       name: "Apple Watch Series 4",
       email: "user1@gmail.com",
       phone: "123456789",
@@ -14,7 +14,7 @@ const UserList: React.FC = () => {
     },
     {
       id: 2,
-      image: "https://via.placeholder.com/40",
+      image: "https://placehold.co/40x40.png",
       name: "Microsoft Headsquare",
       email: "user1@gmail.com",
       phone: "123456789",
@@ -23,7 +23,7 @@ const UserList: React.FC = () => {
     },
     {
       id: 3,
-      image: "https://via.placeholder.com/40",
+      image: "https://placehold.co/40x40.png",
       name: "Women's Dress",
       email: "user1@gmail.com",
       phone: "123456789",
@@ -32,7 +32,7 @@ const UserList: React.FC = () => {
     },
     {
       id: 4,
-      image: "https://via.placeholder.com/40",
+      image: "https://placehold.co/40x40.png",
       name: "Samsung A50",
       email: "user1@gmail.com",
       phone: "123456789",

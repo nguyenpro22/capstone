@@ -51,6 +51,7 @@ import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/sch
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 import ScheduleFollowUpModal from "@/components/clinicStaff/customer-schedule/schedule-follow-up-modal"
 import NextScheduleNotification from "@/components/clinicStaff/customer-schedule/next-schedule-notification"
+import Pagination from "@/components/common/Pagination/Pagination"
 
 // Import the follow-up selection modal
 import FollowUpSelectionModal from "@/components/clinicStaff/customer-schedule/follow-up-selection-modal"
@@ -988,61 +989,87 @@ export default function SchedulesPage() {
                                   View
                                 </Button>
 
-                                {(schedule.status === "In Progress" || schedule.status === "Uncompleted") && (
-                                  <>
-                                    {schedule.isFirstCheckIn ? (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
-                                        onClick={() => handleCheckout(schedule)}
-                                      >
-                                        <CreditCard className="h-4 w-4 mr-1" />
-                                        {schedule.status === "Uncompleted" ? "Re-Checkout" : "Checkout"}
-                                      </Button>
-                                    ) : (
+                                {(schedule.status === "In Progress" || schedule.status === "Uncompleted") &&
+                                  (() => {
+                                    // Parse the booking date (assuming format is YYYY-MM-DD)
+                                    const bookingDate = new Date(schedule.bookingDate)
+                                    const today = new Date()
+
+                                    // Reset time part for accurate date comparison
+                                    bookingDate.setHours(0, 0, 0, 0)
+                                    today.setHours(0, 0, 0, 0)
+
+                                    // Only show checkout buttons if today is exactly the appointment date
+                                    return bookingDate.getTime() === today.getTime() ? (
+                                      <>
+                                        {schedule.isFirstCheckIn ? (
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
+                                            onClick={() => handleCheckout(schedule)}
+                                          >
+                                            <CreditCard className="h-4 w-4 mr-1" />
+                                            {schedule.status === "Uncompleted" ? "Re-Checkout" : "Checkout"}
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                            onClick={() => {
+                                              updateScheduleStatus({
+                                                scheduleId: schedule.id,
+                                                status: "Completed",
+                                              })
+                                                .unwrap()
+                                                .then(() => {
+                                                  toast.success("Appointment marked as completed successfully.")
+                                                  // Refresh the schedules
+                                                  fetchClinicSchedules()
+                                                  if (searchPerformed && (customerName || customerPhone)) {
+                                                    delayedGetCustomerSchedules({ customerName, customerPhone })
+                                                  }
+                                                })
+                                                .catch((error) => {
+                                                  console.error("Failed to complete appointment:", error)
+                                                  toast.error(
+                                                    "Failed to mark appointment as completed. Please try again.",
+                                                  )
+                                                })
+                                            }}
+                                          >
+                                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                                            Complete
+                                          </Button>
+                                        )}
+                                      </>
+                                    ) : null
+                                  })()}
+
+                                {schedule.status.toLowerCase() === "pending" &&
+                                  (() => {
+                                    // Parse the booking date (assuming format is YYYY-MM-DD)
+                                    const bookingDate = new Date(schedule.bookingDate)
+                                    const today = new Date()
+
+                                    // Reset time part for accurate date comparison
+                                    bookingDate.setHours(0, 0, 0, 0)
+                                    today.setHours(0, 0, 0, 0)
+
+                                    // Only show check-in button if today is exactly the appointment date
+                                    return bookingDate.getTime() === today.getTime() ? (
                                       <Button
                                         variant="default"
                                         size="sm"
                                         className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
-                                        onClick={() => {
-                                          updateScheduleStatus({
-                                            scheduleId: schedule.id,
-                                            status: "Completed",
-                                          })
-                                            .unwrap()
-                                            .then(() => {
-                                              toast.success("Appointment marked as completed successfully.")
-                                              // Refresh the schedules
-                                              fetchClinicSchedules()
-                                              if (searchPerformed && (customerName || customerPhone)) {
-                                                delayedGetCustomerSchedules({ customerName, customerPhone })
-                                              }
-                                            })
-                                            .catch((error) => {
-                                              console.error("Failed to complete appointment:", error)
-                                              toast.error("Failed to mark appointment as completed. Please try again.")
-                                            })
-                                        }}
+                                        onClick={() => handleCheckIn(schedule.id)}
+                                        disabled={isUpdatingStatus}
                                       >
-                                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                                        Complete
+                                        {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check-in"}
                                       </Button>
-                                    )}
-                                  </>
-                                )}
-
-                                {schedule.status.toLowerCase() === "pending" && (
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
-                                    onClick={() => handleCheckIn(schedule.id)}
-                                    disabled={isUpdatingStatus}
-                                  >
-                                    {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check-in"}
-                                  </Button>
-                                )}
+                                    ) : null
+                                  })()}
 
                                 {schedule.status.toLowerCase() === "completed" &&
                                   renderCompletedScheduleButton(schedule, scheduleWithStatus)}
@@ -1101,58 +1128,84 @@ export default function SchedulesPage() {
                                   View
                                 </Button>
 
-                                {(schedule.status === "In Progress" || schedule.status === "Uncompleted") && (
-                                  <>
-                                    {schedule.isFirstCheckIn ? (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
-                                        onClick={() => handleCheckout(schedule)}
-                                      >
-                                        <CreditCard className="h-4 w-4 mr-1" />
-                                        {schedule.status === "Uncompleted" ? "Re-Checkout" : "Checkout"}
-                                      </Button>
-                                    ) : (
+                                {(schedule.status === "In Progress" || schedule.status === "Uncompleted") &&
+                                  (() => {
+                                    // Parse the booking date (assuming format is YYYY-MM-DD)
+                                    const bookingDate = new Date(schedule.bookingDate)
+                                    const today = new Date()
+
+                                    // Reset time part for accurate date comparison
+                                    bookingDate.setHours(0, 0, 0, 0)
+                                    today.setHours(0, 0, 0, 0)
+
+                                    // Only show checkout buttons if today is exactly the appointment date
+                                    return bookingDate.getTime() === today.getTime() ? (
+                                      <>
+                                        {schedule.isFirstCheckIn ? (
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
+                                            onClick={() => handleCheckout(schedule)}
+                                          >
+                                            <CreditCard className="h-4 w-4 mr-1" />
+                                            {schedule.status === "Uncompleted" ? "Re-Checkout" : "Checkout"}
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                            onClick={() => {
+                                              updateScheduleStatus({
+                                                scheduleId: schedule.id,
+                                                status: "Completed",
+                                              })
+                                                .unwrap()
+                                                .then(() => {
+                                                  toast.success("Appointment marked as completed successfully.")
+                                                  // Refresh the schedules
+                                                  fetchClinicSchedules()
+                                                })
+                                                .catch((error) => {
+                                                  console.error("Failed to complete appointment:", error)
+                                                  toast.error(
+                                                    "Failed to mark appointment as completed. Please try again.",
+                                                  )
+                                                })
+                                            }}
+                                          >
+                                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                                            Complete
+                                          </Button>
+                                        )}
+                                      </>
+                                    ) : null
+                                  })()}
+
+                                {schedule.status.toLowerCase() === "pending" &&
+                                  (() => {
+                                    // Parse the booking date (assuming format is YYYY-MM-DD)
+                                    const bookingDate = new Date(schedule.bookingDate)
+                                    const today = new Date()
+
+                                    // Reset time part for accurate date comparison
+                                    bookingDate.setHours(0, 0, 0, 0)
+                                    today.setHours(0, 0, 0, 0)
+
+                                    // Only show check-in button if today is exactly the appointment date
+                                    return bookingDate.getTime() === today.getTime() ? (
                                       <Button
                                         variant="default"
                                         size="sm"
                                         className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
-                                        onClick={() => {
-                                          updateScheduleStatus({
-                                            scheduleId: schedule.id,
-                                            status: "Completed",
-                                          })
-                                            .unwrap()
-                                            .then(() => {
-                                              toast.success("Appointment marked as completed successfully.")
-                                              // Refresh the schedules
-                                              fetchClinicSchedules()
-                                            })
-                                            .catch((error) => {
-                                              console.error("Failed to complete appointment:", error)
-                                              toast.error("Failed to mark appointment as completed. Please try again.")
-                                            })
-                                        }}
+                                        onClick={() => handleCheckIn(schedule.id)}
+                                        disabled={isUpdatingStatus}
                                       >
-                                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                                        Complete
+                                        {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check-in"}
                                       </Button>
-                                    )}
-                                  </>
-                                )}
-
-                                {schedule.status.toLowerCase() === "pending" && (
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
-                                    onClick={() => handleCheckIn(schedule.id)}
-                                    disabled={isUpdatingStatus}
-                                  >
-                                    {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check-in"}
-                                  </Button>
-                                )}
+                                    ) : null
+                                  })()}
 
                                 {schedule.status.toLowerCase() === "completed" &&
                                   renderCompletedScheduleButton(schedule, scheduleWithStatus)}
@@ -1194,53 +1247,15 @@ export default function SchedulesPage() {
 
                 {/* Pagination */}
                 {!searchPerformed && totalPages > 1 && (
-                  <div className="flex justify-center py-4 border-t dark:border-gray-700">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1 || isLoadingClinic}
-                      >
-                        Previous
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                          // Show first page, last page, current page, and pages around current
-                          let pageToShow: number
-                          if (totalPages <= 5) {
-                            pageToShow = i + 1
-                          } else if (currentPage <= 3) {
-                            pageToShow = i + 1
-                          } else if (currentPage >= totalPages - 2) {
-                            pageToShow = totalPages - 4 + i
-                          } else {
-                            pageToShow = currentPage - 2 + i
-                          }
-
-                          return (
-                            <Button
-                              key={pageToShow}
-                              variant={currentPage === pageToShow ? "default" : "outline"}
-                              size="sm"
-                              className="w-8 h-8 p-0"
-                              onClick={() => handlePageChange(pageToShow)}
-                              disabled={isLoadingClinic}
-                            >
-                              {pageToShow}
-                            </Button>
-                          )
-                        })}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages || isLoadingClinic}
-                      >
-                        Next
-                      </Button>
-                    </div>
+                  <div className="py-4 border-t dark:border-gray-700">
+                    <Pagination
+                      pageIndex={currentPage}
+                      pageSize={pageSize}
+                      totalCount={totalCount}
+                      hasNextPage={currentPage < totalPages}
+                      hasPreviousPage={currentPage > 1}
+                      onPageChange={handlePageChange}
+                    />
                   </div>
                 )}
               </>

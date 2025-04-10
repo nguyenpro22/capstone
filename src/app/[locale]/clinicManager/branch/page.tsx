@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -24,6 +24,7 @@ import ViewBranchModal from "@/components/clinicManager/branch/view-branch-modal
 import Pagination from "@/components/common/Pagination/Pagination"
 import { MenuPortal } from "@/components/ui/menu-portal"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
+import { useDebounce } from "@/hooks/use-debounce"
 
 const BranchesList: React.FC = () => {
   const t = useTranslations("branch")
@@ -31,6 +32,7 @@ const BranchesList: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 5
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
   const [viewBranch, setViewBranch] = useState<Branch | null>(null)
   const [editBranch, setEditBranch] = useState<Branch | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
@@ -76,6 +78,11 @@ const BranchesList: React.FC = () => {
   )
 
   const allStaff = staffData?.value?.items || []
+
+  // Reset page index when search term changes
+  useEffect(() => {
+    setPageIndex(1)
+  }, [debouncedSearchTerm])
 
   // Filter staff by branch
   const getStaffForBranch = (branchId: string) => {
@@ -183,12 +190,12 @@ const BranchesList: React.FC = () => {
   if (error) return <div className="text-center text-red-600 dark:text-red-400">{t("errorFetching")}</div>
 
   const filteredBranches =
-    searchTerm && Array.isArray(branches)
+    debouncedSearchTerm && Array.isArray(branches)
       ? branches.filter(
           (branch: Branch) =>
-            branch.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            branch.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            branch.address?.toLowerCase().includes(searchTerm.toLowerCase()),
+            branch.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+            branch.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+            branch.address?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
         )
       : branches
 

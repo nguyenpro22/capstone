@@ -18,6 +18,7 @@ import { doctor } from "./doctor";
 import { livestream } from "./livestream";
 import { LivestreamRoomTranslations } from "./livestream-room";
 import { clinicProfileMessages } from "./clinicProfile";
+import { packageMessages } from './package';
 
 export type Messages = {
   home: homeMessages;
@@ -41,4 +42,5 @@ export type Messages = {
   livestream: livestream;
   livestreamRoom: LivestreamRoomTranslations;
   clinicProfile: clinicProfileMessages; // Add this line
+  package: packageMessages;
 };

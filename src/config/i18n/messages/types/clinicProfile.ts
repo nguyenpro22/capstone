@@ -20,4 +20,8 @@ export type clinicProfileMessages = {
     inactive: string;
     authRequired: string;
     failedToLoad: string;
+    currentSubscription: string;
+    days: string;
+    livestreams: string;
+    price: string;
   };

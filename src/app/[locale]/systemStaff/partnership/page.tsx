@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import Pagination from "@/components/common/Pagination/Pagination"
 import type { RequestItem } from "@/features/partnership/types"
-import { Filter, Search, CheckCircle, XCircle, Ban, Calendar, RefreshCw, X, AlertCircle, Loader2 } from 'lucide-react'
+import { Filter, Search, CheckCircle, XCircle, Ban, Calendar, RefreshCw, X, AlertCircle, Loader2 } from "lucide-react"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 import { useTheme } from "next-themes"
 
@@ -19,6 +19,10 @@ const PartnershipRequest: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionType, setActionType] = useState<"reject" | "ban" | null>(null)
+  const [processingAction, setProcessingAction] = useState<{
+    id: string
+    action: "accept" | "reject" | "ban" | null
+  } | null>(null)
 
   const { data, isLoading, isError, refetch } = useGetPartnershipRequestsQuery({
     pageIndex,
@@ -34,16 +38,34 @@ const PartnershipRequest: React.FC = () => {
   const handleAction = async (id: string, action: "accept" | "reject" | "ban") => {
     try {
       if (action === "accept") {
-        await updatePartnershipRequest({ requestId: id, action: 0 }).unwrap()
-        toast.success(`Partnership request accepted successfully`)
-        delayedRefetch() // Use delayed refetch instead of immediate refetch
+        setProcessingAction({ id, action })
+
+        const result = await updatePartnershipRequest({
+          requestId: id,
+          action: 0,
+        })
+
+        // Log the entire response to see its structure
+        console.log("API Response:", result)
+
+        // Check if the response has the expected structure
+        if ("data" in result && result.data && result.data.isSuccess) {
+          toast.success(`Partnership request accepted successfully`)
+          delayedRefetch()
+        } else {
+          // If we can't find isSuccess or it's false, show error
+          toast.error("Failed to update the request")
+        }
+
+        setProcessingAction(null)
       } else {
         setSelectedRequestId(id)
         setActionType(action)
       }
     } catch (error) {
-      console.log(error)
+      console.error("Error in handleAction:", error)
       toast.error("Failed to update the request")
+      setProcessingAction(null)
     }
   }
 
@@ -56,25 +78,40 @@ const PartnershipRequest: React.FC = () => {
       (actionType === "reject" ? "Your request has been rejected" : "Your request has been banned")
 
     setIsSubmitting(true)
+    setProcessingAction({ id: selectedRequestId, action: actionType })
 
     try {
-      await updatePartnershipRequest({
+      const result = await updatePartnershipRequest({
         requestId: selectedRequestId,
         action: actionNumber,
         rejectReason: reason,
       })
 
-      toast.success(`Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`)
-      delayedRefetch() // Use delayed refetch instead of immediate refetch
-    } catch (error) {
-      console.log(error)
-      toast.error("Failed to update the request")
-    }
+      // Log the entire response to see its structure
+      console.log("API Response:", result)
 
-    setSelectedRequestId(null)
-    setRejectReason("")
-    setActionType(null)
-    setIsSubmitting(false)
+      // Check if the response has the expected structure
+      if ("data" in result && result.data && result.data.isSuccess) {
+        toast.success(`Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`)
+        delayedRefetch()
+      } else {
+        // If we can't find isSuccess or it's false, show error
+        const errorMessage =
+          "data" in result && result.data && result.data.error && result.data.error.message
+            ? result.data.error.message
+            : "Failed to update the request"
+        toast.error(errorMessage)
+      }
+    } catch (error) {
+      console.error("Error in handleConfirmReject:", error)
+      toast.error("Failed to update the request")
+    } finally {
+      setSelectedRequestId(null)
+      setRejectReason("")
+      setActionType(null)
+      setIsSubmitting(false)
+      setProcessingAction(null)
+    }
   }
 
   const requests: RequestItem[] =
@@ -187,44 +224,75 @@ const PartnershipRequest: React.FC = () => {
                   </tr>
                 ) : (
                   requests.map((request: RequestItem) => (
-                    <tr key={request.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                    <tr
+                      key={request.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
+                    >
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{request.id}</td>
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900 dark:text-gray-100">{request.name}</div>
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{request.email}</td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300 max-w-xs truncate">{request.address}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300 max-w-xs truncate">
+                        {request.address}
+                      </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                           {request.totalApply}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            className="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-colors duration-200"
-                            onClick={() => handleAction(request.id, "accept")}
-                            disabled={isUpdating}
-                          >
-                            <CheckCircle className="mr-1.5 h-4 w-4" />
-                            Accept
-                          </button>
-                          <button
-                            className="inline-flex items-center px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors duration-200"
-                            onClick={() => handleAction(request.id, "reject")}
-                            disabled={isUpdating}
-                          >
-                            <XCircle className="mr-1.5 h-4 w-4" />
-                            Reject
-                          </button>
-                          <button
-                            className="inline-flex items-center px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-colors duration-200"
-                            onClick={() => handleAction(request.id, "ban")}
-                            disabled={isUpdating}
-                          >
-                            <Ban className="mr-1.5 h-4 w-4" />
-                            Ban
-                          </button>
+                        <div className="flex items-center space-x-2">
+                          {/* Accept Button */}
+                          {processingAction?.id === request.id && processingAction?.action === "accept" ? (
+                            <button className="inline-flex items-center justify-center w-28 px-3 py-2 bg-emerald-500 text-white rounded-lg">
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing...
+                            </button>
+                          ) : (
+                            <button
+                              className="inline-flex items-center justify-center w-24 px-3 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-colors duration-200"
+                              onClick={() => handleAction(request.id, "accept")}
+                              disabled={processingAction !== null}
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Accept
+                            </button>
+                          )}
+
+                          {/* Reject Button */}
+                          {processingAction?.id === request.id && processingAction?.action === "reject" ? (
+                            <button className="inline-flex items-center justify-center w-28 px-3 py-2 bg-red-500 text-white rounded-lg">
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing...
+                            </button>
+                          ) : (
+                            <button
+                              className="inline-flex items-center justify-center w-24 px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors duration-200"
+                              onClick={() => handleAction(request.id, "reject")}
+                              disabled={processingAction !== null}
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Reject
+                            </button>
+                          )}
+
+                          {/* Ban Button */}
+                          {processingAction?.id === request.id && processingAction?.action === "ban" ? (
+                            <button className="inline-flex items-center justify-center w-28 px-3 py-2 bg-amber-500 text-white rounded-lg">
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing...
+                            </button>
+                          ) : (
+                            <button
+                              className="inline-flex items-center justify-center w-24 px-3 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-colors duration-200"
+                              onClick={() => handleAction(request.id, "ban")}
+                              disabled={processingAction !== null}
+                            >
+                              <Ban className="mr-2 h-4 w-4" />
+                              Ban
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -296,7 +364,9 @@ const PartnershipRequest: React.FC = () => {
                 </button>
                 <button
                   className={`px-4 py-2 rounded-lg text-white flex items-center ${
-                    isSubmitting ? "bg-blue-400 dark:bg-blue-500 cursor-not-allowed" : "bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600"
+                    isSubmitting
+                      ? "bg-blue-400 dark:bg-blue-500 cursor-not-allowed"
+                      : "bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600"
                   } transition-colors duration-200`}
                   onClick={handleConfirmReject}
                   disabled={isSubmitting}

@@ -30,14 +30,6 @@ import Image from "next/image"
 import type { AddressDetail } from "@/features/address/types"
 import { useTheme } from "next-themes"
 
-// Define certificate type
-interface Certificate {
-  id: string
-  certificateUrl: string
-  certificateName: string
-  expiryDate: string
-  note?: string
-}
 
 // Define the form schema with additional fields for doctors
 const doctorSchema = z.object({

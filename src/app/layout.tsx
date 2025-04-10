@@ -28,16 +28,8 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body>
-      <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ClientProvider>{children}</ClientProvider>
-        </ThemeProvider>
-        
+      <body>      
+          <ClientProvider>{children}</ClientProvider>    
       </body>
     </html>
   );
