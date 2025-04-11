@@ -6,11 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { X, Building2 } from "lucide-react"
 import { useAddStaffMutation, useGetBranchesQuery } from "@/features/clinic/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 // Add useTheme import
 import { useTheme } from "next-themes"
+import { ValidationErrorResponse } from "@/lib/api"
 
 // Define the form schema
 const staffSchema = z.object({
@@ -98,27 +99,35 @@ export default function StaffForm({ onClose, onSaveSuccess }: StaffFormProps) {
       formData.append("clinicId", data.branchId) // Use selected branchId as clinicId
 
       await addStaff({
-        id: clinicId, // Main clinicId for the API endpoint
+        id: data.branchId, // Main clinicId for the API endpoint
         data: formData,
       }).unwrap()
 
       toast.success(t("staffAddedSuccess") || "Staff added successfully!")
       onSaveSuccess()
-    } catch (error) {
+    } catch (error : any) {
       console.error("Failed to add staff:", error)
-      toast.error(t("staffAddedFailed") || "Failed to add staff. Please try again.")
+
+      // Check if the error has a detail field and display it
+      if (error?.data.detail) {
+        toast.error(error.data.detail)
+      } else {
+        toast.error(t("staffAddedFailed") || "Failed to add staff. Please try again.")
+      }
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
+   
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl dark:shadow-gray-800/30 w-full max-w-md p-6 relative"
     >
+       <ToastContainer/>
       <button
         onClick={onClose}
         className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"

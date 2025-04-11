@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { useUpdateDoctorMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Staff } from "@/features/clinic/types"
@@ -252,6 +252,7 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
+       <ToastContainer/>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

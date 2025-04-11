@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { useUpdateBranchMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   X,
@@ -441,6 +441,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   return (
     // Update the main container div
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
+       <ToastContainer/>
       {/* Update the main modal container */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

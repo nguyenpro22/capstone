@@ -1,13 +1,15 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useUpdateClinicMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { motion } from "framer-motion"
-import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, CreditCard, Landmark, ImageIcon } from "lucide-react"
+import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, CreditCard, ImageIcon, Search } from "lucide-react"
 import Image from "next/image"
+import { useGetBanksQuery } from "@/features/bank/api"
+import type { Bank } from "@/features/bank/types"
 
 // Interfaces
 interface ClinicEditFormProps {
@@ -60,6 +62,11 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
   const [errorMessages, setErrorMessages] = useState<string[]>([])
   const [updateClinic, { isLoading }] = useUpdateClinicMutation()
 
+  const [bankSearchTerm, setBankSearchTerm] = useState("")
+  const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
+  const [showBankDropdown, setShowBankDropdown] = useState(false)
+  const bankDropdownRef = useRef<HTMLDivElement>(null)
+
   // RTK Query hooks
   const { data: provinces, isLoading: isLoadingProvinces } = useGetProvincesQuery()
   const { data: districts, isLoading: isLoadingDistricts } = useGetDistrictsQuery(addressDetail.provinceId, {
@@ -68,6 +75,8 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
   const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(addressDetail.districtId, {
     skip: !addressDetail.districtId,
   })
+
+  const { data: bankData, isLoading: isBanksLoading } = useGetBanksQuery()
 
   // Find province ID by name when provinces are loaded
   useEffect(() => {
@@ -82,6 +91,13 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
     }
   }, [provinces, addressDetail.provinceName, addressDetail.provinceId])
 
+  // Add this after the useEffect that finds province ID by name
+  useEffect(() => {
+    if (provinces?.data && !isLoadingProvinces) {
+      console.log("Provinces loaded successfully")
+    }
+  }, [provinces, isLoadingProvinces])
+
   // Find district ID by name when districts are loaded
   useEffect(() => {
     if (districts?.data && addressDetail.districtName && !addressDetail.districtId) {
@@ -95,6 +111,13 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
     }
   }, [districts, addressDetail.districtName, addressDetail.districtId])
 
+  // Add this after the useEffect that finds district ID by name
+  useEffect(() => {
+    if (districts?.data && !isLoadingDistricts && addressDetail.provinceId) {
+      console.log("Districts loaded successfully for province:", addressDetail.provinceName)
+    }
+  }, [districts, isLoadingDistricts, addressDetail.provinceId, addressDetail.provinceName])
+
   // Find ward ID by name when wards are loaded
   useEffect(() => {
     if (wards?.data && addressDetail.wardName && !addressDetail.wardId) {
@@ -107,6 +130,26 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
       }
     }
   }, [wards, addressDetail.wardName, addressDetail.wardId])
+
+  // Add this after the useEffect that finds ward ID by name
+  useEffect(() => {
+    if (wards?.data && !isLoadingWards && addressDetail.districtId) {
+      console.log("Wards loaded successfully for district:", addressDetail.districtName)
+    }
+  }, [wards, isLoadingWards, addressDetail.districtId, addressDetail.districtName])
+
+  useEffect(() => {
+    if (bankData?.data && formData.bankName && !selectedBank) {
+      const matchingBank = bankData.data.find(
+        (bank) => bank.name === formData.bankName || bank.shortName === formData.bankName,
+      )
+      if (matchingBank) {
+        setSelectedBank(matchingBank)
+      } else if (formData.bankName) {
+        toast.warning(`Could not find bank "${formData.bankName}" in our database`)
+      }
+    }
+  }, [bankData, formData.bankName, selectedBank])
 
   // Handle address selection changes
   const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
@@ -158,6 +201,13 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
     }
   }
 
+  const handleBankSelect = (bank: Bank) => {
+    setSelectedBank(bank)
+    setFormData((prev: any) => ({ ...prev, bankName: bank.name }))
+    setBankSearchTerm("")
+    setShowBankDropdown(false)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessages([])
@@ -202,11 +252,23 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
       if (error?.data?.status === 422 && error?.data?.errors) {
         const messages = error.data.errors.map((err: any) => err.message)
         setErrorMessages(messages)
+        toast.error("Please fix the validation errors")
+      } else if (error?.status === "FETCH_ERROR") {
+        toast.error("Network error. Please check your connection and try again.")
+        setErrorMessages(["Network error. Please check your connection and try again."])
       } else {
+        toast.error("Failed to update clinic. Please try again.")
         setErrorMessages(["Failed to update clinic. Please try again."])
       }
     }
   }
+
+  const filteredBanks =
+    bankData?.data?.filter(
+      (bank) =>
+        bank.name.toLowerCase().includes(bankSearchTerm.toLowerCase()) ||
+        bank.shortName.toLowerCase().includes(bankSearchTerm.toLowerCase()),
+    ) || []
 
   return (
     <motion.div
@@ -221,6 +283,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
         }
       }}
     >
+       <ToastContainer/>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -313,13 +376,19 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <input
+                  <input
                       type="tel"
                       name="phoneNumber"
                       value={formData.phoneNumber || ""}
-                      onChange={handleFormChange}
+                      onChange={(e) => {
+                        // Only allow numbers and some special characters
+                        const value = e.target.value.replace(/[^\d\s+()-]/g, "")
+                        setFormData((prev: any) => ({ ...prev, phoneNumber: value }))
+                      }}
+                      pattern="[0-9\s+()-]{10,15}"
                       className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      placeholder="Enter phone number"
+                      placeholder="Enter phone number (numbers only)"
+                      title="Please enter a valid phone number (10-15 digits)"
                       required
                     />
                     <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -328,7 +397,6 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
               </div>
             </div>
 
-            {/* Banking Information Section */}
             <div className="space-y-4 pt-2">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-purple-500" />
@@ -340,17 +408,70 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                     Bank Name <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="bankName"
-                      value={formData.bankName}
-                      onChange={handleFormChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
-                      placeholder="Enter bank name"
-                      required
-                    />
-                    <Landmark className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <div className="relative" ref={bankDropdownRef}>
+                    {isBanksLoading ? (
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                        Loading banks...
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={bankSearchTerm}
+                            onChange={(e) => {
+                              setBankSearchTerm(e.target.value)
+                              setShowBankDropdown(true)
+                            }}
+                            onFocus={() => setShowBankDropdown(true)}
+                            className="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                            placeholder="Search for a bank..."
+                          />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        </div>
+
+                        {selectedBank && (
+                          <div className="mt-2 flex items-center gap-2 p-2 bg-purple-50 rounded-lg border border-purple-100">
+                            {selectedBank.logo && (
+                              <img
+                                src={selectedBank.logo || "/placeholder.svg"}
+                                alt={selectedBank.shortName}
+                                className="h-6 w-auto"
+                              />
+                            )}
+                            <span className="font-medium text-purple-700">{selectedBank.name}</span>
+                          </div>
+                        )}
+
+                        {showBankDropdown && bankSearchTerm && (
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-gray-200 shadow-lg max-h-60 overflow-y-auto">
+                            {filteredBanks.length > 0 ? (
+                              filteredBanks.map((bank) => (
+                                <div
+                                  key={bank.id}
+                                  className="flex items-center gap-2 p-2 hover:bg-purple-50 cursor-pointer"
+                                  onClick={() => handleBankSelect(bank)}
+                                >
+                                  {bank.logo && (
+                                    <img
+                                      src={bank.logo || "/placeholder.svg"}
+                                      alt={bank.shortName}
+                                      className="h-6 w-auto"
+                                    />
+                                  )}
+                                  <div>
+                                    <div className="font-medium text-gray-800">{bank.name}</div>
+                                    <div className="text-xs text-gray-500">{bank.shortName}</div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="p-3 text-center text-gray-500">No banks found</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -594,4 +715,3 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
     </motion.div>
   )
 }
-
