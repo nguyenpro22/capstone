@@ -106,6 +106,7 @@ export type ServiceDetail = {
   description: string;
   maxPrice: number;
   minPrice: number;
+  branding: Clinic;
   discountPercent: string;
   discountMaxPrice: number;
   discountMinPrice: number;

@@ -48,11 +48,11 @@ export const chatApi = createApi({
   reducerPath: "chatApi",
   baseQuery: reAuthQuery("signaling"),
   endpoints: (builder) => ({
-    sendMessage: builder.mutation<any, { data: SendMessageBody }>({
-      query: ({ data }) => ({
+    sendMessage: builder.mutation<any, SendMessageBody>({
+      query: (body) => ({
         url: `/Chat`,
         method: "POST",
-        body: data,
+        body,
         headers: {
           "Content-Type": "application/json",
         },

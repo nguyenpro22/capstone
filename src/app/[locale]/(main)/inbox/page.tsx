@@ -32,7 +32,10 @@ import {
   PlaySquare,
 } from "lucide-react";
 import Image from "next/image";
-import { useGetAllConversationQuery } from "@/features/inbox/api";
+import {
+  useGetAllConversationQuery,
+  useGetAllMessageConversationQuery,
+} from "@/features/inbox/api";
 import { da } from "date-fns/locale";
 import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
 import { Conversation, Message } from "@/features/inbox/types";
@@ -44,14 +47,17 @@ export default function ChatScreen() {
     useState<Conversation | null>(null);
   const token = getAccessToken() as string;
   const { userId } = GetDataByToken(token) as TokenData;
+  const [messages, setMessages] = useState<Message[]>([]);
+  const chatContainerRef = useRef<HTMLDivElement>(null); // Ref for chat container
 
   const { data } = useGetAllConversationQuery({
     entityId: userId,
     isClinic: false,
   });
 
-  // Sample messages for the selected conversation
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { data: messageData } = useGetAllMessageConversationQuery({
+    conversationId: selectedConversation?.conversationId ?? "",
+  });
 
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
@@ -69,6 +75,12 @@ export default function ChatScreen() {
 
     signalRef.current = newConnection;
   }, [userId]);
+
+  useEffect(() => {
+    if (messageData && messageData.value) {
+      setMessages(messageData.value);
+    }
+  }, [messageData]);
 
   useEffect(() => {
     if (signalRef.current) {
@@ -110,10 +122,12 @@ export default function ChatScreen() {
         receiverId &&
         selectedConversation?.entityId
       ) {
+        console.log(receiverId);
         await signalRef.current.invoke(
           "SendMessage",
           userId,
           receiverId,
+          false,
           message
         );
 
@@ -141,6 +155,9 @@ export default function ChatScreen() {
           senderId: userId as string,
           content: message,
           createdOnUtc: timestamp,
+          isClinic: false,
+          senderName: selectedConversation?.friendName as string,
+          senderImageUrl: selectedConversation?.friendImageUrl as string,
         };
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
@@ -148,24 +165,21 @@ export default function ChatScreen() {
     [signalRef, selectedConversation, userId]
   );
 
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50/50 to-white dark:from-gray-900 dark:to-gray-950">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-900 border-b sticky top-0 z-10 font-sans">
-        <div className="container px-4 mx-auto py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-serif font-bold">
-              Chat với thẩm mỹ viện
-            </h1>
-          </div>
-        </div>
-      </header>
-
       {/* Main Chat Layout */}
       <div className="container px-4 mx-auto py-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 h-[calc(100vh-160px)]">
           {/* Conversation List */}
           <div className="md:col-span-1 lg:col-span-1 bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden h-full">
+            {/* <div>Hộp thoại</div> */}
             <ScrollArea className="h-[calc(100%-60px)]">
               <div className="py-2">
                 {data?.value != null && data?.value.length > 0 ? (
@@ -180,13 +194,18 @@ export default function ChatScreen() {
                       }`}
                       onClick={() => setSelectedConversation(conversation)}
                     >
-                      <div className="relative">
+                      <div className="relative flex justify-center items-center">
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={conversation.friendImageUrl} />
                           <AvatarFallback>
-                            {conversation.friendName.substring(0, 2)}
+                            {conversation.friendName}
                           </AvatarFallback>
                         </Avatar>
+                        <div className="ml-3">
+                          <h3 className="font-medium">
+                            {conversation?.friendName ?? ""}
+                          </h3>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -209,7 +228,7 @@ export default function ChatScreen() {
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={selectedConversation.friendImageUrl} />
                       <AvatarFallback>
-                        {selectedConversation.friendName.substring(0, 2)}
+                        {selectedConversation.friendName}
                       </AvatarFallback>
                     </Avatar>
                     <div className="ml-3">
@@ -218,83 +237,66 @@ export default function ChatScreen() {
                       </h3>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Video className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Info className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
 
                 {/* Messages */}
-                <ScrollArea className="flex-1 p-4">
+                <div
+                  className="flex-1 p-4 overflow-y-auto"
+                  ref={chatContainerRef}
+                >
                   <div className="space-y-4">
-                    {/* {messages.map((message) => (
+                    {messages.map((message) => (
                       <div
                         key={message.id}
                         className={`flex ${
-                          message.isOwn ? "justify-end" : "justify-start"
+                          !message.isClinic ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {!message.isOwn && (
+                        {message.isClinic && (
                           <Avatar className="h-8 w-8 mr-2 mt-1">
-                            <AvatarImage src={selectedConversation.avatar} />
+                            <AvatarImage src={message.senderImageUrl ?? ""} />
                             <AvatarFallback>
-                              {selectedConversation.name.substring(0, 2)}
+                              {message.senderName.substring(0, 2)}
                             </AvatarFallback>
                           </Avatar>
                         )}
                         <div>
                           <div
                             className={`rounded-lg p-3 max-w-xs break-words ${
-                              message.isOwn
+                              !message.isClinic
                                 ? "bg-pink-500 text-white"
                                 : "bg-gray-100 dark:bg-gray-800"
                             }`}
                           >
-                            <p className="text-sm">{message.text}</p>
+                            <p className="text-sm">{message.content}</p>
                           </div>
                           <div
                             className={`flex items-center mt-1 text-xs text-gray-500 ${
-                              message.isOwn ? "justify-end" : ""
+                              !message.isClinic ? "justify-end" : ""
                             }`}
                           >
-                            <span>{message.timestamp}</span>
-                            {message.isOwn && (
-                              <span className="ml-1">
-                                {message.status === "read" ? (
-                                  <CheckCheck className="h-3 w-3 text-blue-500" />
-                                ) : message.status === "delivered" ? (
-                                  <CheckCheck className="h-3 w-3" />
-                                ) : (
-                                  <Check className="h-3 w-3" />
-                                )}
-                              </span>
-                            )}
+                            <span>
+                              {new Date(message.createdOnUtc).toLocaleString(
+                                "vi-VN",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    ))} */}
+                    ))}
                   </div>
-                </ScrollArea>
+                </div>
 
                 {/* Message Input */}
                 <div className="px-4 py-3 border-t dark:border-gray-800">
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon">
-                      <Paperclip className="h-5 w-5 text-gray-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <ImageIcon className="h-5 w-5 text-gray-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Mic className="h-5 w-5 text-gray-500" />
-                    </Button>
                     <div className="flex-1 relative">
                       <Input
                         placeholder="Nhập tin nhắn..."
@@ -314,13 +316,6 @@ export default function ChatScreen() {
                         }}
                         className="pr-10"
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2"
-                      >
-                        <Smile className="h-5 w-5 text-gray-500" />
-                      </Button>
                     </div>
                     <Button
                       onClick={() => {

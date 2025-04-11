@@ -13,12 +13,17 @@ export const formatDate = (date: Date): string => {
 
 // Get initials for avatar fallback
 export const getInitials = (name: string): string => {
+  if (!name) {
+    return ""; // Return an empty string if the name is undefined or empty
+  }
+  
   return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
+    .split(" ") // Split the name by spaces
+    .map((part) => part[0]) // Get the first character of each part
+    .join("") // Join the initials into a string
+    .toUpperCase(); // Convert the result to uppercase
 };
+
 
 // Calculate total price
 export const calculateTotalPrice = (
