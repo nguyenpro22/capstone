@@ -78,4 +78,9 @@ export type serviceMessages = {
   deleteServiceConfirmation: string;
   confirmDelete: string;
   cancel: string;
+  description: string;
+  branches: string;
+  noAvailable: string;
+  image: string;
+  save: string;
 };

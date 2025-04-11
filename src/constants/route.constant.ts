@@ -58,14 +58,15 @@ export const customerRoutes = {
   DEFAULT: `${publicCustomerPath}/`,
   HOME: `${publicCustomerPath}/home`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
-  INBOX: `${publicCustomerPath}/inbox`,
+  PROFILE: `${publicCustomerPath}/profile`,
   CLINIC_VIEW: `${publicCustomerPath}/clinic-view`,
   CLINIC_DETAIL: `${publicCustomerPath}/clinic-view/[id]`,
   LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
   ORDERS: `${publicCustomerPath}/orders`,
   SERVICES: `${publicCustomerPath}/services`,
   SERVICE_DETAIL: `${publicCustomerPath}/services/[id]`,
-  PROFILE: `${publicCustomerPath}/profile`,
+  INBOX: `${publicCustomerPath}/inbox`,
+  REGISTER_CLINIC: "/registerClinic",
 };
 
 export const systemStaffRoutes = {

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,8 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  MoonIcon,
-  SunIcon,
   PencilIcon,
   PhoneIcon,
   MapPinIcon,
@@ -23,12 +21,29 @@ import {
   AtSignIcon,
   UserIcon,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
+import { useGetUserProfileQuery } from "@/features/home/api";
+
+// Define the profile data type
+interface ProfileData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  dateOfBirth: string;
+  email: string;
+  phone: string;
+  profilePicture: string | null;
+  city: string | null;
+  district: string | null;
+  ward: string | null;
+  address: string | null;
+  fullAddress?: string | null;
+}
 
 // Initial profile data from the provided JSON with added address information
-const initialProfile = {
+const initialProfile: ProfileData = {
   id: "d3b41ade-91c0-43e2-92e7-9d145609b566",
   firstName: "Dung",
   lastName: "Cao",
@@ -46,10 +61,27 @@ const initialProfile = {
 };
 
 export default function ProfilePage() {
-  const { theme, setTheme } = useTheme();
-  const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(initialProfile);
-  const [formData, setFormData] = useState(initialProfile);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const { data: profileData } = useGetUserProfileQuery();
+  const [profile, setProfile] = useState<ProfileData>(initialProfile);
+  const [formData, setFormData] = useState<ProfileData>(initialProfile);
+
+  useEffect(() => {
+    if (profileData) {
+      // Ensure all required fields are present, fall back to initialProfile for missing fields
+      const mergedProfile: ProfileData = {
+        ...initialProfile,
+        ...profileData.value,
+        // Ensure these fields are strings or null, not undefined
+        city: profileData.value.city || null,
+        district: profileData.value.district || null,
+        ward: profileData.value.ward || null,
+        address: profileData.value.address || null,
+      };
+      setProfile(mergedProfile);
+      setFormData(mergedProfile);
+    }
+  }, [profileData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -78,24 +110,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-900/20 dark:to-indigo-900/30 p-4 sm:p-6">
+    <div className="h-screen bg-gradient-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-900/20 dark:to-indigo-900/30 p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Toggle theme"
-            className="rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-purple-200 dark:border-purple-800/30"
-          >
-            {theme === "dark" ? (
-              <SunIcon className="h-5 w-5 text-amber-500" />
-            ) : (
-              <MoonIcon className="h-5 w-5 text-purple-700" />
-            )}
-          </Button>
-        </div>
-
         <Card className="overflow-hidden border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl dark:shadow-purple-900/20 rounded-xl">
           <div className="h-24 sm:h-28 bg-gradient-to-r from-purple-900/90 to-indigo-900/80 relative">
             <div className="absolute -bottom-12 sm:-bottom-14 left-6">
@@ -172,38 +188,36 @@ export default function ProfilePage() {
                 </h2>
 
                 {isEditing ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="firstName"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          First Name
-                        </Label>
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          className="bg-white/50 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="lastName"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          Last Name
-                        </Label>
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          className="bg-white/50 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
-                        />
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="firstName"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        First Name
+                      </Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        className="bg-white/50 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="lastName"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        Last Name
+                      </Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        className="bg-white/50 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label
@@ -223,7 +237,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                         Full Name
@@ -253,43 +267,41 @@ export default function ProfilePage() {
                 </h2>
 
                 {isEditing ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="email"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          Email
-                        </Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="bg-white/80 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="phone"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          Phone Number
-                        </Label>
-                        <Input
-                          id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="bg-white/80 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
-                        />
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="email"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="bg-white/80 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="phone"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="bg-white/80 dark:bg-gray-800/50 border-purple-200 dark:border-purple-800/30 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-400"
+                      />
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-start gap-2">
                       <div className="bg-purple-100 dark:bg-purple-800/30 p-1.5 rounded-full shrink-0">
                         <AtSignIcon className="h-4 w-4 text-purple-700 dark:text-purple-400" />
@@ -328,8 +340,8 @@ export default function ProfilePage() {
                 </h2>
 
                 {isEditing ? (
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-1.5 md:col-span-1">
                       <Label
                         htmlFor="address"
                         className="text-gray-700 dark:text-gray-300"
@@ -345,70 +357,75 @@ export default function ProfilePage() {
                         className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
                       />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="ward"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          Ward
-                        </Label>
-                        <Input
-                          id="ward"
-                          name="ward"
-                          value={formData.ward || ""}
-                          onChange={handleInputChange}
-                          placeholder="Ward"
-                          className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="district"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          District
-                        </Label>
-                        <Input
-                          id="district"
-                          name="district"
-                          value={formData.district || ""}
-                          onChange={handleInputChange}
-                          placeholder="District"
-                          className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="city"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          City
-                        </Label>
-                        <Input
-                          id="city"
-                          name="city"
-                          value={formData.city || ""}
-                          onChange={handleInputChange}
-                          placeholder="City"
-                          className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
-                        />
-                      </div>
+                    <div className="space-y-1.5 md:col-span-1">
+                      <Label
+                        htmlFor="ward"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        Ward
+                      </Label>
+                      <Input
+                        id="ward"
+                        name="ward"
+                        value={formData.ward || ""}
+                        onChange={handleInputChange}
+                        placeholder="Ward"
+                        className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
+                      />
+                    </div>
+                    <div className="space-y-1.5 md:col-span-1">
+                      <Label
+                        htmlFor="district"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        District
+                      </Label>
+                      <Input
+                        id="district"
+                        name="district"
+                        value={formData.district || ""}
+                        onChange={handleInputChange}
+                        placeholder="District"
+                        className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
+                      />
+                    </div>
+                    <div className="space-y-1.5 md:col-span-1">
+                      <Label
+                        htmlFor="city"
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        City
+                      </Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        value={formData.city || ""}
+                        onChange={handleInputChange}
+                        placeholder="City"
+                        className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
+                      />
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-start gap-2">
-                    <div className="bg-indigo-100 dark:bg-indigo-800/30 p-1.5 rounded-full shrink-0">
-                      <MapPinIcon className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
+                  <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-indigo-100 dark:bg-indigo-800/30 p-1.5 rounded-full shrink-0">
+                        <MapPinIcon className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-800 dark:text-white text-sm">
+                          Address
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                          {profile.address || ""}
+                        </p>
+                      </div>
                     </div>
-                    <div>
+                    <div className="md:ml-4">
                       <h3 className="font-medium text-gray-800 dark:text-white text-sm">
-                        Address
+                        Location
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {profile.address}
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-0.5">
                         {[profile.ward, profile.district, profile.city]
                           .filter(Boolean)
                           .join(", ")}

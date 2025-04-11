@@ -1,119 +1,147 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useCreateServiceMutation, useGetServicesQuery } from "@/features/clinic-service/api"
-import { useGetCategoriesQuery } from "@/features/category-service/api"
-import { useGetBranchesQuery } from "@/features/clinic/api"
+import type React from "react";
+import { useState, useEffect } from "react";
+import {
+  useCreateServiceMutation,
+  useGetServicesQuery,
+} from "@/features/clinic-service/api";
+import { useGetCategoriesQuery } from "@/features/category-service/api";
+import { useGetBranchesQuery } from "@/features/clinic/api";
 
-import Select from "react-select"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, AlertCircle, FileText, ImageIcon, Trash2 } from "lucide-react"
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import dynamic from "next/dynamic"
-import Image from "next/image"
-import { ToastContainer } from "react-toastify"
+import Select from "react-select";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, AlertCircle, FileText, ImageIcon, Trash2 } from "lucide-react";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { ToastContainer } from "react-toastify";
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
   ssr: false,
-  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 animate-pulse" />,
-})
+  loading: () => (
+    <div className="h-40 w-full border rounded-md bg-muted/20 animate-pulse" />
+  ),
+});
 
 interface ServiceFormProps {
-  onClose: () => void
-  onSaveSuccess: () => void
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
-export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps) {
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [categoryId, setCategoryId] = useState("")
-  const [coverImages, setCoverImages] = useState<File[]>([])
-  const [imagePreview, setImagePreview] = useState<string[]>([])
-  const [errorMessages, setErrorMessages] = useState<string[]>([])
-  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([])
-  const [editorLoaded, setEditorLoaded] = useState(false)
+export default function ServiceForm({
+  onClose,
+  onSaveSuccess,
+}: ServiceFormProps) {
+  const t = useTranslations("service");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [coverImages, setCoverImages] = useState<File[]>([]);
+  const [imagePreview, setImagePreview] = useState<string[]>([]);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [selectedBranches, setSelectedBranches] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [editorLoaded, setEditorLoaded] = useState(false);
 
-  const [createService, { isLoading }] = useCreateServiceMutation()
-  const { refetch: refetchServices } = useGetServicesQuery(undefined)
-  const { data: categoryData, isLoading: isCategoriesLoading } = useGetCategoriesQuery({
-    pageIndex: 1,
-    pageSize: 100,
-    searchTerm: "",
-  })
-  const token = getAccessToken() as string
-  const { clinicId } = GetDataByToken(token) as TokenData
+  const [createService, { isLoading }] = useCreateServiceMutation();
+  const { refetch: refetchServices } = useGetServicesQuery(undefined);
+  const { data: categoryData, isLoading: isCategoriesLoading } =
+    useGetCategoriesQuery({
+      pageIndex: 1,
+      pageSize: 100,
+      searchTerm: "",
+    });
+  const token = getAccessToken() as string;
+  const { clinicId } = GetDataByToken(token) as TokenData;
 
-  const { data: branchesData, isLoading: isLoadingBranches, error, refetch } = useGetBranchesQuery(clinicId || "")
+  const {
+    data: branchesData,
+    isLoading: isLoadingBranches,
+    error,
+    refetch,
+  } = useGetBranchesQuery(clinicId || "");
 
   // Ensure editor is loaded
   useEffect(() => {
-    setEditorLoaded(true)
-  }, [])
+    setEditorLoaded(true);
+  }, []);
 
-  const categories = Array.isArray(categoryData?.value?.items) ? categoryData.value.items : []
+  const categories = Array.isArray(categoryData?.value?.items)
+    ? categoryData.value.items
+    : [];
   const categoryOptions = categories.map((cat: any) => ({
     value: cat.id,
     label: cat.name,
-  }))
+  }));
 
   // Extract branches from the response, handling both possible structures
   const getBranchesFromResponse = () => {
-    if (!branchesData) return []
+    if (!branchesData) return [];
 
     // Check if the response has branches in the nested structure
-    if (branchesData.value?.branches?.items && Array.isArray(branchesData.value.branches.items)) {
-      return branchesData.value.branches.items
+    if (
+      branchesData.value?.branches?.items &&
+      Array.isArray(branchesData.value.branches.items)
+    ) {
+      return branchesData.value.branches.items;
     }
 
     // If we have a single branch with nested branches
     if (branchesData.value?.id && branchesData.value?.branches?.items) {
-      return branchesData.value.branches.items
+      return branchesData.value.branches.items;
     }
 
-    return []
-  }
+    return [];
+  };
 
-  const branches = getBranchesFromResponse()
-  console.log("data branches: ", branchesData)
-  console.log("extracted branches: ", branches)
+  const branches = getBranchesFromResponse();
+  console.log("data branches: ", branchesData);
+  console.log("extracted branches: ", branches);
 
   const branchOptions = branches.map((branch) => ({
     value: branch.id,
     label: branch.name,
-  }))
+  }));
 
   const handleCoverFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     // Convert FileList to array and append to existing images
-    const newFiles = Array.from(files)
-    setCoverImages((prevImages) => [...prevImages, ...newFiles])
+    const newFiles = Array.from(files);
+    setCoverImages((prevImages) => [...prevImages, ...newFiles]);
 
     // Create previews for all new files
     newFiles.forEach((file) => {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview((prevPreviews) => [...prevPreviews, reader.result as string])
-      }
-      reader.readAsDataURL(file)
-    })
-  }
+        setImagePreview((prevPreviews) => [
+          ...prevPreviews,
+          reader.result as string,
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleRemoveImage = (index: number) => {
-    setCoverImages((prevImages) => prevImages.filter((_, i) => i !== index))
-    setImagePreview((prevPreviews) => prevPreviews.filter((_, i) => i !== index))
-  }
+    setCoverImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    setImagePreview((prevPreviews) =>
+      prevPreviews.filter((_, i) => i !== index)
+    );
+  };
 
   const handleDescriptionChange = (value: string) => {
-    setDescription(value)
-  }
+    setDescription(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMessages([])
+    e.preventDefault();
+    setErrorMessages([]);
 
     if (
       !name.trim() ||
@@ -122,37 +150,42 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
       selectedBranches.length === 0 ||
       coverImages.length === 0
     ) {
-      setErrorMessages(["Please fill in all required fields, including at least one branch and one image"])
-      return
+      setErrorMessages([
+        "Please fill in all required fields, including at least one branch and one image",
+      ]);
+      return;
     }
 
-    const formData = new FormData()
-    formData.append("clinicId", JSON.stringify(selectedBranches.map((branch) => branch.value)))
-    formData.append("name", name)
-    formData.append("description", description)
-    formData.append("categoryId", categoryId)
+    const formData = new FormData();
+    formData.append(
+      "clinicId",
+      JSON.stringify(selectedBranches.map((branch) => branch.value))
+    );
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("categoryId", categoryId);
 
     // Append all cover images to the formData
     coverImages.forEach((image) => {
-      formData.append("coverImages", image)
-    })
+      formData.append("coverImages", image);
+    });
 
     try {
-      const response = await createService({ data: formData }).unwrap()
+      const response = await createService({ data: formData }).unwrap();
       if (response.isSuccess) {
-        await refetchServices()
-        onSaveSuccess()
-        onClose()
+        await refetchServices();
+        onSaveSuccess();
+        onClose();
       }
     } catch (err: any) {
       if (err?.data?.status === 422 && err?.data?.errors) {
-        const messages = err.data.errors.map((error: any) => error.message)
-        setErrorMessages(messages)
+        const messages = err.data.errors.map((error: any) => error.message);
+        setErrorMessages(messages);
       } else {
-        setErrorMessages(["An unexpected error occurred"])
+        setErrorMessages(["An unexpected error occurred"]);
       }
     }
-  }
+  };
 
   const selectStyles = {
     control: (base: any) => ({
@@ -190,7 +223,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
         backgroundColor: "#e2e8f0",
       },
     }),
-  }
+  };
 
   return (
     <motion.div
@@ -199,7 +232,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
       exit={{ opacity: 0 }}
       className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/30 backdrop-blur-sm"
     >
-       <ToastContainer/>
+      <ToastContainer />
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -213,8 +246,13 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
 
         <div className="p-4 sm:p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-serif tracking-wide text-gray-800">Add New Service</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <h2 className="text-2xl font-serif tracking-wide text-gray-800">
+              {t("addNewService")}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
@@ -228,7 +266,10 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 className="mb-4 max-h-24 overflow-y-auto"
               >
                 {errorMessages.map((msg, index) => (
-                  <div key={index} className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 mb-2">
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 mb-2"
+                  >
                     <AlertCircle className="w-5 h-5" />
                     <p className="text-sm">{msg}</p>
                   </div>
@@ -240,7 +281,9 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Service Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Service Name</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("serviceName")}
+              </label>
               <input
                 type="text"
                 value={name}
@@ -254,7 +297,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
             <div className="space-y-2">
               <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
                 <FileText className="h-4 w-4" />
-                Description
+                {t("description")}
               </label>
               {editorLoaded && (
                 <div
@@ -292,10 +335,12 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                   zIndex: 3, // Even higher z-index for the label
                 }}
               >
-                Category
+                {t("category")}
               </label>
               <Select
-                value={categoryOptions.find((option: any) => option.value === categoryId)}
+                value={categoryOptions.find(
+                  (option: any) => option.value === categoryId
+                )}
                 onChange={(selected) => setCategoryId(selected?.value || "")}
                 options={categoryOptions}
                 isDisabled={isCategoriesLoading}
@@ -316,11 +361,17 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
 
             {/* Branch Selection (Multiple) */}
             <div className="space-y-2 mt-6">
-              <label className="text-sm font-medium text-gray-700 block mb-2">Branches</label>
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                {t("branches")}
+              </label>
               <Select
                 isMulti
                 value={selectedBranches}
-                onChange={(selected) => setSelectedBranches(selected as { value: string; label: string }[])}
+                onChange={(selected) =>
+                  setSelectedBranches(
+                    selected as { value: string; label: string }[]
+                  )
+                }
                 options={branchOptions}
                 isDisabled={isLoadingBranches}
                 isSearchable
@@ -330,13 +381,15 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 classNamePrefix="react-select"
               />
               {branchOptions.length === 0 && !isLoadingBranches && (
-                <p className="text-sm text-amber-600">No branches available. Please create a branch first.</p>
+                <p className="text-sm text-amber-600">{t("noAvailable")}</p>
               )}
             </div>
 
             {/* Multiple Images Upload */}
             <div className="space-y-2 mt-6">
-              <label className="text-sm font-medium text-gray-700 block mb-2">Images</label>
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                {t("image")}
+              </label>
               <div className="grid grid-cols-1 gap-4">
                 <div className="relative">
                   <input
@@ -350,14 +403,20 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                   <label
                     htmlFor="cover-images"
                     className={`flex flex-col items-center justify-center w-full h-28 rounded-lg border-2 border-dashed
-                      ${coverImages.length > 0 ? "border-purple-300 bg-purple-50" : "border-gray-300 hover:border-purple-300"}
+                      ${
+                        coverImages.length > 0
+                          ? "border-purple-300 bg-purple-50"
+                          : "border-gray-300 hover:border-purple-300"
+                      }
                       transition-all duration-200 cursor-pointer`}
                   >
                     <div className="flex flex-col items-center gap-2 text-gray-600">
                       <ImageIcon className="w-6 h-6" />
                       <span className="text-sm">
                         {coverImages.length > 0
-                          ? `${coverImages.length} image${coverImages.length > 1 ? "s" : ""} selected`
+                          ? `${coverImages.length} image${
+                              coverImages.length > 1 ? "s" : ""
+                            } selected`
                           : "Upload images (multiple allowed)"}
                       </span>
                     </div>
@@ -368,7 +427,10 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 {imagePreview.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {imagePreview.map((preview, index) => (
-                      <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                      <div
+                        key={index}
+                        className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200"
+                      >
                         <Image
                           src={preview || "/placeholder.svg"}
                           alt={`Preview ${index + 1}`}
@@ -397,7 +459,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 onClick={onClose}
                 className="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="submit"
@@ -409,7 +471,7 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
+                    <span>{t("save")}</span>
                   </div>
                 ) : (
                   "Save Service"
@@ -420,6 +482,5 @@ export default function ServiceForm({ onClose, onSaveSuccess }: ServiceFormProps
         </div>
       </motion.div>
     </motion.div>
-  )
+  );
 }
-

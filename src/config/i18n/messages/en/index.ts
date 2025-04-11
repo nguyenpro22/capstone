@@ -1,4 +1,4 @@
-import { packageMessages } from './package';
+import { packageMessages } from "./package";
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";
@@ -18,7 +18,8 @@ import { staffMessages } from "./staff";
 import { clinicProfileMessages } from "./clinicProfile";
 import { livestream } from "./livestream";
 import { livestreamRoom } from "./livestream-room";
-import { bookingFlowMessages } from './booking-flow';
+import { bookingFlowMessages } from "./booking-flow";
+import { adminSidebar } from "./adminSideBar";
 
 const en = {
   home: homeMessages,
@@ -42,7 +43,8 @@ const en = {
   livestream,
   livestreamRoom,
   package: packageMessages,
-  bookingFlow : bookingFlowMessages
+  bookingFlow: bookingFlowMessages,
+  adminSidebar,
 };
 
 export default en;

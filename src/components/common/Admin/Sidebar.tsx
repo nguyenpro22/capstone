@@ -114,7 +114,7 @@ const menuItems = {
     { label: "Inbox", path: "/clinicManager/inbox", icon: Inbox },
     { label: "Live Stream", path: "/clinicManager/live-stream", icon: Video },
     { label: "Profile", path: "/clinicManager/profile", icon: UserCircle },
-    { label: "Settings", path: "/clinicManager/settings", icon: Settings },
+    // { label: "Settings", path: "/clinicManager/settings", icon: Settings },
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
   clinicStaff: [
@@ -139,7 +139,7 @@ const menuItems = {
     { label: "Order", path: "/clinicStaff/order", icon: ClipboardList },
     { label: "Inbox", path: "/clinicStaff/inbox", icon: Inbox },
     { label: "Profile", path: "/clinicStaff/profile", icon: UserCircle },
-    { label: "Settings", path: "/clinicStaff/setting", icon: Settings },
+    // { label: "Settings", path: "/clinicStaff/setting", icon: Settings },
     { label: "Logout", path: "/logout", icon: LogOut },
   ],
   user: [
@@ -171,7 +171,7 @@ export default function AppSidebar({
   const [normalizedPathname, setNormalizedPathname] = useState("");
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
   const router = useRouter();
-  const t = useTranslations();
+  const t = useTranslations("adminSidebar");
 
   const onLogout = async () => {
     await handleLogout({ router });
@@ -318,21 +318,21 @@ export default function AppSidebar({
         <AlertDialogContent className="dark:bg-gray-900 dark:border-gray-800">
           <AlertDialogHeader>
             <AlertDialogTitle className="dark:text-white">
-              Are you sure you want to logout?
+              {t("logout.confirmTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription className="dark:text-gray-400">
-              This will end your session and log you out of the system.
+              {t("logout.confirmDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700">
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={onLogout}
               className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
             >
-              Logout
+              {t("common.logout")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

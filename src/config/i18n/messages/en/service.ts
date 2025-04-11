@@ -83,8 +83,13 @@ export const serviceMessages: Messages["serviceMessage"] = {
   editService: "Edit service",
   deleteService: "Delete service",
   addProcedure: "Add Procedure",
+  description: "Description",
   deleteServiceConfirmation:
     "Are you sure you want to delete this service? This action cannot be undone.",
   confirmDelete: "Confirm Delete",
   cancel: "Cancel",
+  branches: "Branches",
+  noAvailable: "No branches available. Please create a branch first.",
+  image: "Images",
+  save: "Save...",
 };

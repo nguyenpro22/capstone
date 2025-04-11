@@ -34,7 +34,7 @@ import {
   partnershipRequestCommandApi,
 } from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
-import { categoryApi } from "@/features/home/api";
+import { categoryApi, userApi } from "@/features/home/api";
 import {
   categoryQueryApi,
   categoryCommandApi,
@@ -100,6 +100,7 @@ const rootReducer = combineReducers({
 
   [inboxApi.reducerPath]: inboxApi.reducer,
   [chatApi.reducerPath]: chatApi.reducer,
+  [userApi.reducerPath]: userApi.reducer,
 });
 
 // Persisted reducer
@@ -117,6 +118,7 @@ const store = configureStore({
       authApi.middleware,
       landingApi.middleware,
       packageApi.middleware,
+      userApi.middleware,
       packageCreateApi.middleware,
       partnershipRequestApi.middleware,
       partnershipRequestCommandApi.middleware,
@@ -143,10 +145,9 @@ const store = configureStore({
       promotionCommandApi.middleware,
       workingScheduleApi.middleware,
       bankApi.middleware,
-      doctorServiceCommandApi.middleware
-,
+      doctorServiceCommandApi.middleware,
       inboxApi.middleware,
-      chatApi.middleware      
+      chatApi.middleware
     ),
 });
 
