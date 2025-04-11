@@ -59,6 +59,8 @@ export const customerRoutes = {
   HOME: `${publicCustomerPath}/home`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
   INBOX: `${publicCustomerPath}/inbox`,
+  CLINIC_VIEW: `${publicCustomerPath}/clinic-view`,
+  CLINIC_DETAIL: `${publicCustomerPath}/clinic-view/[id]`,
   LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
   ORDERS: `${publicCustomerPath}/orders`,
   SERVICES: `${publicCustomerPath}/services`,
