@@ -174,7 +174,7 @@ export default function AppSidebar({
   const t = useTranslations();
 
   const onLogout = async () => {
-    await handleLogout({ t, router });
+    await handleLogout({ router });
   };
 
   useEffect(() => {

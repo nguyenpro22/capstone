@@ -87,7 +87,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
   const token = getAccessToken() as string;
   const user = useSelector((state: RootState) => state.auth.user);
   const onLogout = async () => {
-    await handleLogout({ t, router });
+    await handleLogout({ router });
   };
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
