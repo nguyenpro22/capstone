@@ -35,10 +35,13 @@ export default function ChatScreen() {
 
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`http://localhost:5133/api/ChatHub?userId=${userId}&type=0`, {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
-      })
+      .withUrl(
+        `https://api.beautify.asia/signaling-api/ChatHub?userId=${userId}&type=0`,
+        {
+          skipNegotiation: true,
+          transport: signalR.HttpTransportType.WebSockets,
+        }
+      )
       .withAutomaticReconnect() // Automatically attempt to reconnect if the connection is lost
       .configureLogging(signalR.LogLevel.Information)
       .withHubProtocol(new signalR.JsonHubProtocol())
