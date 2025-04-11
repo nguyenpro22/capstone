@@ -14,12 +14,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import { useTheme } from "next-themes"
-import { RootState } from "@/store"
-import { useSelector } from "react-redux"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import { useTheme } from "next-themes";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 import { handleLogout } from "@/features/auth/utils";
 import { useTranslations } from "next-intl";
 
@@ -37,10 +37,10 @@ export default function Navbar({
   sidebarClosed = false,
 }: NavbarProps) {
   const router = useRouter();
-  const t = useTranslations("registerClinic")
+  const t = useTranslations("registerClinic");
   const onLogout = async () => {
-      await handleLogout({ t, router });
-    };
+    await handleLogout({ router });
+  };
   const { theme, setTheme } = useTheme();
 
   const token = getAccessToken();
@@ -71,8 +71,6 @@ export default function Navbar({
       time: "2 hours ago",
     },
   ];
-
-  
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");

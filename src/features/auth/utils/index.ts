@@ -258,10 +258,8 @@ export const handleGoogleLogin = async ({
  * Xử lý đăng xuất
  */
 export const handleLogout = async ({
-  t,
   router,
 }: {
-  t?: any;
   router?: any;
 }): Promise<{
   success: boolean;
@@ -288,7 +286,7 @@ export const handleLogout = async ({
 
     // Hiển thị thông báo thành công
     try {
-      showSuccess(t("logoutSuccess") || "Đăng xuất thành công");
+      showSuccess("Đăng xuất thành công");
     } catch (translationError) {
       showSuccess("Đăng xuất thành công");
     }
@@ -299,7 +297,7 @@ export const handleLogout = async ({
     return { success: true };
   } catch (error) {
     console.error("Logout error:", error);
-    const errorMessage = t("logoutError") || "Đăng xuất thất bại";
+    const errorMessage = "Đăng xuất thất bại";
     showError(errorMessage);
     return { success: false, error: errorMessage };
   }

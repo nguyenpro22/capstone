@@ -159,7 +159,6 @@ export default function LoginPage() {
 
     try {
       const result = await handleLogout({
-        t,
         router,
       });
 
