@@ -62,7 +62,7 @@ export function Sidebar() {
     },
   ];
   const onLogout = async () => {
-    await handleLogout({ t, router });
+    await handleLogout({ router });
   };
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
