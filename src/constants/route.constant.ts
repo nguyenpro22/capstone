@@ -66,7 +66,6 @@ export const customerRoutes = {
   SERVICES: `${publicCustomerPath}/services`,
   SERVICE_DETAIL: `${publicCustomerPath}/services/[id]`,
   PROFILE: `${publicCustomerPath}/profile`,
-  INBOX: `${publicCustomerPath}/inbox`,
 };
 
 export const systemStaffRoutes = {
