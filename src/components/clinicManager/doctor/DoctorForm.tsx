@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { X, Building2 } from "lucide-react"
 import { useAddDoctorMutation, useGetBranchesQuery } from "@/features/clinic/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import { useTheme } from "next-themes"
@@ -116,6 +116,7 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
       exit={{ opacity: 0, scale: 0.9 }}
       className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl dark:shadow-gray-800/30 w-full max-w-md p-6 relative"
     >
+       <ToastContainer/>
       <button
         onClick={onClose}
         className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"

@@ -19,5 +19,11 @@ export const loginMessage: Messages["login"] = {
   userNotFound: "User not found",
   generalError: "Something went wrong",
   continueWithGoogle: "Continue with Google",
-  loginSuccess: "Login success"
+  loginSuccess: "Login success",
+  enterVerificationCode: "Enter verification code",
+  verificationCodePlaceholder: "Input verification code",
+  checkEmail: "Verify email",
+   timeRemaining: "Time remaining",
+  confirm:"Confirm",
+  logout: "Logout"
 };

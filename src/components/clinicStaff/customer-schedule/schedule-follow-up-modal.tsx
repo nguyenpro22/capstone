@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { format } from "date-fns"
 import { CalendarIcon, Check, Loader2, Clock, AlertCircle } from "lucide-react"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 
 import {
   Dialog,
@@ -310,7 +310,9 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
 
   if (isLoadingSchedule && !scheduleDetail) {
     return (
+      
       <Dialog open={isOpen} onOpenChange={onClose}>
+         <ToastContainer/>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Schedule Follow-up Appointment</DialogTitle>

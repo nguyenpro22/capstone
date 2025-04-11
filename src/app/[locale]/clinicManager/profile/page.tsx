@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+import { formatCurrency, getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import { Button } from "@/components/ui/button"
 import ClinicEditForm from "@/components/clinicManager/profile/clinic-edit-form"
 import { motion } from "framer-motion"
@@ -293,7 +293,8 @@ export default function ClinicProfilePage() {
                     <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
                       {clinic.currentSubscription.price === 0
                         ? "Free"
-                        : `${clinic.currentSubscription.price.toFixed(2)}`}
+                        : `${formatCurrency(clinic.currentSubscription.price)}`} đ
+                        
                     </span>
                   </div>
                 </div>

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useUpdateProcedureMutation } from "@/features/clinic-service/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -182,7 +182,9 @@ export default function EditProcedureForm({ procedure, serviceId, onClose, onSuc
   if (!procedure) return null
 
   return (
+    
     <Modal onClose={onClose} >
+       <ToastContainer/>
       <form onSubmit={handleSubmit} className="space-y-6 p-6">
         <div className="space-y-4">
           {/* Procedure Name */}

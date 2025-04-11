@@ -368,7 +368,7 @@ const BranchesList: React.FC = () => {
                             </span>
                             {t("editBranch")}
                           </li>
-                          <li
+                          {/* <li
                             className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation()
@@ -379,7 +379,7 @@ const BranchesList: React.FC = () => {
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                             </span>
                             {t("deleteBranch")}
-                          </li>
+                          </li> */}
                         </MenuPortal>
                       )}
                     </AnimatePresence>
