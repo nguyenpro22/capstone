@@ -27,6 +27,7 @@ export const clinicAdminRoutes = {
   BOOKINGS: `${privateClinicAdminPath}/bookings`,
   CUSTOMERS: `${privateClinicAdminPath}/customers`,
   REPORTS: `${privateClinicAdminPath}/reports`,
+  INBOX: `${privateClinicAdminPath}/inbox`,
 };
 
 // DOCTOR ROUTES
@@ -42,6 +43,7 @@ export const clinicStaffRoutes = {
   DASHBOARD: `${privateClinicStaffPath}/dashboard`,
   BOOKINGS: `${privateClinicStaffPath}/bookings`,
   CUSTOMERS: `${privateClinicStaffPath}/customers`,
+  INBOX: `${privateClinicStaffPath}/inbox`,
 };
 
 // CUSTOMER ROUTES
@@ -54,7 +56,9 @@ export const customerRoutes = {
   SERVICES: `${publicCustomerPath}/services`,
   SERVICE_DETAIL: `${publicCustomerPath}/services/[id]`,
   PROFILE: `${publicCustomerPath}/profile`,
+  INBOX: `${publicCustomerPath}/inbox`,
 };
+
 export const systemStaffRoutes = {
   DEFAULT: `${privateSystemStaffPath}/clinic`,
   DASHBOARD: `${privateSystemStaffPath}/dashboard`,

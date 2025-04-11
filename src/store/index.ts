@@ -29,7 +29,10 @@ import {
   doctorAdminCommandApi,
 } from "@/features/clinic/api";
 import { packageApi, packageCreateApi } from "@/features/package/api";
-import { partnershipRequestApi, partnershipRequestCommandApi } from "@/features/partnership/api";
+import {
+  partnershipRequestApi,
+  partnershipRequestCommandApi,
+} from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
 import { categoryApi } from "@/features/home/api";
 import {
@@ -41,16 +44,14 @@ import {
   serviceQueryApi,
 } from "@/features/clinic-service/api";
 import { bookingCommandApi, bookingQueryApi } from "@/features/booking/api";
-import {
-  doctorCommandApi,
-  doctorQueryApi,
-} from "@/features/doctor/api";
+import { doctorCommandApi, doctorQueryApi } from "@/features/doctor/api";
 import {
   customerScheduleCommandApi,
   customerScheduleQueryApi,
 } from "@/features/customer-schedule/api";
 import { promotionCommandApi } from "@/features/promotion-service/api";
 import { workingScheduleApi } from "@/features/working-schedule/api";
+import { chatApi, inboxApi } from "@/features/inbox/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -67,7 +68,8 @@ const rootReducer = combineReducers({
   [packageApi.reducerPath]: packageApi.reducer,
   [packageCreateApi.reducerPath]: packageCreateApi.reducer,
   [partnershipRequestApi.reducerPath]: partnershipRequestApi.reducer,
-  [partnershipRequestCommandApi.reducerPath]: partnershipRequestCommandApi.reducer,
+  [partnershipRequestCommandApi.reducerPath]:
+    partnershipRequestCommandApi.reducer,
 
   [bookingQueryApi.reducerPath]: bookingQueryApi.reducer,
   [bookingCommandApi.reducerPath]: bookingCommandApi.reducer,
@@ -91,7 +93,8 @@ const rootReducer = combineReducers({
   [customerScheduleCommandApi.reducerPath]: customerScheduleCommandApi.reducer,
   [promotionCommandApi.reducerPath]: promotionCommandApi.reducer,
   [workingScheduleApi.reducerPath]: workingScheduleApi.reducer,
-  
+  [inboxApi.reducerPath]: inboxApi.reducer,
+  [chatApi.reducerPath]: chatApi.reducer,
 });
 
 // Persisted reducer
@@ -133,8 +136,9 @@ const store = configureStore({
       customerScheduleQueryApi.middleware,
       customerScheduleCommandApi.middleware,
       promotionCommandApi.middleware,
-      workingScheduleApi.middleware
-
+      workingScheduleApi.middleware,
+      inboxApi.middleware,
+      chatApi.middleware
     ),
 });
 
