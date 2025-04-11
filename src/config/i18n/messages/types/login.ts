@@ -17,4 +17,11 @@ export type LoginTranslations = {
   userNotFound: string;
   generalError: string;
   continueWithGoogle: string;
+  loginSuccess: string;
+  enterVerificationCode: string;
+  checkEmail: string;
+  verificationCodePlaceholder: string;
+  timeRemaining: string;
+  confirm: string;
+  logout: string;
 };

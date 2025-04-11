@@ -44,7 +44,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format, addDays } from "date-fns"
 import { cn } from "@/lib/utils"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import type { CustomerSchedule } from "@/features/customer-schedule/types"
 import ScheduleDetailsModal from "@/components/clinicStaff/customer-schedule/schedule-details-modal"
 import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/schedule-payment-modal"
@@ -700,6 +700,7 @@ export default function SchedulesPage() {
 
   return (
     <div className="space-y-6">
+       <ToastContainer/>
       <h1 className="text-2xl font-bold">Customer Schedules</h1>
 
       {/* Show notification if any schedules need a follow-up */}

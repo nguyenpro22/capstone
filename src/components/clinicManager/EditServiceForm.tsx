@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImagePlus, Loader2, Save, XCircle, Trash2, Edit, FileText, Building } from "lucide-react"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import dynamic from "next/dynamic"
 import ReactSelect from "react-select"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -237,6 +237,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
 
   return (
     <Card className="w-[650px] max-h-[85vh] border-none shadow-lg dark:shadow-gray-900 flex flex-col">
+       <ToastContainer/>
       <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-t-lg">
         <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Update Service</CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-300">

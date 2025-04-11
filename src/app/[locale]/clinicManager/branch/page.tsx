@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -56,13 +56,39 @@ const BranchesList: React.FC = () => {
   const [fetchBranchById] = useLazyGetBranchByIdQuery()
   const [fetchStaffById] = useLazyGetStaffByIdQuery()
 
-  // Update the branches variable to correctly access the items array
-  const branches = Array.isArray(data?.value?.branches?.items) ? data?.value?.branches?.items : []
+  // Get all branches from the API response
+  const allBranches = Array.isArray(data?.value?.branches?.items) ? data?.value?.branches?.items : []
 
-  // Update the pagination variables to use the correct properties
-  const totalCount = data?.value?.branches?.totalCount || 0
-  const hasNextPage = data?.value?.branches?.hasNextPage
-  const hasPreviousPage = data?.value?.branches?.hasPreviousPage
+  // Filter branches based on search term
+  const filteredBranches = useMemo(() => {
+    if (!debouncedSearchTerm) return allBranches
+
+    return allBranches.filter(
+      (branch: Branch) =>
+        branch.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        branch.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        branch.address?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
+    )
+  }, [allBranches, debouncedSearchTerm])
+
+  // Calculate pagination values
+  const totalCount = filteredBranches.length
+  const totalPages = Math.ceil(totalCount / pageSize)
+  const hasNextPage = pageIndex < totalPages
+  const hasPreviousPage = pageIndex > 1
+
+  // Get the current page of branches
+  const paginatedBranches = useMemo(() => {
+    const startIndex = (pageIndex - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return filteredBranches.slice(startIndex, endIndex)
+  }, [filteredBranches, pageIndex, pageSize])
+
+  // Reset page index when search term changes
+  useEffect(() => {
+    setPageIndex(1)
+  }, [debouncedSearchTerm])
+
   // Function to fetch staff for a specific branch
   const { data: staffData } = useGetStaffQuery(
     {
@@ -78,11 +104,6 @@ const BranchesList: React.FC = () => {
   )
 
   const allStaff = staffData?.value?.items || []
-
-  // Reset page index when search term changes
-  useEffect(() => {
-    setPageIndex(1)
-  }, [debouncedSearchTerm])
 
   // Filter staff by branch
   const getStaffForBranch = (branchId: string) => {
@@ -161,7 +182,7 @@ const BranchesList: React.FC = () => {
   }
 
   const handleToggleStatus = async (id: string) => {
-    const branch = branches.find((branch: Branch) => branch.id === id)
+    const branch = allBranches.find((branch: Branch) => branch.id === id)
     if (!branch) return
 
     try {
@@ -180,7 +201,7 @@ const BranchesList: React.FC = () => {
   }
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(branches)
+    const worksheet = XLSX.utils.json_to_sheet(allBranches)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, "Branches")
     XLSX.writeFile(workbook, "Branches.xlsx")
@@ -188,16 +209,6 @@ const BranchesList: React.FC = () => {
 
   if (isLoading) return <div className="text-center text-gray-600 dark:text-gray-400">{t("loading")}</div>
   if (error) return <div className="text-center text-red-600 dark:text-red-400">{t("errorFetching")}</div>
-
-  const filteredBranches =
-    debouncedSearchTerm && Array.isArray(branches)
-      ? branches.filter(
-          (branch: Branch) =>
-            branch.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-            branch.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-            branch.address?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
-        )
-      : branches
 
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-pink-950 shadow-xl rounded-xl">
@@ -268,7 +279,7 @@ const BranchesList: React.FC = () => {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-          {filteredBranches.map((branch: Branch, index: number) => (
+          {paginatedBranches.map((branch: Branch, index: number) => (
             <React.Fragment key={branch.id}>
               <motion.tr
                 whileHover={{ scale: 1.005 }}
@@ -368,7 +379,7 @@ const BranchesList: React.FC = () => {
                             </span>
                             {t("editBranch")}
                           </li>
-                          <li
+                          {/* <li
                             className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation()
@@ -379,7 +390,7 @@ const BranchesList: React.FC = () => {
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                             </span>
                             {t("deleteBranch")}
-                          </li>
+                          </li> */}
                         </MenuPortal>
                       )}
                     </AnimatePresence>
@@ -491,9 +502,13 @@ const BranchesList: React.FC = () => {
         pageIndex={pageIndex}
         pageSize={pageSize}
         totalCount={totalCount}
-        hasNextPage={!!hasNextPage}
-        hasPreviousPage={!!hasPreviousPage}
-        onPageChange={setPageIndex}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onPageChange={(newPageIndex) => {
+          setPageIndex(newPageIndex)
+          // Optional: scroll to top when changing pages
+          window.scrollTo(0, 0)
+        }}
       />
 
       {/* View Branch Modal */}

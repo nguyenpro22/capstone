@@ -1,42 +1,16 @@
 "use client";
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { v4 as uuidv4 } from "uuid";
-import {
-  Search,
-  Send,
-  ImageIcon,
-  Paperclip,
-  Smile,
-  MoreVertical,
-  Phone,
-  Video,
-  Info,
-  Check,
-  CheckCheck,
-  Clock,
-  Bell,
-  Mic,
-  Home,
-  MessageSquare,
-  ShoppingBag,
-  User,
-  PlaySquare,
-} from "lucide-react";
-import Image from "next/image";
+import { Send, MessageSquare } from "lucide-react";
 import {
   useGetAllConversationQuery,
   useGetAllMessageConversationQuery,
 } from "@/features/inbox/api";
-import { da } from "date-fns/locale";
 import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
 import { Conversation, Message } from "@/features/inbox/types";
 
@@ -122,7 +96,7 @@ export default function ChatScreen() {
         receiverId &&
         selectedConversation?.entityId
       ) {
-        console.log(receiverId);
+        console.log({ receiverId, userId, message });
         await signalRef.current.invoke(
           "SendMessage",
           userId,
@@ -256,7 +230,7 @@ export default function ChatScreen() {
                           <Avatar className="h-8 w-8 mr-2 mt-1">
                             <AvatarImage src={message.senderImageUrl ?? ""} />
                             <AvatarFallback>
-                              {message.senderName.substring(0, 2)}
+                              {message.senderName}
                             </AvatarFallback>
                           </Avatar>
                         )}

@@ -9,7 +9,7 @@ import { z } from "zod"
 import { X, Upload, User, Mail, Phone, MapPin, Check } from "lucide-react"
 import { useUpdateStaffMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { useTranslations } from "next-intl"
 import type { Staff } from "@/features/clinic/types"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
@@ -233,6 +233,7 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
         className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl dark:shadow-black/30 w-full max-w-xl flex flex-col overflow-hidden"
         style={{ maxHeight: "90vh" }}
       >
+         <ToastContainer/>
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 p-6 text-white relative">
           <h2 className="text-2xl font-bold">{t("editStaff") || "Edit Staff"}</h2>

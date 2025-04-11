@@ -19,4 +19,11 @@ export const loginMessage: Messages["login"] = {
   userNotFound: "Không tìm thấy người dùng",
   generalError: "Đã xảy ra lỗi",
   continueWithGoogle: "Tiếp tục với Google",
+  loginSuccess: "Đăng nhập thành công",
+  enterVerificationCode: "Xác Thực Email",
+  verificationCodePlaceholder: "Nhập mã xác thực",
+  checkEmail: "Xác Thực Email",
+  timeRemaining: "Thời gian còn lại",
+  confirm:"Xác thực",
+  logout: "Đăng xuất"
 };

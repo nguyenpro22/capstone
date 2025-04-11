@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useAddProcedureMutation } from "@/features/clinic-service/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { X, Plus, Clock, DollarSign, Trash2, AlertCircle, FileText } from "lucide-react"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
@@ -219,6 +219,7 @@ const AddProcedure = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+       <ToastContainer/>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

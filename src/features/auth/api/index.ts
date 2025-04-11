@@ -6,7 +6,7 @@ import type {
   IRegisterRequest,
   IVerifyRequest,
 } from "../types";
-import { IResCommon } from "@/lib/api";
+import { IResCommon, ValidationErrorResponse } from "@/lib/api";
 
 export const authApi = createApi({
   reducerPath: "authApi",
@@ -18,6 +18,12 @@ export const authApi = createApi({
         method: "POST",
         body: credentials,
       }),
+      transformErrorResponse: (response: {
+        status: number;
+        data: ValidationErrorResponse;
+      }) => {
+        return response.data;
+      },
     }),
     register: builder.mutation<Response, IRegisterRequest>({
       query: (userData) => ({
@@ -25,6 +31,7 @@ export const authApi = createApi({
         method: "POST",
         body: userData,
       }),
+      
     }),
     verify: builder.mutation<IResCommon<ILoginResponse>, IVerifyRequest>({
       query: (credentials) => ({

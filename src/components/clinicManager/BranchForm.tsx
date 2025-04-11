@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useCreateBranchMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import { motion } from "framer-motion"
 import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, Calendar, ImageIcon, Loader2 } from "lucide-react"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
@@ -223,6 +223,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-gray-900/80 backdrop-blur-sm overflow-y-auto p-4"
     >
+       <ToastContainer/>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

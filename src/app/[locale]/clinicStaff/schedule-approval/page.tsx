@@ -17,6 +17,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { ToastContainer } from "react-toastify"
 
 export default function ScheduleApproval() {
   const [pageIndex, setPageIndex] = useState(1)
@@ -72,6 +73,7 @@ export default function ScheduleApproval() {
 
   return (
     <Card className="w-full">
+       <ToastContainer/>
       <CardHeader>
         <CardTitle>Schedule Approval</CardTitle>
         <CardDescription>Review and manage schedules waiting for approval</CardDescription>
