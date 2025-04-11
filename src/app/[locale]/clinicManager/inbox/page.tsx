@@ -36,7 +36,7 @@ export default function ChatScreen() {
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(
-        `http://localhost:5133/api/ChatHub?clinicId=${clinicId}&type=1`,
+        `https://api.beautify.asia/signaling-api/ChatHub?clinicId=${clinicId}&type=1`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
