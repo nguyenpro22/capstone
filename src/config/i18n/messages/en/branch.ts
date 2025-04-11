@@ -1,4 +1,4 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
 
 export const branchMessages: Messages["branch"] = {
   createNewBranch: "Create New Branch",
@@ -17,7 +17,7 @@ export const branchMessages: Messages["branch"] = {
   inactive: "Inactive",
   statusUpdated: "Status Updated",
   viewBranchDetail: "View branch detail",
-  editBranch : "Edit branch",
+  editBranch: "Edit branch",
   deleteBranch: "Delete branch",
   previous: "Previous",
   next: "Next",
@@ -31,5 +31,39 @@ export const branchMessages: Messages["branch"] = {
   statusUpdateFailed: "Update status Failed",
   bankInformation: "Bank Information",
   bankName: "Bank Name",
-  bankAccountNumber:"Bank Account Number",
-};
+  bankAccountNumber: "Bank Account Number",
+
+  // Additional keys for edit-branch-form
+  basicInfo: "Basic Information",
+  provinceCity: "Province/City",
+  district: "District",
+  ward: "Ward",
+  streetAddress: "Street Address",
+  fullAddress: "Full Address",
+  uploadProfilePicture: "Upload a profile picture for this branch",
+  uploadImage: "Upload Image",
+  remove: "Remove",
+  sendEmptyValue: "Send empty value",
+  setCurrent: "Set Current",
+  editingBasicInfo: "Editing basic information",
+  editingAddressInfo: "Editing address information",
+  editingProfilePhoto: "Editing profile photo",
+  editingLicenseInfo: "Editing license information",
+  editingBankInfo: "Editing bank information",
+  saving: "Saving...",
+  save: "Save",
+  cancel: "Cancel",
+  enterBankName: "Enter bank name",
+  enterAccountNumber: "Enter account number",
+  enterStreetAddress: "Enter street address",
+  selectProvinceCity: "Select Province/City",
+  selectDistrict: "Select District",
+  selectWard: "Select Ward",
+  selectProvinceFirst: "Select province first",
+  selectDistrictFirst: "Select district first",
+  loadingProvinces: "Loading provinces...",
+  loadingDistricts: "Loading districts...",
+  loadingWards: "Loading wards...",
+  operatingLicense: "Operating License",
+  businessLicense: "Business License"
+}

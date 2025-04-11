@@ -8,7 +8,8 @@ import store, { persistor } from "@/store";
 import { ThemeProvider } from "next-themes";
 import { QuizProvider } from "@/components/home/quiz/context";
 import { PersistGate } from "redux-persist/integration/react";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const ClientProvider: React.FC<{ children: React.ReactNode }> = React.memo(
   ({ children }) => {
     return (
@@ -35,6 +36,18 @@ const ClientProvider: React.FC<{ children: React.ReactNode }> = React.memo(
                   icon: "🚨",
                 },
               }}
+            />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick={false}
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
             />
           </ThemeProvider>
         </PersistGate>

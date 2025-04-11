@@ -1,4 +1,4 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
 
 export const clinicMessages: Messages["clinic"] = {
   clinicsList: "Clinics List",
@@ -13,8 +13,67 @@ export const clinicMessages: Messages["clinic"] = {
   active: "Active",
   inactive: "Inactive",
   viewClinicDetail: "View clinic detail",
-  editClinic : "Edit clinic",
+  editClinic: "Edit clinic",
   deleteClinic: "Delete clinic",
   previous: "Previous",
-  next: "Next"
-};
+  next: "Next",
+
+  // Added keys for ClinicDetailModal
+  clinicDetails: "Clinic Details",
+  clinicName: "Clinic Name",
+  phoneNumber: "Phone Number",
+  taxCode: "Tax Code",
+  businessLicense: "Business License",
+  viewBusinessLicense: "View Business License",
+  operatingLicense: "Operating License",
+  viewOperatingLicense: "View Operating License",
+  operatingLicenseExpiryDate: "Operating License Expiry Date",
+  profilePicture: "Profile Picture",
+  viewProfilePicture: "View Profile Picture",
+  close: "Close",
+
+  // Added keys for clinic-form
+  updateClinicInfo: "Update your clinic information",
+  basicInfo: "Basic Information",
+  bankingInfo: "Banking Information",
+  bankName: "Bank Name",
+  bankAccountNumber: "Bank Account Number",
+  addressDetails: "Address Details",
+  provinceCity: "Province/City",
+  district: "District",
+  ward: "Ward",
+  streetAddress: "Street Address",
+  fullAddress: "Full Address",
+  optional: "Optional",
+  acceptedFormats: "Accepted formats: JPG, PNG (max 5MB)",
+  currentImage: "Current image",
+  cancel: "Cancel",
+  saveChanges: "Save Changes",
+  saving: "Saving...",
+  enterClinicName: "Enter clinic name",
+  enterEmail: "Enter email",
+  enterPhoneNumber: "Enter phone number",
+  enterBankName: "Enter bank name",
+  enterAccountNumber: "Enter account number",
+  selectProvinceCity: "Select Province/City",
+  selectDistrict: "Select District",
+  selectWard: "Select Ward",
+  enterStreetAddress: "Enter street address",
+  loadingProvinces: "Loading provinces...",
+  loadingDistricts: "Loading districts...",
+  loadingWards: "Loading wards...",
+  selectProvinceFirst: "Select province first",
+  selectDistrictFirst: "Select district first",
+  current: "Current",
+  clinicIdMissing: "Clinic ID is missing",
+  updateSuccess: "Clinic updated successfully!",
+  updateFailed: "Failed to update clinic. Please try again.",
+  fixErrors: "Please fix the following errors:",
+
+  // Added keys for bank selection
+  loadingBanks: "Loading banks...",
+  searchBank: "Search bank",
+  noBanksFound: "No banks found",
+  bankingInfoHelp:
+    "Banking information will be used for financial transactions with your clinic. Please ensure the information is accurate.",
+}

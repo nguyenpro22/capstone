@@ -1,34 +1,23 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import type { BookingData } from "../types/booking";
-import { formatDate, calculateTotalPriceWithVAT } from "../utils/booking-utils";
-import { CalendarIcon, CheckCircle, Clock, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import type { BookingData } from "../types/booking"
+import { formatDate, calculateTotalPriceWithVAT } from "../utils/booking-utils"
+import { CalendarIcon, CheckCircle, Clock, MapPin } from "lucide-react"
+import { useTranslations } from "next-intl" // Import useTranslations
 
 interface BookingConfirmationProps {
-  bookingId: string;
-  bookingData: BookingData;
-  onClose: () => void;
+  bookingId: string
+  bookingData: BookingData
+  onClose: () => void
 }
 
-export function BookingConfirmation({
-  bookingId,
-  bookingData,
-  onClose,
-}: BookingConfirmationProps) {
-  const {
-    service,
-    doctor,
-    clinic,
-    date,
-    time,
-    selectedProcedures,
-    customerInfo,
-    isDefault,
-  } = bookingData;
+export function BookingConfirmation({ bookingId, bookingData, onClose }: BookingConfirmationProps) {
+  const { service, doctor, clinic, date, time, selectedProcedures, customerInfo, isDefault } = bookingData
+  const t = useTranslations("bookingFlow") // Use the hook with the namespace
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -39,54 +28,43 @@ export function BookingConfirmation({
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Đặt lịch thành công!</h2>
-              <p className="text-muted-foreground">
-                Cảm ơn bạn đã đặt lịch dịch vụ tại chúng tôi
-              </p>
+              <h2 className="text-2xl font-bold mb-2">{t("bookingSuccessful")}!</h2>
+              <p className="text-muted-foreground">{t("thankYouForBooking")}</p>
             </div>
 
             <div className="bg-muted/30 p-4 rounded-lg mb-6">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-medium">Mã đặt lịch</h3>
+                <h3 className="font-medium">{t("bookingCode")}</h3>
                 <Badge variant="outline" className="font-mono">
                   {bookingId}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Vui lòng lưu lại mã đặt lịch này để tra cứu thông tin khi cần
-                thiết
-              </p>
+              <p className="text-sm text-muted-foreground">{t("pleaseKeepBookingCode")}</p>
             </div>
 
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3">
                 <CalendarIcon className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="font-medium">Ngày hẹn</div>
-                  <div className="text-sm text-muted-foreground">
-                    {date ? formatDate(date) : "Chưa chọn ngày"}
-                  </div>
+                  <div className="font-medium">{t("appointmentDate")}</div>
+                  <div className="text-sm text-muted-foreground">{date ? formatDate(date) : t("dateNotSelected")}</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="font-medium">Giờ hẹn</div>
-                  <div className="text-sm text-muted-foreground">
-                    {time || "Chưa chọn giờ"}
-                  </div>
+                  <div className="font-medium">{t("appointmentTime")}</div>
+                  <div className="text-sm text-muted-foreground">{time || t("timeNotSelected")}</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="font-medium">Địa điểm</div>
+                  <div className="font-medium">{t("location")}</div>
                   <div className="text-sm text-muted-foreground">
-                    {clinic
-                      ? `${clinic.name} - ${clinic.address}`
-                      : "Chưa chọn cơ sở"}
+                    {clinic ? `${clinic.name} - ${clinic.address}` : t("clinicNotSelected")}
                   </div>
                 </div>
               </div>
@@ -95,13 +73,13 @@ export function BookingConfirmation({
             <Separator className="my-4" />
 
             <div className="space-y-3 mb-6">
-              <h3 className="font-medium">Chi tiết dịch vụ</h3>
+              <h3 className="font-medium">{t("serviceDetails")}</h3>
               {isDefault ? (
                 <div className="flex justify-between text-sm">
                   <div>
                     <span>{service.name}</span>
                     <Badge variant="outline" className="ml-2 text-xs">
-                      Gói mặc định
+                      {t("defaultPackage")}
                     </Badge>
                   </div>
                   <div>
@@ -111,14 +89,9 @@ export function BookingConfirmation({
                 </div>
               ) : (
                 selectedProcedures.map((item) => {
-                  const priceType = item.procedure.procedurePriceTypes.find(
-                    (pt) => pt.id === item.priceTypeId
-                  );
+                  const priceType = item.procedure.procedurePriceTypes.find((pt) => pt.id === item.priceTypeId)
                   return (
-                    <div
-                      key={`${item.procedure.id}-${item.priceTypeId}`}
-                      className="flex justify-between text-sm"
-                    >
+                    <div key={`${item.procedure.id}-${item.priceTypeId}`} className="flex justify-between text-sm">
                       <div>
                         <span>{item.procedure.name}</span>
                         {priceType && (
@@ -127,49 +100,43 @@ export function BookingConfirmation({
                           </Badge>
                         )}
                       </div>
-                      <div>
-                        {(priceType?.price || 0).toLocaleString("vi-VN")}đ
-                      </div>
+                      <div>{(priceType?.price || 0).toLocaleString("vi-VN")}đ</div>
                     </div>
-                  );
+                  )
                 })
               )}
               <div className="flex justify-between font-medium pt-2">
-                <span>Tổng cộng (đã bao gồm VAT)</span>
+                <span>{t("totalIncludingVAT")}</span>
                 <span className="text-primary">
                   {isDefault
-                    ? `${service.discountMinPrice.toLocaleString(
-                        "vi-VN"
-                      )}đ - ${service.discountMaxPrice.toLocaleString(
-                        "vi-VN"
+                    ? `${service.discountMinPrice.toLocaleString("vi-VN")}đ - ${service.discountMaxPrice.toLocaleString(
+                        "vi-VN",
                       )}đ`
-                    : calculateTotalPriceWithVAT(
-                        selectedProcedures
-                      ).toLocaleString("vi-VN") + "đ"}
+                    : calculateTotalPriceWithVAT(selectedProcedures).toLocaleString("vi-VN") + "đ"}
                 </span>
               </div>
             </div>
 
             <div className="bg-primary/5 p-4 rounded-lg mb-6">
-              <h3 className="font-medium mb-2">Thông tin khách hàng</h3>
+              <h3 className="font-medium mb-2">{t("customerInfo")}</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Họ và tên:</span>
+                  <span className="text-muted-foreground">{t("fullName")}:</span>
                   <span className="ml-2">{customerInfo.name}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Số điện thoại:</span>
+                  <span className="text-muted-foreground">{t("phoneNumber")}:</span>
                   <span className="ml-2">{customerInfo.phone}</span>
                 </div>
                 {customerInfo.email && (
                   <div className="col-span-2">
-                    <span className="text-muted-foreground">Email:</span>
+                    <span className="text-muted-foreground">{t("email")}:</span>
                     <span className="ml-2">{customerInfo.email}</span>
                   </div>
                 )}
                 {customerInfo.notes && (
                   <div className="col-span-2">
-                    <span className="text-muted-foreground">Ghi chú:</span>
+                    <span className="text-muted-foreground">{t("notes")}:</span>
                     <span className="ml-2">{customerInfo.notes}</span>
                   </div>
                 )}
@@ -194,7 +161,7 @@ export function BookingConfirmation({
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                Lưu thông tin
+                {t("saveInformation")}
               </Button>
               <Button variant="outline" className="flex-1 gap-2">
                 <svg
@@ -215,15 +182,15 @@ export function BookingConfirmation({
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                   <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                 </svg>
-                Chia sẻ
+                {t("share")}
               </Button>
               <Button variant="secondary" className="flex-1" onClick={onClose}>
-                Đóng
+                {t("close")}
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useUpdateBranchMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
 import { toast } from "react-toastify"
@@ -12,19 +12,20 @@ import {
   AlertCircle,
   MapPin,
   Phone,
-  FileCode,
   Building2,
-  Check,
   FileText,
   Mail,
   CreditCard,
   Upload,
   User,
+  Search,
 } from "lucide-react"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import Image from "next/image"
-// Add useTheme import
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
+import { useGetBanksQuery } from "@/features/bank/api"
+import type { Bank } from "@/features/bank/types"
 
 interface EditBranchFormProps {
   initialData: any // Initial branch data from API
@@ -62,7 +63,8 @@ interface ValidationErrors {
 }
 
 export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: EditBranchFormProps) {
-  // Inside the component function, add the useTheme hook
+  // Add the translation hook
+  const t = useTranslations("branch")
   const { theme } = useTheme()
   const [formData, setFormData] = useState(initialData)
   const token = getAccessToken() as string
@@ -77,9 +79,6 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   // Add these state variables after the existing useState declarations
   const [selectedBusinessLicense, setSelectedBusinessLicense] = useState<File | null>(null)
   const [selectedOperatingLicense, setSelectedOperatingLicense] = useState<File | null>(null)
-  const [sendEmptyBusinessLicense, setSendEmptyBusinessLicense] = useState(false)
-  const [sendEmptyOperatingLicense, setSendEmptyOperatingLicense] = useState(false)
-  const [sendEmptyExpiryDate, setSendEmptyExpiryDate] = useState(false)
   const [operatingLicenseExpiryDate, setOperatingLicenseExpiryDate] = useState<string>(() => {
     // If there's an existing date in initialData, use it
     if (initialData.operatingLicenseExpiryDate) {
@@ -117,6 +116,13 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   const { data: wards, isLoading: isLoadingWards } = useGetWardsQuery(addressDetail.districtId, {
     skip: !addressDetail.districtId,
   })
+
+  // MOVE BANK HOOKS TO TOP LEVEL - FIX FOR THE ERROR
+  const { data: bankData, isLoading: isBanksLoading } = useGetBanksQuery()
+  const [bankSearchTerm, setBankSearchTerm] = useState("")
+  const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
+  const [showBankDropdown, setShowBankDropdown] = useState(false)
+  const bankDropdownRef = useRef<HTMLDivElement>(null)
 
   // Create preview URL for selected file
   useEffect(() => {
@@ -165,6 +171,18 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
       }
     }
   }, [wards, addressDetail.wardName, addressDetail.wardId])
+
+  // Find the initial selected bank if we have a bank name
+  useEffect(() => {
+    if (bankData?.data && formData.bankName && !selectedBank) {
+      const matchingBank = bankData.data.find(
+        (bank) => bank.name === formData.bankName || bank.shortName === formData.bankName,
+      )
+      if (matchingBank) {
+        setSelectedBank(matchingBank)
+      }
+    }
+  }, [bankData, formData.bankName, selectedBank])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -237,11 +255,9 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
     }
   }
 
-  // Add these handlers after the existing handler functions
   const handleBusinessLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedBusinessLicense(e.target.files[0])
-      setSendEmptyBusinessLicense(false)
       setValidationErrors({})
     }
   }
@@ -249,7 +265,6 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   const handleOperatingLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedOperatingLicense(e.target.files[0])
-      setSendEmptyOperatingLicense(false)
       setValidationErrors({})
     }
   }
@@ -276,7 +291,6 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
         setOperatingLicenseExpiryDate(inputValue)
       }
 
-      setSendEmptyExpiryDate(false)
       setValidationErrors({})
     } catch (error) {
       console.error("Error handling date change:", error)
@@ -306,6 +320,21 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   const handleSectionChange = (section: string) => {
     setActiveSection(section)
     setValidationErrors({})
+  }
+
+  // Filter banks based on search term
+  const filteredBanks =
+    bankData?.data?.filter(
+      (bank) =>
+        bank.name.toLowerCase().includes(bankSearchTerm.toLowerCase()) ||
+        bank.shortName.toLowerCase().includes(bankSearchTerm.toLowerCase()),
+    ) || []
+
+  const handleBankSelect = (bank: Bank) => {
+    setSelectedBank(bank)
+    setFormData((prev: any) => ({ ...prev, bankName: bank.name }))
+    setBankSearchTerm("")
+    setShowBankDropdown(false)
   }
 
   // Update the handleSubmit function to include the new fields
@@ -338,25 +367,19 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
       formDataToSend.append("profilePicture", selectedFile)
     }
 
-    // Add business license if selected or send empty value
+    // Add business license if selected
     if (selectedBusinessLicense) {
       formDataToSend.append("businessLicense", selectedBusinessLicense)
-    } else if (sendEmptyBusinessLicense) {
-      formDataToSend.append("businessLicense", "")
     }
 
-    // Add operating license if selected or send empty value
+    // Add operating license if selected
     if (selectedOperatingLicense) {
       formDataToSend.append("operatingLicense", selectedOperatingLicense)
-    } else if (sendEmptyOperatingLicense) {
-      formDataToSend.append("operatingLicense", "")
     }
 
-    // Add operating license expiry date if provided or send empty value
-    if (operatingLicenseExpiryDate && !sendEmptyExpiryDate) {
+    // Add operating license expiry date if provided
+    if (operatingLicenseExpiryDate) {
       formDataToSend.append("operatingLicenseExpiryDate", operatingLicenseExpiryDate)
-    } else if (sendEmptyExpiryDate) {
-      formDataToSend.append("operatingLicenseExpiryDate", "")
     }
 
     try {
@@ -429,8 +452,8 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
       >
         {/* Update the header section */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 p-6 text-white relative">
-          <h2 className="text-2xl font-bold">Edit Branch</h2>
-          <p className="text-purple-100 dark:text-purple-50 mt-1">Update branch information and settings</p>
+          <h2 className="text-2xl font-bold">{t("editBranch")}</h2>
+          <p className="text-purple-100 dark:text-purple-50 mt-1">{t("branchDetails")}</p>
           <button
             onClick={onClose}
             className="absolute right-4 top-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -450,7 +473,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
             }`}
           >
             <User className="w-4 h-4" />
-            Basic Info
+            {t("basicInfo")}
           </button>
           <button
             onClick={() => handleSectionChange("address")}
@@ -461,18 +484,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
             }`}
           >
             <MapPin className="w-4 h-4" />
-            Address
-          </button>
-          <button
-            onClick={() => handleSectionChange("photo")}
-            className={`px-4 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
-              activeSection === "photo"
-                ? "border-purple-500 text-purple-600 dark:text-purple-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-            }`}
-          >
-            <Upload className="w-4 h-4" />
-            Photo
+            {t("address")}
           </button>
           <button
             onClick={() => handleSectionChange("license")}
@@ -483,7 +495,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
             }`}
           >
             <FileText className="w-4 h-4" />
-            Licenses
+            {t("licenses")}
           </button>
           <button
             onClick={() => handleSectionChange("bank")}
@@ -494,7 +506,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
             }`}
           >
             <CreditCard className="w-4 h-4" />
-            Bank Info
+            {t("bankInformation")}
           </button>
         </div>
 
@@ -529,30 +541,18 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
           </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Hidden input for Branch ID */}
+            <input type="hidden" name="id" value={formData.id} />
+
             {/* Basic Information Section */}
             {activeSection === "basic" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Basic Information Section */}
-                  {/* Update the basic information section */}
-                  {/* Branch ID */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Branch ID</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="id"
-                        value={formData.id}
-                        className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
-                        readOnly
-                      />
-                      <FileCode className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                    </div>
-                  </div>
-
                   {/* Name */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Branch Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("branchName")}
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
@@ -564,7 +564,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                             ? "border-red-300 dark:border-red-700"
                             : "border-gray-300 dark:border-gray-700"
                         } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                        placeholder="Enter branch name"
+                        placeholder={t("branchName")}
                         required
                       />
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
@@ -573,26 +573,28 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.name}</p>
                     )}
                   </div>
-                </div>
 
-                {/* Email */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
-                      readOnly
-                    />
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t("email")}</label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                        readOnly
+                      />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    </div>
                   </div>
                 </div>
 
                 {/* Phone Number */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("phoneNumber")}
+                  </label>
                   <div className="relative">
                     <input
                       type="text"
@@ -604,7 +606,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                           ? "border-red-300 dark:border-red-700"
                           : "border-gray-300 dark:border-gray-700"
                       } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                      placeholder="Enter phone number"
+                      placeholder={t("phoneNumber")}
                       required
                     />
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
@@ -616,7 +618,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
                 {/* Branch Status */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Branch Status</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t("status")}</label>
                   <div className="flex items-center h-[50px] px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <div className="relative">
@@ -637,12 +639,52 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                       <span
                         className={`font-medium ${formData.isActivated ? "text-purple-700 dark:text-purple-400" : "text-gray-500 dark:text-gray-400"}`}
                       >
-                        {formData.isActivated ? "Active" : "Inactive"}
+                        {formData.isActivated ? t("active") : t("inactive")}
                       </span>
                     </label>
                   </div>
                   {validationErrors.isActivated && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.isActivated}</p>
+                  )}
+                </div>
+                {/* Profile Picture Upload */}
+                <div className="space-y-2 mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("profilePicture")}
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {/* Current profile picture or placeholder */}
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                      <Image
+                        src={previewUrl || formData.profilePictureUrl || "/placeholder.svg"}
+                        alt="Profile"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+
+                    {/* Upload controls */}
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800/40 cursor-pointer transition-colors">
+                        <Upload className="w-4 h-4" />
+                        <span>{t("uploadImage")}</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                      </label>
+
+                      {selectedFile && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFile(null)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <X className="w-4 h-4" />
+                          {t("remove")}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {validationErrors.profilePicture && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.profilePicture}</p>
                   )}
                 </div>
               </motion.div>
@@ -655,16 +697,18 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                   {/* Update the address section */}
                   {/* Province Selection */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Province/City</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("provinceCity")}
+                    </label>
                     <select
                       name="provinceId"
                       value={addressDetail.provinceId}
                       onChange={handleAddressChange}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
-                      <option value="">{addressDetail.provinceName || "Select Province/City"}</option>
+                      <option value="">{addressDetail.provinceName || t("selectProvinceCity")}</option>
                       {isLoadingProvinces ? (
-                        <option disabled>Loading provinces...</option>
+                        <option disabled>{t("loadingProvinces")}</option>
                       ) : (
                         provinces?.data.map((province) => (
                           <option key={province.id} value={province.id}>
@@ -677,7 +721,9 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
                   {/* District Selection */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">District</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("district")}
+                    </label>
                     <select
                       name="districtId"
                       value={addressDetail.districtId}
@@ -688,10 +734,10 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                       <option value="">
                         {addressDetail.districtName ||
                           (!addressDetail.provinceId
-                            ? "Select province first"
+                            ? t("selectProvinceFirst")
                             : isLoadingDistricts
-                              ? "Loading districts..."
-                              : "Select District")}
+                              ? t("loadingDistricts")
+                              : t("selectDistrict"))}
                       </option>
                       {districts?.data.map((district) => (
                         <option key={district.id} value={district.id}>
@@ -705,7 +751,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Ward Selection */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ward</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t("ward")}</label>
                     <select
                       name="wardId"
                       value={addressDetail.wardId}
@@ -716,10 +762,10 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                       <option value="">
                         {addressDetail.wardName ||
                           (!addressDetail.districtId
-                            ? "Select district first"
+                            ? t("selectDistrictFirst")
                             : isLoadingWards
-                              ? "Loading wards..."
-                              : "Select Ward")}
+                              ? t("loadingWards")
+                              : t("selectWard"))}
                       </option>
                       {wards?.data.map((ward) => (
                         <option key={ward.id} value={ward.id}>
@@ -731,103 +777,42 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
 
                   {/* Street Address */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Street Address</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("streetAddress")}
+                    </label>
                     <input
                       type="text"
                       name="streetAddress"
                       value={addressDetail.streetAddress}
                       onChange={handleAddressChange}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                      placeholder="123 Main St"
+                      placeholder={t("enterStreetAddress")}
                     />
                   </div>
                 </div>
 
                 {/* Preview Full Address */}
                 {(addressDetail.provinceName || addressDetail.provinceId || addressDetail.streetAddress) && (
-                  // Preview Full Address
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 border border-purple-100 dark:border-purple-700"
                   >
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Full Address:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{t("fullAddress")}:</p>
                     <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{getFullAddress()}</p>
                   </motion.div>
                 )}
               </motion.div>
             )}
 
-            {/* Profile Picture Section */}
-            {activeSection === "photo" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                {/* Update the profile picture section */}
-                <div className="flex flex-col items-center justify-center py-6">
-                  {/* Update the profile picture section */}
-                  <div className="mb-6 text-center">
-                    <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">Profile Picture</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Upload a profile picture for this branch</p>
-                  </div>
-
-                  <label className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-full cursor-pointer hover:border-purple-500 dark:hover:border-purple-400 transition-colors bg-gray-50 dark:bg-gray-800">
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                    <div className="flex flex-col items-center">
-                      {selectedFile || previewUrl || formData.profilePictureUrl ? (
-                        <div className="relative w-full h-full">
-                          {selectedFile ? (
-                            <>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <Check className="w-10 h-10 text-green-500 dark:text-green-400" />
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
-                                {selectedFile.name.length > 20
-                                  ? selectedFile.name.substring(0, 20) + "..."
-                                  : selectedFile.name}
-                              </p>
-                            </>
-                          ) : (
-                            <div className="w-full h-full overflow-hidden rounded-full">
-                              <Image
-                                src={previewUrl || formData.profilePictureUrl || "/placeholder.svg"}
-                                alt="Profile Preview"
-                                className="w-full h-full object-cover"
-                                width={160}
-                                height={160}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          <Upload className="w-10 h-10 text-gray-400 dark:text-gray-500" />
-                          <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">Upload Image</span>
-                        </>
-                      )}
-                    </div>
-                  </label>
-
-                  {selectedFile && (
-                    <motion.button
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      type="button"
-                      onClick={() => setSelectedFile(null)}
-                      className="mt-4 px-3 py-1 text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-700 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    >
-                      Remove
-                    </motion.button>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
             {/* License Information Section */}
             {activeSection === "license" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                {/* Update the license information section */}
                 {/* Business License */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Business License</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("businessLicense")}
+                  </label>
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center">
                       <input
@@ -837,18 +822,6 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                         accept=".pdf,.jpg,.jpeg,.png"
                       />
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="sendEmptyBusinessLicense"
-                        checked={sendEmptyBusinessLicense}
-                        onChange={(e) => setSendEmptyBusinessLicense(e.target.checked)}
-                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                      />
-                      <label htmlFor="sendEmptyBusinessLicense" className="text-sm text-gray-600 dark:text-gray-400">
-                        Send empty value
-                      </label>
-                    </div>
                     {formData.businessLicenseUrl && (
                       <div className="flex items-center space-x-2 text-sm text-purple-600 dark:text-purple-400">
                         <a
@@ -857,7 +830,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                           rel="noopener noreferrer"
                           className="hover:underline flex items-center"
                         >
-                          <FileText className="w-4 h-4 mr-1" /> View current business license
+                          <FileText className="w-4 h-4 mr-1" /> {t("viewBusinessLicense")}
                         </a>
                       </div>
                     )}
@@ -870,35 +843,16 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                 {/* Operating License */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Operating License
+                    {t("operatingLicense")}
                   </label>
                   <div className="flex flex-col space-y-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                       <input
-                        type="datetime-local"
-                        value={operatingLicenseExpiryDate}
-                        onChange={handleExpiryDateChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-800 focus:ring-opacity-50 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        type="file"
+                        onChange={handleOperatingLicenseChange}
+                        className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 dark:file:bg-purple-900/30 file:text-purple-700 dark:file:text-purple-400 hover:file:bg-purple-100 dark:hover:file:bg-purple-900/50 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-800 focus:ring-opacity-50 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        accept=".pdf,.jpg,.jpeg,.png"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setOperatingLicenseExpiryDate(getCurrentDateTime())}
-                        className="px-3 py-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/50 transition-colors whitespace-nowrap"
-                      >
-                        Set Current
-                      </button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="sendEmptyOperatingLicense"
-                        checked={sendEmptyOperatingLicense}
-                        onChange={(e) => setSendEmptyOperatingLicense(e.target.checked)}
-                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                      />
-                      <label htmlFor="sendEmptyOperatingLicense" className="text-sm text-gray-600 dark:text-gray-400">
-                        Send empty value
-                      </label>
                     </div>
                     {formData.operatingLicenseUrl && (
                       <div className="flex items-center space-x-2 text-sm text-purple-600 dark:text-purple-400">
@@ -908,7 +862,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                           rel="noopener noreferrer"
                           className="hover:underline flex items-center"
                         >
-                          <FileText className="w-4 h-4 mr-1" /> View current operating license
+                          <FileText className="w-4 h-4 mr-1" /> {t("viewOperatingLicense")}
                         </a>
                       </div>
                     )}
@@ -921,20 +875,23 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                 {/* Operating License Expiry Date */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Operating License Expiry Date
+                    {t("operatingLicenseExpiryDate")}
                   </label>
                   <div className="flex flex-col space-y-2">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <input
-                        type="checkbox"
-                        id="sendEmptyExpiryDate"
-                        checked={sendEmptyExpiryDate}
-                        onChange={(e) => setSendEmptyExpiryDate(e.target.checked)}
-                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+                        type="datetime-local"
+                        value={operatingLicenseExpiryDate}
+                        onChange={handleExpiryDateChange}
+                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-800 focus:ring-opacity-50 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-gray-900 dark:text-gray-100"
                       />
-                      <label htmlFor="sendEmptyExpiryDate" className="text-sm text-gray-600 dark:text-gray-400">
-                        Send empty value
-                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setOperatingLicenseExpiryDate(getCurrentDateTime())}
+                        className="px-3 py-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/50 transition-colors whitespace-nowrap"
+                      >
+                        {t("setCurrent")}
+                      </button>
                     </div>
                   </div>
                   {validationErrors.operatingLicenseExpiryDate && (
@@ -946,38 +903,90 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
               </motion.div>
             )}
 
-            {/* Bank Information Section */}
             {activeSection === "bank" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Update the bank information section */}
-                  {/* Bank Name */}
+                <div className="space-y-4">
+                  {/* Bank selection with search */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("bankName")}
+                    </label>
                     <div className="relative">
-                      <input
-                        type="text"
-                        name="bankName"
-                        value={formData.bankName || ""}
-                        onChange={handleInputChange}
-                        className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                          validationErrors.bankName
-                            ? "border-red-300 dark:border-red-700"
-                            : "border-gray-300 dark:border-gray-700"
-                        } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                        placeholder="Enter bank name"
-                      />
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      {/* Bank selection UI - using hooks from top level */}
+                      {isBanksLoading ? (
+                        <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                          {t("loadingBanks")}
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={bankSearchTerm}
+                              onChange={(e) => {
+                                setBankSearchTerm(e.target.value)
+                                setShowBankDropdown(true)
+                              }}
+                              onFocus={() => setShowBankDropdown(true)}
+                              className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                              placeholder={t("enterBankName")}
+                            />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                          </div>
+
+                          {selectedBank && (
+                            <div className="mt-2 flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-100 dark:border-purple-800">
+                              {selectedBank.logo && (
+                                <img
+                                  src={selectedBank.logo || "/placeholder.svg"}
+                                  alt={selectedBank.shortName}
+                                  className="h-6 w-auto"
+                                />
+                              )}
+                              <span className="font-medium text-purple-700 dark:text-purple-300">
+                                {selectedBank.name}
+                              </span>
+                            </div>
+                          )}
+
+                          {showBankDropdown && bankSearchTerm && (
+                            <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
+                              {filteredBanks.length > 0 ? (
+                                filteredBanks.map((bank) => (
+                                  <div
+                                    key={bank.id}
+                                    className="flex items-center gap-2 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer"
+                                    onClick={() => handleBankSelect(bank)}
+                                  >
+                                    {bank.logo && (
+                                      <img
+                                        src={bank.logo || "/placeholder.svg"}
+                                        alt={bank.shortName}
+                                        className="h-6 w-auto"
+                                      />
+                                    )}
+                                    <div>
+                                      <div className="font-medium text-gray-800 dark:text-gray-200">{bank.name}</div>
+                                      <div className="text-xs text-gray-500 dark:text-gray-400">{bank.shortName}</div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                                  {t("noBanksFound")}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {validationErrors.bankName && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.bankName}</p>
-                    )}
                   </div>
 
                   {/* Bank Account Number */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Bank Account Number
+                      {t("bankAccountNumber")}
                     </label>
                     <div className="relative">
                       <input
@@ -990,7 +999,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                             ? "border-red-300 dark:border-red-700"
                             : "border-gray-300 dark:border-gray-700"
                         } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                        placeholder="Enter bank account number"
+                        placeholder={t("enterAccountNumber")}
                       />
                       <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
@@ -1013,14 +1022,12 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
               <div className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400 mr-2"></div>
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {activeSection === "basic"
-                  ? "Editing basic information"
+                  ? t("editingBasicInfo")
                   : activeSection === "address"
-                    ? "Editing address information"
-                    : activeSection === "photo"
-                      ? "Editing profile photo"
-                      : activeSection === "license"
-                        ? "Editing license information"
-                        : "Editing bank information"}
+                    ? t("editingAddressInfo")
+                    : activeSection === "license"
+                      ? t("editingLicenseInfo")
+                      : t("editingBankInfo")}
               </span>
             </div>
             <div className="flex space-x-3">
@@ -1029,7 +1036,7 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                 onClick={onClose}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -1059,10 +1066,10 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
-                  "Save"
+                  t("save")
                 )}
               </button>
             </div>

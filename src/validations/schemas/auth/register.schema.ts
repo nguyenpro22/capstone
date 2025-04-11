@@ -3,14 +3,15 @@ import { z } from "zod";
 export const createRegisterSchema = z
   .object({
     Email: z.string().email("Invalid email format"),
-    Password: z.string().min(8, "Password must be at least 8 characters"),
-    // .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    // .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    // .regex(/[0-9]/, "Password must contain at least one number")
-    // .regex(
-    //   /[@$!%*?&]/,
-    //   "Password must contain at least one special character (@$!%*?&)"
-    // ),
+    Password: z.string().min(8, "Password must be at least 8 characters")
+    .max(20,"Password must be at least 20 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(
+      /[@$!%*?&]/,
+      "Password must contain at least one special character (@$!%*?&)"
+    ),
     ConfirmPassword: z.string(),
     FirstName: z
       .string()
@@ -21,8 +22,8 @@ export const createRegisterSchema = z
     PhoneNumber: z
       .string()
       .regex(
-        /^\+84\d{9,10}$/,
-        "Phone number must start with +84 and have 9-10 digits after it"
+        /^\d{10}$/,
+        "Phone number must have 10 digits"
       ),
     DateOfBirth: z.string().refine((date) => !isNaN(Date.parse(date)), {
       message: "Invalid date format",

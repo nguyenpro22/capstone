@@ -29,8 +29,8 @@ export const clinicAdminRoutes = {
   PACKAGE: `${privateClinicAdminPath}/buy-package`,
   ORDER: `${privateClinicAdminPath}/order`,
   INBOX: `${privateClinicAdminPath}/inbox`,
-  LIVESTREAM: `${privateClinicAdminPath}/live-stream`,
-  HOST_PAGE: `${privateClinicAdminPath}/live-stream/host-page`,
+  MANAGE_LIVESTREAM: `${privateClinicAdminPath}/live-stream`,
+  LIVESTREAM: `${privateClinicAdminPath}/live-stream/host-page`,
 };
 
 // DOCTOR ROUTES

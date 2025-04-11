@@ -4,7 +4,7 @@ export const register: Messages["register"] = {
   createAccount: "Tạo tài khoản",
   fillDetails: "Vui lòng điền thông tin bên dưới để đăng ký.",
   email: "Email",
-  emailPlaceholder: "ban@example.com",
+  emailPlaceholder: "email@example.com",
   password: "Mật khẩu",
   passwordPlaceholder: "Nhập mật khẩu của bạn",
   confirmPassword: "Xác nhận mật khẩu",
@@ -14,7 +14,7 @@ export const register: Messages["register"] = {
   lastName: "Họ",
   lastNamePlaceholder: "Văn A",
   phoneNumber: "Số điện thoại",
-  phoneNumberPlaceholder: "+84901234567",
+  phoneNumberPlaceholder: "0901234567",
   dateOfBirth: "Ngày sinh",
   address: "Địa chỉ",
   addressPlaceholder: "Nhập địa chỉ của bạn",
@@ -32,4 +32,28 @@ export const register: Messages["register"] = {
   confirm: "Xác nhận",
   emailAlreadyExists:
     "Email hoặc số điện thoại đã tồn tại. Vui lòng sử dụng một cái khác.",
+  // New translation fields
+  mustBe18YearsOld: "Bạn phải đủ 18 tuổi trở lên",
+  selectYourBirthday: "Chọn ngày sinh của bạn",
+  validationError: "Lỗi xác thực",
+  unexpectedError: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+  verificationFailed: "Xác minh không thành công. Vui lòng thử lại.",
+  // Backend validation error messages
+  invalidEmailFormat: "Định dạng email không hợp lệ",
+  passwordTooShort: "Mật khẩu phải có ít nhất 8 ký tự",
+  passwordTooLong: "Mật khẩu không được vượt quá 20 ký tự",
+  firstNameOnlyLetters: "Tên chỉ được chứa chữ cái",
+  firstNameTooShort: "Tên phải có ít nhất 2 ký tự",
+  firstNameTooLong: "Tên không được vượt quá 30 ký tự",
+  lastNameOnlyLetters: "Họ chỉ được chứa chữ cái",
+  lastNameTooShort: "Họ phải có ít nhất 2 ký tự",
+  lastNameTooLong: "Họ không được vượt quá 30 ký tự",
+  mustBeAtLeast18: "Người dùng phải đủ 18 tuổi trở lên",
+  addressTooShort: "Địa chỉ phải có ít nhất 10 ký tự",
+  addressTooLong: "Địa chỉ không được vượt quá 100 ký tự",
+    // New verification messages
+    pleaseEnterVerificationCode: "Vui lòng nhập mã xác minh",
+    verifying: "Đang xác minh...",
+    verificationSuccessful: "Xác minh thành công!",
 };
+
