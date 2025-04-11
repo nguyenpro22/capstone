@@ -19,4 +19,5 @@ export const loginMessage: Messages["login"] = {
   userNotFound: "Không tìm thấy người dùng",
   generalError: "Đã xảy ra lỗi",
   continueWithGoogle: "Tiếp tục với Google",
+  loginSuccess: "Đăng nhập thành công"
 };

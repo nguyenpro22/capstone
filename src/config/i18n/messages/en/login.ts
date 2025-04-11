@@ -19,4 +19,5 @@ export const loginMessage: Messages["login"] = {
   userNotFound: "User not found",
   generalError: "Something went wrong",
   continueWithGoogle: "Continue with Google",
+  loginSuccess: "Login success"
 };
