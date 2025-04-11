@@ -51,4 +51,8 @@ export const register: Messages["register"] = {
   mustBeAtLeast18: "User must be at least 18 years old",
   addressTooShort: "Address must be at least 10 characters long",
   addressTooLong: "Address must not exceed 100 characters",
+  // New verification messages
+  pleaseEnterVerificationCode: "Please enter the verification code",
+  verifying: "Verifying...",
+  verificationSuccessful: "Verification successful!",
 };

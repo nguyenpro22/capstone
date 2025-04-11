@@ -51,55 +51,9 @@ export const register: Messages["register"] = {
   mustBeAtLeast18: "Người dùng phải đủ 18 tuổi trở lên",
   addressTooShort: "Địa chỉ phải có ít nhất 10 ký tự",
   addressTooLong: "Địa chỉ không được vượt quá 100 ký tự",
+    // New verification messages
+    pleaseEnterVerificationCode: "Vui lòng nhập mã xác minh",
+    verifying: "Đang xác minh...",
+    verificationSuccessful: "Xác minh thành công!",
 };
 
-export type RegistrationTranslations = {
-  createAccount: string;
-  fillDetails: string;
-  email: string;
-  emailPlaceholder: string;
-  password: string;
-  passwordPlaceholder: string;
-  confirmPassword: string;
-  confirmPasswordPlaceholder: string;
-  firstName: string;
-  firstNamePlaceholder: string;
-  lastName: string;
-  lastNamePlaceholder: string;
-  phoneNumber: string;
-  phoneNumberPlaceholder: string;
-  dateOfBirth: string;
-  address: string;
-  addressPlaceholder: string;
-  register: string;
-  registering: string;
-  alreadyHaveAccount: string;
-  signIn: string;
-  registrationSuccess: string;
-  verificationCodeSent: string;
-  enterVerificationCode: string;
-  checkEmail: string;
-  verificationCodePlaceholder: string;
-  timeRemaining: string;
-  confirm: string;
-  emailAlreadyExists: string;
-  // New translation fields
-  mustBe18YearsOld: string;
-  selectYourBirthday: string;
-  validationError: string;
-  unexpectedError: string;
-  verificationFailed: string;
-  // Backend validation error messages
-  invalidEmailFormat: string;
-  passwordTooShort: string;
-  passwordTooLong: string;
-  firstNameOnlyLetters: string;
-  firstNameTooShort: string;
-  firstNameTooLong: string;
-  lastNameOnlyLetters: string;
-  lastNameTooShort: string;
-  lastNameTooLong: string;
-  mustBeAtLeast18: string;
-  addressTooShort: string;
-  addressTooLong: string;
-};

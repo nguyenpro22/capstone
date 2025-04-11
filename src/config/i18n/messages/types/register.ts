@@ -47,4 +47,9 @@ export type RegistrationTranslations = {
   mustBeAtLeast18: string;
   addressTooShort: string;
   addressTooLong: string;
+
+  // New verification messages
+  pleaseEnterVerificationCode: string
+  verifying: string
+  verificationSuccessful: string
 };
