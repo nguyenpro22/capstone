@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { IListResponse, IResCommon } from "@/lib/api";
-import { ICategory } from "../types";
+import { ICategory, IUser } from "../types";
 
 export const categoryApi = createApi({
   reducerPath: "categoryApi",
@@ -18,5 +18,20 @@ export const categoryApi = createApi({
     }),
   }),
 });
+
+export const userApi = createApi({
+  reducerPath: "userApi",
+  baseQuery: reAuthQuery("query"),
+  endpoints: (builder) => ({
+    getUserProfile: builder.query<IResCommon<IUser>, void>({
+      query: () => ({
+        url: `/users/information`,
+        method: "GET",
+      }),
+    }),
+  }),
+});
+
+export const { useGetUserProfileQuery } = userApi;
 
 export const { useGetAllcategoriesQuery } = categoryApi;

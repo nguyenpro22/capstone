@@ -53,9 +53,6 @@ export const chatApi = createApi({
         url: `/Chat`,
         method: "POST",
         body,
-        headers: {
-          "Content-Type": "application/json",
-        },
       }),
     }),
   }),

@@ -24,6 +24,8 @@ import {
   isRememberMe,
   clearToken,
   getCookie,
+  GetDataByToken,
+  TokenData,
 } from "@/utils";
 import { CookieStorageKey } from "@/constants";
 import {
@@ -32,6 +34,7 @@ import {
   handleLogout,
   checkAuthStatus,
 } from "@/features/auth/utils";
+import { handleRedirectByRole } from "@/features/auth/utils/auth-redirect";
 
 export default function LoginPage() {
   const t = useTranslations("login");
@@ -180,6 +183,12 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoTo = () => {
+    const token = getAccessToken() as string;
+    const { roleName } = GetDataByToken(token) as TokenData;
+    handleRedirectByRole(roleName, router);
+  };
+
   // Kiểm tra trạng thái để hiển thị form
   const showForm = !isAuthenticated;
 
@@ -317,13 +326,13 @@ export default function LoginPage() {
         {/* Logout Button (hiển thị khi đã xác thực) */}
         {isAuthenticated && (
           <Button
-            onClick={onLogout}
+            onClick={handleGoTo}
             className="w-full h-14 text-lg font-medium bg-red-600 hover:bg-red-700 text-white transition-all duration-300 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1"
             disabled={isAuthenticating}
           >
             {(() => {
               try {
-                return t("logout");
+                return "Đi đến routes của bạn";
               } catch (error) {
                 return "Đăng xuất";
               }
