@@ -67,11 +67,14 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BookingFlow } from "@/components/services/booking/booking/booking-flow";
 import type {
+  Doctor,
   DoctorCertificate,
   ProcedurePriceType,
 } from "@/features/services/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { SendMessageBody, useSendMessageMutation } from "@/features/inbox/api";
+import { useRouter } from "next/navigation";
 
 // Loading Skeleton Component
 function ServiceDetailSkeleton() {
@@ -242,6 +245,7 @@ export default function ServiceDetail() {
   const { id } = useParams() as { id: string };
   const { data: serviceData, error, isLoading } = useGetServiceByIdQuery(id);
   const user = useSelector((state: RootState) => state?.auth?.user);
+  const router = useRouter();
 
   // Define all state variables at the top level
   const [bookingData, setBookingData] = useState({
@@ -264,7 +268,8 @@ export default function ServiceDetail() {
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
-
+  const [sendMessage] = useSendMessageMutation();
+  const [doctor, setDoctor] = useState<Doctor>();
   useEffect(() => {
     if (livestreamId) {
       setShowBookingFlow(true);
@@ -423,6 +428,22 @@ export default function ServiceDetail() {
 
   const toggleBookmark = () => {
     setIsBookmarked(!isBookmarked);
+  };
+
+  const handleChat = () => {
+    const data: SendMessageBody = {
+      entityId: service.branding.id,
+      content: `Tôi muốn hỏi về dịch vụ ${service.name}`,
+      isClinic: false,
+    };
+    sendMessage(data)
+      .then((response) => {
+        console.log("Message sent successfully:", response);
+        router.push(`/inbox`);
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
+      });
   };
 
   return (
@@ -1103,15 +1124,6 @@ export default function ServiceDetail() {
                                             </div>
                                           </div>
                                         )}
-
-                                      <div className="flex justify-end mt-4">
-                                        <Button
-                                          className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white"
-                                          onClick={handleBookNow}
-                                        >
-                                          {t("bookWithDoctor")}
-                                        </Button>
-                                      </div>
                                     </div>
                                   </div>
                                 </CardContent>
@@ -1425,7 +1437,9 @@ export default function ServiceDetail() {
                       <div className="text-2xl font-bold text-rose-600 dark:text-rose-400 mb-1 flex items-center">
                         {hasDiscount ? (
                           <>
-                            {service.discountMaxPrice.toLocaleString("vi-VN")}đ
+                            {service.discountMinPrice.toLocaleString("vi-VN")}đ{" "}
+                            - {service.discountMaxPrice.toLocaleString("vi-VN")}
+                            đ `
                             <Badge
                               variant="destructive"
                               className="ml-2 bg-amber-500 hover:bg-amber-600 text-white border-none"
@@ -1434,7 +1448,10 @@ export default function ServiceDetail() {
                             </Badge>
                           </>
                         ) : (
-                          <>{service.maxPrice.toLocaleString("vi-VN")}đ</>
+                          <>
+                            {service.minPrice.toLocaleString("vi-VN")}đ -{" "}
+                            {service.maxPrice.toLocaleString("vi-VN")}đ
+                          </>
                         )}
                       </div>
                       {hasDiscount && (
@@ -1508,7 +1525,49 @@ export default function ServiceDetail() {
                     </div>
                   </CardContent>
                 </Card>
-
+                <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-blue-200 to-blue-100 dark:from-green-800/50 dark:to-teal-800/50 p-4 dark:border-b dark:border-gray-700">
+                    <h3 className="font-serif text-lg font-semibold flex items-center">
+                      <Globe className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+                      Thông tin thẩm mỹ viện
+                    </h3>
+                  </CardHeader>
+                  <Image
+                    alt={service.branding.name}
+                    src={
+                      service.branding.profilePictureUrl ?? "/placeholder.svg"
+                    }
+                    width={500}
+                    height={300}
+                    className="w-full h-40 object-cover rounded-t-md"
+                  />
+                  <CardContent className="p-6">
+                    <h4 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+                      {service.branding.name}
+                    </h4>
+                    {service.branding.address && (
+                      <div className="text-sm text-muted-foreground dark:text-gray-300 mb-4">
+                        {service.branding.address}
+                      </div>
+                    )}
+                    {service.branding.phoneNumber && (
+                      <div className="text-sm text-muted-foreground dark:text-gray-300 mb-4">
+                        {service.branding.phoneNumber}
+                      </div>
+                    )}
+                    <div className="">
+                      <div className="flex items-center justify-between">
+                        <Button
+                          variant="outline"
+                          className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                          onClick={handleChat}
+                        >
+                          Tư vấn ngay
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 {/* Category Info */}
                 {service.category && (
                   <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">

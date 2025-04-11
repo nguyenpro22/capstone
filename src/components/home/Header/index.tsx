@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { User, LogOut, Bell, Menu, X, ShoppingBag } from "lucide-react";
+import { User, LogOut, Bell, Menu, X, ShoppingBag, Inbox } from "lucide-react";
 import logo from "@/../public/images/logo.png";
 import { useRouter } from "next/navigation";
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
@@ -288,6 +288,10 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                   <DropdownMenuItem onClick={handleBookings}>
                     <ShoppingBag className="mr-2 h-4 w-4" />
                     <span>Lịch hẹn</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/inbox")}>
+                    <Inbox className="mr-2 h-4 w-4" />
+                    <span>Hộp thoại</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={onLogout}>

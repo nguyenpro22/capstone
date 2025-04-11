@@ -20,13 +20,13 @@ export default function ChatScreen() {
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
   const token = getAccessToken() as string;
-  const { clinicId } = GetDataByToken(token) as TokenData;
+  const { userId } = GetDataByToken(token) as TokenData;
   const [messages, setMessages] = useState<Message[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null); // Ref for chat container
 
   const { data } = useGetAllConversationQuery({
-    entityId: clinicId as string,
-    isClinic: true,
+    entityId: userId,
+    isClinic: false,
   });
 
   const { data: messageData } = useGetAllMessageConversationQuery({
@@ -36,7 +36,7 @@ export default function ChatScreen() {
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(
-        `https://api.beautify.asia/signaling-api/ChatHub?clinicId=${clinicId}&type=1`,
+        `https://api.beautify.asia/signaling-api/ChatHub?userId=${userId}&type=0`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
@@ -48,7 +48,7 @@ export default function ChatScreen() {
       .build();
 
     signalRef.current = newConnection;
-  }, [clinicId]);
+  }, [userId]);
 
   useEffect(() => {
     if (messageData && messageData.value) {
@@ -96,12 +96,12 @@ export default function ChatScreen() {
         receiverId &&
         selectedConversation?.entityId
       ) {
-        console.log({ receiverId, clinicId, message });
+        console.log({ receiverId, userId, message });
         await signalRef.current.invoke(
           "SendMessage",
-          clinicId,
+          userId,
           receiverId,
-          true,
+          false,
           message
         );
 
@@ -126,17 +126,17 @@ export default function ChatScreen() {
         const newMessage: Message = {
           id: randomId,
           conversationId: selectedConversation?.conversationId as string,
-          senderId: clinicId as string,
+          senderId: userId as string,
           content: message,
           createdOnUtc: timestamp,
-          isClinic: true,
+          isClinic: false,
           senderName: selectedConversation?.friendName as string,
           senderImageUrl: selectedConversation?.friendImageUrl as string,
         };
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     },
-    [signalRef, selectedConversation, clinicId]
+    [signalRef, selectedConversation, userId]
   );
 
   useEffect(() => {
@@ -157,9 +157,9 @@ export default function ChatScreen() {
             <ScrollArea className="h-[calc(100%-60px)]">
               <div className="py-2">
                 {data?.value != null && data?.value.length > 0 ? (
-                  data?.value.map((conversation, index) => (
+                  data?.value.map((conversation) => (
                     <div
-                      key={conversation.conversationId + index}
+                      key={conversation.conversationId}
                       className={`flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors ${
                         selectedConversation?.conversationId ===
                         conversation.conversationId
@@ -170,12 +170,7 @@ export default function ChatScreen() {
                     >
                       <div className="relative flex justify-center items-center">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage
-                            src={
-                              conversation.friendImageUrl ??
-                              "https://thispersondoesnotexist.com/"
-                            }
-                          />
+                          <AvatarImage src={conversation.friendImageUrl} />
                           <AvatarFallback>
                             {conversation.friendName}
                           </AvatarFallback>
@@ -228,17 +223,12 @@ export default function ChatScreen() {
                       <div
                         key={message.id}
                         className={`flex ${
-                          message.isClinic ? "justify-end" : "justify-start"
+                          !message.isClinic ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {!message.isClinic && (
+                        {message.isClinic && (
                           <Avatar className="h-8 w-8 mr-2 mt-1">
-                            <AvatarImage
-                              src={
-                                message.senderImageUrl ??
-                                "https://thispersondoesnotexist.com/"
-                              }
-                            />
+                            <AvatarImage src={message.senderImageUrl ?? ""} />
                             <AvatarFallback>
                               {message.senderName}
                             </AvatarFallback>
@@ -247,7 +237,7 @@ export default function ChatScreen() {
                         <div>
                           <div
                             className={`rounded-lg p-3 max-w-xs break-words ${
-                              message.isClinic
+                              !message.isClinic
                                 ? "bg-pink-500 text-white"
                                 : "bg-gray-100 dark:bg-gray-800"
                             }`}
@@ -256,7 +246,7 @@ export default function ChatScreen() {
                           </div>
                           <div
                             className={`flex items-center mt-1 text-xs text-gray-500 ${
-                              message.isClinic ? "justify-end" : ""
+                              !message.isClinic ? "justify-end" : ""
                             }`}
                           >
                             <span>
