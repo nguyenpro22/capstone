@@ -135,6 +135,7 @@ export default function DoctorPage() {
   const hasNextPage = !!data?.value?.hasNextPage
   const hasPreviousPage = !!data?.value?.hasPreviousPage
 
+
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
 
