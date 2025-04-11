@@ -1,4 +1,4 @@
-import { packageMessages } from './package';
+import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
 import { apiMessages } from "./api";
@@ -18,7 +18,8 @@ import { registerClinic } from "./registerClinic";
 import { livestream } from "./livestream";
 import { livestreamRoom } from "./livestream-room";
 import { clinicProfileMessages } from "./clinicProfile";
-import { bookingFlowMessages } from './booking-flow';
+import { bookingFlowMessages } from "./booking-flow";
+import { adminSidebar } from "./adminSideBar";
 
 const vi = {
   home: homeMessages,
@@ -43,6 +44,7 @@ const vi = {
   clinicProfile: clinicProfileMessages,
   package: packageMessages,
   bookingFlow: bookingFlowMessages,
+  adminSidebar,
 };
 
 export default vi;

@@ -58,7 +58,7 @@ export const customerRoutes = {
   DEFAULT: `${publicCustomerPath}/`,
   HOME: `${publicCustomerPath}/home`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
-  INBOX: `${publicCustomerPath}/inbox`,
+  PROFILE: `${publicCustomerPath}/profile`,
   CLINIC_VIEW: `${publicCustomerPath}/clinic-view`,
   CLINIC_DETAIL: `${publicCustomerPath}/clinic-view/[id]`,
   LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
@@ -91,7 +91,9 @@ export const authRoutes = {
   POPUP_CALLBACK: "/popup-callback",
 };
 export const routeAccess = (path: string, role: string): boolean => {
-  console.log("111");
+  console.log("Checking route access...");
+  console.log("Requested path:", path);
+  console.log("User role:", role);
 
   const roleRoutes = {
     [ROLE.SYSTEM_ADMIN]: systemAdminRoutes,
@@ -107,24 +109,38 @@ export const routeAccess = (path: string, role: string): boolean => {
   const authRoutePaths = Object.values(authRoutes).map((route) =>
     route.replace(/\[([^\]]+)\]/g, ":$1")
   );
+
+  // Kiểm tra xem path có phải là authRoute hay không
   if (
     authRoutePaths.some((route) => {
       const isMatch = match(route, { decode: decodeURIComponent });
       return isMatch(path);
     })
   ) {
+    console.log("Path is an auth route, access granted.");
     return true;
   }
 
+  // Kiểm tra role có hợp lệ hay không
   const routes = roleRoutes[role];
-  if (!routes) return false;
+  if (!routes) {
+    console.log(`No routes found for role: ${role}`);
+    return false;
+  }
 
-  return Object.values(routes).some((route) => {
+  // Kiểm tra path có thuộc các routes của role hay không
+  const isAllowed = Object.values(routes).some((route) => {
     const normalized = route.replace(/\[([^\]]+)\]/g, ":$1");
-    console.log("normal=>", normalized);
+    console.log("Normalized route:", normalized);
 
     const isMatch = match(normalized, { decode: decodeURIComponent });
-    console.log("normal=>", isMatch);
-    return isMatch(path) !== false;
+    const matchResult = isMatch(path);
+
+    console.log("Match result for path:", matchResult);
+
+    return matchResult !== false;
   });
+
+  console.log("Access granted:", isAllowed);
+  return isAllowed;
 };

@@ -21,6 +21,11 @@ export const serviceMessages: Messages["serviceMessage"] = {
     "Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác.",
   confirmDelete: "Xác nhận xóa",
   cancel: "Hủy",
+  description: "Mô tả",
+  branches: "Chi nhánh",
+  noAvailable: "Không có chi nhánh nào, hãy tạo chi nhánh trước",
+  image: "Hình ảnh",
+  save: "Lưu..",
 };
 
 export const service: Messages["service"] = {
