@@ -58,7 +58,9 @@ export const customerRoutes = {
   DEFAULT: `${publicCustomerPath}/`,
   HOME: `${publicCustomerPath}/home`,
   LIVESTREAM_VIEW: `${publicCustomerPath}/livestream-view`,
-  PROFILE: `${publicCustomerPath}/profile`,
+  INBOX: `${publicCustomerPath}/inbox`,
+  CLINIC_VIEW: `${publicCustomerPath}/clinic-view`,
+  CLINIC_DETAIL: `${publicCustomerPath}/clinic-view/[id]`,
   LIVESTREAM_ROOM: `${publicCustomerPath}/livestream-view/[id]`, // for testing only
   ORDERS: `${publicCustomerPath}/orders`,
   SERVICES: `${publicCustomerPath}/services`,
@@ -87,6 +89,8 @@ export const authRoutes = {
   POPUP_CALLBACK: "/popup-callback",
 };
 export const routeAccess = (path: string, role: string): boolean => {
+  console.log("111");
+
   const roleRoutes = {
     [ROLE.SYSTEM_ADMIN]: systemAdminRoutes,
     [ROLE.CLINIC_ADMIN]: clinicAdminRoutes,
@@ -115,7 +119,10 @@ export const routeAccess = (path: string, role: string): boolean => {
 
   return Object.values(routes).some((route) => {
     const normalized = route.replace(/\[([^\]]+)\]/g, ":$1");
+    console.log("normal=>", normalized);
+
     const isMatch = match(normalized, { decode: decodeURIComponent });
+    console.log("normal=>", isMatch);
     return isMatch(path) !== false;
   });
 };
