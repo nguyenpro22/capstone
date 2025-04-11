@@ -49,3 +49,22 @@ export interface IListResponse<T> {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
 }
+
+export interface IListResponse<T> {
+  items: T[];
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface IResListCommon<T> {
+  value: T[];
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
+}

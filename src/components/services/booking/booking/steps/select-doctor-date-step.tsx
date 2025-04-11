@@ -2,16 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import {
-  RadioGroup,
-  RadioGroupItem
-} from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { BookingData, Doctor } from "../../types/booking";
 import { formatDate, groupTimeSlots } from "../../utils/booking-utils";
-import { Clock, AlertCircle } from 'lucide-react';
+import { Clock, AlertCircle } from "lucide-react";
 import { TimeSlotGroup } from "../time-slot-group";
 import { DoctorItem } from "../doctor-item";
 import { useGetBusyTimesQuery } from "@/features/booking/api";
@@ -223,9 +220,7 @@ export function SelectDoctorDateStep({
 
       <div className="mt-8">
         <h3 className="text-lg font-medium mb-4">{t("selectDateTime")}</h3>
-        <p className="text-muted-foreground mb-4">
-          {t("pleaseSelectTime")}
-        </p>
+        <p className="text-muted-foreground mb-4">{t("pleaseSelectTime")}</p>
 
         {missingRequirements && (
           <Alert variant="default" className="mb-4">
@@ -307,9 +302,7 @@ export function SelectDoctorDateStep({
               )
             ) : (
               <div className="p-8 text-center bg-muted/30 rounded-lg h-full flex items-center justify-center">
-                <p className="text-muted-foreground">
-                  {t("selectDateFirst")}
-                </p>
+                <p className="text-muted-foreground">{t("selectDateFirst")}</p>
               </div>
             )}
           </div>

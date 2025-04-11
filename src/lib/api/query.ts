@@ -5,6 +5,7 @@ export const BASE_URL = {
   auth: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_AUTH_URL || "",
   command: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_COMMAND_URL || "",
   query: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_QUERY_URL || "",
+  signaling: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_SIGNALING_URL || "",
 };
 export type ServiceType = keyof typeof BASE_URL;
 
