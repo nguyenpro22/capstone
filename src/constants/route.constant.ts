@@ -81,6 +81,8 @@ export const publicRoutes = {
   SERVICE_DETAIL: "/services/[id]",
   LIVESTREAM_VIEW: "/livestream-view",
   REGISTER_CLINIC: "/registerClinic",
+  CLINIC_VIEW: `${publicCustomerPath}/clinic-view`,
+  CLINIC_DETAIL: `${publicCustomerPath}/clinic-view/[id]`,
 };
 export const authRoutes = {
   REGISTER: "/register",
