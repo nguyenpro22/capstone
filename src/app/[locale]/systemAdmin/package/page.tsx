@@ -368,7 +368,7 @@ export default function PackagePage() {
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("duration")}</h3>
                     <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-                      {viewPackage.duration} {viewPackage.duration === 1 ? t("month") : t("months")}
+                      {viewPackage.duration} {viewPackage.duration === 1 ? t("day") : t("days")}
                     </p>
                   </div>
                 </div>

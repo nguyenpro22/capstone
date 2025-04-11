@@ -1,8 +1,8 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
 
 export const clinicMessages: Messages["clinic"] = {
   clinicsList: "Danh sách phòng khám",
-  fullName: "Họ ̃& Tên",
+  fullName: "Họ & Tên",
   email: "Email",
   address: "Địa Chỉ",
   totalBranches: "Tổng Số Chi Nhánh",
@@ -13,8 +13,67 @@ export const clinicMessages: Messages["clinic"] = {
   active: "Hoạt động",
   inactive: "Ngưng hoạt động",
   viewClinicDetail: "Xem chi tiết phòng khám",
-  editClinic : "Chỉnh sửa thông tin phòng khám",
+  editClinic: "Chỉnh sửa thông tin phòng khám",
   deleteClinic: "Xóa phòng khám",
   previous: "Trước",
-  next: "Tiếp theo"
-};
+  next: "Tiếp theo",
+
+  // Added keys for ClinicDetailModal
+  clinicDetails: "Chi Tiết Phòng Khám",
+  clinicName: "Tên phòng khám",
+  phoneNumber: "Số điện thoại",
+  taxCode: "Mã số thuế",
+  businessLicense: "Giấy phép kinh doanh",
+  viewBusinessLicense: "Xem giấy phép kinh doanh",
+  operatingLicense: "Giấy phép hoạt động",
+  viewOperatingLicense: "Xem giấy phép hoạt động",
+  operatingLicenseExpiryDate: "Ngày hết hạn giấy phép",
+  profilePicture: "Ảnh đại diện",
+  viewProfilePicture: "Xem ảnh đại diện",
+  close: "Đóng",
+
+  // Added keys for clinic-form
+  updateClinicInfo: "Cập nhật thông tin phòng khám",
+  basicInfo: "Thông tin cơ bản",
+  bankingInfo: "Thông tin ngân hàng",
+  bankName: "Tên ngân hàng",
+  bankAccountNumber: "Số tài khoản",
+  addressDetails: "Chi tiết địa chỉ",
+  provinceCity: "Tỉnh/Thành phố",
+  district: "Quận/Huyện",
+  ward: "Phường/Xã",
+  streetAddress: "Địa chỉ đường phố",
+  fullAddress: "Địa chỉ đầy đủ",
+  optional: "Tùy chọn",
+  acceptedFormats: "Định dạng được chấp nhận: JPG, PNG (tối đa 5MB)",
+  currentImage: "Hình ảnh hiện tại",
+  cancel: "Hủy",
+  saveChanges: "Lưu thay đổi",
+  saving: "Đang lưu...",
+  enterClinicName: "Nhập tên phòng khám",
+  enterEmail: "Nhập email",
+  enterPhoneNumber: "Nhập số điện thoại",
+  enterBankName: "Nhập tên ngân hàng",
+  enterAccountNumber: "Nhập số tài khoản",
+  selectProvinceCity: "Chọn Tỉnh/Thành phố",
+  selectDistrict: "Chọn Quận/Huyện",
+  selectWard: "Chọn Phường/Xã",
+  enterStreetAddress: "Nhập địa chỉ đường phố",
+  loadingProvinces: "Đang tải tỉnh/thành phố...",
+  loadingDistricts: "Đang tải quận/huyện...",
+  loadingWards: "Đang tải phường/xã...",
+  selectProvinceFirst: "Chọn tỉnh/thành phố trước",
+  selectDistrictFirst: "Chọn quận/huyện trước",
+  current: "Hiện tại",
+  clinicIdMissing: "Thiếu ID phòng khám",
+  updateSuccess: "Cập nhật phòng khám thành công!",
+  updateFailed: "Cập nhật thất bại. Vui lòng thử lại.",
+  fixErrors: "Vui lòng sửa các lỗi sau:",
+
+  // Added keys for bank selection
+  loadingBanks: "Đang tải danh sách ngân hàng...",
+  searchBank: "Tìm kiếm ngân hàng",
+  noBanksFound: "Không tìm thấy ngân hàng nào",
+  bankingInfoHelp:
+    "Thông tin ngân hàng sẽ được sử dụng cho các giao dịch tài chính với phòng khám của bạn. Vui lòng đảm bảo thông tin chính xác.",
+}

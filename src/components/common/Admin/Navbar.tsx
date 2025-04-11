@@ -14,12 +14,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
-import { useTheme } from "next-themes";
-import { RootState } from "@/store";
-import { useSelector } from "react-redux";
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+import { useTheme } from "next-themes"
+import { RootState } from "@/store"
+import { useSelector } from "react-redux"
+import { handleLogout } from "@/features/auth/utils";
+import { useTranslations } from "next-intl";
 
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
   ssr: false,
@@ -35,6 +37,10 @@ export default function Navbar({
   sidebarClosed = false,
 }: NavbarProps) {
   const router = useRouter();
+  const t = useTranslations("registerClinic")
+  const onLogout = async () => {
+      await handleLogout({ t, router });
+    };
   const { theme, setTheme } = useTheme();
 
   const token = getAccessToken();
@@ -66,10 +72,7 @@ export default function Navbar({
     },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    router.push("/login");
-  };
+  
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -220,7 +223,7 @@ export default function Navbar({
               </DropdownMenuItem>
               <DropdownMenuSeparator className="dark:border-gray-800" />
               <DropdownMenuItem
-                onClick={handleLogout}
+                onClick={onLogout}
                 className="text-red-600 dark:text-red-400 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
               >
                 Log out

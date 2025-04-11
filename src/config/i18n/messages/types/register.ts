@@ -28,4 +28,28 @@ export type RegistrationTranslations = {
   timeRemaining: string;
   confirm: string;
   emailAlreadyExists: string;
+  // New translation fields
+  mustBe18YearsOld: string;
+  selectYourBirthday: string;
+  validationError: string;
+  unexpectedError: string;
+  verificationFailed: string;
+  // Backend validation error messages
+  invalidEmailFormat: string;
+  passwordTooShort: string;
+  passwordTooLong: string;
+  firstNameOnlyLetters: string;
+  firstNameTooShort: string;
+  firstNameTooLong: string;
+  lastNameOnlyLetters: string;
+  lastNameTooShort: string;
+  lastNameTooLong: string;
+  mustBeAtLeast18: string;
+  addressTooShort: string;
+  addressTooLong: string;
+
+  // New verification messages
+  pleaseEnterVerificationCode: string
+  verifying: string
+  verificationSuccessful: string
 };

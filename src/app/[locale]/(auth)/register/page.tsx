@@ -3,7 +3,16 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, ArrowRight, CheckCircle, Key, Mail } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  ArrowRight,
+  CheckCircle,
+  Key,
+  Mail,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,20 +31,35 @@ import type { z } from "zod";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { showError } from "@/utils";
+import { toast } from "react-toastify";
 
 type RegisterFormValues = z.infer<typeof createRegisterSchema>;
+
+// Define the error response type
+interface ValidationError {
+  code: string;
+  message: string;
+}
+
+interface ErrorResponse {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  errors?: ValidationError[];
+}
 
 export default function RegisterPage() {
   const t = useTranslations("register");
   const [register] = useRegisterMutation();
-  const [verify] = useVerifyMutation();
+  const [verify, {isLoading}] = useVerifyMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showVerifyPopup, setShowVerifyPopup] = useState(false);
   const [verifyCode, setVerifyCode] = useState("");
   const [countdown, setCountdown] = useState(60);
+  const [isVerifying, setIsVerifying] = useState(false);
   const router = useRouter();
 
   const {
@@ -43,24 +67,87 @@ export default function RegisterPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     getValues,
+    setError,
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(createRegisterSchema),
+    // Không thực hiện xác thực khi người dùng thay đổi input
+    mode: "onSubmit",
   });
 
-  const onSubmit = async (data: RegisterFormValues) => {
+  // Hàm xử lý khi form hợp lệ
+  const onValidSubmit = async (data: RegisterFormValues) => {
+    console.log("Form data valid, submitting:", data);
     try {
-      const response = await register(data).unwrap();
-      console.log(response);
+      // Tạo một bản sao của dữ liệu và loại bỏ ConfirmPassword
+      const { ConfirmPassword, ...submitData } = data;
+
+      const response = await register(submitData).unwrap();
+      console.log("Registration successful:", response);
       setShowSuccessPopup(true);
     } catch (error) {
-      if (
-        error &&
-        typeof error === "object" &&
-        "status" in error &&
-        (error as { status: number }).status === 400
-      ) {
-        showError(t("emailAlreadyExists"));
+      console.error("Registration error:", error);
+
+      // Handle validation errors from the API
+      if (error && typeof error === "object" && "data" in error) {
+        const errorData = error.data as any;
+        console.log("Error data:", errorData);
+
+        // Luôn hiển thị thông báo detail cho lỗi 400
+        if (errorData.status === 400 && errorData.detail) {
+          toast.error(errorData.detail);
+          return;
+        }
+
+        // Check if it's a validation error (status 422)
+        if (errorData.status === 422) {
+          // Process each validation error and set it on the corresponding field
+          if (errorData.errors && Array.isArray(errorData.errors)) {
+            errorData.errors.forEach((err: ValidationError) => {
+              // The code property matches the field name in the form
+              if (err.code && err.message) {
+                // Set the error in the form for the specific field
+                setError(err.code as keyof RegisterFormValues, {
+                  type: "server",
+                  message: err.message,
+                });
+
+                // Also show a toast for the error
+                toast.error(err.message);
+              }
+            });
+
+            // Show the general error message
+            if (errorData.detail) {
+              toast.error(errorData.detail
+              );
+            }
+          }
+        }
+        // Handle other error responses with detail message
+        else if (errorData.detail) {
+          toast.error(errorData.detail
+          );
+        } else {
+          // Generic error
+          toast.error(t("unexpectedError")
+          );
+        }
+      } else {
+        // Handle other errors
+        toast.error(t("unexpectedError")
+        );
       }
+    }
+  };
+
+  // Hàm xử lý khi form không hợp lệ
+  const onInvalidSubmit = (errors: any) => {
+    console.error("Form validation errors:", errors);
+    // Hiển thị toast cho lỗi đầu tiên
+    const firstError = Object.values(errors)[0] as { message?: string };
+    if (firstError && firstError.message) {
+      toast.error(firstError.message
+      );
     }
   };
 
@@ -93,8 +180,16 @@ export default function RegisterPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  // Updated verification handler with loading state and success toast
   const handleVerifyCodeSubmit = async () => {
-    console.log("Verifying code:", verifyCode);
+    if (!verifyCode.trim()) {
+      toast.error(t("pleaseEnterVerificationCode")
+      );
+      return;
+    }
+
+    setIsVerifying(true); // Set loading state to true
+
     try {
       const email = getValues("Email");
       const response = await verify({
@@ -102,15 +197,28 @@ export default function RegisterPage() {
         code: verifyCode,
         type: 0,
       }).unwrap();
+
       console.log(response);
+
+      // Show success toast
+      toast.success(t("verificationSuccessful")
+      );
       router.push("/login");
     } catch (error) {
       console.error(error);
+
+      // Show error toast
+      toast.error(t("verificationFailed")
+      );
+    } finally {
+      setIsVerifying(false); // Reset loading state regardless of outcome
     }
   };
 
   return (
     <div className="w-full max-w-md space-y-8">
+      {/* Cấu hình ToastContainer để hiển thị theo vị trí cuộn */}
+      
       <div className="text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
           {t("createAccount")}
@@ -120,7 +228,10 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={handleSubmit(onValidSubmit, onInvalidSubmit)}
+        className="space-y-6"
+      >
         {/* Email */}
         <div className="space-y-2">
           <Label htmlFor="Email" className="text-gray-700 dark:text-gray-300">
@@ -289,12 +400,16 @@ export default function RegisterPage() {
             id="DateOfBirth"
             type="date"
             className="h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
+            max={new Date().toISOString().split("T")[0]} // Prevents future dates
           />
           {errors.DateOfBirth && (
             <p className="text-red-500 dark:text-red-400 text-sm">
               {errors.DateOfBirth.message}
             </p>
           )}
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {t("mustBe18YearsOld")}
+          </p>
         </div>
 
         {/* Address */}
@@ -408,6 +523,7 @@ export default function RegisterPage() {
                 onChange={(e) => setVerifyCode(e.target.value)}
                 className="text-center text-2xl tracking-widest h-16 px-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
                 maxLength={6}
+                disabled={isVerifying}
               />
             </div>
 
@@ -423,8 +539,16 @@ export default function RegisterPage() {
               <Button
                 onClick={handleVerifyCodeSubmit}
                 className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                disabled={isLoading}
               >
-                {t("confirm")}
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{t("verifying")}</span>
+                  </div>
+                ) : (
+                  t("confirm")
+                )}
               </Button>
             </DialogFooter>
           </motion.div>

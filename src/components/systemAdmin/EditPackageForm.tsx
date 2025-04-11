@@ -232,8 +232,8 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ID */}
-            <InputField label="Package ID" name="id" value={formData.id} icon={Package} readOnly={true} />
+            {/* Hidden ID field - data is still in formData but not visible */}
+            <input type="hidden" name="id" value={formData.id} />
 
             {/* Name */}
             <InputField
@@ -365,4 +365,3 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
     </motion.div>
   )
 }
-

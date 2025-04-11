@@ -8,6 +8,7 @@ import { PriceSummary } from "../price-summary";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { BookingService } from "../../utils/booking-service";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface SelectProceduresStepProps {
   bookingData: BookingData;
@@ -29,6 +30,7 @@ export function SelectProceduresStep({
   const [isDefault, setIsDefault] = useState<boolean>(
     bookingData.isDefault || false
   );
+  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
 
   const { service } = bookingData;
 
@@ -63,7 +65,7 @@ export function SelectProceduresStep({
     };
 
     fetchProcedures();
-  }, [service.id, selectedProcedures.length]);
+  }, [service, selectedProcedures.length]);
 
   // Handle price type selection
   const handlePriceTypeChange = useCallback(
@@ -124,7 +126,7 @@ export function SelectProceduresStep({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-muted-foreground">Đang tải danh sách dịch vụ...</p>
+        <p className="text-muted-foreground">{t("loadingServices")}</p>
       </div>
     );
   }
@@ -132,9 +134,9 @@ export function SelectProceduresStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">Chọn dịch vụ</h3>
+        <h3 className="text-lg font-medium mb-4">{t("selectService")}</h3>
         <p className="text-muted-foreground mb-4">
-          Vui lòng chọn loại dịch vụ cho mỗi quy trình
+          {t("pleaseSelectServiceType")}
         </p>
 
         <div className="flex items-center space-x-2 mb-4">
@@ -147,8 +149,7 @@ export function SelectProceduresStep({
             htmlFor="use-default"
             className="text-sm font-medium cursor-pointer"
           >
-            Sử dụng gói dịch vụ mặc định (tự động chọn các dịch vụ với giá tốt
-            nhất)
+            {t("useDefaultPackage")}
           </Label>
         </div>
 
@@ -169,12 +170,12 @@ export function SelectProceduresStep({
       <Separator />
 
       <div className="bg-primary/5 p-4 rounded-lg">
-        <h3 className="font-medium mb-2">Tổng chi phí dự kiến</h3>
+        <h3 className="font-medium mb-2">{t("estimatedTotalCost")}</h3>
         {isDefault ? (
           <div className="text-center p-4">
-            <p>Bạn đã chọn sử dụng gói dịch vụ mặc định.</p>
+            <p>{t("youSelectedDefaultPackage")}</p>
             <p className="font-medium mt-2">
-              Giá: {service.discountMinPrice.toLocaleString("vi-VN")}đ -{" "}
+              {t("price")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ -{" "}
               {service.discountMaxPrice.toLocaleString("vi-VN")}đ
             </p>
           </div>
