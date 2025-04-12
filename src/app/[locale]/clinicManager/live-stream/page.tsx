@@ -9,6 +9,23 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import Image from "next/image";
 
+// export function convertImageToBase64(file: File): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const reader = new FileReader();
+
+//     reader.onload = () => {
+//       const base64String = reader.result as string;
+//       resolve(base64String);
+//     };
+
+//     reader.onerror = (error) => {
+//       reject(error);
+//     };
+
+//     reader.readAsDataURL(file);
+//   });
+// }
+
 interface LivestreamRoom {
   id: string;
   name: string;
@@ -33,11 +50,16 @@ export default function LiveStreamPage() {
   const user = useSelector((state: RootState) => state?.auth?.user);
 
   // Handle file input change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const imageUrl = URL.createObjectURL(file);
-      setCoverImage(imageUrl);
+      try {
+        // const imageUrl = await convertImageToBase64(file);
+        const imageUrl = URL.createObjectURL(file);
+        setCoverImage(imageUrl);
+      } catch (err) {
+        console.error("Lỗi khi convert:", err);
+      }
       // Create preview URL
       const reader = new FileReader();
       reader.onload = (event) => {

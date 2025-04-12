@@ -18,11 +18,12 @@ import { doctor } from "./doctor";
 import { livestream } from "./livestream";
 import { LivestreamRoomTranslations } from "./livestream-room";
 import { clinicProfileMessages } from "./clinicProfile";
-import { packageMessages } from './package';
+import { packageMessages } from "./package";
 import { BookingFlowMessages } from "./booking-flow";
 import { sidebarMessages } from "./sidebar";
 import { navbarAdminMessages } from "./navbarAdmin";
 import { buyPackageTranslations } from "./buy-package";
+import { adminSidebar } from "./adminSideBar";
 
 export type Messages = {
   home: homeMessages;

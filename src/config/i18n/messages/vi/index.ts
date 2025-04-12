@@ -1,4 +1,4 @@
-import { packageMessages } from './package';
+import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
 import { apiMessages } from "./api";

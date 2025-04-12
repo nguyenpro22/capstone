@@ -1,4 +1,4 @@
-import { packageMessages } from './package';
+import { packageMessages } from "./package";
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
 import { dashboardMessages } from "./dashboard";

@@ -79,7 +79,9 @@ export type serviceMessages = {
   deleteServiceConfirmation: string
   confirmDelete: string
   cancel: string
-
+  branches: string;
+  noAvailable: string;
+  image: string;
   // Modal tabs
   overview: string
   clinics: string

@@ -4,10 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as signalR from "@microsoft/signalr";
 import HostPageStreamScreen from "@/components/clinicManager/livestream/host-page-stream-screen";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store";
-import { is } from "date-fns/locale";
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 
 // Define types for our data structures
 interface AnalyticsData {
@@ -88,6 +85,11 @@ export default function HostPage() {
       const response = await fetch(
         `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${clinicId}&userId=${userId}&roomId=${roomGuidRef.current}`
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.isSuccess) {
@@ -96,9 +98,11 @@ export default function HostPage() {
           visible: false,
         }));
         setServices(services);
+      } else {
+        console.error("Failed to fetch services:", data.message);
       }
     } catch (err: any) {
-      console.log(err.message);
+      console.error("Error fetching services:", err.message);
     }
   };
 
@@ -312,6 +316,17 @@ export default function HostPage() {
         console.error("🚨 Janus Error:", message);
         alert(`Error: ${message}`);
       });
+
+      conn.on(
+        "ServiceDisplayUpdated",
+        async ({ id, isVisible }: { id: string; isVisible: boolean }) => {
+          setServices((prev) =>
+            prev.map((service) =>
+              service.id === id ? { ...service, visible: isVisible } : service
+            )
+          );
+        }
+      );
     });
 
     // return () => {
@@ -493,6 +508,16 @@ export default function HostPage() {
       roomGuidRef.current != null
     ) {
       if (serviceId) {
+        // First update local state to prevent UI from breaking
+        setServices((prev) =>
+          prev.map((service) =>
+            service.id === serviceId
+              ? { ...service, visible: isDisplay }
+              : service
+          )
+        );
+
+        // Then send to server
         signalR_Connection.current.invoke(
           "DisplayService",
           serviceId,
