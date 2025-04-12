@@ -1,5 +1,6 @@
 export type clinicProfileMessages = {
     clinicDetails: string;
+    clinicStaffDetails: string;
     address: string;
     taxCode: string;
     businessLicense: string;
@@ -24,4 +25,7 @@ export type clinicProfileMessages = {
     days: string;
     livestreams: string;
     price: string;
+    purchaseDate: string;
+    expiryDate: string;
+    daysRemaining: string;
   };

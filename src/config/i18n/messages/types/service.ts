@@ -59,28 +59,95 @@ export type service = {
   };
 };
 export type serviceMessages = {
-  servicesList: string;
-  no: string;
-  addNewService: string;
-  serviceName: string;
-  price: string;
-  coverImage: string;
-  category: string;
-  percentDiscount: string;
-  action: string;
-  searchByName: string;
-  active: string;
-  inactive: string;
-  viewServiceDetail: string;
-  editService: string;
-  deleteService: string;
-  addProcedure: string;
-  deleteServiceConfirmation: string;
-  confirmDelete: string;
-  cancel: string;
-  description: string;
+  // Existing fields
+  servicesList: string
+  no: string
+  addNewService: string
+  serviceName: string
+  price: string
+  coverImage: string
+  category: string
+  percentDiscount: string
+  action: string
+  searchByName: string
+  active: string
+  inactive: string
+  viewServiceDetail: string
+  editService: string
+  deleteService: string
+  addProcedure: string
+  deleteServiceConfirmation: string
+  confirmDelete: string
+  cancel: string
   branches: string;
   noAvailable: string;
   image: string;
-  save: string;
-};
+  // Modal tabs
+  overview: string
+  clinics: string
+  procedures: string
+  doctors: string
+
+  // Overview tab
+  serviceDescription: string
+  priceInfo: string
+  minPrice: string
+  maxPrice: string
+  discount: string
+  otherInfo: string
+  bookingTime: string
+  executionTime: string
+  rating: string
+  descriptionImages: string
+  coverImages: string
+
+  // Clinics tab
+  noActiveClinics: string
+  noActiveClinicDescription: string
+  noClinics: string
+  noClinicDescription: string
+
+  // Procedures tab
+  noProcedures: string
+  noProcedureDescription: string
+  step: string
+  editProcedure: string
+  save: string
+  procedureName: string
+  stepOrder: string
+  description: string
+  priceTypes: string
+  addPriceType: string
+  noPriceTypes: string
+  priceTypeName: string
+  priceValue: string
+  duration: string
+  setAsDefault: string
+  delete: string
+  seeMore: string
+  collapse: string
+  minutes: string
+  default: string
+
+  // Delete confirmation
+  deleteConfirmTitle: string
+  deleteConfirmDescription: string
+  deleting: string
+  deleteProcedure: string
+
+  // Common actions
+  close: string
+  edit: string
+
+  // Toast messages
+  deleteProcedureSuccess: string
+  deleteProcedureError: string
+  updateProcedureSuccess: string
+  updateProcedureError: string
+
+  // Validation messages
+  procedureNameRequired: string
+  priceTypeRequired: string
+  defaultPriceTypeRequired: string
+}
+

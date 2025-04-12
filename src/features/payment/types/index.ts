@@ -16,7 +16,8 @@ export interface PaymentResponse {
   }
   
   export interface CreatePaymentRequest {
-    subscriptionId: string
+    subscriptionId: string,
+    currentAmount: number
   }
   
   

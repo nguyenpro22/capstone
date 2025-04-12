@@ -1155,7 +1155,11 @@ export default function ServiceDetail() {
                             {service.clinics.map((clinic, index) => (
                               <Card
                                 key={index}
-                                className="overflow-hidden hover:shadow-md transition-shadow border-none bg-white dark:bg-gray-700 dark:border dark:border-gray-600"
+                                className={`overflow-hidden hover:shadow-md transition-shadow border-none ${
+                                  clinic.isActivated !== false
+                                    ? "bg-white dark:bg-gray-700"
+                                    : "bg-gray-100 dark:bg-gray-800/50 opacity-75"
+                                } dark:border dark:border-gray-600`}
                               >
                                 <CardContent className="p-0">
                                   <div className="relative h-40">
@@ -1168,15 +1172,22 @@ export default function ServiceDetail() {
                                       }
                                       alt={clinic.name}
                                       fill
-                                      className="object-cover"
+                                      className={`object-cover ${clinic.isActivated === false ? "grayscale" : ""}`}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                    <div className="absolute bottom-0 left-0 p-4">
+                                    <div className="absolute bottom-0 left-0 p-4 flex gap-2">
                                       <Badge className="bg-white text-rose-600 hover:bg-gray-100">
-                                        {clinic.isParent
-                                          ? t("mainBranch")
-                                          : t("branch")}
+                                        {clinic.isParent ? t("mainBranch") : t("branch")}
                                       </Badge>
+                                      {clinic.isActivated !== false ? (
+                                        <Badge className="bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
+                                          {t("active")}
+                                        </Badge>
+                                      ) : (
+                                        <Badge className="bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400">
+                                          {t("inactive")}
+                                        </Badge>
+                                      )}
                                     </div>
                                   </div>
                                   <div className="p-4">
@@ -1187,21 +1198,16 @@ export default function ServiceDetail() {
                                       <div className="flex items-start gap-2">
                                         <MapPin className="h-4 w-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
                                         <span className="dark:text-gray-300">
-                                          {clinic.address ||
-                                            t("contactForAddress")}
+                                          {clinic.address || t("contactForAddress")}
                                         </span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Phone className="h-4 w-4 text-rose-500 dark:text-rose-400" />
-                                        <span className="dark:text-gray-300">
-                                          {clinic.phoneNumber}
-                                        </span>
+                                        <span className="dark:text-gray-300">{clinic.phoneNumber}</span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Mail className="h-4 w-4 text-rose-500 dark:text-rose-400" />
-                                        <span className="dark:text-gray-300">
-                                          {clinic.email}
-                                        </span>
+                                        <span className="dark:text-gray-300">{clinic.email}</span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Globe className="h-4 w-4 text-rose-500 dark:text-rose-400" />
@@ -1215,12 +1221,15 @@ export default function ServiceDetail() {
                                         variant="ghost"
                                         className="p-0 h-auto text-rose-600 hover:text-rose-700 hover:bg-transparent dark:text-rose-400 dark:hover:text-rose-300"
                                       >
-                                        {t("getDirections")}{" "}
-                                        <ArrowRight className="h-4 w-4 ml-1" />
+                                        {t("getDirections")} <ArrowRight className="h-4 w-4 ml-1" />
                                       </Button>
-                                      <Button variant="secondary">
-                                        {t("bookHere")}
-                                      </Button>
+                                      {clinic.isActivated !== false ? (
+                                        <Button variant="secondary">{t("bookHere")}</Button>
+                                      ) : (
+                                        <Button variant="secondary" disabled className="opacity-50 cursor-not-allowed">
+                                          {t("serviceUnavailable")}
+                                        </Button>
+                                      )}
                                     </div>
                                   </div>
                                 </CardContent>

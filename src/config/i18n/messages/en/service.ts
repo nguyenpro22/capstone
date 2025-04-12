@@ -67,6 +67,7 @@ export const service: Messages["service"] = {
   },
 };
 export const serviceMessages: Messages["serviceMessage"] = {
+  // Existing fields
   servicesList: "Services List",
   no: "No.",
   addNewService: "Add new Service",
@@ -84,12 +85,77 @@ export const serviceMessages: Messages["serviceMessage"] = {
   deleteService: "Delete service",
   addProcedure: "Add Procedure",
   description: "Description",
-  deleteServiceConfirmation:
-    "Are you sure you want to delete this service? This action cannot be undone.",
+  deleteServiceConfirmation: "Are you sure you want to delete this service? This action cannot be undone.",
   confirmDelete: "Confirm Delete",
   cancel: "Cancel",
   branches: "Branches",
   noAvailable: "No branches available. Please create a branch first.",
   image: "Images",
   save: "Save...",
-};
+
+  // Modal tabs
+  overview: "Overview",
+  clinics: "Clinics",
+  procedures: "Procedures",
+  doctors: "Doctors",
+
+  // Overview tab
+  serviceDescription: "Service Description",
+  priceInfo: "Price Information",
+  minPrice: "Minimum Price:",
+  maxPrice: "Maximum Price:",
+  discount: "Discount:",
+  otherInfo: "Other Information",
+  bookingTime: "Booking Time: 30-60 minutes",
+  executionTime: "Execution Time: 1-2 hours",
+  rating: "Rating: 4.8/5 (120 reviews)",
+  descriptionImages: "Description Images",
+  coverImages: "Cover Images",
+
+  // Clinics tab
+  noActiveClinics: "No Active Clinics",
+  noActiveClinicDescription: "This service currently has no active clinics.",
+  noClinics: "No Clinics",
+  noClinicDescription: "This service currently has no clinics.",
+
+  // Procedures tab
+  noProcedures: "No Procedures",
+  noProcedureDescription: "This service currently has no defined procedures.",
+  step: "Step",
+  editProcedure: "Edit Procedure",
+  procedureName: "Procedure Name",
+  stepOrder: "Step Order",
+  priceTypes: "Price Types",
+  addPriceType: "Add Price Type",
+  noPriceTypes: "No price types yet. Click Add Price Type to start.",
+  priceTypeName: "Price Type Name",
+  priceValue: "Price (VND)",
+  duration: "Duration (minutes)",
+  setAsDefault: "Set as default",
+  delete: "Delete",
+  seeMore: "See more",
+  collapse: "Collapse",
+  minutes: "minutes",
+  default: "Default",
+
+  // Delete confirmation
+  deleteConfirmTitle: "Confirm Delete",
+  deleteConfirmDescription: "Are you sure you want to delete this procedure? This action cannot be undone.",
+  deleting: "Deleting...",
+  deleteProcedure: "Delete Procedure",
+
+  // Common actions
+  close: "Close",
+  edit: "Edit",
+
+  // Toast messages
+  deleteProcedureSuccess: "Procedure deleted successfully",
+  deleteProcedureError: "Could not delete procedure. Please try again later.",
+  updateProcedureSuccess: "Procedure updated successfully",
+  updateProcedureError: "Could not update procedure. Please try again later.",
+
+  // Validation messages
+  procedureNameRequired: "Procedure name cannot be empty!",
+  priceTypeRequired: "At least one price type is required!",
+  defaultPriceTypeRequired: "At least one price type must be set as default!",
+}

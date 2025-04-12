@@ -18,8 +18,10 @@ import { staffMessages } from "./staff";
 import { clinicProfileMessages } from "./clinicProfile";
 import { livestream } from "./livestream";
 import { livestreamRoom } from "./livestream-room";
-import { bookingFlowMessages } from "./booking-flow";
-import { adminSidebar } from "./adminSideBar";
+import { bookingFlowMessages } from './booking-flow';
+import { sidebarMessages } from './sidebar';
+import { navbarAdminMessages } from './navbarAdmin';
+import { buyPackageMessages } from './buy-package';
 
 const en = {
   home: homeMessages,
@@ -43,8 +45,10 @@ const en = {
   livestream,
   livestreamRoom,
   package: packageMessages,
-  bookingFlow: bookingFlowMessages,
-  adminSidebar,
+  bookingFlow : bookingFlowMessages,
+  sidebar: sidebarMessages,
+  navbarAdmin: navbarAdminMessages,
+  buyPackage: buyPackageMessages
 };
 
 export default en;

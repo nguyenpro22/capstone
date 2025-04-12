@@ -224,7 +224,9 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
   }
 
   return (
+    
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
+      
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -233,7 +235,7 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
         className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl dark:shadow-black/30 w-full max-w-xl flex flex-col overflow-hidden"
         style={{ maxHeight: "90vh" }}
       >
-         <ToastContainer/>
+         
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 p-6 text-white relative">
           <h2 className="text-2xl font-bold">{t("editStaff") || "Edit Staff"}</h2>
@@ -376,16 +378,7 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
                   </div>
                 </div>
 
-                {/* Add direct submit button for testing */}
-                <div className="mt-4 pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <button
-                    type="button"
-                    onClick={handleDirectSubmit}
-                    className="px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-md hover:bg-purple-200 dark:hover:bg-purple-800/50 transition-colors text-sm"
-                  >
-                    Test Submit (Basic Info Only)
-                  </button>
-                </div>
+                
               </motion.div>
             )}
 

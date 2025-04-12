@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { useUpdateClinicMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import { motion } from "framer-motion"
 import { X, AlertCircle, Building2, Mail, Phone, MapPin, FileText, CreditCard, ImageIcon, Search } from "lucide-react"
 import Image from "next/image"
@@ -275,7 +275,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-gray-900/80 backdrop-blur-sm overflow-y-auto p-4"
       onClick={(e) => {
         // Only close the modal when clicking on the backdrop, not when clicking on the content
         if (e.target === e.currentTarget) {
@@ -283,22 +283,21 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
         }
       }}
     >
-       <ToastContainer/>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl my-8 overflow-hidden"
+        className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl dark:shadow-gray-900 my-8 overflow-hidden"
         onClick={(e) => e.stopPropagation()} // Prevent event propagation
       >
         {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
           <h2 className="text-2xl font-bold">Edit Clinic</h2>
-          <p className="text-purple-100 mt-1">Update your clinic information</p>
+          <p className="text-purple-100 dark:text-purple-200 mt-1">Update your clinic information</p>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 dark:bg-gray-700/50 dark:hover:bg-gray-600/50 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50"
             aria-label="Close"
           >
             <X size={20} />
@@ -311,15 +310,15 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-lg border border-red-200 overflow-hidden"
+              className="mb-6 rounded-lg border border-red-200 dark:border-red-800 overflow-hidden"
             >
-              <div className="flex items-center gap-2 p-4 bg-red-50 border-b border-red-200">
-                <AlertCircle className="h-5 w-5 text-red-500" />
-                <p className="text-red-700 font-medium">Please fix the following errors:</p>
+              <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/30 border-b border-red-200 dark:border-red-800">
+                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                <p className="text-red-700 dark:text-red-300 font-medium">Please fix the following errors:</p>
               </div>
-              <div className="p-4 bg-white space-y-2">
+              <div className="p-4 bg-white dark:bg-gray-800 space-y-2">
                 {errorMessages.map((message, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm text-red-600">
+                  <div key={index} className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
                     <span className="mt-0.5">•</span>
                     <span>{message}</span>
                   </div>
@@ -331,13 +330,13 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-purple-500" />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-purple-500 dark:text-purple-400" />
                 <span>Basic Information</span>
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Clinic Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -346,7 +345,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                       name="name"
                       value={formData.name || ""}
                       onChange={handleFormChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                       placeholder="Enter clinic name"
                       required
                     />
@@ -354,7 +353,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -363,20 +362,20 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                       name="email"
                       value={formData.email || ""}
                       onChange={handleFormChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 text-gray-900 dark:text-gray-100 transition-all duration-200"
                       placeholder="Enter email"
                       readOnly
                     />
-                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                  <input
+                    <input
                       type="tel"
                       name="phoneNumber"
                       value={formData.phoneNumber || ""}
@@ -386,31 +385,31 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                         setFormData((prev: any) => ({ ...prev, phoneNumber: value }))
                       }}
                       pattern="[0-9\s+()-]{10,15}"
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                       placeholder="Enter phone number (numbers only)"
                       title="Please enter a valid phone number (10-15 digits)"
                       required
                     />
-                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4 pt-2">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-purple-500" />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-purple-500 dark:text-purple-400" />
                 <span>Banking Information</span>
               </h3>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Bank Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative" ref={bankDropdownRef}>
                     {isBanksLoading ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         Loading banks...
                       </div>
                     ) : (
@@ -424,14 +423,14 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                               setShowBankDropdown(true)
                             }}
                             onFocus={() => setShowBankDropdown(true)}
-                            className="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                            className="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                             placeholder="Search for a bank..."
                           />
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                         </div>
 
                         {selectedBank && (
-                          <div className="mt-2 flex items-center gap-2 p-2 bg-purple-50 rounded-lg border border-purple-100">
+                          <div className="mt-2 flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-100 dark:border-purple-800">
                             {selectedBank.logo && (
                               <img
                                 src={selectedBank.logo || "/placeholder.svg"}
@@ -439,17 +438,19 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                                 className="h-6 w-auto"
                               />
                             )}
-                            <span className="font-medium text-purple-700">{selectedBank.name}</span>
+                            <span className="font-medium text-purple-700 dark:text-purple-300">
+                              {selectedBank.name}
+                            </span>
                           </div>
                         )}
 
                         {showBankDropdown && bankSearchTerm && (
-                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-gray-200 shadow-lg max-h-60 overflow-y-auto">
+                          <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
                             {filteredBanks.length > 0 ? (
                               filteredBanks.map((bank) => (
                                 <div
                                   key={bank.id}
-                                  className="flex items-center gap-2 p-2 hover:bg-purple-50 cursor-pointer"
+                                  className="flex items-center gap-2 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer"
                                   onClick={() => handleBankSelect(bank)}
                                 >
                                   {bank.logo && (
@@ -460,13 +461,13 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                                     />
                                   )}
                                   <div>
-                                    <div className="font-medium text-gray-800">{bank.name}</div>
-                                    <div className="text-xs text-gray-500">{bank.shortName}</div>
+                                    <div className="font-medium text-gray-800 dark:text-gray-200">{bank.name}</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">{bank.shortName}</div>
                                   </div>
                                 </div>
                               ))
                             ) : (
-                              <div className="p-3 text-center text-gray-500">No banks found</div>
+                              <div className="p-3 text-center text-gray-500 dark:text-gray-400">No banks found</div>
                             )}
                           </div>
                         )}
@@ -476,7 +477,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Bank Account Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -485,11 +486,11 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                       name="bankAccountNumber"
                       value={formData.bankAccountNumber}
                       onChange={handleFormChange}
-                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                      className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                       placeholder="Enter account number"
                       required
                     />
-                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                 </div>
               </div>
@@ -497,20 +498,20 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
 
             {/* Address Section */}
             <div className="space-y-4 pt-2">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-purple-500" />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-purple-500 dark:text-purple-400" />
                 <span>Address Details</span>
               </h3>
 
               <div className="grid gap-4 md:grid-cols-2">
                 {/* Province Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Province/City <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     {isLoadingProvinces ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         Loading provinces...
                       </div>
                     ) : (
@@ -518,7 +519,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                         name="provinceId"
                         value={addressDetail.provinceId}
                         onChange={handleAddressChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200 bg-white"
+                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                         required
                       >
                         <option value="">Select Province/City</option>
@@ -534,23 +535,25 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                       </select>
                     )}
                     {!addressDetail.provinceId && addressDetail.provinceName && (
-                      <div className="mt-1 text-sm text-amber-600">Current: {addressDetail.provinceName}</div>
+                      <div className="mt-1 text-sm text-amber-600 dark:text-amber-500">
+                        Current: {addressDetail.provinceName}
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* District Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     District <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     {!addressDetail.provinceId ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         Select province first
                       </div>
                     ) : isLoadingDistricts ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         Loading districts...
                       </div>
                     ) : (
@@ -558,7 +561,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                         name="districtId"
                         value={addressDetail.districtId}
                         onChange={handleAddressChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200 bg-white"
+                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                         required
                       >
                         <option value="">Select District</option>
@@ -574,23 +577,25 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                       </select>
                     )}
                     {!addressDetail.districtId && addressDetail.districtName && (
-                      <div className="mt-1 text-sm text-amber-600">Current: {addressDetail.districtName}</div>
+                      <div className="mt-1 text-sm text-amber-600 dark:text-amber-500">
+                        Current: {addressDetail.districtName}
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Ward Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Ward <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     {!addressDetail.districtId ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         Select district first
                       </div>
                     ) : isLoadingWards ? (
-                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         Loading wards...
                       </div>
                     ) : (
@@ -598,7 +603,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                         name="wardId"
                         value={addressDetail.wardId}
                         onChange={handleAddressChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200 bg-white"
+                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                         required
                       >
                         <option value="">Select Ward</option>
@@ -610,14 +615,16 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                       </select>
                     )}
                     {!addressDetail.wardId && addressDetail.wardName && (
-                      <div className="mt-1 text-sm text-amber-600">Current: {addressDetail.wardName}</div>
+                      <div className="mt-1 text-sm text-amber-600 dark:text-amber-500">
+                        Current: {addressDetail.wardName}
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Street Address */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     Street Address <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -625,7 +632,7 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
                     name="streetAddress"
                     value={addressDetail.streetAddress}
                     onChange={handleAddressChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                     placeholder="Enter street address"
                     required
                   />
@@ -636,10 +643,10 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100"
+                className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border border-purple-100 dark:border-purple-800"
               >
-                <p className="text-sm text-gray-600 font-medium">Full Address:</p>
-                <p className="text-sm text-gray-800 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Full Address:</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">
                   {addressDetail.streetAddress && `${addressDetail.streetAddress}, `}
                   {addressDetail.wardName && `${addressDetail.wardName}, `}
                   {addressDetail.districtName && `${addressDetail.districtName}, `}
@@ -650,35 +657,36 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
 
             {/* Profile Picture */}
             <div className="space-y-4 pt-2">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-purple-500" />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-purple-500 dark:text-purple-400" />
                 <span>Profile Picture</span>
               </h3>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                  Profile Picture <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  Profile Picture{" "}
+                  <span className="text-gray-400 dark:text-gray-500 text-xs font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
                   <input
                     type="file"
                     onChange={handleFileChange}
-                    className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 dark:file:bg-purple-900/50 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 dark:hover:file:bg-purple-900 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                     accept=".jpg, .jpeg, .png"
                   />
-                  <ImageIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <ImageIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
-                <p className="text-xs text-gray-500">Accepted formats: JPG, PNG (max 5MB)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Accepted formats: JPG, PNG (max 5MB)</p>
 
                 {formData.profilePictureUrl && (
                   <div className="mt-2 flex items-center gap-4">
-                    <p className="text-sm text-gray-600">Current image:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Current image:</p>
                     <Image
                       src={formData.profilePictureUrl || "/placeholder.svg"}
                       alt="Profile"
                       width={80}
                       height={80}
-                      className="w-20 h-20 object-cover rounded-md border border-gray-200"
+                      className="w-20 h-20 object-cover rounded-md border border-gray-200 dark:border-gray-700"
                     />
                   </div>
                 )}
@@ -686,11 +694,11 @@ export default function ClinicEditForm({ initialData, onClose, onSaveSuccess }: 
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-200"
+                className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500 focus:ring-opacity-50 transition-all duration-200"
               >
                 Cancel
               </button>

@@ -24,4 +24,5 @@ export type LoginTranslations = {
   timeRemaining: string;
   confirm: string;
   logout: string;
+  providerLoginError: string;
 };

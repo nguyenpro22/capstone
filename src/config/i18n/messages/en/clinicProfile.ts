@@ -2,6 +2,7 @@ import { Messages } from "../types";
 
 export const clinicProfileMessages: Messages["clinicProfile"] = {
   clinicDetails: "Clinic Details",
+  clinicStaffDetails: "Branch Details",
   address: "Address",
   taxCode: "Tax Code",
   businessLicense: "Business License",
@@ -25,5 +26,8 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   currentSubscription: "Current Subscription",
   days: "Days",
   livestreams: "Live Streams",
-  price: "Price"
+  price: "Price",
+  purchaseDate: "Purchase Date",
+  expiryDate: "Expiry Date",
+  daysRemaining: "Days Remaining"
 };

@@ -251,7 +251,6 @@ export default function PromotionForm({ serviceId, onClose, onSuccess }: Promoti
       exit={{ opacity: 0 }}
       className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/30 backdrop-blur-sm"
     >
-       <ToastContainer/>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

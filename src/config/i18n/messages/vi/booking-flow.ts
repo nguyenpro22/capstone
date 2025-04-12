@@ -117,5 +117,9 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   serviceDetails: "Chi tiết dịch vụ",
   totalIncludingVAT: "Tổng cộng (đã bao gồm VAT)",
   saveInformation: "Lưu thông tin",
+  active: "Đang hoạt động",
+  inactive: "Không hoạt động",
+  clinicUnavailable: "Phòng khám này hiện không thể đặt lịch",
+  noActiveClinicWarning: "Hiện tại không có phòng khám nào đang hoạt động cho dịch vụ này."
  }
  

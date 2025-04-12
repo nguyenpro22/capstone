@@ -115,4 +115,8 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   serviceDetails: "Service Details",
   totalIncludingVAT: "Total (including VAT)",
   saveInformation: "Save Information",
+  active: "Active",
+inactive: "Inactive",
+clinicUnavailable: "This clinic is currently unavailable for booking",
+noActiveClinicWarning: "There are no active clinics available for this service at the moment.",
 }

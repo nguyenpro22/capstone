@@ -184,7 +184,6 @@ export default function EditProcedureForm({ procedure, serviceId, onClose, onSuc
   return (
     
     <Modal onClose={onClose} >
-       <ToastContainer/>
       <form onSubmit={handleSubmit} className="space-y-6 p-6">
         <div className="space-y-4">
           {/* Procedure Name */}

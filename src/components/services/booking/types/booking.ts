@@ -27,6 +27,7 @@ export interface Clinic {
   profilePictureUrl: string | null;
   isParent: boolean;
   parentId: string | null;
+  isActivated: boolean;
 }
 
 export interface Category {

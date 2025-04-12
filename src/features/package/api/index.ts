@@ -9,7 +9,7 @@ export const packageApi = createApi({
   baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
     getPackages: builder.query({
-      query: ({ pageIndex, pageSize, searchTerm }) => `/subscriptions?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=desc`,
+      query: ({ pageIndex, pageSize, searchTerm }) => `/subscriptions?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}&sortOrder=asc`,
     }),
     getPackagesById: builder.query<PackageDetailResponse, string>({
       query: (id) => `subscriptions/${id}?id=${id}`,

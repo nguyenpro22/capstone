@@ -14,6 +14,7 @@ export type Clinic = {
   phoneNumber: string;
   profilePictureUrl: string | null;
   isParent: boolean;
+  isActivated: boolean;
   parentId: string;
 };
 
@@ -69,6 +70,7 @@ type Branding = {
   address: string | null;
   phoneNumber: string;
   profilePictureUrl: string | null;
+  isActivated: boolean;
   isParent: boolean;
   parentId: string | null;
 };

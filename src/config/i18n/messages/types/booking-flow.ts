@@ -113,5 +113,9 @@ export type BookingFlowMessages = {
   serviceDetails: string
   totalIncludingVAT: string
   saveInformation: string
+  active: string
+  inactive : string
+  clinicUnavailable: string
+  noActiveClinicWarning: string
   }
   

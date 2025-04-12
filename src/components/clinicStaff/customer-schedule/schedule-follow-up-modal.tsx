@@ -312,7 +312,6 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
     return (
       
       <Dialog open={isOpen} onOpenChange={onClose}>
-         <ToastContainer/>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Schedule Follow-up Appointment</DialogTitle>

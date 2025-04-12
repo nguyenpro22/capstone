@@ -149,4 +149,8 @@ export type serviceDetail = {
   serviceNotFound: string;
   serviceNotFoundMessage: string;
   backToServices: string;
+  serviceUnavailable: string,
+    serviceInactiveMessage: string
+    active: string
+    inactive: string
 };

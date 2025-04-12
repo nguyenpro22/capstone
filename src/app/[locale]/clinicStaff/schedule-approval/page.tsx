@@ -73,7 +73,6 @@ export default function ScheduleApproval() {
 
   return (
     <Card className="w-full">
-       <ToastContainer/>
       <CardHeader>
         <CardTitle>Schedule Approval</CardTitle>
         <CardDescription>Review and manage schedules waiting for approval</CardDescription>

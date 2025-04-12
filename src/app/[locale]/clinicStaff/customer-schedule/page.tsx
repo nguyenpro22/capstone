@@ -700,7 +700,7 @@ export default function SchedulesPage() {
 
   return (
     <div className="space-y-6">
-       <ToastContainer/>
+  
       <h1 className="text-2xl font-bold">Customer Schedules</h1>
 
       {/* Show notification if any schedules need a follow-up */}
