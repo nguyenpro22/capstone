@@ -65,5 +65,6 @@ export const branchMessages: Messages["branch"] = {
   loadingDistricts: "Đang tải quận/huyện...",
   loadingWards: "Đang tải phường/xã...",
   operatingLicense: "Giấy phép hoạt động",
-  businessLicense: "Giấy phép kinh doanh"
+  businessLicense: "Giấy phép kinh doanh",
+  branchUpdatedSuccess: "Cập nhật chi nhánh thành công",
 }

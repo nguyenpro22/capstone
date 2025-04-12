@@ -252,7 +252,6 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
-       <ToastContainer/>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

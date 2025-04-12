@@ -3,6 +3,8 @@ import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import type {
   ILoginRequest,
   ILoginResponse,
+  IRefreshToken,
+  IRefreshTokenRequest,
   IRegisterRequest,
   IVerifyRequest,
 } from "../types";
@@ -24,6 +26,14 @@ export const authApi = createApi({
       }) => {
         return response.data;
       },
+    }),
+
+    refreshToken: builder.mutation<IResCommon<IRefreshToken>, IRefreshTokenRequest>({
+      query: (credentials) => ({
+        url: "/auth/refresh_token",
+        method: "POST",
+        body: credentials,
+      }),
     }),
     register: builder.mutation<Response, IRegisterRequest>({
       query: (userData) => ({
@@ -74,4 +84,5 @@ export const {
   useChangePasswordMutation,
   useSendRequestMutation,
   useLoginWithGoogleMutation,
+  useRefreshTokenMutation,
 } = authApi;

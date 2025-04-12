@@ -223,7 +223,7 @@ export default function BranchForm({ onClose, onSaveSuccess }: BranchFormProps) 
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-gray-900/80 backdrop-blur-sm overflow-y-auto p-4"
     >
-       <ToastContainer/>
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

@@ -64,4 +64,5 @@ export type branchMessages = {
   loadingWards: string
   operatingLicense: string
   businessLicense: string
+  branchUpdatedSuccess: string
 }

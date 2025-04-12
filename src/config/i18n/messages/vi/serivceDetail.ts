@@ -167,4 +167,9 @@ export const serviceDetail: Messages["serviceDetail"] = {
   serviceNotFoundMessage:
     "Dịch vụ bạn đang tìm kiếm không thể được tìm thấy. Nó có thể đã bị xóa hoặc bạn có thể đã theo một liên kết không chính xác.",
   backToServices: "Quay lại Dịch vụ",
+  serviceUnavailable: "Dịch vụ không khả dụng",
+    serviceInactiveMessage: "Dịch vụ này hiện không hoạt động tại bất kỳ phòng khám nào",
+      // Status
+      active: "Hoạt động",
+      inactive: "Ngưng hoạt động",
 };

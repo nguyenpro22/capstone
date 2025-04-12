@@ -343,7 +343,6 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
         onClose()
       }}
     >
-       <ToastContainer/>
       <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl min-h-[500px] h-[calc(100vh-80px)] max-h-[800px] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-serif">Schedule Payment</DialogTitle>

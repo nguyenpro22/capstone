@@ -2,6 +2,7 @@ import { Messages } from "../types";
 
 export const clinicProfileMessages: Messages["clinicProfile"] = {
   clinicDetails: "Clinic Details",
+  clinicStaffDetails: "Branch Details",
   address: "Address",
   taxCode: "Tax Code",
   businessLicense: "Business License",

@@ -25,5 +25,6 @@ export const loginMessage: Messages["login"] = {
   checkEmail: "Verify email",
    timeRemaining: "Time remaining",
   confirm:"Confirm",
-  logout: "Logout"
+  logout: "Logout", 
+  providerLoginError: "Failed to login with Google"
 };

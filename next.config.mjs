@@ -12,6 +12,7 @@ const nextConfig = {
       "placehold.co",
       "thispersondoesnotexist.com",
       "cdn.nhathuoclongchau.com.vn",
+      "benhvienjw.vn",
     ],
   },
   reactStrictMode: false,

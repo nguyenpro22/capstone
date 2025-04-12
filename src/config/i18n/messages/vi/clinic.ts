@@ -76,4 +76,5 @@ export const clinicMessages: Messages["clinic"] = {
   noBanksFound: "Không tìm thấy ngân hàng nào",
   bankingInfoHelp:
     "Thông tin ngân hàng sẽ được sử dụng cho các giao dịch tài chính với phòng khám của bạn. Vui lòng đảm bảo thông tin chính xác.",
-}
+    copyToClipboard: "Sao chép vào bảng tạm"
+  }

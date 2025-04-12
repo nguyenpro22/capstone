@@ -261,7 +261,6 @@ export default function StaffPage() {
 
   return (
     <div className="p-6 dark:bg-gray-900" onClick={handleCloseMenu}>
-      <ToastContainer />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
           {t("staffList") || "Staff List"}

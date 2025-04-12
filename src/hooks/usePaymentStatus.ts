@@ -1,12 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 
-interface PaymentStatus {
-  transactionId: string;
-  status: boolean;
-  amount?: number;
-  timestamp?: string;
-  message?: string;
-}
+
 
 class PaymentService {
   private connection: signalR.HubConnection;
@@ -47,6 +41,9 @@ class PaymentService {
   }
   public async onCancelPaymentSession(transactionId: string): Promise<void> {
     await this.connection.invoke("CancelPaymentSession", transactionId);
+  }
+  public onSubscriptionPriceChanged(callback: (isValid: boolean) => void): void {
+    this.connection.on("SubscriptionPriceChanged", callback);
   }
 }
 

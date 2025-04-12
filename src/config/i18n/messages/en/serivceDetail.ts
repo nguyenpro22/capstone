@@ -168,4 +168,11 @@ export const serviceDetail: Messages["serviceDetail"] = {
   serviceNotFoundMessage:
     "The service you are looking for could not be found. It may have been removed or you may have followed an incorrect link.",
   backToServices: "Back to Services",
+
+  // Service card translations
+  serviceUnavailable: "Service Unavailable",
+  serviceInactiveMessage: "This service is currently inactive at all clinics",
+  active: "Active",
+  inactive: "Inactive",
+
 };

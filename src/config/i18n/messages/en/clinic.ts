@@ -76,4 +76,6 @@ export const clinicMessages: Messages["clinic"] = {
   noBanksFound: "No banks found",
   bankingInfoHelp:
     "Banking information will be used for financial transactions with your clinic. Please ensure the information is accurate.",
+
+    copyToClipboard: "Copy to clipboard"
 }

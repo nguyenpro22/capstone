@@ -390,9 +390,9 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
           branchId: formData.id,
           data: formDataToSend,
         }).unwrap()
-
-        // toast.success("Branch updated successfully!")
+        console.log("log ne hihi")
         onSaveSuccess()
+        // toast.success(t("branchUpdatedSuccess")) 
         onClose()
       } else {
         toast.error("Clinic ID is required but not available")
@@ -441,7 +441,6 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
   return (
     // Update the main container div
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
-       <ToastContainer/>
       {/* Update the main modal container */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

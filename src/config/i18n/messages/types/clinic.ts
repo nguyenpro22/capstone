@@ -73,4 +73,5 @@ export type clinicMessages = {
   searchBank: string
   noBanksFound: string
   bankingInfoHelp: string
+  copyToClipboard:string
 }

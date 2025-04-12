@@ -37,6 +37,9 @@ import { Input } from "@/components/ui/input"
 import dynamic from "next/dynamic"
 import { useTheme } from "next-themes"
 
+// Add the useTranslations hook at the top of the component
+import { useTranslations } from "next-intl"
+
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
   ssr: false,
@@ -79,6 +82,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
   const [categories, setCategories] = useState([])
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({})
   const { theme } = useTheme()
+  const t = useTranslations("service") // Using the correct namespace
 
   const modalContentRef = useRef<HTMLDivElement>(null)
 
@@ -112,12 +116,12 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
     try {
       setDeletingId(id)
       await deleteProcedure({ id }).unwrap()
-      toast.success("Đã xóa giai đoạn thành công")
+      toast.success(t("deleteProcedureSuccess"))
       // Refresh data after deletion
       handleRefresh()
     } catch (error) {
       console.error("Failed to delete procedure:", error)
-      toast.error("Không thể xóa giai đoạn. Vui lòng thử lại sau.")
+      toast.error(t("deleteProcedureError"))
     } finally {
       setDeletingId(null)
     }
@@ -243,18 +247,18 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
 
       // Validate data
       if (!editData.name.trim()) {
-        toast.error("Tên giai đoạn không được để trống!")
+        toast.error(t("procedureNameRequired"))
         return
       }
 
       if (editData.procedurePriceTypes.length === 0) {
-        toast.error("Phải có ít nhất một loại giá!")
+        toast.error(t("priceTypeRequired"))
         return
       }
 
       // Ensure at least one price type is set as default
       if (!editData.procedurePriceTypes.some((pt) => pt.isDefault)) {
-        toast.error("Phải có ít nhất một loại giá được đặt làm mặc định!")
+        toast.error(t("defaultPriceTypeRequired"))
         return
       }
 
@@ -278,12 +282,12 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
         data: updateData as any,
       }).unwrap()
 
-      toast.success("Cập nhật giai đoạn thành công")
+      toast.success(t("updateProcedureSuccess"))
       setEditingId(null)
       handleRefresh()
     } catch (error) {
       console.error("Failed to update procedure:", error)
-      toast.error("Không thể cập nhật giai đoạn. Vui lòng thử lại sau.")
+      toast.error(t("updateProcedureError"))
     }
   }
 
@@ -335,7 +339,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
               <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">{viewService.name}</h2>
 
               <Badge variant="destructive" className="text-sm px-3 py-1">
-                -{viewService.discountPercent}% Giảm giá
+                -{viewService.discountPercent}% {t("discount")}
               </Badge>
             </div>
 
@@ -365,28 +369,28 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                   className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 dark:data-[state=active]:bg-purple-900/50 dark:data-[state=active]:text-purple-300 dark:text-gray-300"
                 >
                   <Info className="w-4 h-4 mr-2" />
-                  Tổng quan
+                  {t("overview")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="clinics"
                   className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 dark:data-[state=active]:bg-purple-900/50 dark:data-[state=active]:text-purple-300 dark:text-gray-300"
                 >
                   <MapPin className="w-4 h-4 mr-2" />
-                  Phòng khám
+                  {t("clinics")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="procedures"
                   className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 dark:data-[state=active]:bg-purple-900/50 dark:data-[state=active]:text-purple-300 dark:text-gray-300"
                 >
                   <Clipboard className="w-4 h-4 mr-2" />
-                  Giai đoạn
+                  {t("procedures")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="doctors"
                   className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 dark:data-[state=active]:bg-purple-900/50 dark:data-[state=active]:text-purple-300 dark:text-gray-300"
                 >
                   <UserRound className="w-4 h-4 mr-2" />
-                  Bác sĩ
+                  {t("doctors")}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -403,7 +407,9 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                 <div className="flex gap-4">
                   {/* Mô tả */}
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">Mô tả dịch vụ</h3>
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">
+                      {t("serviceDescription")}
+                    </h3>
                     <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {/* Parse description to extract images and text */}
                       {(() => {
@@ -437,7 +443,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                   >
                                     <Image
                                       src={src || "/placeholder.svg"}
-                                      alt={`Mô tả hình ảnh ${index + 1}`}
+                                      alt={`${t("description")} ${index + 1}`}
                                       fill
                                       className="object-cover hover:scale-105 transition-transform duration-300"
                                     />
@@ -455,42 +461,46 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Thông tin giá</h3>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">
+                    {t("priceInfo")}
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Giá thấp nhất:</span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("minPrice")}</span>
                       <span className="font-medium text-purple-700 dark:text-purple-300">
                         {new Intl.NumberFormat("vi-VN").format(Number(viewService.minPrice || 0))} đ
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Giá cao nhất:</span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("maxPrice")}</span>
                       <span className="font-medium text-purple-700 dark:text-purple-300">
                         {new Intl.NumberFormat("vi-VN").format(Number(viewService.maxPrice || 0))} đ
                       </span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Giảm giá:</span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("discount")}</span>
                       <span className="font-medium text-red-600 dark:text-red-300">{viewService.discountPercent}%</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Thông tin khác</h3>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">
+                    {t("otherInfo")}
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                      <span className="text-gray-600 dark:text-gray-400">Thời gian đặt lịch: 30-60 phút</span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("bookingTime")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                      <span className="text-gray-600 dark:text-gray-400">Thời gian thực hiện: 1-2 giờ</span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("executionTime")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                      <span className="text-gray-600 dark:text-gray-400">Đánh giá: 4.8/5 (120 đánh giá)</span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("rating")}</span>
                     </div>
                   </div>
                 </div>
@@ -499,7 +509,9 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
               {/* Thêm phần hiển thị ảnh mô tả */}
               {viewService.descriptionImage && viewService.descriptionImage.length > 0 && (
                 <div className="p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Hình ảnh mô tả</h3>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">
+                    {t("descriptionImages")}
+                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {viewService.descriptionImage.map((image: any, index: number) => (
                       <div
@@ -508,7 +520,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                       >
                         <Image
                           src={getImageUrl(image) || "/placeholder.svg"}
-                          alt={`Mô tả ${index + 1}`}
+                          alt={`${t("description")} ${index + 1}`}
                           fill
                           className="object-cover hover:scale-105 transition-transform duration-300"
                         />
@@ -521,7 +533,9 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
               {/* Hiển thị tất cả ảnh bìa */}
               {viewService.coverImage && viewService.coverImage.length > 0 && (
                 <div className="p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Hình ảnh bìa</h3>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">
+                    {t("coverImages")}
+                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {viewService.coverImage.map((image: any, index: number) => (
                       <div
@@ -530,7 +544,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                       >
                         <Image
                           src={getImageUrl(image) || "/placeholder.svg"}
-                          alt={`Ảnh bìa ${index + 1}`}
+                          alt={`${t("coverImage")} ${index + 1}`}
                           fill
                           className="object-cover hover:scale-105 transition-transform duration-300"
                         />
@@ -550,7 +564,11 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                       key={clinic.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="group p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
+                      className={`group p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border ${
+                        clinic.isActivated !== false
+                          ? "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700"
+                          : "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 opacity-60 hover:opacity-80 transition-opacity"
+                      }`}
                     >
                       <div className="flex gap-4">
                         <div className="relative w-24 h-24 rounded-lg overflow-hidden shadow-sm">
@@ -559,7 +577,9 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                               src={getImageUrl(clinic.profilePictureUrl) || "/placeholder.svg"}
                               alt={clinic.name}
                               fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-110"
+                              className={`object-cover transition-transform duration-300 group-hover:scale-110 ${
+                                clinic.isActivated === false ? "grayscale" : ""
+                              }`}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 text-gray-400 dark:text-gray-500">
@@ -569,7 +589,19 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                         </div>
 
                         <div className="flex-1 space-y-3">
-                          <h4 className="font-medium text-lg text-gray-800 dark:text-gray-100">{clinic.name}</h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-lg text-gray-800 dark:text-gray-100">{clinic.name}</h4>
+                            <Badge
+                              variant={clinic.isActivated !== false ? "success" : "destructive"}
+                              className={`ml-2 ${
+                                clinic.isActivated !== false
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                              }`}
+                            >
+                              {clinic.isActivated !== false ? t("active") : t("inactive")}
+                            </Badge>
+                          </div>
                           <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center gap-2">
                               <Mail className="w-4 h-4 text-purple-500 dark:text-purple-400 flex-shrink-0" />
@@ -592,8 +624,10 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
               ) : (
                 <div className="p-8 text-center bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                   <MapPin className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Không có phòng khám</h3>
-                  <p className="text-gray-500 dark:text-gray-400">Dịch vụ này hiện chưa có phòng khám nào cung cấp.</p>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {t("noClinics")}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">{t("noClinicDescription")}</p>
                 </div>
               )}
             </TabsContent>
@@ -615,7 +649,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                         <div className="p-5 space-y-6">
                           <div className="flex justify-between items-center">
                             <h4 className="text-lg font-medium text-blue-600 dark:text-blue-400">
-                              Chỉnh sửa giai đoạn
+                              {t("editProcedure")}
                             </h4>
                             <div className="flex items-center gap-2">
                               <button
@@ -624,14 +658,14 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                 className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/50 rounded-full transition-colors flex items-center gap-1"
                               >
                                 <Save className="w-4 h-4" />
-                                <span className="text-sm">Lưu</span>
+                                <span className="text-sm">{t("save")}</span>
                               </button>
                               <button
                                 onClick={handleCancelEditProcedure}
                                 className="p-2 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full transition-colors flex items-center gap-1"
                               >
                                 <X className="w-4 h-4" />
-                                <span className="text-sm">Hủy</span>
+                                <span className="text-sm">{t("cancel")}</span>
                               </button>
                             </div>
                           </div>
@@ -639,20 +673,20 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label htmlFor={`name-${procedure.id}`} className="text-gray-700 dark:text-gray-300">
-                                Tên giai đoạn
+                                {t("procedureName")}
                               </Label>
                               <Input
                                 id={`name-${procedure.id}`}
                                 value={editingProcedures[procedure.id].name}
                                 onChange={(e) => handleEditProcedureChange(procedure.id, "name", e.target.value)}
-                                placeholder="Nhập tên giai đoạn"
+                                placeholder={t("procedureName")}
                                 className="border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                               />
                             </div>
 
                             <div className="space-y-2">
                               <Label htmlFor={`stepIndex-${procedure.id}`} className="text-gray-700 dark:text-gray-300">
-                                Thứ tự bước
+                                {t("stepOrder")}
                               </Label>
                               <Input
                                 id={`stepIndex-${procedure.id}`}
@@ -670,14 +704,14 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                           {/* Add a clear div after the QuillEditor to ensure proper spacing */}
                           <div className="space-y-2">
                             <Label htmlFor={`description-${procedure.id}`} className="text-gray-700 dark:text-gray-300">
-                              Mô tả
+                              {t("description")}
                             </Label>
                             <div className="quill-editor-container">
                               {editorLoaded && (
                                 <QuillEditor
                                   value={editingProcedures[procedure.id].description}
                                   onChange={(value) => handleEditProcedureChange(procedure.id, "description", value)}
-                                  placeholder="Nhập mô tả chi tiết về giai đoạn"
+                                  placeholder={t("description")}
                                 />
                               )}
                             </div>
@@ -689,20 +723,20 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                           <div className="mt-16 pt-8 space-y-6 relative z-30 price-types-section dark:bg-gray-800">
                             <div className="flex items-center justify-between">
                               <Label className="text-base font-medium text-gray-700 dark:text-gray-300">
-                                Các loại giá
+                                {t("priceTypes")}
                               </Label>
                               <button
                                 type="button"
                                 onClick={() => handleAddPriceType(procedure.id)}
                                 className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors relative z-30"
                               >
-                                <Plus className="w-4 h-4" /> Thêm loại giá
+                                <Plus className="w-4 h-4" /> {t("addPriceType")}
                               </button>
                             </div>
 
                             {editingProcedures[procedure.id].procedurePriceTypes.length === 0 ? (
                               <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm border border-dashed border-gray-300 dark:border-gray-600 rounded-md">
-                                Chưa có loại giá nào. Nhấn Thêm loại giá để bắt đầu.
+                                {t("noPriceTypes")}
                               </div>
                             ) : (
                               <div className="space-y-6">
@@ -717,7 +751,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                           htmlFor={`priceName-${procedure.id}-${ptIndex}`}
                                           className="text-gray-700 dark:text-gray-300"
                                         >
-                                          Tên loại giá
+                                          {t("priceTypeName")}
                                         </Label>
                                         <Input
                                           id={`priceName-${procedure.id}-${ptIndex}`}
@@ -725,7 +759,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                           onChange={(e) =>
                                             handleEditPriceTypeChange(procedure.id, ptIndex, "name", e.target.value)
                                           }
-                                          placeholder="VD: Cơ bản, Cao cấp..."
+                                          placeholder={t("priceTypeName")}
                                           className="border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                                         />
                                       </div>
@@ -734,7 +768,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                           htmlFor={`priceValue-${procedure.id}-${ptIndex}`}
                                           className="text-gray-700 dark:text-gray-300"
                                         >
-                                          Giá (VNĐ)
+                                          {t("priceValue")}
                                         </Label>
                                         <Input
                                           id={`priceValue-${procedure.id}-${ptIndex}`}
@@ -744,7 +778,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                           onChange={(e) =>
                                             handleEditPriceTypeChange(procedure.id, ptIndex, "price", e.target.value)
                                           }
-                                          placeholder="Nhập giá"
+                                          placeholder={t("priceValue")}
                                           className="border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                                         />
                                       </div>
@@ -756,7 +790,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                           htmlFor={`duration-${procedure.id}-${ptIndex}`}
                                           className="text-gray-700 dark:text-gray-300"
                                         >
-                                          Thời gian (phút)
+                                          {t("duration")}
                                         </Label>
                                         <Input
                                           id={`duration-${procedure.id}-${ptIndex}`}
@@ -766,7 +800,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                           onChange={(e) =>
                                             handleEditPriceTypeChange(procedure.id, ptIndex, "duration", e.target.value)
                                           }
-                                          placeholder="Thời gian thực hiện"
+                                          placeholder={t("duration")}
                                           className="border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                                         />
                                       </div>
@@ -788,7 +822,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                             htmlFor={`isDefault-${procedure.id}-${ptIndex}`}
                                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-gray-300"
                                           >
-                                            Đặt làm mặc định
+                                            {t("setAsDefault")}
                                           </Label>
                                         </div>
                                       </div>
@@ -801,7 +835,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                         className="flex items-center gap-1 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                                       >
                                         <Trash2 className="w-4 h-4" />
-                                        <span className="text-sm">Xóa</span>
+                                        <span className="text-sm">{t("delete")}</span>
                                       </button>
                                     </div>
                                   </div>
@@ -818,7 +852,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                             <div className="flex justify-between items-start">
                               <div className="flex items-center gap-2">
                                 <div className="px-2 py-1 rounded-md bg-purple-600 dark:bg-purple-700 text-white text-xs font-medium">
-                                  Bước {procedure.stepIndex}
+                                  {t("step")} {procedure.stepIndex}
                                 </div>
                                 <h4 className="text-lg font-medium text-gray-800 dark:text-gray-100">
                                   {procedure.name}
@@ -883,7 +917,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                             onClick={() => toggleDescriptionExpand(procedure.id)}
                                             className="mt-1 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors flex items-center"
                                           >
-                                            Xem thêm
+                                            {t("seeMore")}
                                             <svg
                                               className="ml-1 w-4 h-4"
                                               fill="none"
@@ -916,7 +950,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                         onClick={() => toggleDescriptionExpand(procedure.id)}
                                         className="mt-1 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors flex items-center"
                                       >
-                                        Thu gọn
+                                        {t("collapse")}
                                         <svg
                                           className="ml-1 w-4 h-4 rotate-180"
                                           fill="none"
@@ -941,7 +975,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                             {procedure.procedurePriceTypes && procedure.procedurePriceTypes.length > 0 && (
                               <div>
                                 <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                  Các loại giá:
+                                  {t("priceTypes")}:
                                 </h5>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   {procedure.procedurePriceTypes.map((priceType: any) => (
@@ -963,7 +997,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                         {priceType.isDefault && (
                                           <Badge className="bg-purple-500 dark:bg-purple-600 text-white text-xs shrink-0">
                                             <Check className="w-3 h-3 mr-1" />
-                                            Mặc định
+                                            {t("default")}
                                           </Badge>
                                         )}
                                       </div>
@@ -972,7 +1006,7 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                                       </div>
                                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-auto flex items-center">
                                         <Clock className="w-3 h-3 mr-1 shrink-0" />
-                                        {priceType.duration || 30} phút
+                                        {priceType.duration || 30} {t("minutes")}
                                       </div>
                                     </div>
                                   ))}
@@ -986,12 +1020,13 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                   ))}
                 </div>
               ) : (
+                // Update no procedures message
                 <div className="p-8 text-center bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                   <Clipboard className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Không có giai đoạn</h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Dịch vụ này hiện chưa có giai đoạn nào được định nghĩa.
-                  </p>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {t("noProcedures")}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">{t("noProcedureDescription")}</p>
                 </div>
               )}
             </TabsContent>
@@ -1008,14 +1043,15 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
           </Tabs>
         </div>
         {/* Close button at the bottom */}
+        {/* Update close button */}
         <div className="flex justify-center mt-8 pb-4">
           <button
             onClick={onClose}
             className="px-6 py-2.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium transition-colors flex items-center gap-2"
-            aria-label="Đóng"
+            aria-label={t("close")}
           >
             <X className="w-4 h-4" />
-            Đóng
+            {t("close")}
           </button>
         </div>
 
@@ -1031,23 +1067,24 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
               className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Update confirmation dialog */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                   <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Xác nhận xóa</h3>
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  {t("deleteConfirmTitle")}
+                </h3>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Bạn có chắc chắn muốn xóa giai đoạn này? Hành động này không thể hoàn tác.
-              </p>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">{t("deleteConfirmDescription")}</p>
 
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setConfirmDialogOpen(false)}
                   className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Hủy
+                  {t("cancel")}
                 </button>
                 <button
                   onClick={() => {
@@ -1062,12 +1099,12 @@ export default function ViewServiceModal({ viewService, onClose, refetchService 
                   {isDeleting ? (
                     <>
                       <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      Đang xóa...
+                      {t("deleting")}
                     </>
                   ) : (
                     <>
                       <Trash2 className="w-4 h-4" />
-                      Xóa giai đoạn
+                      {t("deleteProcedure")}
                     </>
                   )}
                 </button>

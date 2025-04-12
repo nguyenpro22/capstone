@@ -2,6 +2,7 @@ import { Messages } from "../types";
 
 export const clinicProfileMessages: Messages["clinicProfile"] = {
   clinicDetails: "Thông Tin Phòng Khám",
+  clinicStaffDetails: "Thông Tin Chi Nhánh",
   address: "Địa Chỉ",
   taxCode: "Mã Số Thuế",
   businessLicense: "Giấy Phép Kinh Doanh",

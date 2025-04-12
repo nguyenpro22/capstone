@@ -1,5 +1,6 @@
 export type clinicProfileMessages = {
     clinicDetails: string;
+    clinicStaffDetails: string;
     address: string;
     taxCode: string;
     businessLicense: string;

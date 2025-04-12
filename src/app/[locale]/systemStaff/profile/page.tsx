@@ -42,10 +42,10 @@ export default function ClinicProfilePage() {
 
   // Redirect if no clinicId is found
   useEffect(() => {
-    if (!clinicId) {
+    if (!token) {
       router.push("/login")
     }
-  }, [clinicId, router])
+  }, [token, router])
 
   const { data, isLoading, error, refetch } = useGetClinicByIdQuery(clinicId)
   const clinic = data?.value

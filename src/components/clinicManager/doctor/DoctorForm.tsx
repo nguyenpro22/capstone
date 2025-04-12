@@ -116,7 +116,6 @@ export default function DoctorForm({ onClose, onSaveSuccess }: DoctorFormProps) 
       exit={{ opacity: 0, scale: 0.9 }}
       className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl dark:shadow-gray-800/30 w-full max-w-md p-6 relative"
     >
-       <ToastContainer/>
       <button
         onClick={onClose}
         className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"

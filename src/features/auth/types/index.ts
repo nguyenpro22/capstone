@@ -5,7 +5,16 @@ export interface ILoginResponse {
   refreshToken: string;
   refreshTokenExpiryTime: string;
 }
+export interface IRefreshToken {
+  accessToken: string;
+  refreshToken: string;
+  refreshTokenExpiryTime: string;
+}
 
+export interface IRefreshTokenRequest {
+  accessToken: string;
+  refreshToken: string;
+}
 export interface ILoginRequest {
   email: string;
   password: string;

@@ -213,7 +213,6 @@ const BranchesList: React.FC = () => {
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-pink-950 shadow-xl rounded-xl">
       {/* Toast Container */}
-      <ToastContainer />
       <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 dark:text-gray-100 tracking-wide">
         {t("branchesList")}
       </h1>

@@ -65,5 +65,6 @@ export const branchMessages: Messages["branch"] = {
   loadingDistricts: "Loading districts...",
   loadingWards: "Loading wards...",
   operatingLicense: "Operating License",
-  businessLicense: "Business License"
+  businessLicense: "Business License",
+  branchUpdatedSuccess: "Branch updated successfully"
 }

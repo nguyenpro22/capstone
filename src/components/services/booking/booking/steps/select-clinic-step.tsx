@@ -44,9 +44,13 @@ export function SelectClinicStep({ bookingData, updateBookingData }: SelectClini
   }, [service])
 
   const handleClinicSelect = (clinicId: string) => {
-    setSelectedClinicId(clinicId)
+    // Only allow selection of active clinics
     const selectedClinic = clinics.find((clinic) => clinic.id === clinicId) || null
-    updateBookingData({ clinic: selectedClinic })
+    
+    if (selectedClinic && selectedClinic.isActivated !== false) {
+      setSelectedClinicId(clinicId)
+      updateBookingData({ clinic: selectedClinic })
+    }
   }
 
   if (loading) {
@@ -58,11 +62,20 @@ export function SelectClinicStep({ bookingData, updateBookingData }: SelectClini
     )
   }
 
+  // Check if we have any active clinics
+  const hasActiveClinic = clinics.some(clinic => clinic.isActivated !== false)
+
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium mb-4">{t("selectClinic")}</h3>
         <p className="text-muted-foreground mb-4">{t("pleaseSelectClinic")}</p>
+
+        {!hasActiveClinic && clinics.length > 0 && (
+          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md text-amber-800 dark:text-amber-300">
+            <p>{t("noActiveClinicWarning")}</p>
+          </div>
+        )}
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -72,7 +85,13 @@ export function SelectClinicStep({ bookingData, updateBookingData }: SelectClini
           <TabsContent value="list" className="mt-4">
             <RadioGroup value={selectedClinicId || ""} onValueChange={handleClinicSelect} className="space-y-3">
               {clinics.map((clinic) => (
-                <ClinicItem key={clinic.id} clinic={clinic} isSelected={selectedClinicId === clinic.id} />
+                <ClinicItem 
+                  key={clinic.id} 
+                  clinic={clinic} 
+                  isSelected={selectedClinicId === clinic.id}
+                  isActive={clinic.isActivated !== false}
+                  disabled={clinic.isActivated === false}
+                />
               ))}
             </RadioGroup>
           </TabsContent>
