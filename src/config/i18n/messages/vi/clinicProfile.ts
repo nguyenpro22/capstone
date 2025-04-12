@@ -25,6 +25,9 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   failedToLoad: "Không thể tải thông tin phòng khám.",
   currentSubscription: "Gói Hiện Tại",
   days: "Ngày",
-    livestreams: "Luồng trực tiếp",
-    price: "Giá"
+  livestreams: "Luồng trực tiếp",
+  price: "Giá",
+  purchaseDate: "Ngày mua",
+  expiryDate: "Ngày hết hạn",
+  daysRemaining: "Số ngày còn lại",
 };

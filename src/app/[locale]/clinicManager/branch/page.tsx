@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useState, useEffect, useMemo } from "react"
-import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit } from "lucide-react"
+import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   useGetBranchesQuery,
@@ -10,10 +10,11 @@ import {
   useChangeStatusBranchMutation,
   useGetStaffQuery,
   useLazyGetStaffByIdQuery,
+  useGetClinicByIdQuery,
 } from "@/features/clinic/api"
 import { useTranslations } from "next-intl"
 import * as XLSX from "xlsx"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import BranchForm from "@/components/clinicManager/BranchForm"
 import EditBranchForm from "@/components/clinicManager/EditBranchForm"
@@ -25,6 +26,7 @@ import Pagination from "@/components/common/Pagination/Pagination"
 import { MenuPortal } from "@/components/ui/menu-portal"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 import { useDebounce } from "@/hooks/use-debounce"
+import UpgradePackagePopup from "@/components/clinicManager/branch/upgrade-package-popup"
 
 const BranchesList: React.FC = () => {
   const t = useTranslations("branch")
@@ -48,8 +50,11 @@ const BranchesList: React.FC = () => {
   const [editStaff, setEditStaff] = useState<Staff | null>(null)
   const [showEditStaffForm, setShowEditStaffForm] = useState(false)
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+  // Add state for upgrade package popup
+  const [showUpgradePopup, setShowUpgradePopup] = useState(false)
 
   const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || "")
+  const { data: clinicData } = useGetClinicByIdQuery(clinicId || "")
   const delayedRefetch = useDelayedRefetch(refetch)
 
   const [changeStatusBranch] = useChangeStatusBranchMutation()
@@ -58,6 +63,14 @@ const BranchesList: React.FC = () => {
 
   // Get all branches from the API response
   const allBranches = Array.isArray(data?.value?.branches?.items) ? data?.value?.branches?.items : []
+
+  // Get subscription data
+  const currentSubscription = clinicData?.value?.currentSubscription
+  const branchLimit = currentSubscription?.limitBranch || 0
+  const currentBranchCount = allBranches.length
+
+  // Check if branch limit is reached
+  const isBranchLimitReached = currentBranchCount >= branchLimit
 
   // Filter branches based on search term
   const filteredBranches = useMemo(() => {
@@ -207,6 +220,16 @@ const BranchesList: React.FC = () => {
     XLSX.writeFile(workbook, "Branches.xlsx")
   }
 
+  // Handle create branch button click
+  const handleCreateBranchClick = () => {
+    if (isBranchLimitReached) {
+      toast.error(t("maxBranchesReached"))
+      setShowUpgradePopup(true)
+    } else {
+      setShowCreateForm(true)
+    }
+  }
+
   if (isLoading) return <div className="text-center text-gray-600 dark:text-gray-400">{t("loading")}</div>
   if (error) return <div className="text-center text-red-600 dark:text-red-400">{t("errorFetching")}</div>
 
@@ -216,6 +239,24 @@ const BranchesList: React.FC = () => {
       <h1 className="text-3xl font-serif font-semibold mb-6 text-gray-800 dark:text-gray-100 tracking-wide">
         {t("branchesList")}
       </h1>
+
+      {/* Branch Limit Info */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+        <span className="text-gray-700 dark:text-gray-300 font-medium">{t("branchLimit")}</span>
+          <span
+            className={`font-bold ${isBranchLimitReached ? "text-red-500 dark:text-red-400" : "text-green-500 dark:text-green-400"}`}
+          >
+            {currentBranchCount} / {branchLimit}
+          </span>
+        </div>
+        {isBranchLimitReached && (
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">{t("branchLimitReached")}</span>
+          </div>
+        )}
+      </div>
 
       {/* Buttons and Search */}
       <div className="flex items-center justify-between mb-6">
@@ -244,8 +285,12 @@ const BranchesList: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setShowCreateForm(true)}
-              className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 whitespace-nowrap"
+              onClick={handleCreateBranchClick}
+              className={`px-6 py-2.5 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 whitespace-nowrap ${
+                isBranchLimitReached
+                  ? "bg-gradient-to-r from-gray-500 to-gray-600 cursor-not-allowed"
+                  : "bg-gradient-to-r from-purple-500 to-pink-600"
+              }`}
             >
               <span className="font-medium">{t("createNewBranch")}</span>
             </motion.button>
@@ -405,7 +450,7 @@ const BranchesList: React.FC = () => {
                       <div className="flex items-center mb-3">
                         <div className="w-1 h-6 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
                         <h3 className="text-lg font-medium text-purple-700 dark:text-purple-300">
-                          Staff in {branch.name}
+                        {t("staffIn")} {branch.name}
                         </h3>
                       </div>
 
@@ -414,20 +459,21 @@ const BranchesList: React.FC = () => {
                           <table className="w-full border-collapse border border-purple-200 dark:border-purple-800 rounded-lg overflow-hidden">
                             <thead className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
                               <tr>
+                              <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
+                              {t("staffName")}
+                            </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                  Name
+                                {t("staffEmail")}
                                 </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                  Email
+                                {t("staffPhone")}
                                 </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                  Phone
+                                {t("role")}
                                 </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                  Role
-                                </th>
-                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                  Actions
+                                {t("staffActions")}
+
                                 </th>
                               </tr>
                             </thead>
@@ -471,7 +517,7 @@ const BranchesList: React.FC = () => {
                                       onClick={() => handleEditStaff(staff.employeeId)}
                                     >
                                       <Edit className="w-4 h-4" />
-                                      <span className="text-xs">Edit</span>
+                                      <span className="text-xs">{t("editStaff")}</span>
                                     </motion.button>
                                   </td>
                                 </tr>
@@ -484,7 +530,7 @@ const BranchesList: React.FC = () => {
                           <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
                             <UserIcon className="w-6 h-6 text-purple-300 dark:text-purple-400" />
                           </div>
-                          <p className="text-gray-500 dark:text-gray-400">No staff assigned to this branch</p>
+                          <p className="text-gray-500 dark:text-gray-400">{t("noStaffAssigned")}</p>
                         </div>
                       )}
                     </div>
@@ -611,6 +657,9 @@ const BranchesList: React.FC = () => {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Upgrade Package Popup */}
+      <UpgradePackagePopup isOpen={showUpgradePopup} onClose={() => setShowUpgradePopup(false)} />
     </div>
   )
 }

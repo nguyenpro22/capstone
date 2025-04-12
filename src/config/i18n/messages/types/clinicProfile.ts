@@ -25,4 +25,7 @@ export type clinicProfileMessages = {
     days: string;
     livestreams: string;
     price: string;
+    purchaseDate: string;
+    expiryDate: string;
+    daysRemaining: string;
   };

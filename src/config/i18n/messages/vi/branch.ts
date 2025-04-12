@@ -67,4 +67,22 @@ export const branchMessages: Messages["branch"] = {
   operatingLicense: "Giấy phép hoạt động",
   businessLicense: "Giấy phép kinh doanh",
   branchUpdatedSuccess: "Cập nhật chi nhánh thành công",
+  branchLimit: "Giới hạn chi nhánh:",
+  branchLimitReached: "Đã đạt giới hạn chi nhánh",
+  maxBranchesReached: "Bạn đã đạt đến số lượng chi nhánh tối đa",
+  staffIn: "Nhân viên tại",
+  staffName: "Tên",
+  staffEmail: "Email",
+  staffPhone: "Số điện thoại",
+  staffRole: "Vai trò",
+  staffActions: "Thao tác",
+  editStaff: "Sửa",
+  noStaffAssigned: "Không có nhân viên nào được phân công cho chi nhánh này",
+  
+  // Upgrade Package Popup
+  upgradePopupTitle: "Đã Đạt Giới Hạn Chi Nhánh",
+  upgradePopupMessage: "Bạn đã đạt đến số lượng chi nhánh tối đa được phép trong gói hiện tại.",
+  upgradePopupQuestion: "Bạn có muốn nâng cấp gói dịch vụ để thêm nhiều chi nhánh hơn không?",
+  upgradePopupNotNow: "Để Sau",
+  upgradePopupUpgradePackage: "Nâng Cấp Gói"
 }

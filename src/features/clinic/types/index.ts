@@ -36,6 +36,9 @@ export interface Clinic {
     isActivated: boolean,
     limitBranch: number,
     limitLiveStream: number
+    dateBought: string
+    dateExpired: string
+    daysLeft: number
 },
   services: Service[]
 }
@@ -110,6 +113,19 @@ export interface Branch {
   isActivated: boolean;
   bankName?: string;
   bankAccountNumber?: string;
+  currentSubscription: {
+    id: string,
+    name: string
+    description: string,
+    price: number,
+    duration: number,
+    isActivated: boolean,
+    limitBranch: number,
+    limitLiveStream: number
+    dateBought: string
+    dateExpired: string
+    daysLeft: number
+},
   branches: {
     items: Branch[] | null;
     pageIndex: number;

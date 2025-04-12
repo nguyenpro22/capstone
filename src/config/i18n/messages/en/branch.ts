@@ -66,5 +66,23 @@ export const branchMessages: Messages["branch"] = {
   loadingWards: "Loading wards...",
   operatingLicense: "Operating License",
   businessLicense: "Business License",
-  branchUpdatedSuccess: "Branch updated successfully"
+  branchUpdatedSuccess: "Branch updated successfully",
+  branchLimit: "Branch Limit:",
+  branchLimitReached: "Branch limit reached",
+  maxBranchesReached: "You have reached the maximum number of branches",
+  staffIn: "Staff in",
+  staffName: "Name",
+  staffEmail: "Email",
+  staffPhone: "Phone",
+  staffRole: "Role",
+  staffActions: "Actions",
+  editStaff: "Edit",
+  noStaffAssigned: "No staff assigned to this branch",
+  
+  // Upgrade Package Popup
+  upgradePopupTitle: "Branch Limit Reached",
+  upgradePopupMessage: "You've reached the maximum number of branches allowed in your current package.",
+  upgradePopupQuestion: "Would you like to upgrade your package to add more branches?",
+  upgradePopupNotNow: "Not Now",
+  upgradePopupUpgradePackage: "Upgrade Package",
 }

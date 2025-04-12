@@ -233,8 +233,8 @@ export default function ClinicProfilePage() {
                       {clinic.currentSubscription.isActivated ? t("active") : t("inactive")}
                     </Badge>
                   </div>
-
-                  <p className="text-gray-600 dark:text-gray-400 mb-6 ml-7">{clinic.currentSubscription.description}</p>
+{/* 
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 ml-7">{clinic.currentSubscription.description}</p> */}
 
                   <div className="flex flex-wrap justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -293,9 +293,36 @@ export default function ClinicProfilePage() {
                     <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
                       {clinic.currentSubscription.price === 0
                         ? "Free"
-                        : `${formatCurrency(clinic.currentSubscription.price)}`} đ
-                        
+                        : `${formatCurrency(clinic.currentSubscription.price)}`}{" "}
+                      đ
                     </span>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-700">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">{t("purchaseDate")}:</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {new Date(clinic.currentSubscription.dateBought).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">{t("expiryDate")}:</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {new Date(clinic.currentSubscription.dateExpired).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">{t("daysRemaining")}:</span>
+                      <Badge
+                        variant={clinic.currentSubscription.daysLeft > 7 ? "default" : "destructive"}
+                        className="px-2 py-0.5"
+                      >
+                        {clinic.currentSubscription.daysLeft} {t("days")}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </CardContent>

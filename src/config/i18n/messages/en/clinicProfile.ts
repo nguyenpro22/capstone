@@ -26,5 +26,8 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   currentSubscription: "Current Subscription",
   days: "Days",
   livestreams: "Live Streams",
-  price: "Price"
+  price: "Price",
+  purchaseDate: "Purchase Date",
+  expiryDate: "Expiry Date",
+  daysRemaining: "Days Remaining"
 };

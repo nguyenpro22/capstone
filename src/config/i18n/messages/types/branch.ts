@@ -65,4 +65,22 @@ export type branchMessages = {
   operatingLicense: string
   businessLicense: string
   branchUpdatedSuccess: string
+  branchLimit: string
+  branchLimitReached: string
+  maxBranchesReached: string
+  staffIn: string
+  staffName: string
+  staffEmail: string
+  staffPhone: string
+  staffRole: string
+  staffActions: string
+  editStaff: string
+  noStaffAssigned: string
+  
+  // Upgrade Package Popup
+  upgradePopupTitle: string
+  upgradePopupMessage: string
+  upgradePopupQuestion: string
+  upgradePopupNotNow: string
+  upgradePopupUpgradePackage: string
 }
