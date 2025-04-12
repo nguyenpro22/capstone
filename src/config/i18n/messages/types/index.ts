@@ -23,7 +23,7 @@ import { BookingFlowMessages } from "./booking-flow";
 import { sidebarMessages } from "./sidebar";
 import { navbarAdminMessages } from "./navbarAdmin";
 import { buyPackageTranslations } from "./buy-package";
-import { adminSidebar } from "./adminSideBar";
+
 
 export type Messages = {
   home: homeMessages;

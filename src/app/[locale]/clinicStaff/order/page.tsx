@@ -1,10 +1,13 @@
 "use client"
+import { useState } from "react"
+import type React from "react"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Filter, ChevronDown, MoreHorizontal } from "lucide-react"
+import { Filter, ChevronDown, MoreHorizontal, Loader2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,58 +15,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useGetOrdersQuery } from "@/features/order/api" // Adjust the import path as needed
+import { useDebounce } from "@/hooks/use-debounce" // Assuming you have this hook
+import Pagination from "@/components/common/Pagination/Pagination" // Adjust the import path as needed
+import { OrderItem } from "@/features/order/types"
+import { formatCurrency } from "@/utils"
 
-// Sample data
-const orders = [
-  {
-    id: "ORD-001",
-    customer: "Emma Thompson",
-    service: "Facial Treatment",
-    date: "2025-03-28",
-    total: "$120",
-    status: "completed",
-  },
-  {
-    id: "ORD-002",
-    customer: "James Wilson",
-    service: "Hair Styling",
-    date: "2025-03-28",
-    total: "$80",
-    status: "pending",
-  },
-  {
-    id: "ORD-003",
-    customer: "Sophia Garcia",
-    service: "Manicure & Pedicure",
-    date: "2025-03-28",
-    total: "$100",
-    status: "completed",
-  },
-  {
-    id: "ORD-004",
-    customer: "Michael Brown",
-    service: "Massage Therapy",
-    date: "2025-03-28",
-    total: "$150",
-    status: "cancelled",
-  },
-  {
-    id: "ORD-005",
-    customer: "Olivia Martinez",
-    service: "Skin Consultation",
-    date: "2025-03-28",
-    total: "$75",
-    status: "pending",
-  },
-]
 
 const getStatusBadge = (status: string) => {
-  switch (status) {
+  switch (status.toLowerCase()) {
     case "completed":
       return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
     case "pending":
       return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
     case "cancelled":
+    case "canceled":
       return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>
     default:
       return <Badge>{status}</Badge>
@@ -71,13 +37,57 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function OrderPage() {
+  // State for pagination, search, and sorting
+  const [pageIndex, setPageIndex] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortColumn, setSortColumn] = useState("")
+  const [sortOrder, setSortOrder] = useState("")
+
+  // Debounce search term to avoid too many API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+
+  // Fetch orders using RTK Query
+  const { data, isLoading, error } = useGetOrdersQuery({
+    pageIndex,
+    pageSize,
+    searchTerm: debouncedSearchTerm,
+    sortColumn,
+    sortOrder,
+  })
+
+  // Extract orders and pagination info from the response
+  const orders = data?.value?.items || []
+  const totalCount = data?.value?.totalCount || 0
+  const hasNextPage = data?.value?.hasNextPage || false
+  const hasPreviousPage = data?.value?.hasPreviousPage || false
+
+  // Format date function
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  // Format currency function
+
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setPageIndex(1) // Reset to first page when search changes
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Orders</h1>
 
       <div className="flex justify-between items-center">
         <div className="flex gap-4">
-          <Input className="w-64" placeholder="Search orders..." />
+          <Input className="w-64" placeholder="Search orders..." value={searchTerm} onChange={handleSearchChange} />
           <Button variant="outline" className="gap-2">
             <Filter size={16} />
             Filter
@@ -92,54 +102,86 @@ export default function OrderPage() {
           <CardDescription>Manage customer orders</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell>{order.service}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>{order.total}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Print Receipt</DropdownMenuItem>
-                          <DropdownMenuItem>Update Status</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Loading orders...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">Failed to load orders. Please try again later.</div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No orders found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    orders.map((order: OrderItem) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.id}</TableCell>
+                        <TableCell>{order.customerName}</TableCell>
+                        <TableCell>{order.serviceName}</TableCell>
+                        <TableCell>{formatDate(order.orderDate)}</TableCell>
+                        <TableCell>{formatCurrency(order.finalAmount)} đ</TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              View
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>Print Receipt</DropdownMenuItem>
+                                <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {orders.length > 0 && (
+                <div className="mt-4">
+                  <Pagination
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    totalCount={totalCount}
+                    hasNextPage={hasNextPage}
+                    hasPreviousPage={hasPreviousPage}
+                    onPageChange={setPageIndex}
+                  />
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
   )
 }
-

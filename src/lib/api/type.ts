@@ -50,14 +50,6 @@ export interface IListResponse<T> {
   hasPreviousPage: boolean;
 }
 
-export interface IListResponse<T> {
-  items: T[];
-  pageIndex: number;
-  pageSize: number;
-  totalCount: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
 
 export interface IResListCommon<T> {
   value: T[];
