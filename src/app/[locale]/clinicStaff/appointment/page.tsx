@@ -292,9 +292,10 @@ export default function AppointmentsPage() {
           </CardContent>
         </Card>
 
-        {/* Appointments for Selected Day */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        {/* Appointments for Selected Day - Modified for scrolling */}
+        <Card className="flex flex-col h-[600px]">
+          {/* Fixed Header */}
+          <CardHeader className="flex flex-row items-center justify-between flex-none">
             <div>
               <CardTitle>Appointments</CardTitle>
               <CardDescription>{format(selectedDate, "MMMM d, yyyy")}</CardDescription>
@@ -304,7 +305,9 @@ export default function AppointmentsPage() {
               Add
             </Button>
           </CardHeader>
-          <CardContent>
+
+          {/* Scrollable Content */}
+          <CardContent className="flex-grow overflow-y-auto">
             <div className="space-y-4">
               {isLoadingDaily ? (
                 <div className="text-center py-8 text-muted-foreground">Loading appointments...</div>

@@ -44,7 +44,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format, addDays } from "date-fns"
 import { cn } from "@/lib/utils"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import type { CustomerSchedule } from "@/features/customer-schedule/types"
 import ScheduleDetailsModal from "@/components/clinicStaff/customer-schedule/schedule-details-modal"
 import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/schedule-payment-modal"
@@ -129,7 +129,7 @@ export default function SchedulesPage() {
   const [toDate, setToDate] = useState<Date | undefined>(undefined)
   const [activeTab, setActiveTab] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [pageSize] = useState(8)
 
   // Modal states
   const [selectedSchedule, setSelectedSchedule] = useState<CustomerSchedule | null>(null)
@@ -312,8 +312,11 @@ export default function SchedulesPage() {
     setErrorResponse(null)
 
     try {
-      // Call the RTK Query hook with delayed refetch
-      const result = await getCustomerSchedules({ customerName, customerPhone })
+      // Call the RTK Query hook for customer search
+      const result = await getCustomerSchedules({
+        customerName,
+        customerPhone,
+      })
 
       if ("error" in result) {
         // Handle the error response
@@ -338,7 +341,6 @@ export default function SchedulesPage() {
       }
 
       setSearchPerformed(true)
-
       // Reset pagination to first page when searching
       setCurrentPage(1)
     } catch (err) {
@@ -382,13 +384,37 @@ export default function SchedulesPage() {
     const sortOrder = activeTab === "past" ? "desc" : "asc"
 
     if (!fromDate && !toDate) {
-      const defaultRange = getDefaultDateRange()
-      searchTerm = `${formatDateForApi(defaultRange.from)} to ${formatDateForApi(defaultRange.to)}`
+      const today = new Date()
+
+      if (activeTab === "upcoming") {
+        // For upcoming: from today to 3 months in the future
+        const futureDate = addDays(today, 90)
+        searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(futureDate)}`
+      } else if (activeTab === "past") {
+        // For past: from 3 months ago to yesterday
+        const yesterday = new Date(today)
+        yesterday.setDate(yesterday.getDate() - 1)
+
+        const threeMonthsAgo = new Date(today)
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+
+        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(yesterday)}`
+      } else {
+        // For all: from 3 months ago to 3 months in the future
+        const threeMonthsAgo = new Date(today)
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+
+        const threeMonthsAhead = new Date(today)
+        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
+
+        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(threeMonthsAhead)}`
+      }
     } else {
       searchTerm = createDateRangeSearchTerm(fromDate, toDate)
     }
 
     try {
+      // Always use the same API call with updated pagination parameters
       const result = await delayedGetClinicSchedules({
         pageIndex: currentPage,
         pageSize,
@@ -420,7 +446,7 @@ export default function SchedulesPage() {
     setCurrentPage(1) // Reset to first page when filters change
     setSearchPerformed(false) // Reset search state when applying date filters
 
-    const result = await fetchClinicSchedules()
+    const result = await fetchClinicSchedulesWithTab(activeTab)
 
     // Check follow-up status for completed schedules
     if (result?.data?.value?.items) {
@@ -428,33 +454,43 @@ export default function SchedulesPage() {
     }
   }
 
-  // Handle tab change
+  // Replace the handleTabChange function with this updated version
   const handleTabChange = (value: string) => {
-    // First update the active tab state
-    setActiveTab(value)
-    setCurrentPage(1) // Reset to first page when tab changes
+    console.log("Tab changed to:", value)
 
     // Reset search state when changing tabs
     setSearchPerformed(false)
+    setCustomerName("")
+    setCustomerPhone("")
 
     // Reset custom date range when changing tabs
     setFromDate(undefined)
     setToDate(undefined)
 
-    // Fetch with the correct parameters for the selected tab
-    // We need to use the value parameter directly instead of relying on the state
-    // which might not be updated yet
-    setTimeout(async () => {
-      const today = new Date()
-      let searchTerm = ""
-      let sortOrder = "asc"
+    // First update the active tab state
+    setActiveTab(value)
 
-      if (value === "upcoming") {
+    // Reset to first page when tab changes - but don't trigger a fetch here
+    setCurrentPage(1)
+
+    // We don't need to call fetchClinicSchedulesWithTab here anymore
+    // The useEffect with [currentPage, activeTab] dependencies will handle it
+  }
+
+  // Add this new function that accepts the tab value as a parameter
+  const fetchClinicSchedulesWithTab = async (tabValue: string) => {
+    // If no custom date range is selected, use the default range based on active tab
+    let searchTerm
+    const sortOrder = tabValue === "past" ? "desc" : "asc"
+
+    if (!fromDate && !toDate) {
+      const today = new Date()
+
+      if (tabValue === "upcoming") {
         // For upcoming: from today to 3 months in the future
         const futureDate = addDays(today, 90)
         searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(futureDate)}`
-        sortOrder = "asc" // Earliest dates first
-      } else if (value === "past") {
+      } else if (tabValue === "past") {
         // For past: from 3 months ago to yesterday
         const yesterday = new Date(today)
         yesterday.setDate(yesterday.getDate() - 1)
@@ -463,8 +499,7 @@ export default function SchedulesPage() {
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
 
         searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(yesterday)}`
-        sortOrder = "desc" // Most recent dates first
-      } else if (value === "all") {
+      } else {
         // For all: from 3 months ago to 3 months in the future
         const threeMonthsAgo = new Date(today)
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
@@ -473,23 +508,31 @@ export default function SchedulesPage() {
         threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
 
         searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(threeMonthsAhead)}`
-        sortOrder = "asc" // Earliest dates first
       }
+    } else {
+      searchTerm = createDateRangeSearchTerm(fromDate, toDate)
+    }
 
-      // Call API with the correct parameters using delayed refetch
+    try {
+      // Always use the same API call with updated pagination parameters
       const result = await delayedGetClinicSchedules({
-        pageIndex: 1,
+        pageIndex: currentPage,
         pageSize,
         searchTerm,
         sortColumn: "bookingDate",
         sortOrder,
       })
 
-      // Check follow-up status for completed schedules
-      if (result && result.data?.value?.items) {
+      // Check if we have valid data and check follow-up status for completed schedules
+      if (result.data?.value?.items) {
         await checkAllSchedulesFollowUpStatus(result.data.value.items)
       }
-    }, 0)
+
+      return result
+    } catch (error) {
+      console.error("Failed to fetch clinic schedules:", error)
+      return { data: null, error }
+    }
   }
 
   // Handle pagination
@@ -519,12 +562,13 @@ export default function SchedulesPage() {
 
       toast.success("The customer has been checked in successfully.")
 
-      // Refresh the clinic schedules list with delay
-      fetchClinicSchedules()
-
-      // If a customer search has been performed, refresh those results too with delay
-      if (searchPerformed && (customerName || customerPhone)) {
+      // Refresh the data based on current view
+      if (searchPerformed) {
+        // If we're in search mode, refresh the search results
         delayedGetCustomerSchedules({ customerName, customerPhone })
+      } else {
+        // Otherwise refresh clinic schedules
+        fetchClinicSchedules()
       }
     } catch (error) {
       console.error("Failed to check in:", error)
@@ -555,36 +599,21 @@ export default function SchedulesPage() {
 
   // Effect to fetch schedules when component mounts or when dependencies change
   useEffect(() => {
-    fetchClinicSchedules()
-  }, [currentPage])
+    if (searchPerformed) {
+      // If we're in search mode, don't refetch on page change
+      return
+    } else {
+      // For normal clinic schedules, apply pagination
+      fetchClinicSchedulesWithTab(activeTab)
+    }
+  }, [currentPage, activeTab]) // Add activeTab as a dependency
 
   // Initial fetch when component mounts
   useEffect(() => {
     // Set default tab to "all"
     setActiveTab("all")
 
-    // Initial fetch when component mounts - use the correct parameters for "all"
-    const today = new Date()
-    const threeMonthsAgo = new Date(today)
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-
-    const threeMonthsAhead = new Date(today)
-    threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
-
-    const searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(threeMonthsAhead)}`
-
-    delayedGetClinicSchedules({
-      pageIndex: 1,
-      pageSize,
-      searchTerm,
-      sortColumn: "bookingDate",
-      sortOrder: "asc",
-    }).then((result) => {
-      // Check follow-up status for completed schedules
-      if (result && result.data?.value?.items) {
-        checkAllSchedulesFollowUpStatus(result.data.value.items)
-      }
-    })
+    // Initial fetch will be handled by the other useEffect that depends on activeTab
   }, [])
 
   // Extract data from responses
@@ -621,8 +650,10 @@ export default function SchedulesPage() {
     setCustomerPhone("")
     setSearchPerformed(false)
     setErrorResponse(null)
+    // Reset to first page
+    setCurrentPage(1)
     // Refresh the clinic schedules
-    fetchClinicSchedules()
+    fetchClinicSchedulesWithTab(activeTab)
   }
 
   // Debug function to log schedule data
@@ -700,7 +731,6 @@ export default function SchedulesPage() {
 
   return (
     <div className="space-y-6">
-  
       <h1 className="text-2xl font-bold">Customer Schedules</h1>
 
       {/* Show notification if any schedules need a follow-up */}
@@ -737,7 +767,15 @@ export default function SchedulesPage() {
                         className="gap-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-pink-600 dark:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700 text-white w-full md:w-auto shadow-sm"
                       >
                         <Filter className="h-4 w-4" />
-                        <span className="font-medium">{getFilterLabel(activeTab)}</span>
+                        <span className="font-medium">
+                          {activeTab === "all"
+                            ? "All"
+                            : activeTab === "upcoming"
+                              ? "Upcoming"
+                              : activeTab === "past"
+                                ? "Past"
+                                : "All"}
+                        </span>
                         <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -1027,9 +1065,10 @@ export default function SchedulesPage() {
                                                 .then(() => {
                                                   toast.success("Appointment marked as completed successfully.")
                                                   // Refresh the schedules
-                                                  fetchClinicSchedules()
-                                                  if (searchPerformed && (customerName || customerPhone)) {
+                                                  if (searchPerformed) {
                                                     delayedGetCustomerSchedules({ customerName, customerPhone })
+                                                  } else {
+                                                    fetchClinicSchedules()
                                                   }
                                                 })
                                                 .catch((error) => {
@@ -1246,8 +1285,8 @@ export default function SchedulesPage() {
                   </TableBody>
                 </Table>
 
-                {/* Pagination */}
-                {!searchPerformed && totalPages > 1 && (
+                {/* Pagination - Only show when not in search mode */}
+                {!searchPerformed && (
                   <div className="py-4 border-t dark:border-gray-700">
                     <Pagination
                       pageIndex={currentPage}
@@ -1295,9 +1334,10 @@ export default function SchedulesPage() {
           }
 
           // Refresh the schedules
-          fetchClinicSchedules()
-          if (searchPerformed && (customerName || customerPhone)) {
+          if (searchPerformed) {
             delayedGetCustomerSchedules({ customerName, customerPhone })
+          } else {
+            fetchClinicSchedules()
           }
         }}
       />
