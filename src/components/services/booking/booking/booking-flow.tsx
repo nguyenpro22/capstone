@@ -91,6 +91,7 @@ export function BookingFlow({ service, onClose, userData, clinic, doctor, liveSt
     if (bookingData.skipDoctorSelection && highestRatedDoctor && !bookingData.doctor) {
       updateBookingData({ doctor: highestRatedDoctor })
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingData.skipDoctorSelection, highestRatedDoctor])
 
   const handleNext = useCallback(() => {
@@ -105,6 +106,7 @@ export function BookingFlow({ service, onClose, userData, clinic, doctor, liveSt
       // On success step, just close
       onClose()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, steps.length, onClose])
 
   const handleBack = useCallback(() => {

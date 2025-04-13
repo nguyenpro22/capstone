@@ -17,9 +17,16 @@ interface ScheduleDetailsModalProps {
   isOpen: boolean
   onClose: () => void
   onCheckout: () => void
+  disableCheckout?: boolean
 }
 
-export default function ScheduleDetailsModal({ schedule, isOpen, onClose, onCheckout }: ScheduleDetailsModalProps) {
+export default function ScheduleDetailsModal({
+  schedule,
+  isOpen,
+  onClose,
+  onCheckout,
+  disableCheckout = false,
+}: ScheduleDetailsModalProps) {
   if (!schedule) return null
 
   const formatTimeRange = (startTime: string, endTime: string) => {
@@ -141,6 +148,7 @@ export default function ScheduleDetailsModal({ schedule, isOpen, onClose, onChec
             <Button
               onClick={onCheckout}
               className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              disabled={disableCheckout || schedule.status.toLowerCase() === "pending"}
             >
               <CreditCard className="mr-2 h-4 w-4" />
               Proceed to Checkout
@@ -151,4 +159,3 @@ export default function ScheduleDetailsModal({ schedule, isOpen, onClose, onChec
     </Dialog>
   )
 }
-

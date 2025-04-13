@@ -129,6 +129,7 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
     if (isOpen && schedule) {
       fetchScheduleDetails(schedule.id)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, schedule])
 
   const fetchScheduleDetails = async (scheduleId: string) => {
