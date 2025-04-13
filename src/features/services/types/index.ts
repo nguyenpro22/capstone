@@ -116,7 +116,7 @@ export type ServiceDetail = {
   clinics: Clinic[];
   category: Category;
   procedures: Procedure[];
-  promotions: any; // Nếu có schema rõ ràng thì thay `any`
+  promotions: any[]; // Nếu có schema rõ ràng thì thay `any`
   doctorServices: DoctorService[];
 };
 
