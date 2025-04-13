@@ -664,10 +664,12 @@ export default function EditDoctorForm({ initialData, onClose, onSaveSuccess }: 
                       {profilePicture ? (
                         <div className="relative w-full h-full flex items-center justify-center">
                           {previewUrl ? (
-                            <img
+                            <Image
                               src={previewUrl || "/placeholder.svg"}
                               alt="Profile preview"
                               className="w-full h-full object-cover"
+                              width={100}
+                              height={100}
                             />
                           ) : (
                             <Check className="w-10 h-10 text-green-500 dark:text-green-400" />

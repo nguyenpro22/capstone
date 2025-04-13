@@ -1,3 +1,4 @@
+import { customerScheduleTranslations } from './../types/customerSchedule';
 import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
@@ -22,6 +23,7 @@ import { bookingFlowMessages } from './booking-flow';
 import { sidebarMessages } from './sidebar';
 import { navbarAdminMessages } from './navbarAdmin';
 import { buyPackageMessages } from './buy-package';
+import { customerScheduleMessage } from './customerSchedule';
 
 const vi = {
   home: homeMessages,
@@ -48,7 +50,8 @@ const vi = {
   bookingFlow: bookingFlowMessages,
   sidebar: sidebarMessages,
   navbarAdmin: navbarAdminMessages,
-  buyPackage: buyPackageMessages
+  buyPackage: buyPackageMessages,
+  customerSchedule: customerScheduleMessage,
 };
 
 export default vi;

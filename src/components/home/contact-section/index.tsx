@@ -14,6 +14,7 @@ import { Loader2, Upload, Building, Phone, MapPin, FileText, Calendar } from 'lu
 import { showError, showSuccess } from "@/utils"
 import { useClinicRegistrationMutation } from "@/features/landing/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
+import Image from "next/image"
 
 // Validation errors interface
 interface ValidationErrors {
@@ -58,10 +59,12 @@ const FileUploadField = ({
         <div className="relative h-28 w-full group">
           {file.type.startsWith("image/") ? (
             <div className="h-full w-full rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-              <img
+              <Image
                 src={URL.createObjectURL(file) || "/placeholder.svg"}
                 alt={`Preview of ${label}`}
                 className="h-full w-full object-cover"
+                width={100}
+                height={100}
               />
             </div>
           ) : (
@@ -669,7 +672,7 @@ export function RegisterClinicForm() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.name")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -694,7 +697,7 @@ export function RegisterClinicForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.email")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -728,7 +731,7 @@ export function RegisterClinicForm() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.phoneNumber")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -755,7 +758,7 @@ export function RegisterClinicForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.taxCode")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -794,7 +797,7 @@ export function RegisterClinicForm() {
 
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.address")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -825,7 +828,7 @@ export function RegisterClinicForm() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
                   {t("form.fields.city")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -861,7 +864,7 @@ export function RegisterClinicForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.district")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -900,7 +903,7 @@ export function RegisterClinicForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                   {t("form.fields.ward")}
                   <span className="text-purple-500">*</span>
                 </label>
@@ -947,7 +950,7 @@ export function RegisterClinicForm() {
               {t("form.sections.licenseInfo")}
             </h2>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 items-center gap-1.5">
                 <Calendar className="h-4 w-4 text-gray-500" />
                 {t("form.fields.operatingLicenseExpiryDate")}
                 <span className="text-purple-500">*</span>

@@ -125,7 +125,7 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
       const toolbar = quillInstance.getModule("toolbar")
       toolbar.addHandler("image", handleImageUpload)
     }
-  }, [quillInstance])
+  }, [handleImageUpload, quillInstance])
 
   // Quill modules configuration
   const modules = useMemo(

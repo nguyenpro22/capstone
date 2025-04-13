@@ -937,10 +937,12 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                           {selectedBank && (
                             <div className="mt-2 flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-100 dark:border-purple-800">
                               {selectedBank.logo && (
-                                <img
+                                <Image
                                   src={selectedBank.logo || "/placeholder.svg"}
                                   alt={selectedBank.shortName}
                                   className="h-6 w-auto"
+                                  width={100}
+                                  height={100}
                                 />
                               )}
                               <span className="font-medium text-purple-700 dark:text-purple-300">
@@ -959,10 +961,12 @@ export default function EditBranchForm({ initialData, onClose, onSaveSuccess }: 
                                     onClick={() => handleBankSelect(bank)}
                                   >
                                     {bank.logo && (
-                                      <img
+                                      <Image
                                         src={bank.logo || "/placeholder.svg"}
                                         alt={bank.shortName}
                                         className="h-6 w-auto"
+                                        width={100}
+                                        height={100}
                                       />
                                     )}
                                     <div>

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import type React from "react";
@@ -70,6 +71,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { CustomCalendar } from "./custom-calendar";
+import Image from "next/image";
 
 interface BookingDetailDialogProps {
   booking: Booking;
@@ -874,7 +876,7 @@ export function BookingDetailDialog({
                   {/* Service image if available */}
                   {displayBooking.service?.imageUrls && (
                     <div className="mb-4 overflow-hidden rounded-lg border border-gray-100 dark:border-indigo-800/30 shadow-sm">
-                      <img
+                      <Image
                         src={
                           displayBooking.service.imageUrls[0] ||
                           "/placeholder.svg"
@@ -883,6 +885,8 @@ export function BookingDetailDialog({
                           displayBooking.service?.name || booking.serviceName
                         }
                         className="w-full h-40 object-cover"
+                        width={100}
+                        height={100}
                       />
                     </div>
                   )}

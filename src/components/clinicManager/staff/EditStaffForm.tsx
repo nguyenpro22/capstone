@@ -15,6 +15,7 @@ import type { Staff } from "@/features/clinic/types"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { AddressDetail } from "@/features/address/types"
 import { useTheme } from "next-themes"
+import Image from "next/image"
 
 // Define the form schema with additional fields
 const staffSchema = z.object({
@@ -519,10 +520,12 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
                       {profilePicture ? (
                         <div className="relative w-full h-full flex items-center justify-center">
                           {previewUrl ? (
-                            <img
+                            <Image
                               src={previewUrl || "/placeholder.svg"}
                               alt="Profile preview"
                               className="w-full h-full object-cover"
+                              width={100}
+                              height={100}
                             />
                           ) : (
                             <Check className="w-10 h-10 text-green-500 dark:text-green-400" />
@@ -535,10 +538,12 @@ export default function EditStaffForm({ initialData, onClose, onSaveSuccess }: E
                         </div>
                       ) : initialData.profilePictureUrl ? (
                         <div className="w-full h-full">
-                          <img
+                          <Image
                             src={initialData.profilePictureUrl || "/placeholder.svg"}
                             alt="Current profile"
                             className="w-full h-full object-cover"
+                            width={100}
+                            height={100}
                           />
                           <div className="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                             <Upload className="w-10 h-10 text-white" />

@@ -552,7 +552,7 @@ export default function ServicePage() {
                           No procedures available
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400">
-                          This service doesn't have any defined procedures.
+                          This service does not have any defined procedures.
                         </p>
                       </div>
                     ) : (
@@ -643,7 +643,7 @@ export default function ServicePage() {
                           No doctors available
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400">
-                          This service doesn't have any assigned doctors.
+                          This service does not have any assigned doctors.
                         </p>
                       </div>
                     ) : (

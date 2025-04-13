@@ -23,6 +23,7 @@ import { BookingFlowMessages } from "./booking-flow";
 import { sidebarMessages } from "./sidebar";
 import { navbarAdminMessages } from "./navbarAdmin";
 import { buyPackageTranslations } from "./buy-package";
+import { customerScheduleTranslations } from "./customerSchedule";
 
 
 export type Messages = {
@@ -52,4 +53,5 @@ export type Messages = {
   sidebar: sidebarMessages;
   navbarAdmin: navbarAdminMessages;
   buyPackage: buyPackageTranslations;
+  customerSchedule : customerScheduleTranslations;
 };

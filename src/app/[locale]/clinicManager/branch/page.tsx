@@ -62,6 +62,7 @@ const BranchesList: React.FC = () => {
   const [fetchStaffById] = useLazyGetStaffByIdQuery()
 
   // Get all branches from the API response
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const allBranches = Array.isArray(data?.value?.branches?.items) ? data?.value?.branches?.items : []
 
   // Get subscription data
