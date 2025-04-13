@@ -20,7 +20,7 @@ import { useGetClinicsQuery } from "@/features/clinic/api";
 import { ClinicCard } from "@/components/clinic-view/clinic-card";
 
 export default function ClinicsPage() {
-  const t = useTranslations("clinics");
+  const t = useTranslations("clinicView");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("rating");
   const [currentPage, setCurrentPage] = useState(1);
