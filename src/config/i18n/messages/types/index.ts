@@ -26,6 +26,7 @@ import { buyPackageTranslations } from "./buy-package";
 import { clinicView } from "./clinic-view";
 import { ClinicCardTranslation } from "./clinicCard";
 import { ClinicDetailTranslation } from "./clinic-view-detail";
+import { customerScheduleTranslations } from "./customerSchedule";
 
 export type Messages = {
   home: homeMessages;
@@ -57,4 +58,5 @@ export type Messages = {
   clinicView: clinicView;
   clinicCard: ClinicCardTranslation;
   clinicViewDetail: ClinicDetailTranslation;
+  customerSchedule : customerScheduleTranslations;
 };

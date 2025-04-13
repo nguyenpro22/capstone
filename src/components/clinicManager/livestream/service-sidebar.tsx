@@ -26,6 +26,7 @@ export default function ServiceSidebar({
 
   useEffect(() => {
     fetchServices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleServiceClick = (serviceId: string) => {

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function GeneralSettings() {
     return (
       <div className="p-6 bg-gray-100 min-h-screen flex justify-center items-center">
@@ -8,10 +10,12 @@ export default function GeneralSettings() {
           <div className="flex flex-col items-center mb-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
               <button>
-                <img
+                <Image
                   src="https://icon-library.com/images/upload-icon/upload-icon-15.jpg"
                   alt="Upload Logo"
                   className="w-8 h-8 opacity-50"
+                  width={100}
+                  height={100}
                 />
               </button>
             </div>

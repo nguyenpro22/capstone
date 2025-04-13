@@ -4,6 +4,7 @@ import { useGetPartnershipRequestByIdQuery } from "@/features/partnership/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Loader2, ExternalLink } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Image from "next/image"
 
 interface PartnershipRequestDetailProps {
   requestId: string | null
@@ -103,10 +104,12 @@ const PartnershipRequestDetail = ({ requestId, isOpen, onClose }: PartnershipReq
                         {detailData.value.profilePictureUrl ? (
                           <div className="space-y-1">
                             <div className="relative h-32 w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                              <img
+                              <Image
                                 src={detailData.value.profilePictureUrl || "/placeholder.svg"}
                                 alt="Profile"
                                 className="object-cover w-full h-full"
+                                width={100}
+                                height={100}
                               />
                             </div>
                             <a
@@ -129,10 +132,12 @@ const PartnershipRequestDetail = ({ requestId, isOpen, onClose }: PartnershipReq
                         {detailData.value.businessLicenseUrl ? (
                           <div className="space-y-1">
                             <div className="relative h-32 w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                              <img
+                              <Image
                                 src={detailData.value.businessLicenseUrl || "/placeholder.svg"}
                                 alt="Business License"
                                 className="object-cover w-full h-full"
+                                width={100}
+                                height={100}
                               />
                             </div>
                             <a
@@ -155,10 +160,12 @@ const PartnershipRequestDetail = ({ requestId, isOpen, onClose }: PartnershipReq
                         {detailData.value.operatingLicenseUrl ? (
                           <div className="space-y-1">
                             <div className="relative h-32 w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                              <img
+                              <Image
                                 src={detailData.value.operatingLicenseUrl || "/placeholder.svg"}
                                 alt="Operating License"
                                 className="object-cover w-full h-full"
+                                width={100}
+                                height={100}
                               />
                             </div>
                             <a
