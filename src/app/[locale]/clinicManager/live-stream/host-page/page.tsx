@@ -80,7 +80,21 @@ export default function HostPage() {
   const clinicId = tokenData?.clinicId || "";
   const userId = tokenData?.userId || "";
 
+  // Define the reactions map
+  const reactionsMap: Record<number, ReactionMapItem> = {
+    1: { emoji: "👍", text: "Looks great!" },
+    2: { emoji: "❤️", text: "Love it!" },
+    3: { emoji: "🔥", text: "That's fire!" },
+    4: { emoji: "👏", text: "Amazing work!" },
+    5: { emoji: "😍", text: "Beautiful!" },
+  };
+
   const fetchServices = async (): Promise<void> => {
+    if (!roomGuidRef.current) {
+      console.log("Room GUID not available yet, skipping service fetch");
+      return;
+    }
+
     try {
       const response = await fetch(
         `https://api.beautify.asia/signaling-api/LiveStream/Services?clinicId=${clinicId}&userId=${userId}&roomId=${roomGuidRef.current}`
@@ -106,15 +120,7 @@ export default function HostPage() {
     }
   };
 
-  // Define the reactions map
-  const reactionsMap: Record<number, ReactionMapItem> = {
-    1: { emoji: "👍", text: "Looks great!" },
-    2: { emoji: "❤️", text: "Love it!" },
-    3: { emoji: "🔥", text: "That's fire!" },
-    4: { emoji: "👏", text: "Amazing work!" },
-    5: { emoji: "😍", text: "Beautiful!" },
-  };
-
+  // Initialize SignalR connection
   useEffect(() => {
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(
@@ -136,6 +142,7 @@ export default function HostPage() {
       }
     });
 
+    // Start connection and set up event handlers
     conn.start().then(() => {
       console.log("✅ Connected to SignalR");
 
@@ -143,15 +150,13 @@ export default function HostPage() {
       signalR_Connection.current = conn;
 
       if (roomGuidRef.current == null) {
-        // Check if we have pending room data to create
         const pendingRoomDataString = sessionStorage.getItem("livestreamData");
-        console.log(pendingRoomDataString);
         if (pendingRoomDataString) {
           try {
             const pendingRoomData = JSON.parse(pendingRoomDataString);
-            // Clear the sessionStorage
-            sessionStorage.removeItem("pendingRoomData");
-            // Create the room
+            sessionStorage.removeItem("livestreamData");
+
+            // ✅ Call server to create room with base64 image
             conn.invoke("HostCreateRoom", pendingRoomData);
           } catch (error) {
             console.error("Error parsing pending room data:", error);
@@ -159,194 +164,191 @@ export default function HostPage() {
         }
       }
 
-      conn.on(
-        "RoomCreatedAndJoined",
-        async ({
-          roomGuid,
-          janusRoomId,
-          sessionId,
-        }: {
-          roomGuid: string;
-          janusRoomId: string;
-          sessionId: string;
-        }) => {
-          console.log("✅ RoomCreatedAndJoined:", roomGuid, janusRoomId);
-          sessionIdRef.current = sessionId;
-          roomGuidRef.current = roomGuid;
-          janusRoomIdRef.current = janusRoomId;
-          setIsCreateRoom(true);
-        }
-      );
-
-      conn.on(
-        "PublishStarted",
-        async ({ sessionId, jsep }: { sessionId: string; jsep: string }) => {
-          if (peerConnectionRef.current) {
-            sessionIdRef.current = sessionId;
-            await peerConnectionRef.current.setRemoteDescription(
-              new RTCSessionDescription({
-                type: "answer",
-                sdp: jsep,
-              })
-            );
-            setIsPublish(true);
-          }
-        }
-      );
-
-      conn.on("ListenerCountUpdated", async (viewCount: number) => {
-        setView(viewCount);
-      });
-
-      conn.on("ReceiveMessage", async (message: ChatMessage) => {
-        setChatMessage((prev) => [...prev, message]);
-      });
-
-      conn.on("ReceiveReaction", async ({ id }: { id: string | number }) => {
-        console.log("Received reaction ID:", id);
-
-        // Convert to number if it's a string
-        const reactionId =
-          typeof id === "string" ? Number.parseInt(id, 10) : (id as number);
-
-        if (reactionsMap[reactionId]) {
-          const reaction: Reaction = {
-            id: reactionId,
-            emoji: reactionsMap[reactionId].emoji,
-            left: Math.floor(Math.random() * 70) + 10, // Random position 10-80% from left
-            key: `reaction-${Date.now()}-${Math.random()
-              .toString(36)
-              .substring(2, 9)}`, // Unique key
-          };
-
-          console.log("Adding new reaction:", reaction);
-          setActiveReactions((prev) => [...prev, reaction]);
-
-          // Remove the reaction after animation completes
-          setTimeout(() => {
-            setActiveReactions((prev) =>
-              prev.filter((r) => r.key !== reaction.key)
-            );
-          }, 3000);
-        } else {
-          console.warn("Received unknown reaction ID:", reactionId);
-        }
-      });
-
-      conn.on(
-        "LivestreamEnded",
-        async ({
-          joinCount,
-          messageCount,
-          reactionCount,
-          totalActivities,
-          totalBooking,
-        }: {
-          joinCount: number;
-          messageCount: number;
-          reactionCount: number;
-          totalActivities: number;
-          totalBooking: number;
-        }) => {
-          // Update the analyst ref with the latest data
-          analyst.current = {
-            joinCount: joinCount || 0,
-            messageCount: messageCount || 0,
-            reactionCount: reactionCount || 0,
-            totalActivities: totalActivities || 0,
-            totalBooking: totalBooking || 0,
-          };
-
-          console.log("Livestream analytics:", analyst.current);
-
-          // Show the analytics popup
-          setShowAnalyticsPopup(true);
-
-          // Clean up UI state (if needed)
-          setIsCreateRoom(false);
-          setIsPublish(false);
-          setView(0);
-          setChatMessage([]);
-
-          // ✅ Stop and reset local video stream
-          if (localVideoRef.current?.srcObject) {
-            const stream = localVideoRef.current.srcObject as MediaStream;
-            const tracks = stream.getTracks();
-            tracks.forEach((track) => track.stop()); // Stop each track (audio + video)
-            localVideoRef.current.srcObject = null; // Remove stream reference
-          }
-
-          // ✅ Cleanup peer connection
-          if (peerConnectionRef.current) {
-            peerConnectionRef.current.getSenders().forEach((sender) => {
-              peerConnectionRef.current?.removeTrack(sender);
-            });
-            peerConnectionRef.current.close();
-            peerConnectionRef.current = null;
-          }
-
-          // ✅ Reset connection states
-          roomGuidRef.current = null;
-          janusRoomIdRef.current = null;
-          sessionIdRef.current = null;
-
-          // Navigate back to the livestream page
-          router.push("/clinicManager/live-stream");
-        }
-      );
-
-      conn.on(
-        "UpdateServicePromotion",
-        async ({
-          id,
-          discountLivePercent,
-        }: {
-          id: string;
-          discountLivePercent: number;
-        }) => {
-          setServices((prev) =>
-            prev.map((service) =>
-              service.id === id ? { ...service, discountLivePercent } : service
-            )
-          );
-        }
-      );
-
-      conn.on("JanusError", async (message) => {
-        console.error("🚨 Janus Error:", message);
-        alert(`Error: ${message}`);
-      });
-
-      conn.on(
-        "ServiceDisplayUpdated",
-        async ({ id, isVisible }: { id: string; isVisible: boolean }) => {
-          setServices((prev) =>
-            prev.map((service) =>
-              service.id === id ? { ...service, visible: isVisible } : service
-            )
-          );
-        }
-      );
+      // Set up event handlers for SignalR events
+      setupSignalREventHandlers(conn);
     });
 
-    // return () => {
-    //   if (conn && conn.state === signalR.HubConnectionState.Connected) {
-    //     conn
-    //       .stop()
-    //       .catch((err) => console.error("Error stopping connection:", err));
-    //   }
-    // };
-  }, []);
+    // Cleanup function
+    return () => {
+      if (conn && conn.state === signalR.HubConnectionState.Connected) {
+        conn
+          .stop()
+          .catch((err) => console.error("Error stopping connection:", err));
+      }
+    };
+  }, [clinicId, userId]);
 
-  // const createRoom = (roomData: RoomData): void => {
-  //   if (
-  //     signalR_Connection.current?.state === signalR.HubConnectionState.Connected
-  //   ) {
-  //     signalR_Connection.current.invoke("HostCreateRoom", roomData);
-  //   } else {
-  //     alert("🚨 SignalR connection not ready yet!");
-  //   }
-  // };
+  // Setup SignalR event handlers
+  const setupSignalREventHandlers = (conn: signalR.HubConnection) => {
+    conn.on(
+      "RoomCreatedAndJoined",
+      async ({
+        roomGuid,
+        janusRoomId,
+        sessionId,
+      }: {
+        roomGuid: string;
+        janusRoomId: string;
+        sessionId: string;
+      }) => {
+        console.log("✅ RoomCreatedAndJoined:", roomGuid, janusRoomId);
+        sessionIdRef.current = sessionId;
+        roomGuidRef.current = roomGuid;
+        janusRoomIdRef.current = janusRoomId;
+        setIsCreateRoom(true);
+
+        // Fetch services after room is created
+        fetchServices();
+      }
+    );
+
+    conn.on(
+      "PublishStarted",
+      async ({ sessionId, jsep }: { sessionId: string; jsep: string }) => {
+        if (peerConnectionRef.current) {
+          sessionIdRef.current = sessionId;
+          await peerConnectionRef.current.setRemoteDescription(
+            new RTCSessionDescription({
+              type: "answer",
+              sdp: jsep,
+            })
+          );
+          setIsPublish(true);
+        }
+      }
+    );
+
+    conn.on("ListenerCountUpdated", async (viewCount: number) => {
+      setView(viewCount);
+    });
+
+    conn.on("ReceiveMessage", async (message: ChatMessage) => {
+      setChatMessage((prev) => [...prev, message]);
+    });
+
+    conn.on("ReceiveReaction", async ({ id }: { id: string | number }) => {
+      console.log("Received reaction ID:", id);
+
+      // Convert to number if it's a string
+      const reactionId =
+        typeof id === "string" ? Number.parseInt(id, 10) : (id as number);
+
+      if (reactionsMap[reactionId]) {
+        const reaction: Reaction = {
+          id: reactionId,
+          emoji: reactionsMap[reactionId].emoji,
+          left: Math.floor(Math.random() * 70) + 10, // Random position 10-80% from left
+          key: `reaction-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 9)}`, // Unique key
+        };
+
+        console.log("Adding new reaction:", reaction);
+        setActiveReactions((prev) => [...prev, reaction]);
+
+        // Remove the reaction after animation completes
+        setTimeout(() => {
+          setActiveReactions((prev) =>
+            prev.filter((r) => r.key !== reaction.key)
+          );
+        }, 3000);
+      } else {
+        console.warn("Received unknown reaction ID:", reactionId);
+      }
+    });
+
+    conn.on(
+      "LivestreamEnded",
+      async ({
+        joinCount,
+        messageCount,
+        reactionCount,
+        totalActivities,
+        totalBooking,
+      }: {
+        joinCount: number;
+        messageCount: number;
+        reactionCount: number;
+        totalActivities: number;
+        totalBooking: number;
+      }) => {
+        // Update the analyst ref with the latest data
+        analyst.current = {
+          joinCount: joinCount || 0,
+          messageCount: messageCount || 0,
+          reactionCount: reactionCount || 0,
+          totalActivities: totalActivities || 0,
+          totalBooking: totalBooking || 0,
+        };
+
+        console.log("Livestream analytics:", analyst.current);
+
+        // Show the analytics popup
+        setShowAnalyticsPopup(true);
+
+        // Clean up UI state
+        setIsCreateRoom(false);
+        setIsPublish(false);
+        setView(0);
+        setChatMessage([]);
+
+        // ✅ Stop and reset local video stream
+        if (localVideoRef.current?.srcObject) {
+          const stream = localVideoRef.current.srcObject as MediaStream;
+          const tracks = stream.getTracks();
+          tracks.forEach((track) => track.stop()); // Stop each track (audio + video)
+          localVideoRef.current.srcObject = null; // Remove stream reference
+        }
+
+        // ✅ Cleanup peer connection
+        if (peerConnectionRef.current) {
+          peerConnectionRef.current.getSenders().forEach((sender) => {
+            peerConnectionRef.current?.removeTrack(sender);
+          });
+          peerConnectionRef.current.close();
+          peerConnectionRef.current = null;
+        }
+
+        // ✅ Reset connection states
+        roomGuidRef.current = null;
+        janusRoomIdRef.current = null;
+        sessionIdRef.current = null;
+      }
+    );
+
+    conn.on(
+      "UpdateServicePromotion",
+      async ({
+        id,
+        discountLivePercent,
+      }: {
+        id: string;
+        discountLivePercent: number;
+      }) => {
+        setServices((prev) =>
+          prev.map((service) =>
+            service.id === id ? { ...service, discountLivePercent } : service
+          )
+        );
+      }
+    );
+
+    conn.on("JanusError", async (message) => {
+      console.error("🚨 Janus Error:", message);
+      alert(`Error: ${message}`);
+    });
+
+    conn.on(
+      "ServiceDisplayUpdated",
+      async ({ id, isVisible }: { id: string; isVisible: boolean }) => {
+        setServices((prev) =>
+          prev.map((service) =>
+            service.id === id ? { ...service, visible: isVisible } : service
+          )
+        );
+      }
+    );
+  };
 
   const endLive = (): void => {
     if (!signalR_Connection.current) {
@@ -532,6 +534,7 @@ export default function HostPage() {
     return analyst.current;
   };
 
+  // Keep alive interval
   useEffect(() => {
     const keepAliveInterval = setInterval(() => {
       if (
@@ -700,7 +703,7 @@ export default function HostPage() {
                 </div>
               </div>
 
-              {/* Bookings Card - Changed to match width of other cards */}
+              {/* Bookings Card */}
               <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
                 <div className="p-3 bg-amber-500/20 rounded-full mr-4">
                   <svg

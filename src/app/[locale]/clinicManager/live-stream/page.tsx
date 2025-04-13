@@ -53,19 +53,11 @@ export default function LiveStreamPage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      try {
-        // const imageUrl = await convertImageToBase64(file);
-        const imageUrl = URL.createObjectURL(file);
-        setCoverImage(imageUrl);
-      } catch (err) {
-        console.error("Lỗi khi convert:", err);
-      }
-      // Create preview URL
       const reader = new FileReader();
       reader.onload = (event) => {
-        if (event.target?.result) {
-          setCoverImagePreview(event.target.result as string);
-        }
+        const base64String = event.target?.result as string;
+        setCoverImage(base64String); // ✅ Save base64 string to state
+        setCoverImagePreview(base64String); // ✅ Preview image
       };
       reader.readAsDataURL(file);
     }
@@ -74,12 +66,7 @@ export default function LiveStreamPage() {
   const handleCreateLivestream = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Avoid multiple simultaneous submissions
-    if (isCreating) {
-      console.log("Room creation already in progress, please wait...");
-      return;
-    }
-
+    if (isCreating) return;
     if (!livestreamName.trim()) {
       alert("Please enter a name for your livestream");
       return;
@@ -88,30 +75,17 @@ export default function LiveStreamPage() {
     try {
       setIsCreating(true);
 
-      // Create an object with the livestream information
       const livestreamData = {
         name: livestreamName,
         description: livestreamDescription,
-        image: coverImage,
+        image: "coverImage", // ✅ Base64 encoded image
       };
 
-      // Save the information in sessionStorage to use it in the host page
       sessionStorage.setItem("livestreamData", JSON.stringify(livestreamData));
-
-      // If you have the image, you can also save it (although this might be large for sessionStorage)
-      if (coverImagePreview) {
-        sessionStorage.setItem("coverImagePreview", coverImagePreview);
-      }
-
-      console.log("Navigating to host page with data:", livestreamData);
-
-      // Navigate to the host page
       router.push("/clinicManager/live-stream/host-page");
     } catch (error) {
       console.error("Error preparing livestream:", error);
-      alert(
-        "An error occurred while preparing the livestream. Please try again."
-      );
+      alert("An error occurred while preparing the livestream.");
       setIsCreating(false);
     }
   };
