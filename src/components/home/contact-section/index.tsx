@@ -540,6 +540,13 @@ export function RegisterClinicForm() {
       setValue("ward", "")
       setValue("operatingLicenseExpiryDate", "")
 
+       // Reset the ref values for input elements
+       if (nameInputRef.current) nameInputRef.current.value = ""
+       if (emailInputRef.current) emailInputRef.current.value = ""
+       if (phoneInputRef.current) phoneInputRef.current.value = ""
+       if (taxCodeInputRef.current) taxCodeInputRef.current.value = ""
+       if (addressInputRef.current) addressInputRef.current.value = ""
+
       setFiles({
         operatingLicense: null,
         businessLicense: null,

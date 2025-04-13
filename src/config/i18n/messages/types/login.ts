@@ -16,6 +16,7 @@ export type LoginTranslations = {
   invalidCredentials: string;
   userNotFound: string;
   generalError: string;
+  wrongPassword: string;
   continueWithGoogle: string;
   loginSuccess: string;
   enterVerificationCode: string;
@@ -25,4 +26,5 @@ export type LoginTranslations = {
   confirm: string;
   logout: string;
   providerLoginError: string;
+  providerLoginSuccess: string;
 };

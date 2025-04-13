@@ -54,6 +54,9 @@ export const clinicStaffRoutes = {
   SCHEDULE_APPROVAL: `${privateClinicStaffPath}/schedule-approval`,
   PROFILE: `${privateClinicStaffPath}/profile`,
   SERVICES: `${privateClinicStaffPath}/service`,
+  INBOX: `${privateClinicStaffPath}/inbox`,
+
+
 };
 
 // CUSTOMER ROUTES
