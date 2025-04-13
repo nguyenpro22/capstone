@@ -134,7 +134,6 @@ const menuItems = {
     { label: "order", path: "/clinicStaff/order", icon: ClipboardList },
     { label: "inbox", path: "/clinicStaff/inbox", icon: Inbox },
     { label: "profile", path: "/clinicStaff/profile", icon: UserCircle },
-    { label: "setting", path: "/clinicStaff/setting", icon: Settings },
     { label: "logout", path: "/logout", icon: LogOut },
   ],
   user: [

@@ -947,11 +947,7 @@ export default function ServiceDetail() {
                                         src={
                                           doctorService.doctor
                                             .profilePictureUrl ||
-                                          `https://placehold.co/400x500/rose/white?text=${
-                                            getInitials(
-                                              doctorService.doctor.fullName
-                                            ) || "/placeholder.svg"
-                                          }`
+                                          `https://placehold.co/400x500`
                                         }
                                         alt={doctorService.doctor.fullName}
                                         fill

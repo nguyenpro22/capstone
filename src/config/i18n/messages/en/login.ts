@@ -26,5 +26,7 @@ export const loginMessage: Messages["login"] = {
    timeRemaining: "Time remaining",
   confirm:"Confirm",
   logout: "Logout", 
-  providerLoginError: "Failed to login with Google"
+  providerLoginError: "Failed to login with Google",
+  providerLoginSuccess: "Login Google Success",
+  wrongPassword: "Wrong Password"
 };

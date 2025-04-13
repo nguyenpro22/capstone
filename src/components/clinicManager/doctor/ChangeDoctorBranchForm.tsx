@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Doctor, Branch } from "@/features/clinic/types"
 import { useTheme } from "next-themes"
+import { ValidationErrorResponse } from "@/lib/api"
 
 // Define the form schema
 const changeBranchSchema = z.object({
@@ -91,9 +92,11 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
 
       toast.success(t("branchChangedSuccess") || "Doctor's branch changed successfully!")
       onSaveSuccess()
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to change doctor's branch:", error)
-      toast.error(t("branchChangeFailed") || "Failed to change doctor's branch. Please try again.")
+      if(error.status == 400){
+        toast.error(error.detail || t("branchChangeFailed"))
+      }
     } finally {
       setIsSubmitting(false)
     }

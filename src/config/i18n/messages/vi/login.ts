@@ -26,5 +26,8 @@ export const loginMessage: Messages["login"] = {
   timeRemaining: "Thời gian còn lại",
   confirm:"Xác thực",
   logout: "Đăng xuất", 
-  providerLoginError: "Đăng nhập với Google thất bại"
+  providerLoginError: "Đăng nhập với Google thất bại",
+  providerLoginSuccess: "Đăng nhập với Google thành công",
+  wrongPassword:"Sai mật khẩu"
+
 };
