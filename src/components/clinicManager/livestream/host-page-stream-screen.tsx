@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
+import ServiceSection from "./service-section";
 
 // Define CSS animation for floating reactions
 const reactionAnimationStyle = `
@@ -24,7 +25,7 @@ const reactionAnimationStyle = `
       opacity: 0;
     }
   }
-  
+
   .floating-reaction {
     position: absolute;
     bottom: 20px;
@@ -112,7 +113,6 @@ export default function HostPageStreamScreen({
   const [text, setText] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("session"); // "session", "products", or "chat"
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [promotionValue, setPromotionValue] = useState<number>(0);
 
   // Add refs and state for chat scrolling
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
@@ -125,99 +125,17 @@ export default function HostPageStreamScreen({
 
   const toggleConfig = () => {
     setIsConfigCollapsed(!isConfigCollapsed);
-    // After toggling, we need to recalculate scroll position
     setTimeout(() => {
       if (!userScrolled && activeTab === "chat") {
         scrollToBottom();
       }
-    }, 300); // Wait for animation to complete
+    }, 300);
   };
 
-  // Thay thế toàn bộ hàm handleCheckboxClick bằng phiên bản mới này
-  const handleCheckboxClick = (e: React.MouseEvent, serviceId: string) => {
-    // Ngăn sự kiện lan truyền và hành vi mặc định
-    e.stopPropagation();
-
-    console.log(`Checkbox clicked for service ${serviceId}`);
-
-    // Tìm service trong danh sách
-    const serviceIndex = services.findIndex((s) => s.id === serviceId);
-    if (serviceIndex === -1) {
-      console.error(`Service with ID ${serviceId} not found`);
-      return;
-    }
-
-    // Lấy service hiện tại
-    const service = services[serviceIndex];
-
-    // Đảo ngược trạng thái visible
-    const newVisibility = !service.visible;
-    console.log(
-      `Toggling service ${serviceId} visibility from ${service.visible} to ${newVisibility}`
-    );
-
-    // Cập nhật UI trước
-    const updatedServices = [...services];
-    updatedServices[serviceIndex] = {
-      ...service,
-      visible: newVisibility,
-    };
-    setServices(updatedServices);
-
-    // Cập nhật selectedService nếu cần
-    if (selectedService && selectedService.id === serviceId) {
-      setSelectedService({
-        ...selectedService,
-        visible: newVisibility,
-      });
-    }
-
-    // Gọi API để cập nhật trên server
-    displayService(serviceId, newVisibility).catch((error) => {
-      console.error(`Failed to update service ${serviceId} visibility:`, error);
-
-      // Nếu có lỗi, khôi phục trạng thái cũ
-      const revertedServices = [...services];
-      revertedServices[serviceIndex] = {
-        ...service,
-        visible: service.visible, // Trạng thái ban đầu
-      };
-      setServices(revertedServices);
-
-      // Cập nhật lại selectedService nếu cần
-      if (selectedService && selectedService.id === serviceId) {
-        setSelectedService({
-          ...selectedService,
-          visible: service.visible,
-        });
-      }
-
-      // Hiển thị thông báo lỗi
-      alert(`Failed to update service visibility. Please try again.`);
-    });
-  };
-
-  const selectService = (service: Service) => {
-    setSelectedService(service);
-    setPromotionValue(service.discountLivePercent || 0);
-  };
-
-  const savePromotion = () => {
-    if (selectedService) {
-      setSelectedService({
-        ...selectedService,
-        discountLivePercent: promotionValue,
-      });
-      setPromotionService(selectedService.id, promotionValue);
-    }
-  };
-
-  // Add scroll handling functions
   const handleScroll = () => {
     if (chatContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } =
         chatContainerRef.current;
-      // Check if user has scrolled up a significant amount
       if (scrollHeight - scrollTop - clientHeight > 50) {
         setUserScrolled(true);
       } else {
@@ -233,57 +151,22 @@ export default function HostPageStreamScreen({
     }
   };
 
-  // Scroll to bottom when component mounts or when switching to chat tab
   useEffect(() => {
     if (activeTab === "chat") {
       scrollToBottom();
     }
   }, [activeTab]);
 
-  // Auto-scroll to bottom when new messages arrive, but only if user hasn't scrolled up
   useEffect(() => {
     if (messagesEndRef.current && !userScrolled && activeTab === "chat") {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatMessage, activeTab]); // Depend on chatMessage and activeTab
-
-  // Helper function to get service image or placeholder
-  const getServiceImage = (service: Service) => {
-    if (service.images && service.images.length > 0) {
-      return service.images[0];
-    }
-
-    // Return placeholder based on category
-    const categoryName = service.category?.name?.toLowerCase() || "";
-    if (categoryName.includes("facial")) return "✨";
-    if (categoryName.includes("massage")) return "💆";
-    if (categoryName.includes("hair")) return "💇";
-    if (categoryName.includes("nail")) return "💅";
-    return "🧖";
-  };
-
-  // Helper function to format price range in Vietnamese currency
-  const formatPriceRange = (service: Service) => {
-    const formatVND = (price: number) => {
-      return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-        maximumFractionDigits: 0,
-      }).format(price);
-    };
-
-    if (service.minPrice === service.maxPrice) {
-      return formatVND(service.minPrice);
-    }
-    return `${formatVND(service.minPrice)} - ${formatVND(service.maxPrice)}`;
-  };
+  }, [chatMessage, activeTab]);
 
   return (
     <>
-      {/* Add the CSS animation style */}
       <style>{reactionAnimationStyle}</style>
       <div className="flex h-screen bg-rose-50 overflow-hidden font-sans">
-        {/* Left side: Video taking 5/8 */}
         <div className="w-5/8 h-full flex items-center justify-center bg-black">
           <div className="relative w-full h-full">
             <video
@@ -293,13 +176,11 @@ export default function HostPageStreamScreen({
               playsInline
               className="w-full h-full object-contain rounded-lg pointer-events-none touch-none"
             />
-            {/* Viewer count */}
             <div className="absolute top-4 left-4 bg-white bg-opacity-20 backdrop-blur-md text-black px-4 py-2 rounded-full flex items-center shadow-md">
               <svg
                 className="w-4 h-4 mr-2"
                 fill="currentColor"
                 viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                 <path
@@ -310,7 +191,6 @@ export default function HostPageStreamScreen({
               </svg>
               {view}
             </div>
-            {/* Start Livestream Button */}
             {!isPublish && (
               <button
                 onClick={() => startPublishing()}
@@ -327,7 +207,6 @@ export default function HostPageStreamScreen({
                 Stop Livestream
               </button>
             )}
-            {/* Simplified reaction display */}
             {activeReactions.map((reaction) => (
               <div
                 key={reaction.key}
@@ -405,9 +284,16 @@ export default function HostPageStreamScreen({
 
             {/* Tab Content */}
             <div
-              className={`flex-1 transition-all duration-500 ease-in-out overflow-hidden ${
-                isConfigCollapsed ? "h-0 opacity-0" : "opacity-100"
+              className={`flex-1 transition-opacity duration-300 ease-in-out ${
+                isConfigCollapsed
+                  ? "opacity-0 pointer-events-none"
+                  : "opacity-100"
               }`}
+              style={{
+                height: "100%",
+                minHeight: "0px",
+                overflow: "hidden",
+              }}
             >
               {/* Session Settings Tab */}
               {activeTab === "session" && (
@@ -464,209 +350,14 @@ export default function HostPageStreamScreen({
 
               {/* Services Tab (formerly Products) */}
               {activeTab === "products" && (
-                <div className="p-4 space-y-4 h-full overflow-y-auto">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-rose-800 font-medium">
-                      Dịch vụ trong hệ thống
-                    </h3>
-                    <span className="text-xs text-rose-600 bg-rose-100 px-2 py-1 rounded-full">
-                      {services.length} Services
-                    </span>
-                  </div>
-
-                  {/* Services List - Increased height to 550px */}
-                  <div className="max-h-[550px] overflow-y-auto border border-rose-200 rounded-lg bg-white mb-4">
-                    {services.map((service) => (
-                      <div
-                        key={service.id}
-                        className={`flex items-center p-3 border-b border-rose-100 last:border-b-0 hover:bg-rose-50 cursor-pointer ${
-                          selectedService && selectedService.id === service.id
-                            ? "bg-rose-100"
-                            : ""
-                        }`}
-                        onClick={() => selectService(service)}
-                      >
-                        <div className="flex items-center flex-1">
-                          {/* Checkbox với xử lý sự kiện mới */}
-                          <div
-                            className="mr-3"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="inline-flex items-center">
-                              <input
-                                type="checkbox"
-                                checked={service.visible}
-                                onChange={() => {}} // Để tránh warning về controlled component
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCheckboxClick(e, service.id);
-                                }}
-                                className="rounded border-rose-300 text-rose-500 cursor-pointer"
-                              />
-                            </div>
-                          </div>
-
-                          {service.images && service.images.length > 0 ? (
-                            <div className="w-10 h-10 rounded-md overflow-hidden mr-3 bg-gray-100 flex items-center justify-center">
-                              <img
-                                src={service.images[0] || "/placeholder.svg"}
-                                alt={service.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.src = `https://placehold.co/40x40.png`;
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 rounded-md bg-rose-100 flex items-center justify-center mr-3">
-                              <span className="text-xl">
-                                {getServiceImage(service)}
-                              </span>
-                            </div>
-                          )}
-
-                          <div className="flex-1">
-                            <div className="flex items-center">
-                              <p className="font-medium text-sm">
-                                {service.name}
-                              </p>
-                              <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
-                                -{service.discountLivePercent}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <p className="text-xs text-rose-600">
-                                {formatPriceRange(service)}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {service.category?.name}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {services.length === 0 && (
-                      <div className="p-4 text-center text-rose-500">
-                        No services available
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Service Promotion Section */}
-                  <div className="border border-rose-200 rounded-lg p-3 bg-rose-50">
-                    <h4 className="text-sm font-medium text-rose-700 mb-2">
-                      Giảm giá dịch vụ
-                    </h4>
-
-                    {selectedService ? (
-                      <>
-                        <div className="flex items-start mb-3">
-                          {selectedService.images &&
-                          selectedService.images.length > 0 ? (
-                            <div className="w-16 h-16 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0">
-                              <img
-                                src={
-                                  selectedService.images[0] ||
-                                  "/placeholder.svg" ||
-                                  "/placeholder.svg"
-                                }
-                                alt={selectedService.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.src = `https://placehold.co/64x64.png`;
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-16 h-16 rounded-md bg-rose-100 flex items-center justify-center mr-3 flex-shrink-0">
-                              <span className="text-3xl">
-                                {getServiceImage(selectedService)}
-                              </span>
-                            </div>
-                          )}
-
-                          <div className="flex-1">
-                            <div className="flex items-center">
-                              <p className="font-medium">
-                                {selectedService.name}
-                              </p>
-                              {selectedService.discountLivePercent > 0 && (
-                                <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                                  Giảm {selectedService.discountLivePercent}%
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-rose-600 mb-1">
-                              {formatPriceRange(selectedService)}
-                            </p>
-                            <p className="text-xs text-gray-600 line-clamp-2">
-                              {selectedService.description ||
-                                "No description available"}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <label className="block text-sm font-medium text-rose-700 mb-1">
-                            Tạo giảm giá
-                          </label>
-                          <div className="flex items-center">
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={promotionValue}
-                              onChange={(e) =>
-                                setPromotionValue(Number(e.target.value))
-                              }
-                              placeholder="Giá trị trong khoảng 0 - 100%"
-                              className="w-full text-sm border-rose-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-400 px-3 py-2"
-                            />
-                            <span className="ml-2 text-lg">%</span>
-                          </div>
-                          {selectedService.discountLivePercent > 0 && (
-                            <p className="text-xs text-rose-600 mt-1">
-                              Giảm giá hiện tại:{" "}
-                              {selectedService.discountLivePercent}%
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center">
-                            {/* Checkbox trong chi tiết service với xử lý sự kiện mới */}
-                            <div className="inline-flex items-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedService.visible}
-                                onChange={() => {}} // Để tránh warning về controlled component
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCheckboxClick(e, selectedService.id);
-                                }}
-                                className="rounded border-rose-300 text-rose-500 mr-2 cursor-pointer"
-                              />
-                              <span className="text-sm">
-                                Hiển thị trong livestream
-                              </span>
-                            </div>
-                          </div>
-                          <button
-                            onClick={savePromotion}
-                            className="bg-rose-400 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-rose-500 transition"
-                          >
-                            Lưu
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center text-rose-500 py-4">
-                        Chọn dịch vụ để thiết lập giảm giá
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ServiceSection
+                  services={services}
+                  selectedService={selectedService}
+                  setSelectedService={setSelectedService}
+                  setPromotionService={setPromotionService}
+                  displayService={displayService}
+                  setServices={setServices}
+                />
               )}
 
               {/* Chat Tab */}
