@@ -22,9 +22,11 @@ import { livestreamRoom } from "./livestream-room";
 import { clinicView } from "./clinic-view";
 import { clinicCard } from "./clinicCard";
 import { clinicViewDetail } from "./clinic-view-detail";
-import { buyPackageMessages } from './buy-package';
+import { buyPackageMessages } from "./buy-package";
 import { customerScheduleMessage } from "./customerSchedule";
-
+import { bookingFlowMessages } from "./booking-flow";
+import { sidebarMessages } from "./sidebar";
+import { navbarAdminMessages } from "./navbarAdmin";
 
 const en = {
   home: homeMessages,
@@ -55,7 +57,7 @@ const en = {
   clinicView,
   clinicCard,
   clinicViewDetail,
-  customerSchedule: customerScheduleMessage
+  customerSchedule: customerScheduleMessage,
 };
 
 export default en;

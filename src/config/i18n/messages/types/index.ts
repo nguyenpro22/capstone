@@ -58,5 +58,5 @@ export type Messages = {
   clinicView: clinicView;
   clinicCard: ClinicCardTranslation;
   clinicViewDetail: ClinicDetailTranslation;
-  customerSchedule : customerScheduleTranslations;
+  customerSchedule: customerScheduleTranslations;
 };

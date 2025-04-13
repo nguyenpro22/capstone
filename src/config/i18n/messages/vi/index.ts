@@ -1,4 +1,4 @@
-import { customerScheduleTranslations } from './../types/customerSchedule';
+import { customerScheduleTranslations } from "./../types/customerSchedule";
 import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
@@ -28,7 +28,7 @@ import { clinicView } from "./clinic-view";
 import { clinicCard } from "./clinicCard";
 import { clinicViewDetail } from "./clinic-view-detail";
 
-import { customerScheduleMessage } from './customerSchedule';
+import { customerScheduleMessage } from "./customerSchedule";
 
 const vi = {
   home: homeMessages,
