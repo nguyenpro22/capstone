@@ -16,7 +16,7 @@ import Pagination from "@/components/common/Pagination/Pagination"
 import { motion, AnimatePresence } from "framer-motion"
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch" // Import the custom hook
 
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import {
   ChevronDown,
@@ -265,7 +265,7 @@ export default function Category() {
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen" onClick={handleCloseMenu}>
-      <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
+      {/* <ToastContainer theme={theme === "dark" ? "dark" : "light"} /> */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 mb-2">
           Quản lý Danh mục

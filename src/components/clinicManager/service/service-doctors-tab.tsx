@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Plus, X, Search, Trash2, Mail } from "lucide-react"
 import Image from "next/image"
 import { toast } from "react-toastify"
+import { useTranslations } from "next-intl"
 import { useAddDoctorToServiceMutation, useRemoveDoctorFromServiceMutation } from "@/features/doctor-service/api"
 import { useGetDoctorsQuery } from "@/features/clinic/api"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
@@ -16,6 +17,7 @@ interface ServiceDoctorsTabProps {
 }
 
 export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh }: ServiceDoctorsTabProps) {
+  const t = useTranslations("service")
   const [isAddingDoctor, setIsAddingDoctor] = useState(false)
   const [selectedDoctors, setSelectedDoctors] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -50,7 +52,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
 
   const handleAddDoctors = async () => {
     if (selectedDoctors.length === 0) {
-      toast.warning("Vui lòng chọn ít nhất một bác sĩ")
+      toast.warning(t("doctor.requiredDoctor"))
       return
     }
 
@@ -60,16 +62,25 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
         serviceIds: serviceId,
       }).unwrap()
 
-      toast.success("Thêm bác sĩ thành công")
+      toast.success(t("doctor.addSuccess"))
       setIsAddingDoctor(false)
       setSelectedDoctors([])
 
       setTimeout(async () => {
         await onRefresh()
       }, 400)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding doctors:", error)
-      toast.error("Không thể thêm bác sĩ")
+
+      // Handle the specific error for doctors already having the service
+      if (error.data.detail && error.data.detail.includes("These doctors already have this service:")) {
+        // Extract doctor names from the error message
+        const doctorNames = error.data.detail.split(":")[1].trim()
+        toast.error(t("doctor.alreadyHasService", { doctors: doctorNames }))
+      } else {
+        toast.error(error.detail || t("doctor.addError"))
+      }
+
       setTimeout(async () => {
         await onRefresh()
       }, 400)
@@ -77,7 +88,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
   }
 
   const handleRemoveDoctor = async (doctorServiceId: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa bác sĩ này khỏi dịch vụ?")) {
+    if (!confirm(t("doctor.confirmRemove"))) {
       return
     }
 
@@ -86,13 +97,13 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
         doctorServiceIds: [doctorServiceId],
       }).unwrap()
 
-      toast.success("Đã xóa bác sĩ khỏi dịch vụ")
+      toast.success(t("doctor.removeSuccess"))
       setTimeout(async () => {
         await onRefresh()
       }, 300)
     } catch (error) {
       console.error("Error removing doctor:", error)
-      toast.error("Có lỗi xảy ra khi xóa bác sĩ")
+      toast.error(t("doctor.removeError"))
     }
   }
 
@@ -103,14 +114,14 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Bác sĩ thực hiện dịch vụ</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("doctor.title")}</h3>
         {!isAddingDoctor && (
           <button
             onClick={() => setIsAddingDoctor(true)}
             className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
           >
             <Plus size={16} />
-            <span>Thêm bác sĩ</span>
+            <span>{t("doctor.add")}</span>
           </button>
         )}
       </div>
@@ -118,7 +129,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
       {isAddingDoctor ? (
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-medium text-gray-700 dark:text-gray-300">Chọn bác sĩ</h4>
+            <h4 className="font-medium text-gray-700 dark:text-gray-300">{t("doctor.select")}</h4>
             <button
               onClick={() => {
                 setIsAddingDoctor(false)
@@ -133,7 +144,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
           <div className="relative mb-4">
             <input
               type="text"
-              placeholder="Tìm kiếm bác sĩ..."
+              placeholder={t("doctor.search")}
               className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 dark:border-gray-600 focus:border-purple-300 dark:focus:border-purple-400 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -147,7 +158,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
           <div className="max-h-60 overflow-y-auto mb-4">
             {isLoadingDoctors ? (
               <div className="text-center py-4">
-                <p className="text-gray-500 dark:text-gray-400">Đang tải danh sách bác sĩ...</p>
+                <p className="text-gray-500 dark:text-gray-400">{t("doctor.loading")}</p>
               </div>
             ) : searchFilteredDoctors.length > 0 ? (
               <div className="space-y-2">
@@ -203,7 +214,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-4">Không tìm thấy bác sĩ</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-4">{t("doctor.notFound")}</p>
             )}
           </div>
 
@@ -216,7 +227,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
               disabled={isAdding}
             >
-              Hủy
+              {t("cancel")}
             </button>
             <button
               onClick={handleAddDoctors}
@@ -225,7 +236,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                 isAdding || selectedDoctors.length === 0 ? "opacity-70 cursor-not-allowed" : "hover:shadow-md"
               }`}
             >
-              {isAdding ? "Đang xử lý..." : "Thêm bác sĩ"}
+              {isAdding ? t("doctor.processing") : t("doctor.addButton")}
             </button>
           </div>
         </div>
@@ -272,7 +283,7 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
                     <button
                       onClick={() => handleRemoveDoctor(doctorService.id)}
                       className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0 ml-2"
-                      title="Xóa bác sĩ khỏi dịch vụ"
+                      title={t("doctor.removeTooltip")}
                       disabled={isRemoving}
                     >
                       <Trash2 size={18} />
@@ -283,12 +294,12 @@ export default function ServiceDoctorsTab({ serviceId, doctorServices, onRefresh
             </div>
           ) : (
             <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400 mb-3">Chưa có bác sĩ nào được gán cho dịch vụ này</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-3">{t("doctor.noDoctors")}</p>
               <button
                 onClick={() => setIsAddingDoctor(true)}
                 className="px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 border border-purple-200 dark:border-purple-600 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors"
               >
-                Thêm bác sĩ đầu tiên
+                {t("doctor.addFirst")}
               </button>
             </div>
           )}

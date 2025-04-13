@@ -18,9 +18,10 @@ import {
 import { useGetOrdersQuery } from "@/features/order/api" // Adjust the import path as needed
 import { useDebounce } from "@/hooks/use-debounce" // Assuming you have this hook
 import Pagination from "@/components/common/Pagination/Pagination" // Adjust the import path as needed
-import { OrderItem } from "@/features/order/types"
+import type { OrderItem } from "@/features/order/types"
 import { formatCurrency } from "@/utils"
-
+import { OrderDetailDialog } from "@/components/clinicStaff/order/order-detail-dialog"
+import { useTranslations } from "next-intl"
 
 const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
@@ -37,12 +38,18 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function OrderPage() {
+  const t = useTranslations("clinicStaffOrder")
+
   // State for pagination, search, and sorting
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortColumn, setSortColumn] = useState("")
   const [sortOrder, setSortOrder] = useState("")
+
+  // State for order detail dialog
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
   // Debounce search term to avoid too many API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
@@ -72,25 +79,33 @@ export default function OrderPage() {
     })
   }
 
-  // Format currency function
-
-
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
     setPageIndex(1) // Reset to first page when search changes
   }
 
+  // Handle view order details
+  const handleViewOrderDetails = (order: OrderItem) => {
+    setSelectedOrder(order)
+    setIsDetailDialogOpen(true)
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Orders</h1>
+      <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
 
       <div className="flex justify-between items-center">
         <div className="flex gap-4">
-          <Input className="w-64" placeholder="Search orders..." value={searchTerm} onChange={handleSearchChange} />
+          <Input
+            className="w-64"
+            placeholder={t("searchPlaceholder")}
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
           <Button variant="outline" className="gap-2">
             <Filter size={16} />
-            Filter
+            {t("filter")}
             <ChevronDown size={16} />
           </Button>
         </div>
@@ -98,27 +113,29 @@ export default function OrderPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
-          <CardDescription>Manage customer orders</CardDescription>
+          <CardTitle>{t("pageTitle")}</CardTitle>
+          <CardDescription>{t("pageDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Loading orders...</span>
+              <span className="ml-2">{t("loading")}</span>
             </div>
           ) : error ? (
-            <div className="text-center py-8 text-red-500">Failed to load orders. Please try again later.</div>
+            <div className="text-center py-8 text-red-500">
+              {t("errorLoadingOrders")}. {t("errorTryAgain")}
+            </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
+                    <TableHead>{t("orderId")}</TableHead>
+                    <TableHead>{t("customerName")}</TableHead>
+                    <TableHead>{t("service")}</TableHead>
+                    <TableHead>{t("date")}</TableHead>
+                    <TableHead>{t("finalAmount")}</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -127,7 +144,7 @@ export default function OrderPage() {
                   {orders.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No orders found
+                        {t("noOrdersFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -141,7 +158,7 @@ export default function OrderPage() {
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => handleViewOrderDetails(order)}>
                               View
                             </Button>
                             <DropdownMenu>
@@ -151,7 +168,7 @@ export default function OrderPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Print Receipt</DropdownMenuItem>
+                                <DropdownMenuItem>{t("printInvoice")}</DropdownMenuItem>
                                 <DropdownMenuItem>Update Status</DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
@@ -182,6 +199,9 @@ export default function OrderPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Detail Dialog */}
+      <OrderDetailDialog order={selectedOrder} open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen} />
     </div>
   )
 }

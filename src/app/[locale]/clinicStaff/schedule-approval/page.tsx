@@ -17,9 +17,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { ToastContainer } from "react-toastify"
+import { useTranslations } from "next-intl"
 
 export default function ScheduleApproval() {
+  const t = useTranslations("scheduleApproval")
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 10
   const { toast } = useToast()
@@ -45,7 +46,7 @@ export default function ScheduleApproval() {
       }).unwrap()
 
       toast({
-        title: `Schedule ${status === "Approved" ? "Approved" : "Rejected"} successfully`,
+        title: status === "Approved" ? t("approveSuccess") : t("rejectSuccess"),
         variant: status === "Approved" ? "default" : "destructive",
       })
 
@@ -53,8 +54,8 @@ export default function ScheduleApproval() {
       refetch()
     } catch (error) {
       toast({
-        title: "Error",
-        description: `Failed to ${status === "Approved" ? "approve" : "reject"} schedule`,
+        title: t("error"),
+        description: status === "Approved" ? t("approveError") : t("rejectError"),
         variant: "destructive",
       })
       refetch()
@@ -74,8 +75,8 @@ export default function ScheduleApproval() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Schedule Approval</CardTitle>
-        <CardDescription>Review and manage schedules waiting for approval</CardDescription>
+        <CardTitle>{t("pageTitle")}</CardTitle>
+        <CardDescription>{t("pageDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -84,27 +85,29 @@ export default function ScheduleApproval() {
           </div>
         ) : isError || responseError ? (
           <div className="text-center py-8 text-destructive">
-            <p>Failed to load schedules. {responseError || "Please try again."}</p>
+            <p>
+              {t("loadError")} {responseError || t("tryAgain")}
+            </p>
             <Button variant="outline" onClick={() => refetch()} className="mt-4">
-              Retry
+              {t("retry")}
             </Button>
           </div>
         ) : schedules.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>No schedules waiting for approval</p>
+            <p>{t("noSchedules")}</p>
           </div>
         ) : (
           <>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("customer")}</TableHead>
+                  <TableHead>{t("contact")}</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("time")}</TableHead>
+                  <TableHead>{t("service")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -125,19 +128,21 @@ export default function ScheduleApproval() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {schedule.bookingDate ? format(new Date(schedule.bookingDate), "MMM dd, yyyy") : "N/A"}
+                        {schedule.bookingDate
+                          ? format(new Date(schedule.bookingDate), "MMM dd, yyyy")
+                          : t("notAvailable")}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        {schedule.startTime || "N/A"}
+                        {schedule.startTime || t("notAvailable")}
                       </div>
                     </TableCell>
-                    <TableCell>{schedule.serviceName || "N/A"}</TableCell>
+                    <TableCell>{schedule.serviceName || t("notAvailable")}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                        Waiting Approval
+                        {t("waitingApproval")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -150,7 +155,7 @@ export default function ScheduleApproval() {
                           disabled={isApproving}
                         >
                           {isApproving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                          <span className="ml-1">Approve</span>
+                          <span className="ml-1">{t("approve")}</span>
                         </Button>
                         <Button
                           size="sm"
@@ -160,7 +165,7 @@ export default function ScheduleApproval() {
                           disabled={isApproving}
                         >
                           {isApproving ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                          <span className="ml-1">Reject</span>
+                          <span className="ml-1">{t("reject")}</span>
                         </Button>
                       </div>
                     </TableCell>

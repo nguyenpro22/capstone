@@ -1,3 +1,4 @@
+import { scheduleApprovalMessages } from './scheduleApproval';
 import { homeMessages } from "./home";
 import { landingMessages } from "./landing";
 import { navbarMessages } from "./navbar";
@@ -27,6 +28,9 @@ import { clinicView } from "./clinic-view";
 import { ClinicCardTranslation } from "./clinicCard";
 import { ClinicDetailTranslation } from "./clinic-view-detail";
 import { customerScheduleTranslations } from "./customerSchedule";
+import { clinicStaffServicePageMessages } from "./clinicStaffService";
+import { clinicStaffOrderMessages } from "./clinicStaffOrder";
+import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
 
 export type Messages = {
   home: homeMessages;
@@ -59,4 +63,8 @@ export type Messages = {
   clinicCard: ClinicCardTranslation;
   clinicViewDetail: ClinicDetailTranslation;
   customerSchedule : customerScheduleTranslations;
+  clinicStaffService: clinicStaffServicePageMessages;
+  clinicStaffOrder: clinicStaffOrderMessages;
+  clinicStaffAppointment: clinicStaffAppointmentMessages;
+  scheduleApproval : scheduleApprovalMessages;
 };
