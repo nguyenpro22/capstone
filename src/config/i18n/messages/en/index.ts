@@ -18,11 +18,13 @@ import { staffMessages } from "./staff";
 import { clinicProfileMessages } from "./clinicProfile";
 import { livestream } from "./livestream";
 import { livestreamRoom } from "./livestream-room";
-import { bookingFlowMessages } from './booking-flow';
-import { sidebarMessages } from './sidebar';
-import { navbarAdminMessages } from './navbarAdmin';
+
+import { clinicView } from "./clinic-view";
+import { clinicCard } from "./clinicCard";
+import { clinicViewDetail } from "./clinic-view-detail";
 import { buyPackageMessages } from './buy-package';
 import { customerScheduleMessage } from "./customerSchedule";
+
 
 const en = {
   home: homeMessages,
@@ -46,10 +48,13 @@ const en = {
   livestream,
   livestreamRoom,
   package: packageMessages,
-  bookingFlow : bookingFlowMessages,
+  bookingFlow: bookingFlowMessages,
   sidebar: sidebarMessages,
   navbarAdmin: navbarAdminMessages,
   buyPackage: buyPackageMessages,
+  clinicView,
+  clinicCard,
+  clinicViewDetail,
   customerSchedule: customerScheduleMessage
 };
 
