@@ -1,7 +1,6 @@
-import Page404 from "@/app/404/page";
+// not-found.tsx
+import { redirect } from "next/navigation";
 
-function Default() {
-  return <Page404 />;
+export default function NotFoundRedirect() {
+  redirect("/vi/404"); // hoặc xử lý tự động detect locale qua hook
 }
-
-export default Default;
