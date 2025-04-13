@@ -5,5 +5,10 @@ export type OrderItem = {
     finalAmount: number
     orderDate: string
     status: string
-   
+    discount: number
+    customerPhone: string
+    customerEmail: string
+    isFromLivestream: boolean
+    livestreamName: string
+    totalAmount: number
 }

@@ -3,13 +3,14 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useAddProcedureMutation } from "@/features/clinic-service/api"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import { X, Plus, Clock, DollarSign, Trash2, AlertCircle, FileText } from "lucide-react"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
@@ -41,6 +42,7 @@ const AddProcedure = ({
   clinicServiceId: string
   onSuccess?: () => void
 }) => {
+  const t = useTranslations("service") 
   const { theme } = useTheme()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -115,24 +117,24 @@ const AddProcedure = ({
     const errors: Record<string, string> = {}
 
     if (!name.trim()) {
-      errors.Name = "Tên giai đoạn không được để trống!"
+      errors.Name = t("procedure.errors.nameRequired")
     } else if (name.trim().length < 2) {
-      errors.Name = "Tên giai đoạn phải có ít nhất 2 ký tự!"
+      errors.Name = t("procedure.errors.nameMinLength")
     }
 
     if (!description.trim()) {
-      errors.Description = "Mô tả không được để trống!"
+      errors.Description = t("procedure.errors.descriptionRequired")
     } else if (description.trim().length < 2) {
-      errors.Description = "Mô tả phải có ít nhất 2 ký tự!"
+      errors.Description = t("procedure.errors.descriptionMinLength")
     }
 
     if (priceTypes.length === 0) {
-      errors.PriceTypes = "Phải có ít nhất một loại giá!"
+      errors.PriceTypes = t("procedure.errors.priceTypeRequired")
     }
 
     // Ensure at least one price type is set as default
     if (priceTypes.length > 0 && !priceTypes.some((pt) => pt.isDefault)) {
-      errors.DefaultPriceType = "Phải có ít nhất một loại giá được đặt làm mặc định!"
+      errors.DefaultPriceType = t("procedure.errors.defaultPriceTypeRequired")
     }
 
     if (Object.keys(errors).length > 0) {
@@ -162,7 +164,7 @@ const AddProcedure = ({
 
     try {
       await addProcedure({ data: requestBody }).unwrap()
-      toast.success("Thêm giai đoạn thành công!")
+      toast.success(t("procedure.success.added"))
       // Reset form data instead of closing
       setName("")
       setDescription("")
@@ -174,7 +176,7 @@ const AddProcedure = ({
         onSuccess()
       }
     } catch (error: any) {
-      console.error("Lỗi khi thêm Procedure:", error)
+      console.error(t("procedure.errors.addError"), error)
 
       if (error.data) {
         const apiError = error.data as ApiError
@@ -193,7 +195,7 @@ const AddProcedure = ({
           if (apiError.errors.length > 0) {
             toast.error(apiError.errors[0].message)
           } else {
-            toast.error("Thêm thất bại, vui lòng thử lại.")
+            toast.error(t("procedure.errors.generalError"))
           }
         }
         // Handle case where there's a general error message but no specific field errors
@@ -202,24 +204,23 @@ const AddProcedure = ({
           if (apiError.detail.includes("Step Index Exist")) {
             setValidationErrors((prev) => ({
               ...prev,
-              StepIndex: "Thứ tự bước này đã tồn tại!",
+              StepIndex: t("procedure.errors.stepIndexExists"),
             }))
-            toast.error("Thứ tự bước này đã tồn tại!")
+            toast.error(t("procedure.errors.stepIndexExists"))
           } else {
             toast.error(apiError.detail)
           }
         } else {
-          toast.error("Thêm thất bại, vui lòng thử lại.")
+          toast.error(t("procedure.errors.generalError"))
         }
       } else {
-        toast.error("Thêm thất bại, vui lòng thử lại.")
+        toast.error(t("procedure.errors.generalError"))
       }
     }
   }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
-       
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -227,7 +228,7 @@ const AddProcedure = ({
       >
         {/* Header with gradient - Fixed at top */}
         <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 p-5 rounded-t-xl top-0 z-10">
-          <h2 className="text-2xl font-bold text-white">Thêm Giai Đoạn</h2>
+          <h2 className="text-2xl font-bold text-white">{t("procedure.addProcedure")}</h2>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
@@ -240,7 +241,9 @@ const AddProcedure = ({
         <div className="overflow-y-auto flex-1 dark:bg-gray-800">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tên Giai Đoạn</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t("procedure.name")}
+              </label>
               <input
                 type="text"
                 className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all ${
@@ -259,7 +262,7 @@ const AddProcedure = ({
                     })
                   }
                 }}
-                placeholder="Nhập tên giai đoạn"
+                placeholder={t("procedure.namePlaceholder")}
                 required
               />
               {getFieldError("Name") && (
@@ -274,7 +277,7 @@ const AddProcedure = ({
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
                 <FileText className="h-4 w-4" />
-                Mô Tả
+                {t("procedure.description")}
               </label>
               <div className="quill-editor-container">
                 {editorLoaded && (
@@ -285,7 +288,7 @@ const AddProcedure = ({
                     <QuillEditor
                       value={description}
                       onChange={handleDescriptionChange}
-                      placeholder="Nhập mô tả chi tiết về giai đoạn"
+                      placeholder={t("procedure.descriptionPlaceholder")}
                       error={!!getFieldError("Description")}
                     />
                   </div>
@@ -305,7 +308,7 @@ const AddProcedure = ({
             {/* Step Index */}
             <div className="space-y-1.5 relative z-20 bg-white dark:bg-gray-800 pt-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 relative z-20">
-                Thứ tự bước
+                {t("procedure.stepIndex")}
               </label>
               <input
                 type="number"
@@ -339,14 +342,16 @@ const AddProcedure = ({
 
             <div className="space-y-3 relative z-20 bg-white dark:bg-gray-800">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Loại Giá Dịch Vụ</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t("procedure.priceTypes")}
+                </label>
                 <button
                   type="button"
                   onClick={handleAddPriceType}
                   className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
                 >
                   <Plus size={16} className="mr-1" />
-                  Thêm Loại Giá
+                  {t("procedure.addPriceType")}
                 </button>
               </div>
 
@@ -366,11 +371,11 @@ const AddProcedure = ({
                     <div className="flex-1 space-y-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <span className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400 mr-1"></span>
-                        Tên
+                        {t("procedure.priceTypeName")}
                       </label>
                       <input
                         type="text"
-                        placeholder="VD: Cơ bản"
+                        placeholder={t("procedure.priceTypeNamePlaceholder")}
                         className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.name}
                         onChange={(e) => handlePriceTypeChange(index, "name", e.target.value)}
@@ -381,7 +386,7 @@ const AddProcedure = ({
                     <div className="flex-1 space-y-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <Clock size={12} className="mr-1" />
-                        Thời gian (phút)
+                        {t("procedure.duration")}
                       </label>
                       <input
                         type="number"
@@ -397,7 +402,7 @@ const AddProcedure = ({
                     <div className="flex-1 space-y-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <DollarSign size={12} className="mr-1" />
-                        Giá (VND)
+                        {t("procedure.price")}
                       </label>
                       <input
                         type="number"
@@ -418,7 +423,7 @@ const AddProcedure = ({
                           onCheckedChange={(checked) => handlePriceTypeChange(index, "isDefault", checked)}
                         />
                         <Label htmlFor={`default-${index}`} className="text-xs text-gray-500 dark:text-gray-400">
-                          Đặt làm mặc định
+                          {t("procedure.setAsDefault")}
                         </Label>
                       </div>
 
@@ -427,7 +432,7 @@ const AddProcedure = ({
                           type="button"
                           onClick={() => handleRemovePriceType(index)}
                           className="self-end sm:self-center p-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors"
-                          title="Xóa loại giá này"
+                          title={t("procedure.removePriceType")}
                         >
                           <Trash2 size={18} />
                         </button>
@@ -449,14 +454,14 @@ const AddProcedure = ({
                 onClick={onClose}
                 className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
               >
-                Hủy
+                {t("cancel")}
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Đang thêm..." : "Thêm giai đoạn"}
+                {isLoading ? t("procedure.adding") : t("procedure.addProcedure")}
               </button>
             </div>
           </form>

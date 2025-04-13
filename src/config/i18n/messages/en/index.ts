@@ -25,8 +25,12 @@ import { clinicViewDetail } from "./clinic-view-detail";
 import { buyPackageMessages } from "./buy-package";
 import { customerScheduleMessage } from "./customerSchedule";
 import { bookingFlowMessages } from "./booking-flow";
-import { sidebarMessages } from "./sidebar";
 import { navbarAdminMessages } from "./navbarAdmin";
+import { sidebarMessages } from "./sidebar";
+import { clinicStaffServicePageMessages } from "./clinicStaffService";
+import { clinicStaffOrderMessages } from "./clinicStaffOrder";
+import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
+import { scheduleApprovalMessages } from "./scheduleApproval";
 
 const en = {
   home: homeMessages,
@@ -58,6 +62,10 @@ const en = {
   clinicCard,
   clinicViewDetail,
   customerSchedule: customerScheduleMessage,
+  clinicStaffService: clinicStaffServicePageMessages,
+  clinicStaffOrder: clinicStaffOrderMessages,
+  clinicStaffAppointment: clinicStaffAppointmentMessages,
+  scheduleApproval: scheduleApprovalMessages,
 };
 
 export default en;

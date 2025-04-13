@@ -217,7 +217,6 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full max-w-md space-y-8">
-      {/* Cấu hình ToastContainer để hiển thị theo vị trí cuộn */}
       
       <div className="text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">

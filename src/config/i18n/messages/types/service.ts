@@ -82,6 +82,20 @@ export type serviceMessages = {
   branches: string;
   noAvailable: string;
   image: string;
+
+  // Success messages
+  success: {
+    serviceAdded: string
+    serviceDeleted: string
+    serviceUpdated: string
+  }
+
+  // Error messages
+  errors: {
+    fetchServiceFailed: string
+    deleteServiceFailed: string
+    refreshServiceFailed: string
+  }
   // Modal tabs
   overview: string
   clinics: string
@@ -149,5 +163,84 @@ export type serviceMessages = {
   procedureNameRequired: string
   priceTypeRequired: string
   defaultPriceTypeRequired: string
+
+   // Doctor tab
+   doctor: {
+    title: string
+    add: string
+    select: string
+    search: string
+    loading: string
+    notFound: string
+    processing: string
+    addButton: string
+    requiredDoctor: string
+    addSuccess: string
+    confirmRemove: string
+    removeSuccess: string
+    removeError: string
+    removeTooltip: string
+    noDoctors: string
+    addFirst: string
+    addError: string
+    alreadyHasService: string
+  }
+  // Procedure form
+  procedure: {
+    addProcedure: string
+    adding: string
+    name: string
+    namePlaceholder: string
+    description: string
+    descriptionPlaceholder: string
+    stepIndex: string
+    priceTypes: string
+    addPriceType: string
+    priceTypeName: string
+    priceTypeNamePlaceholder: string
+    duration: string
+    price: string
+    setAsDefault: string
+    removePriceType: string
+    success: {
+      added: string
+    }
+    errors: {
+      nameRequired: string
+      nameMinLength: string
+      descriptionRequired: string
+      descriptionMinLength: string
+      priceTypeRequired: string
+      defaultPriceTypeRequired: string
+      stepIndexExists: string
+      addError: string
+      generalError: string
+    }
+  }
+   // Update service form
+   updateService: {
+    title: string
+    subtitle: string
+    serviceName: string
+    serviceNamePlaceholder: string
+    description: string
+    descriptionPlaceholder: string
+    category: string
+    categoryPlaceholder: string
+    branches: string
+    branchesPlaceholder: string
+    branchesRequired: string
+    noBranches: string
+    branchesSelected: string
+    branchesSelectedPlural: string
+    coverImages: string
+    noCoverImages: string
+    imagesMarkedForDeletion: string
+    newlySelectedImages: string
+    selectCoverImages: string
+    filesSelected: string
+    saving: string
+    saveChanges: string
+  }
 }
 

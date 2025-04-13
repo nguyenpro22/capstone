@@ -22,7 +22,7 @@ import Pagination from "@/components/common/Pagination/Pagination"
 import ImageModal from "@/components/clinicManager/ImageModal"
 import type { Service, ImageObject } from "@/features/clinic-service/types"
 
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { MoreVertical } from "lucide-react" // Import icon ba chấm và icon đóng
 import Image from "next/image"
@@ -33,7 +33,7 @@ import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
 import ConfirmationDialog from "@/components/ui/confirmation-dialog"
 
 export default function ServicePage() {
-  const t = useTranslations("service") // Sử dụng namespace "dashboard"
+  const t = useTranslations("service") 
 
   const [viewService, setViewService] = useState<any | null>(null) // Cho popup "Xem thông tin"
   const [editService, setEditService] = useState<any | null>(null)
@@ -121,7 +121,7 @@ export default function ServicePage() {
         setViewService(result.value)
       } catch (error) {
         console.error(error)
-        toast.error("Không thể lấy thông tin gói!")
+        toast.error(t("errors.fetchServiceFailed"))
         setViewService({
           name: "",
           description: "",
@@ -138,7 +138,7 @@ export default function ServicePage() {
         setEditService(result.value)
       } catch (error) {
         console.error(error)
-        toast.error("Không thể lấy thông tin gói!")
+        toast.error(t("errors.fetchServiceFailed"))
         setEditService({
           name: "",
           description: "",
@@ -166,11 +166,11 @@ export default function ServicePage() {
   const handleDeleteService = async (serviceId: string) => {
     try {
       await deleteService({ id: serviceId }).unwrap()
-      toast.success("Gói đã được xóa thành công!")
+      toast.success(t("success.serviceDeleted"))
       delayedRefetch()
     } catch (error) {
       console.error(error)
-      toast.error("Xóa gói thất bại!")
+      toast.error(t("errors.deleteServiceFailed"))
     }
   }
 
@@ -184,7 +184,7 @@ export default function ServicePage() {
         setViewService(result.value)
       } catch (error) {
         console.error("Error refreshing service data:", error)
-        toast.error("Không thể cập nhật thông tin dịch vụ!")
+        toast.error(t("errors.refreshServiceFailed"))
       }
     }
   }
@@ -194,7 +194,6 @@ export default function ServicePage() {
 
   return (
     <div className="p-6 dark:bg-gray-950" onClick={handleCloseMenu}>
-      <ToastContainer />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-300 dark:to-pink-300">
           {t("servicesList")}
@@ -311,7 +310,7 @@ export default function ServicePage() {
                             className="text-purple-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200 text-sm font-medium transition-colors"
                             onClick={() => handleOpenModal(service.coverImage || [])}
                           >
-                            +{service.coverImage.length - 1} more
+                            +{service.coverImage.length - 1} {t("moreImages")}
                           </button>
                         )}
                       </div>
@@ -418,12 +417,12 @@ export default function ServicePage() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
               <ImageIcon className="w-8 h-8 text-purple-300 dark:text-purple-300" />
             </div>
-            <p className="text-gray-500 dark:text-gray-300">No Services available.</p>
+            <p className="text-gray-500 dark:text-gray-300">{t("noServicesAvailable")}</p>
             <button
               onClick={() => setShowForm(true)}
               className="mt-4 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
             >
-              Add your first service
+              {t("addFirstService")}
             </button>
           </div>
         )}
@@ -453,7 +452,7 @@ export default function ServicePage() {
             onSaveSuccess={() => {
               setShowForm(false)
               delayedRefetch()
-              toast.success("Service added successfully!")
+              toast.success(t("success.serviceAdded"))
             }}
           />
         </div>
@@ -527,9 +526,7 @@ export default function ServicePage() {
           }
         }}
         title={t("confirmDelete")}
-        message={
-          t("deleteServiceConfirmation") || "Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác."
-        }
+        message={t("deleteServiceConfirmation")}
         confirmButtonText={t("deleteService")}
         cancelButtonText={t("cancel")}
         isLoading={isDeleting}

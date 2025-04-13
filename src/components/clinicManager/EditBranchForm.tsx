@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { useUpdateBranchMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   X,

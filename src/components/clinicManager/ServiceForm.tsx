@@ -16,7 +16,6 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { ToastContainer } from "react-toastify";
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
