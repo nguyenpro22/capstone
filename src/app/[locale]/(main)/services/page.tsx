@@ -1,7 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
-
-import Image from "next/image";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -74,6 +72,21 @@ interface Category {
   isParent: boolean;
   parentId: string | null;
   isDeleted: boolean;
+}
+
+// Loading Overlay Component
+function LoadingIndicator(): JSX.Element {
+  return (
+    <div className="flex flex-col items-center justify-center py-8">
+      <div className="relative h-12 w-12">
+        <div className="absolute top-0 left-0 h-full w-full rounded-full border-4 border-t-purple-500 border-r-transparent border-b-purple-300 border-l-transparent animate-spin"></div>
+        <div className="absolute top-1 left-1 h-10 w-10 rounded-full border-4 border-t-transparent border-r-purple-300 border-b-transparent border-l-purple-500 animate-spin animation-delay-200"></div>
+      </div>
+      <p className="mt-3 text-purple-700 dark:text-purple-300 font-medium">
+        Đang tìm kiếm...
+      </p>
+    </div>
+  );
 }
 
 // Loading Skeleton Component
@@ -159,7 +172,6 @@ function ErrorDisplay({ onRetry }: ErrorDisplayProps): JSX.Element {
   );
 }
 
-// Category Filter Component
 function CategoryFilter({
   categories,
   selectedCategory,
@@ -167,12 +179,9 @@ function CategoryFilter({
 }: {
   categories: Category[];
   selectedCategory: string;
-  onSelectCategory: (id: string) => void;
+  onSelectCategory: (name: string) => void;
 }): JSX.Element {
-  // Group categories by parent
   const parentCategories = categories.filter((cat) => cat.isParent);
-
-  // Get subcategories for a parent
   const getSubcategories = (parentId: string) => {
     return categories.filter((cat) => cat.parentId === parentId);
   };
@@ -186,25 +195,19 @@ function CategoryFilter({
         <SelectItem value="all" className="dark:text-white">
           Tất cả dịch vụ
         </SelectItem>
-
-        {/* Parent categories with dividers */}
         {parentCategories.map((parent, index) => (
           <React.Fragment key={parent.id}>
             {index > 0 && <SelectSeparator className="dark:bg-gray-700" />}
-
-            {/* Parent category */}
             <SelectItem
-              value={parent.id}
+              value={parent.name}
               className="font-medium text-purple-700 dark:text-purple-300"
             >
               {parent.name}
             </SelectItem>
-
-            {/* Child categories */}
             {getSubcategories(parent.id).map((subcat) => (
               <SelectItem
                 key={subcat.id}
-                value={subcat.id}
+                value={subcat.name}
                 className="pl-6 text-sm dark:text-gray-300"
               >
                 ↳ {subcat.name}
@@ -389,6 +392,9 @@ export default function ServicesPage(): JSX.Element {
   const [sortColumn, setSortColumn] = useState<string>("name");
   const [sortOrder, setSortOrder] = useState<string>("asc");
   const [currentSortOption, setCurrentSortOption] = useState<string>("name");
+  const [isSearchFromCategory, setIsSearchFromCategory] =
+    useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   // Fetch categories
   const {
@@ -401,41 +407,64 @@ export default function ServicesPage(): JSX.Element {
   });
 
   // Debounce search term to avoid too many API calls
+  const debouncedSetSearchTerm = useCallback((term: string) => {
+    setDebouncedSearchTerm(term);
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
+      debouncedSetSearchTerm(searchTerm);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, debouncedSetSearchTerm]);
 
   // Reset page index when filters change
   useEffect(() => {
     setPageIndex(1);
   }, [debouncedSearchTerm, selectedCategory]);
 
-  // When category changes, update search term
-  useEffect(() => {
-    if (selectedCategory !== "all") {
-      // Use a flag to prevent the circular dependency
-      const searchValue = selectedCategory;
-      setDebouncedSearchTerm(searchValue);
-    }
-  }, [selectedCategory]);
+  // Handle category selection
+  const handleCategoryChange = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+    setIsSearching(true);
 
-  // Only reset category when user manually types in search box
-  useEffect(() => {
-    // Only run this effect when searchTerm changes (user typing),
-    // not when debouncedSearchTerm changes due to category selection
-    if (searchTerm && selectedCategory !== "all") {
+    if (categoryName !== "all") {
+      setIsSearchFromCategory(true);
+      setDebouncedSearchTerm(categoryName);
+    } else {
+      // Only clear search if it was set by a category
+      if (isSearchFromCategory) {
+        setDebouncedSearchTerm("");
+        setSearchTerm("");
+        setIsSearchFromCategory(false);
+      }
+    }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setIsSearching(true);
+
+    // If user is typing in search box, it's not from category selection
+    if (value !== debouncedSearchTerm) {
+      setIsSearchFromCategory(false);
+    }
+
+    // Reset category selection if user is typing a search term
+    if (value && selectedCategory !== "all") {
       setSelectedCategory("all");
     }
-  }, [searchTerm]);
+  };
+
   // Fetch services with filters
   const {
     data: servicesData,
     error: servicesError,
     isLoading: isServicesLoading,
+    isFetching: isServicesFetching,
     refetch: refetchServices,
   } = useGetAllServicesQuery(
     {
@@ -452,6 +481,7 @@ export default function ServicesPage(): JSX.Element {
   const handlePreviousPage = (): void => {
     if (servicesData?.value.hasPreviousPage) {
       setPageIndex((prev) => prev - 1);
+      setIsSearching(true);
       window.scrollTo({
         top: 450,
         behavior: "smooth",
@@ -462,6 +492,7 @@ export default function ServicesPage(): JSX.Element {
   const handleNextPage = (): void => {
     if (servicesData?.value.hasNextPage) {
       setPageIndex((prev) => prev + 1);
+      setIsSearching(true);
       window.scrollTo({
         top: 450,
         behavior: "smooth",
@@ -482,7 +513,11 @@ export default function ServicesPage(): JSX.Element {
     setCurrentSortOption("name");
     setSortColumn("name");
     setSortOrder("asc");
+    setIsSearchFromCategory(false);
   };
+  useEffect(() => {
+    setIsSearching(isServicesFetching);
+  }, [isServicesFetching]);
 
   // Get categories
   const categories = categoriesData?.value?.items || [];
@@ -490,8 +525,7 @@ export default function ServicesPage(): JSX.Element {
   // Find selected category name
   const getSelectedCategoryName = () => {
     if (selectedCategory === "all") return "Tất cả dịch vụ";
-    const category = categories.find((c) => c.id === selectedCategory);
-    return category?.name || "";
+    return selectedCategory;
   };
 
   // Show loading skeleton while data is being fetched
@@ -531,6 +565,7 @@ export default function ServicesPage(): JSX.Element {
 
   const handleSortChange = (value: string) => {
     setCurrentSortOption(value);
+    setIsSearching(true);
     const sortMap: Record<string, { column: string; order: "asc" | "desc" }> = {
       name: { column: "name", order: "asc" },
       "price-asc": { column: "price", order: "asc" },
@@ -604,52 +639,15 @@ export default function ServicesPage(): JSX.Element {
                 placeholder={t("searchServices")}
                 className="pl-10 bg-white/80 dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700 focus:border-purple-500 h-12 rounded-lg"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
             <div className="flex gap-3 w-full md:w-auto">
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger className="w-[180px] bg-white/80 dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700 h-12 rounded-lg">
-                  <div className="flex items-center">
-                    <FolderTree className="h-4 w-4 mr-2 text-purple-500 dark:text-purple-400" />
-                    <SelectValue placeholder="Tất cả dịch vụ" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] dark:bg-gray-800 dark:border-gray-700">
-                  <SelectItem value="all" className="dark:text-white">
-                    Tất cả dịch vụ
-                  </SelectItem>
-
-                  {/* Parent categories */}
-                  {categories
-                    .filter((cat) => cat.isParent)
-                    .map((parent) => (
-                      <SelectItem
-                        key={parent.id}
-                        value={parent.id}
-                        className="font-medium dark:text-purple-300"
-                      >
-                        {parent.name}
-                      </SelectItem>
-                    ))}
-
-                  {/* Child categories */}
-                  {categories
-                    .filter((cat) => !cat.isParent && cat.parentId)
-                    .map((child) => (
-                      <SelectItem
-                        key={child.id}
-                        value={child.id}
-                        className="pl-6 text-sm dark:text-gray-300"
-                      >
-                        {child.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleCategoryChange}
+              />
               <Button
                 variant="outline"
                 size="icon"
@@ -702,7 +700,7 @@ export default function ServicesPage(): JSX.Element {
                     <CategoryFilter
                       categories={categories}
                       selectedCategory={selectedCategory}
-                      onSelectCategory={setSelectedCategory}
+                      onSelectCategory={handleCategoryChange}
                     />
                   </div>
 
@@ -771,28 +769,32 @@ export default function ServicesPage(): JSX.Element {
                 </div>
 
                 {/* Services Grid with Animation */}
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {services.map((service, index) => (
-                    <motion.div
-                      key={generateServiceKey(service.id, index)}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      whileHover={{
-                        y: -5,
-                        transition: { duration: 0.2 },
-                      }}
-                    >
-                      <ServiceCard
-                        service={service}
-                        onFavoriteToggle={() => {}}
-                        onBookService={() => handleViewDetails(service)}
-                        isFavorite={false}
-                        viewMode="grid"
-                      />
-                    </motion.div>
-                  ))}
-                </div>
+                {isSearching ? (
+                  <LoadingIndicator />
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {services.map((service, index) => (
+                      <motion.div
+                        key={generateServiceKey(service.id, index)}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        whileHover={{
+                          y: -5,
+                          transition: { duration: 0.2 },
+                        }}
+                      >
+                        <ServiceCard
+                          service={service}
+                          onFavoriteToggle={() => {}}
+                          onBookService={() => handleViewDetails(service)}
+                          isFavorite={false}
+                          viewMode="grid"
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
