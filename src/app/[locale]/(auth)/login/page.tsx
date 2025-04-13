@@ -1,20 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, Key } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useLoginSchema, type LoginFormValues } from "@/validations"
-import { useTranslations } from "next-intl"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useDispatch } from "react-redux"
-import { useLoginMutation, useLoginWithGoogleMutation, useVerifyMutation } from "@/features/auth/api"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Loader2,
+  CheckCircle,
+  Key,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useLoginSchema, type LoginFormValues } from "@/validations";
+import { useTranslations } from "next-intl";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useDispatch } from "react-redux";
+import {
+  useLoginMutation,
+  useLoginWithGoogleMutation,
+  useVerifyMutation,
+} from "@/features/auth/api";
+import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -22,37 +33,47 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+} from "@/components/ui/dialog";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-import { getAccessToken, rememberMe as rememberMeCookie, isRememberMe, clearToken, getCookie } from "@/utils"
-import { CookieStorageKey } from "@/constants"
-import { handleLogin, handleGoogleLogin, handleLogout, checkAuthStatus } from "@/features/auth/utils"
-import type { ValidationErrorResponse } from "@/lib/api"
+import {
+  getAccessToken,
+  rememberMe as rememberMeCookie,
+  isRememberMe,
+  clearToken,
+  getCookie,
+} from "@/utils";
+import { CookieStorageKey } from "@/constants";
+import {
+  handleLogin,
+  handleGoogleLogin,
+  handleLogout,
+  checkAuthStatus,
+} from "@/features/auth/utils";
+import type { ValidationErrorResponse } from "@/lib/api";
 
 export default function LoginPage() {
-  const t = useTranslations("login")
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
-  const [authError, setAuthError] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userData, setUserData] = useState<any>(null)
-
+  const t = useTranslations("login");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   // Trạng thái cho popup xác thực OTP
-  const [showVerifyPopup, setShowVerifyPopup] = useState(false)
-  const [verifyCode, setVerifyCode] = useState("")
-  const [countdown, setCountdown] = useState(60)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
-  const [verifyError, setVerifyError] = useState<string | null>(null)
+  const [showVerifyPopup, setShowVerifyPopup] = useState(false);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [countdown, setCountdown] = useState(60);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
-  const router = useRouter()
-  const dispatch = useDispatch()
-  const [login, loginResult] = useLoginMutation()
-  const [loginGoogle] = useLoginWithGoogleMutation()
-  const [verify] = useVerifyMutation()
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [login, loginResult] = useLoginMutation();
+  const [loginGoogle] = useLoginWithGoogleMutation();
+  const [verify] = useVerifyMutation();
 
   // Initialize form
   const {
@@ -68,101 +89,104 @@ export default function LoginPage() {
       email: "",
       password: "",
     },
-  })
+  });
 
   // Kiểm tra trạng thái đăng nhập khi trang được tải
   useEffect(() => {
-    const { isAuthenticated: isAuth, userData: user } = checkAuthStatus()
-    setIsAuthenticated(isAuth)
-    setUserData(user)
+    const { isAuthenticated: isAuth, userData: user } = checkAuthStatus();
+    setIsAuthenticated(isAuth);
+    setUserData(user);
 
     // Khôi phục thông tin "Remember Me"
     if (isRememberMe()) {
-      const token = getAccessToken()
+      const token = getAccessToken();
       if (token) {
-        const user = checkAuthStatus().userData
+        const user = checkAuthStatus().userData;
         if (user?.email) {
-          setValue("email", user.email)
-          setRememberMe(true)
+          setValue("email", user.email);
+          setRememberMe(true);
         }
       }
     }
-  }, [setValue])
+  }, [setValue]);
 
   // Theo dõi trạng thái lỗi từ RTK Query
   useEffect(() => {
     if (loginResult.isError && loginResult.error) {
-      console.log("Login error detected via RTK Query:", loginResult.error)
+      console.log("Login error detected via RTK Query:", loginResult.error);
 
       // Trích xuất dữ liệu lỗi từ RTK Query error
       if (loginResult.error && "detail" in loginResult.error) {
-        const errorData = loginResult.error as ValidationErrorResponse
-        console.log("Error data extracted:", errorData)
+        const errorData = loginResult.error as ValidationErrorResponse;
+        console.log("Error data extracted:", errorData);
 
         // Hiển thị toast với thông báo lỗi cụ thể
         toast.error(errorData.detail || t("generalError") || "Đã xảy ra lỗi", {
           position: "top-right",
           autoClose: 3000,
-        })
+        });
 
         // Gọi hàm xử lý lỗi để cập nhật UI
-        handleErrorResponse(errorData, getValues().email)
+        handleErrorResponse(errorData, getValues().email);
       }
     }
-  }, [loginResult.isError, loginResult.error])
+  }, [loginResult.isError, loginResult.error]);
 
   // 🕒 Countdown Effect cho popup xác thực
   useEffect(() => {
-    let timer: NodeJS.Timeout | undefined
+    let timer: NodeJS.Timeout | undefined;
 
     if (showVerifyPopup && countdown > 0) {
       timer = setInterval(() => {
-        setCountdown((prev) => prev - 1)
-      }, 1000)
+        setCountdown((prev) => prev - 1);
+      }, 1000);
     } else if (countdown === 0) {
-      clearInterval(timer)
+      clearInterval(timer);
     }
 
-    return () => clearInterval(timer)
-  }, [showVerifyPopup, countdown])
+    return () => clearInterval(timer);
+  }, [showVerifyPopup, countdown]);
 
   // ✅ Reset countdown khi mở lại popup xác thực
   useEffect(() => {
     if (showVerifyPopup) {
-      setCountdown(60)
+      setCountdown(60);
     }
-  }, [showVerifyPopup])
+  }, [showVerifyPopup]);
 
   // 🕒 Format time (mm:ss)
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
 
   // Xử lý lỗi dựa trên dữ liệu lỗi
-  const handleErrorResponse = (errorData: ValidationErrorResponse, email: string) => {
-    console.log("Handling error response:", errorData)
+  const handleErrorResponse = (
+    errorData: ValidationErrorResponse,
+    email: string
+  ) => {
+    console.log("Handling error response:", errorData);
 
     if (errorData.detail === "Wrong password") {
-      setAuthError(t("wrongPassword") || "Mật khẩu không đúng")
+      setAuthError(t("wrongPassword") || "Mật khẩu không đúng");
     } else if (errorData.detail === "User Not Found") {
-      setAuthError(t("userNotFound") || "Không tìm thấy người dùng")
+      setAuthError(t("userNotFound") || "Không tìm thấy người dùng");
     } else if (errorData.detail === "User Not Verified") {
       // Lưu email để sử dụng cho xác thực
-      setUserEmail(email)
+      setUserEmail(email);
       // Hiển thị popup xác thực thay vì thông báo lỗi
-      setShowVerifyPopup(true)
+      setShowVerifyPopup(true);
     } else {
       // Lỗi khác
-      setAuthError(errorData.detail || t("generalError") || "Lỗi đăng nhập")
+      setAuthError(errorData.detail || t("generalError") || "Lỗi đăng nhập");
     }
-  }
+  };
 
   // Xử lý đăng nhập
   const onSubmit = async (data: LoginFormValues) => {
-    setIsAuthenticating(true)
-    setAuthError(null)
+    setIsAuthenticating(true);
+    setAuthError(null);
 
     try {
       const result = await handleLogin({
@@ -176,17 +200,17 @@ export default function LoginPage() {
         setRememberMeCookie: rememberMeCookie,
         getCookie,
         CookieStorageKey,
-      })
+      });
 
       if (result.success) {
         // Cập nhật trạng thái đăng nhập
-        const { isAuthenticated: isAuth, userData: user } = checkAuthStatus()
-        setIsAuthenticated(isAuth)
-        setUserData(user)
-        reset()
+        const { isAuthenticated: isAuth, userData: user } = checkAuthStatus();
+        setIsAuthenticated(isAuth);
+        setUserData(user);
+        reset();
       } else if (result.errorData) {
         // Xử lý lỗi dựa trên dữ liệu lỗi chi tiết
-        handleErrorResponse(result.errorData, data.email)
+        handleErrorResponse(result.errorData, data.email);
       } else {
         // Xử lý lỗi chung
         // setAuthError(result.error || t("generalError") || "Lỗi đăng nhập");
@@ -194,14 +218,14 @@ export default function LoginPage() {
     } catch (error) {
       // Extract error detail from the response if available
       if (error && typeof error === "object" && "data" in error) {
-        const errorData = error.data as ValidationErrorResponse
-        setAuthError(errorData.detail || t("generalError") || "Lỗi đăng nhập")
+        const errorData = error.data as ValidationErrorResponse;
+        setAuthError(errorData.detail || t("generalError") || "Lỗi đăng nhập");
 
         // Show toast with the specific error message
         toast.error(errorData.detail || t("generalError") || "Đã xảy ra lỗi", {
           position: "top-right",
           autoClose: 3000,
-        })
+        });
       } else {
         // setAuthError(t("generalError") || "Lỗi đăng nhập");
 
@@ -209,31 +233,33 @@ export default function LoginPage() {
         toast.error(t("generalError") || "Đã xảy ra lỗi", {
           position: "top-right",
           autoClose: 3000,
-        })
+        });
       }
     } finally {
-      setIsAuthenticating(false)
+      setIsAuthenticating(false);
     }
-  }
+  };
 
   // Xử lý xác thực OTP
   const handleVerifyCodeSubmit = async () => {
     if (!verifyCode.trim()) {
-      setVerifyError(t("pleaseEnterVerificationCode") || "Vui lòng nhập mã xác thực")
-      return
+      setVerifyError(
+        t("pleaseEnterVerificationCode") || "Vui lòng nhập mã xác thực"
+      );
+      return;
     }
 
-    setIsVerifying(true)
-    setVerifyError(null)
+    setIsVerifying(true);
+    setVerifyError(null);
 
     try {
       const response = await verify({
         email: userEmail,
         code: verifyCode,
         type: 0,
-      }).unwrap()
+      }).unwrap();
 
-      console.log("Verification response:", response)
+      console.log("Verification response:", response);
 
       // Hiển thị thông báo thành công
       toast.success(
@@ -244,38 +270,44 @@ export default function LoginPage() {
         {
           position: "top-right",
           autoClose: 3000,
-        },
-      )
+        }
+      );
 
       // Đóng popup xác thực
-      setShowVerifyPopup(false)
+      setShowVerifyPopup(false);
 
       // Thử đăng nhập lại sau khi xác thực thành công
-      const loginData = getValues()
+      const loginData = getValues();
       if (loginData.email && loginData.password) {
         setTimeout(() => {
-          onSubmit(loginData)
-        }, 1000)
+          onSubmit(loginData);
+        }, 1000);
       }
     } catch (error: any) {
-      console.error("Verification error:", error)
+      console.error("Verification error:", error);
 
       // Xử lý lỗi xác thực chi tiết
       if (error && error.data) {
-        const errorData = error.data as ValidationErrorResponse
-        setVerifyError(errorData.detail || t("verificationFailed") || "Xác thực thất bại. Vui lòng thử lại.")
+        const errorData = error.data as ValidationErrorResponse;
+        setVerifyError(
+          errorData.detail ||
+            t("verificationFailed") ||
+            "Xác thực thất bại. Vui lòng thử lại."
+        );
       } else {
-        setVerifyError(t("verificationFailed") || "Xác thực thất bại. Vui lòng thử lại.")
+        setVerifyError(
+          t("verificationFailed") || "Xác thực thất bại. Vui lòng thử lại."
+        );
       }
     } finally {
-      setIsVerifying(false)
+      setIsVerifying(false);
     }
-  }
+  };
 
   // Xử lý đăng nhập Google
   const onGoogleLogin = async () => {
-    setIsAuthenticating(true)
-    setAuthError(null)
+    setIsAuthenticating(true);
+    setAuthError(null);
 
     try {
       const result = await handleGoogleLogin({
@@ -287,63 +319,70 @@ export default function LoginPage() {
         setRememberMeCookie: rememberMeCookie,
         getCookie,
         CookieStorageKey,
-      })
+      });
 
       if (result.success) {
         // Cập nhật trạng thái đăng nhập
-        const { isAuthenticated: isAuth, userData: user } = checkAuthStatus()
-        setIsAuthenticated(isAuth)
-        setUserData(user)
+        const { isAuthenticated: isAuth, userData: user } = checkAuthStatus();
+        setIsAuthenticated(isAuth);
+        setUserData(user);
       } else if (result.errorData) {
         // Xử lý lỗi dựa trên dữ liệu lỗi chi tiết
-        handleErrorResponse(result.errorData, "")
+        handleErrorResponse(result.errorData, "");
       } else {
-        setAuthError(result.error || null)
+        setAuthError(result.error || null);
       }
     } catch (error) {
-      console.error("Google login error:", error)
-      setAuthError(t("providerLoginError", { provider: "Google" }) || "Đăng nhập với Google thất bại")
+      console.error("Google login error:", error);
+      setAuthError(
+        t("providerLoginError", { provider: "Google" }) ||
+          "Đăng nhập với Google thất bại"
+      );
     } finally {
-      setIsAuthenticating(false)
+      setIsAuthenticating(false);
     }
-  }
+  };
 
   // Xử lý đăng xuất
   const onLogout = async () => {
-    setIsAuthenticating(true)
+    setIsAuthenticating(true);
 
     try {
       const result = await handleLogout({
         router,
-      })
+      });
 
       if (result.success) {
         // Cập nhật trạng thái đăng nhập
-        setIsAuthenticated(false)
-        setUserData(null)
-        setRememberMe(false)
-        reset()
-        clearToken()
+        setIsAuthenticated(false);
+        setUserData(null);
+        setRememberMe(false);
+        reset();
+        clearToken();
       } else {
-        setAuthError(result.error || null)
+        setAuthError(result.error || null);
       }
     } catch (error) {
-      console.error("Logout error:", error)
-      setAuthError(t("logoutError") || "Đăng xuất thất bại")
+      console.error("Logout error:", error);
+      setAuthError(t("logoutError") || "Đăng xuất thất bại");
     } finally {
-      setIsAuthenticating(false)
+      setIsAuthenticating(false);
     }
-  }
+  };
 
   // Kiểm tra trạng thái để hiển thị form
-  const showForm = !isAuthenticated
+  const showForm = !isAuthenticated;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-900 transition-colors duration-300">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">{t("welcomeBack")}</h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400 text-lg">{t("enterDetails")}</p>
+          <h2 className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            {t("welcomeBack")}
+          </h2>
+          <p className="mt-2 text-gray-600 dark:text-gray-400 text-lg">
+            {t("enterDetails")}
+          </p>
         </div>
 
         {/* Hiển thị lỗi xác thực */}
@@ -357,7 +396,10 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Email */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 {t("email")}
               </label>
               <Input
@@ -369,12 +411,19 @@ export default function LoginPage() {
                 className="h-14 px-4 text-lg bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
                 placeholder={t("emailPlaceholder")}
               />
-              {errors.email && <p className="text-red-500 dark:text-red-400 text-sm">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-red-500 dark:text-red-400 text-sm">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 {t("password")}
               </label>
               <div className="relative">
@@ -394,10 +443,18 @@ export default function LoginPage() {
                   disabled={isAuthenticating || isSubmitting}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 dark:text-red-400 text-sm">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-red-500 dark:text-red-400 text-sm">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Remember Me & Forgot Password */}
@@ -406,10 +463,15 @@ export default function LoginPage() {
                 <Checkbox
                   id="remember-me"
                   checked={rememberMe}
-                  onCheckedChange={(checked: boolean | "indeterminate") => setRememberMe(checked as boolean)}
+                  onCheckedChange={(checked: boolean | "indeterminate") =>
+                    setRememberMe(checked as boolean)
+                  }
                   disabled={isAuthenticating || isSubmitting}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                >
                   {t("rememberMe")}
                 </label>
               </div>
@@ -451,9 +513,9 @@ export default function LoginPage() {
           >
             {(() => {
               try {
-                return t("logout")
+                return t("logout");
               } catch (error) {
-                return "Đăng xuất"
+                return "Đăng xuất";
               }
             })()}
           </Button>
@@ -489,7 +551,11 @@ export default function LoginPage() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      className="h-5 w-5 mr-2"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.20-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
@@ -534,7 +600,11 @@ export default function LoginPage() {
       {/* Verify Code Popup */}
       <Dialog open={showVerifyPopup} onOpenChange={setShowVerifyPopup}>
         <DialogContent className="sm:max-w-[425px] overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-blue-600 dark:text-blue-500">
                 <div className="rounded-full bg-blue-100 dark:bg-blue-900/50 p-2">
@@ -543,31 +613,42 @@ export default function LoginPage() {
                 {t("enterVerificationCode") || "Nhập mã xác thực"}
               </DialogTitle>
               <DialogDescription className="pt-4 text-base text-gray-600 dark:text-gray-400">
-                {t("checkEmail") || "Vui lòng kiểm tra email và nhập mã xác thực."}
+                {t("checkEmail") ||
+                  "Vui lòng kiểm tra email và nhập mã xác thực."}
               </DialogDescription>
             </DialogHeader>
             <div className="mt-6">
               <Input
                 type="text"
-                placeholder={t("verificationCodePlaceholder") || "Nhập mã xác thực"}
+                placeholder={
+                  t("verificationCodePlaceholder") || "Nhập mã xác thực"
+                }
                 value={verifyCode}
                 onChange={(e) => setVerifyCode(e.target.value)}
                 className={`text-center text-2xl tracking-widest h-16 px-4 bg-white dark:bg-gray-800 border-2 ${
-                  verifyError ? "border-red-500 dark:border-red-500" : "border-gray-200 dark:border-gray-700"
+                  verifyError
+                    ? "border-red-500 dark:border-red-500"
+                    : "border-gray-200 dark:border-gray-700"
                 } hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl`}
                 maxLength={6}
                 disabled={isVerifying}
               />
               {verifyError && (
                 <div className="mt-2 text-center">
-                  <p className="text-sm text-red-500 dark:text-red-400">{verifyError}</p>
+                  <p className="text-sm text-red-500 dark:text-red-400">
+                    {verifyError}
+                  </p>
                 </div>
               )}
             </div>
 
             <div className="text-center text-sm mt-4">
-              <span className="text-gray-600 dark:text-gray-400">{t("timeRemaining") || "Thời gian còn lại"}: </span>
-              <span className="font-medium text-indigo-600 dark:text-indigo-400">{formatTime(countdown)}</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {t("timeRemaining") || "Thời gian còn lại"}:{" "}
+              </span>
+              <span className="font-medium text-indigo-600 dark:text-indigo-400">
+                {formatTime(countdown)}
+              </span>
             </div>
             <DialogFooter className="mt-8 sm:justify-start">
               <Button
@@ -589,5 +670,5 @@ export default function LoginPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

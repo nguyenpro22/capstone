@@ -22,7 +22,7 @@ import { livestreamRoom } from "./livestream-room";
 import { clinicView } from "./clinic-view";
 import { clinicCard } from "./clinicCard";
 import { clinicViewDetail } from "./clinic-view-detail";
-import { buyPackageMessages } from './buy-package';
+import { buyPackageMessages } from "./buy-package";
 import { customerScheduleMessage } from "./customerSchedule";
 import { bookingFlowMessages } from "./booking-flow";
 import { navbarAdminMessages } from "./navbarAdmin";
@@ -31,7 +31,6 @@ import { clinicStaffServicePageMessages } from "./clinicStaffService";
 import { clinicStaffOrderMessages } from "./clinicStaffOrder";
 import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
 import { scheduleApprovalMessages } from "./scheduleApproval";
-
 
 const en = {
   home: homeMessages,
