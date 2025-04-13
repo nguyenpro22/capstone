@@ -421,7 +421,7 @@ export default function ClinicDetailPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    router.push(`/clinics/${branch.id}`)
+                                    router.push(`/clinic-view/${branch.id}`)
                                   }
                                 >
                                   {t("viewDetails") || "View Details"}

@@ -68,5 +68,60 @@ export type customerScheduleTranslations = {
   scheduledTime: string
   proceedWithEarlyCheckIn: string
   processing: string
+  // Follow-up modal translations
+  selectDateTimeForNextAppointment: string
+  loadingAppointmentDetails: string
+  selectDate: string
+  confirm: string
+  selectTime: string
+  pleaseSelectDate: string
+  changeDate: string
+  loadingAvailableTimes: string
+  morning: string
+  afternoon: string
+  evening: string
+  noAvailableTimes: string
+  doctorFullyBooked: string
+  selectedAppointment: string
+  scheduling: string
+  // Payment modal translations
+  schedulePayment: string
+  completePaymentForService: string
+  dateAndTime: string
+  totalAmount: string
+  selectPaymentMethod: string
+  proceedToPayment: string
+  paymentQRCode: string
+  scanQRCodeToComplete: string
+  loadingQRCode: string
+  scanWithBankingApp: string
+  qrCodeExpiresIn: string
+  seconds: string
+  waitingForPayment: string
+  paymentSuccessful: string
+  yourPaymentOf: string
+  hasBeenProcessedSuccessfully: string
+  transactionTime: string
+  redirectingToSchedules: string
+  paymentFailed: string
+  couldntProcessPayment: string
+  close: string
+  tryAgain: string
+  processingPayment: string
+  pleaseWaitWhileProcessing: string
+  scheduleDetails: string
+  viewScheduleDetails: string
+  appointmentInformation: string
+  phone: string
+  price: string
+  notes: string
+  proceedToCheckout: string
+  // Next schedule notification translations
+  followUpRequired: string
+  multipleFollowUpsNeeded: string
+  singleFollowUpNeeded: string
+  // Follow-up selection modal translations
+  selectAppointmentForFollowUp: string
+  multipleAppointmentsNeedFollowUps: string
   }
   

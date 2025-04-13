@@ -39,6 +39,8 @@ import { useUpdateScheduleStatusMutation } from "@/features/customer-schedule/ap
 
 // Add this import at the top of your file
 import { useGenerateSchedulesMutation } from "@/features/customer-schedule/api"
+// Add the useTranslations import at the top of the file
+import { useTranslations } from "next-intl"
 
 interface SchedulePaymentModalProps {
   schedule: CustomerSchedule | null
@@ -70,6 +72,8 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
   const [isTimedOut, setIsTimedOut] = useState<boolean>(false)
   // Add this inside your component, near the other hooks
   const [generateSchedules, { isLoading: isGeneratingSchedules }] = useGenerateSchedulesMutation()
+  // Add this line inside the component function, near the top with other hooks
+  const t = useTranslations("customerSchedule")
 
   useEffect(() => {
     if (!transactionId) return
@@ -345,8 +349,8 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
     >
       <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl min-h-[500px] h-[calc(100vh-80px)] max-h-[800px] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-serif">Schedule Payment</DialogTitle>
-          <DialogDescription>Complete your payment for the scheduled service</DialogDescription>
+          <DialogTitle className="text-xl font-serif">{t("schedulePayment")}</DialogTitle>
+          <DialogDescription>{t("completePaymentForService")}</DialogDescription>
         </DialogHeader>
 
         {paymentStatus === "idle" && !showQR && !showPaymentResult && (
@@ -358,7 +362,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                   <div className="flex items-start gap-3">
                     <User className="h-5 w-5 text-pink-500 mt-0.5" />
                     <div>
-                      <p className="font-medium text-gray-700">Customer</p>
+                      <p className="font-medium text-gray-700">{t("customer")}</p>
                       <p className="text-sm text-gray-600">{schedule.customerName}</p>
                     </div>
                   </div>
@@ -366,7 +370,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                   <div className="flex items-start gap-3">
                     <Stethoscope className="h-5 w-5 text-pink-500 mt-0.5" />
                     <div>
-                      <p className="font-medium text-gray-700">Service</p>
+                      <p className="font-medium text-gray-700">{t("service")}</p>
                       <p className="text-sm text-gray-600">{schedule.serviceName}</p>
                     </div>
                   </div>
@@ -374,7 +378,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                   <div className="flex items-start gap-3">
                     <Building className="h-5 w-5 text-pink-500 mt-0.5" />
                     <div>
-                      <p className="font-medium text-gray-700">Doctor</p>
+                      <p className="font-medium text-gray-700">{t("doctor")}</p>
                       <p className="text-sm text-gray-600">{schedule.doctorName}</p>
                     </div>
                   </div>
@@ -382,7 +386,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                   <div className="flex items-start gap-3">
                     <Calendar className="h-5 w-5 text-pink-500 mt-0.5" />
                     <div>
-                      <p className="font-medium text-gray-700">Date & Time</p>
+                      <p className="font-medium text-gray-700">{t("dateAndTime")}</p>
                       <p className="text-sm text-gray-600">
                         {schedule.bookingDate}, {formatTimeRange(schedule.startTime, schedule.endTime)}
                       </p>
@@ -408,7 +412,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
               {/* Payment Amount */}
               <div className="bg-white p-4 rounded-lg border">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Total Amount</span>
+                  <span className="text-gray-700">{t("totalAmount")}</span>
                   <span className="text-xl font-bold text-pink-700">
                     {formatPrice(schedule.amount || schedule.amount || 100000)}
                   </span>
@@ -417,7 +421,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
 
               {/* Payment Method Selection */}
               <div className="bg-white p-4 rounded-lg border">
-                <h3 className="font-medium text-gray-700 mb-3">Select Payment Method</h3>
+                <h3 className="font-medium text-gray-700 mb-3">{t("selectPaymentMethod")}</h3>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-4">
                   <div>
                     <RadioGroupItem value="qr" id="qr" className="peer sr-only" />
@@ -446,7 +450,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
 
             <DialogFooter>
               <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={handlePayment}
@@ -456,11 +460,11 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                 {isLoading ? (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
+                    {t("processing")}
                   </>
                 ) : (
                   <>
-                    Proceed to Payment
+                    {t("proceedToPayment")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -473,8 +477,8 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
         {showQR && (
           <div className="flex flex-col items-center p-6">
             <DialogHeader>
-              <DialogTitle className="text-center font-serif">Payment QR Code</DialogTitle>
-              <DialogDescription className="text-center">Scan this QR code to complete your payment</DialogDescription>
+              <DialogTitle className="text-center font-serif">{t("paymentQRCode")}</DialogTitle>
+              <DialogDescription className="text-center">{t("scanQRCodeToComplete")}</DialogDescription>
             </DialogHeader>
 
             {qrUrl ? (
@@ -488,7 +492,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
               </div>
             ) : (
               <div className="w-64 h-64 bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg mb-4 flex items-center justify-center border-2 border-dashed border-gray-200">
-                <p className="text-gray-500 text-center px-4">Loading QR Code...</p>
+                <p className="text-gray-500 text-center px-4">{t("loadingQRCode")}</p>
               </div>
             )}
 
@@ -496,12 +500,12 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
               <p className="font-semibold text-lg text-gray-900">
                 {formatPrice(schedule.amount || schedule.amount || 100000)}
               </p>
-              <p className="text-sm text-gray-500">Scan with your banking app to complete the payment</p>
+              <p className="text-sm text-gray-500">{t("scanWithBankingApp")}</p>
               {/* Replace the existing Clock section with this countdown display */}
               <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-4">
                 <Clock className="h-4 w-4" />
                 <span className={countdown <= 10 ? "text-red-500 font-bold" : ""}>
-                  QR code expires in {countdown} seconds
+                  {t("qrCodeExpiresIn")} {countdown} {t("seconds")}
                 </span>
               </div>
 
@@ -509,7 +513,7 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
               <div className="mt-4">
                 <div className="flex items-center justify-center gap-2 text-amber-500">
                   <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>Waiting for payment...</span>
+                  <span>{t("waitingForPayment")}</span>
                 </div>
               </div>
             </div>
@@ -524,20 +528,20 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center text-center">
                     <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-                    <h3 className="text-xl font-semibold text-green-700 mb-2">Payment Successful!</h3>
+                    <h3 className="text-xl font-semibold text-green-700 mb-2">{t("paymentSuccessful")}</h3>
                     <p className="text-green-600 mb-4">
-                      Your payment of{" "}
+                      {t("yourPaymentOf")}{" "}
                       {paymentDetails.amount
                         ? formatPrice(paymentDetails.amount)
                         : formatPrice(schedule.amount || schedule.amount || 100000)}{" "}
-                      has been processed successfully.
+                      {t("hasBeenProcessedSuccessfully")}
                     </p>
                     {paymentDetails.timestamp && (
                       <p className="text-sm text-green-600 mb-4">
-                        Transaction time: {new Date(paymentDetails.timestamp).toLocaleString()}
+                        {t("transactionTime")} {new Date(paymentDetails.timestamp).toLocaleString()}
                       </p>
                     )}
-                    <p className="text-sm text-green-600 animate-pulse">Redirecting to schedules...</p>
+                    <p className="text-sm text-green-600 animate-pulse">{t("redirectingToSchedules")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -546,19 +550,19 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center text-center">
                     <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
-                    <h3 className="text-xl font-semibold text-red-700 mb-2">Payment Failed</h3>
+                    <h3 className="text-xl font-semibold text-red-700 mb-2">{t("paymentFailed")}</h3>
                     <p className="text-red-600 mb-4">
-                      {errorMessage || paymentDetails.message || "We couldn't process your payment. Please try again."}
+                      {errorMessage || paymentDetails.message || t("couldntProcessPayment")}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
                       <Button onClick={onClose} variant="outline" className="flex-1">
-                        Close
+                        {t("close")}
                       </Button>
                       <Button
                         onClick={handleRetry}
                         className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
                       >
-                        Try Again <RefreshCw className="ml-2 h-4 w-4" />
+                        {t("tryAgain")} <RefreshCw className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -575,12 +579,11 @@ export default function SchedulePaymentModal({ schedule, isOpen, onClose }: Sche
               animate={{ scale: 1, opacity: 1 }}
               className="w-16 h-16 rounded-full border-4 border-t-pink-500 border-pink-200 animate-spin mb-4"
             />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Processing Payment</h3>
-            <p className="text-gray-500 text-center">Please wait while we process your payment...</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("processingPayment")}</h3>
+            <p className="text-gray-500 text-center">{t("pleaseWaitWhileProcessing")}</p>
           </div>
         )}
       </DialogContent>
     </Dialog>
   )
 }
-
