@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import { RadioGroup } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import type { BookingData, Doctor } from "../../types/booking"
-import { formatDate, groupTimeSlots } from "../../utils/booking-utils"
-import { Clock, AlertCircle } from "lucide-react"
-import { TimeSlotGroup } from "../time-slot-group"
-import { DoctorItem } from "../doctor-item"
-import { useGetBusyTimesQuery } from "@/features/booking/api"
-import { BookingService } from "../../utils/booking-service"
-import { CustomCalendar } from "./custom-calendar"
-import { useTranslations } from "next-intl" // Import useTranslations
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { BookingData, Doctor } from "../../types/booking";
+import { formatDate, groupTimeSlots } from "../../utils/booking-utils";
+import { Clock, AlertCircle } from "lucide-react";
+import { TimeSlotGroup } from "../time-slot-group";
+import { DoctorItem } from "../doctor-item";
+import { useGetBusyTimesQuery } from "@/features/booking/api";
+import { BookingService } from "../../utils/booking-service";
+import { CustomCalendar } from "./custom-calendar";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface SelectDoctorDateStepProps {
-  bookingData: BookingData
-  updateBookingData: (data: Partial<BookingData>) => void
-  highestRatedDoctor: Doctor | null
+  bookingData: BookingData;
+  updateBookingData: (data: Partial<BookingData>) => void;
+  highestRatedDoctor: Doctor | null;
 }
 
 export function SelectDoctorDateStep({
@@ -27,52 +27,63 @@ export function SelectDoctorDateStep({
   updateBookingData,
   highestRatedDoctor,
 }: SelectDoctorDateStepProps) {
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(bookingData.doctor?.id || null)
-  const [skipDoctorSelection, setSkipDoctorSelection] = useState<boolean>(bookingData.skipDoctorSelection)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(bookingData.date || undefined)
-  const [selectedTime, setSelectedTime] = useState<string | null>(bookingData.time || null)
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([])
-  const [loadingDoctors, setLoadingDoctors] = useState(false)
-  const [doctors, setDoctors] = useState<Doctor[]>([])
-  const t = useTranslations("bookingFlow") // Use the hook with the namespace
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(
+    bookingData.doctor?.id || null
+  );
+  const [skipDoctorSelection, setSkipDoctorSelection] = useState<boolean>(
+    bookingData.skipDoctorSelection
+  );
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    bookingData.date || undefined
+  );
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    bookingData.time || null
+  );
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
 
-  const { service, clinic } = bookingData
+  const { service, clinic } = bookingData;
 
   // Fetch doctors on component mount
   useEffect(() => {
     const fetchDoctors = async () => {
-      setLoadingDoctors(true)
+      setLoadingDoctors(true);
       try {
         if (service.doctorServices && service.doctorServices.length > 0) {
-          const doctorsData = await BookingService.getDoctorsByService(service)
-          setDoctors(doctorsData)
+          const doctorsData = await BookingService.getDoctorsByService(service);
+          setDoctors(doctorsData);
         } else {
-          setDoctors([])
+          setDoctors([]);
         }
       } catch (error) {
-        console.error("Error fetching doctors:", error)
-        setDoctors([])
+        console.error("Error fetching doctors:", error);
+        setDoctors([]);
       } finally {
-        setLoadingDoctors(false)
+        setLoadingDoctors(false);
       }
-    }
+    };
 
-    fetchDoctors()
-  }, [service])
+    fetchDoctors();
+  }, [service]);
 
   // Get the current doctor (either selected or highest rated if skipped)
-  const currentDoctor = skipDoctorSelection && highestRatedDoctor ? highestRatedDoctor : bookingData.doctor
+  const currentDoctor =
+    skipDoctorSelection && highestRatedDoctor
+      ? highestRatedDoctor
+      : bookingData.doctor;
 
   // Format date for API query
   function formatDateForApi(date: Date): string {
-    const year = date?.getFullYear()
-    const month = `${date?.getMonth() + 1}`.padStart(2, "0")
-    const day = `${date?.getDate()}`.padStart(2, "0")
-    return `${year}-${month}-${day}`
+    const year = date?.getFullYear();
+    const month = `${date?.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date?.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
 
   // Use RTK Query hook to fetch busy times
-  const { data, isLoading } = useGetBusyTimesQuery(
+  const { data, isLoading, refetch } = useGetBusyTimesQuery(
     {
       doctorId: currentDoctor?.id || "",
       clinicId: clinic?.id || "",
@@ -81,8 +92,8 @@ export function SelectDoctorDateStep({
     // Only run the query if we have all required parameters
     {
       skip: !currentDoctor?.id || !clinic?.id || !selectedDate,
-    },
-  )
+    }
+  );
 
   // Calculate available time slots when busy times data changes
   useEffect(() => {
@@ -90,84 +101,88 @@ export function SelectDoctorDateStep({
       if (data?.value && selectedDate) {
         try {
           // Use the BookingService to calculate available time slots
-          const slots = await BookingService.getAvailableTimeSlots(data.value)
+          const slots = await BookingService.getAvailableTimeSlots(data.value);
 
           // Filter out past time slots if the selected date is today
-          const today = new Date()
-          const isToday = selectedDate.toDateString() === today.toDateString()
+          const today = new Date();
+          const isToday = selectedDate.toDateString() === today.toDateString();
 
           if (isToday) {
-            const currentHour = today.getHours()
-            const currentMinute = today.getMinutes()
+            const currentHour = today.getHours();
+            const currentMinute = today.getMinutes();
 
             // Filter out time slots that have already passed
             const filteredSlots = slots.filter((timeSlot) => {
-              const [hourStr, minuteStr] = timeSlot.split(":")
-              const hour = Number.parseInt(hourStr, 10)
-              const minute = Number.parseInt(minuteStr, 10)
+              const [hourStr, minuteStr] = timeSlot.split(":");
+              const hour = Number.parseInt(hourStr, 10);
+              const minute = Number.parseInt(minuteStr, 10);
 
               // Compare with current time
-              return hour > currentHour || (hour === currentHour && minute > currentMinute)
-            })
+              return (
+                hour > currentHour ||
+                (hour === currentHour && minute > currentMinute)
+              );
+            });
 
-            setAvailableTimeSlots(filteredSlots)
+            setAvailableTimeSlots(filteredSlots);
           } else {
-            setAvailableTimeSlots(slots)
+            setAvailableTimeSlots(slots);
           }
         } catch (error) {
-          console.error("Error calculating available time slots:", error)
-          setAvailableTimeSlots([])
+          console.error("Error calculating available time slots:", error);
+          setAvailableTimeSlots([]);
         }
       } else {
-        setAvailableTimeSlots([])
+        setAvailableTimeSlots([]);
       }
-    }
+    };
 
-    calculateAvailableSlots()
-  }, [data, selectedDate])
+    calculateAvailableSlots();
+  }, [data, selectedDate]);
 
   const handleDoctorSelect = (doctorId: string) => {
-    setSelectedDoctorId(doctorId)
-    const selectedDoctor = doctors.find((doc) => doc.id === doctorId) || null
-    updateBookingData({ doctor: selectedDoctor })
+    setSelectedDoctorId(doctorId);
+    const selectedDoctor = doctors.find((doc) => doc.id === doctorId) || null;
+    updateBookingData({ doctor: selectedDoctor });
 
     // Reset time when doctor changes
-    setSelectedTime(null)
-    updateBookingData({ time: null })
-  }
+    setSelectedTime(null);
+    updateBookingData({ time: null });
+  };
 
   const handleSkipDoctorToggle = (checked: boolean) => {
-    setSkipDoctorSelection(checked)
-    updateBookingData({ skipDoctorSelection: checked })
+    setSkipDoctorSelection(checked);
+    updateBookingData({ skipDoctorSelection: checked });
 
     if (checked && highestRatedDoctor) {
-      setSelectedDoctorId(highestRatedDoctor.id)
-      updateBookingData({ doctor: highestRatedDoctor })
+      setSelectedDoctorId(highestRatedDoctor.id);
+      updateBookingData({ doctor: highestRatedDoctor });
 
       // Reset time when doctor changes
-      setSelectedTime(null)
-      updateBookingData({ time: null })
+      setSelectedTime(null);
+      updateBookingData({ time: null });
     }
-  }
+  };
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      setSelectedDate(date)
-      setSelectedTime(null) // Reset selected time when date changes
-      updateBookingData({ date, time: null })
+      setSelectedDate(date);
+      setSelectedTime(null); // Reset selected time when date changes
+      updateBookingData({ date, time: null });
+      refetch();
     }
-  }
+  };
 
   const handleTimeSelect = (time: string) => {
-    setSelectedTime(time)
-    updateBookingData({ time })
-  }
+    setSelectedTime(time);
+    updateBookingData({ time });
+  };
 
   // Group time slots by period
-  const timeSlotGroups = groupTimeSlots(availableTimeSlots)
+  const timeSlotGroups = groupTimeSlots(availableTimeSlots);
 
   // Check if we have all required data
-  const missingRequirements = !currentDoctor || !clinic
+  const missingRequirements = !currentDoctor || !clinic;
 
   if (loadingDoctors) {
     return (
@@ -175,7 +190,7 @@ export function SelectDoctorDateStep({
         <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-muted-foreground">{t("loadingDoctors")}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -187,7 +202,9 @@ export function SelectDoctorDateStep({
           <Checkbox
             id="skip-doctor"
             checked={skipDoctorSelection}
-            onCheckedChange={(checked) => handleSkipDoctorToggle(checked === true)}
+            onCheckedChange={(checked) =>
+              handleSkipDoctorToggle(checked === true)
+            }
           />
           <Label htmlFor="skip-doctor" className="text-sm cursor-pointer">
             {t("skipDoctorSelection")}
@@ -195,7 +212,11 @@ export function SelectDoctorDateStep({
         </div>
 
         {!skipDoctorSelection ? (
-          <RadioGroup value={selectedDoctorId || ""} onValueChange={handleDoctorSelect} className="space-y-3">
+          <RadioGroup
+            value={selectedDoctorId || ""}
+            onValueChange={handleDoctorSelect}
+            className="space-y-3"
+          >
             {doctors.map((doctor) => (
               <DoctorItem
                 key={doctor.id}
@@ -235,8 +256,8 @@ export function SelectDoctorDateStep({
               {!currentDoctor && !clinic
                 ? t("selectDoctorClinicFirst")
                 : !currentDoctor
-                  ? t("selectDoctorFirst")
-                  : t("selectClinicFirst")}
+                ? t("selectDoctorFirst")
+                : t("selectClinicFirst")}
             </AlertDescription>
           </Alert>
         )}
@@ -250,14 +271,14 @@ export function SelectDoctorDateStep({
               selected={selectedDate}
               onSelect={handleDateSelect}
               disabled={(date) => {
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
                 // Disable past dates and dates more than 30 days in the future
-                const maxDate = new Date()
-                maxDate.setDate(maxDate.getDate() + 30)
+                const maxDate = new Date();
+                maxDate.setDate(maxDate.getDate() + 30);
 
-                return date < today || date > maxDate
+                return date < today || date > maxDate;
               }}
             />
           </div>
@@ -269,7 +290,9 @@ export function SelectDoctorDateStep({
               isLoading ? (
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-muted-foreground">{t("loadingTimeSlots")}</p>
+                  <p className="text-muted-foreground">
+                    {t("loadingTimeSlots")}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -296,7 +319,9 @@ export function SelectDoctorDateStep({
 
                   {availableTimeSlots.length === 0 && (
                     <div className="p-4 text-center bg-muted/30 rounded-lg">
-                      <p className="text-muted-foreground">{t("noAvailableSlots")}</p>
+                      <p className="text-muted-foreground">
+                        {t("noAvailableSlots")}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -325,5 +350,5 @@ export function SelectDoctorDateStep({
         )}
       </div>
     </div>
-  )
+  );
 }

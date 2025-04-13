@@ -463,7 +463,7 @@ export function BookingDetailDialog({
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-[1000px] md:max-w-[1200px] lg:max-w-[1300px] p-0 border-0 shadow-xl rounded-lg dark:bg-indigo-950 dark:border dark:border-indigo-800/30">
+        <DialogContent className="sm:max-w-[1000px] md:max-w-[1200px] lg:max-w-[1300px] p-0 border-0 shadow-xl rounded-lg dark:bg-indigo-950 dark:border dark:border-indigo-800/30 max-h-[90vh] overflow-y-auto">
           <div className="relative">
             <div className="absolute top-3 right-3 z-10">
               <Button
@@ -724,7 +724,8 @@ export function BookingDetailDialog({
                             <AvatarImage
                               src={
                                 displayBooking.doctor.imageUrl ||
-                                `/placeholder.svg?height=48&width=48`
+                                `/placeholder.svg?height=48&width=48` ||
+                                "/placeholder.svg"
                               }
                               alt={displayBooking.doctor.name}
                             />
@@ -879,6 +880,7 @@ export function BookingDetailDialog({
                       <Image
                         src={
                           displayBooking.service.imageUrls[0] ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -1121,7 +1123,7 @@ export function BookingDetailDialog({
         open={isRescheduleDialogOpen}
         onOpenChange={setIsRescheduleDialogOpen}
       >
-        <DialogContent className="sm:max-w-[1200px] md:max-w-[1350px] lg:max-w-[1500px] p-0 border-0 shadow-xl rounded-lg dark:bg-indigo-950 dark:border dark:border-indigo-800/30">
+        <DialogContent className="sm:max-w-[1200px] md:max-w-[1350px] lg:max-w-[1500px] p-0 border-0 shadow-xl rounded-lg dark:bg-indigo-950 dark:border dark:border-indigo-800/30 max-h-[90vh] overflow-y-auto">
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700 p-7">
             <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
               <CalendarIconFull className="h-8 w-8" />
