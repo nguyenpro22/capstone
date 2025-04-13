@@ -55,8 +55,6 @@ export const clinicStaffRoutes = {
   PROFILE: `${privateClinicStaffPath}/profile`,
   SERVICES: `${privateClinicStaffPath}/service`,
   INBOX: `${privateClinicStaffPath}/inbox`,
-
-
 };
 
 // CUSTOMER ROUTES
@@ -109,30 +107,12 @@ const matcherCache = new Map<string, ReturnType<typeof match>>();
 
 // Cache routes cho từng role
 export const roleRoutesMap = {
-  [ROLE.SYSTEM_ADMIN]: [
-    ...Object.values(systemAdminRoutes),
-    ...Object.values(publicRoutes),
-  ],
-  [ROLE.CLINIC_ADMIN]: [
-    ...Object.values(clinicAdminRoutes),
-    ...Object.values(publicRoutes),
-  ],
-  [ROLE.DOCTOR]: [
-    ...Object.values(doctorRoutes),
-    ...Object.values(publicRoutes),
-  ],
-  [ROLE.CLINIC_STAFF]: [
-    ...Object.values(clinicStaffRoutes),
-    ...Object.values(publicRoutes),
-  ],
-  [ROLE.CUSTOMER]: [
-    ...Object.values(customerRoutes),
-    ...Object.values(publicRoutes),
-  ],
-  [ROLE.SYSTEM_STAFF]: [
-    ...Object.values(systemStaffRoutes),
-    ...Object.values(publicRoutes),
-  ],
+  [ROLE.SYSTEM_ADMIN]: [...Object.values(systemAdminRoutes)],
+  [ROLE.CLINIC_ADMIN]: [...Object.values(clinicAdminRoutes)],
+  [ROLE.DOCTOR]: [...Object.values(doctorRoutes)],
+  [ROLE.CLINIC_STAFF]: [...Object.values(clinicStaffRoutes)],
+  [ROLE.CUSTOMER]: [...Object.values(customerRoutes)],
+  [ROLE.SYSTEM_STAFF]: [...Object.values(systemStaffRoutes)],
   [ROLE.GUEST]: [...Object.values(publicRoutes)],
 };
 

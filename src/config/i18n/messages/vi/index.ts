@@ -1,4 +1,4 @@
-import { customerScheduleTranslations } from './../types/customerSchedule';
+import { customerScheduleTranslations } from "./../types/customerSchedule";
 import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";

@@ -75,6 +75,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { SendMessageBody, useSendMessageMutation } from "@/features/inbox/api";
 import { useRouter } from "next/navigation";
+import { handleProtectedAction } from "@/features/auth/utils";
+import ModalConfirmLogin from "@/components/services/loginModal";
 
 // Loading Skeleton Component
 function ServiceDetailSkeleton() {
@@ -270,6 +272,8 @@ export default function ServiceDetail() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [sendMessage] = useSendMessageMutation();
   const [doctor, setDoctor] = useState<Doctor>();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [postLoginAction, setPostLoginAction] = useState<() => void>(() => {});
   useEffect(() => {
     if (livestreamId) {
       setShowBookingFlow(true);
@@ -277,13 +281,27 @@ export default function ServiceDetail() {
   }, [livestreamId]);
   // Handler functions
   const handleBookNow = () => {
-    setShowBookingFlow(true);
+    handleProtectedAction(
+      () => setShowBookingFlow(true),
+      () => {
+        setPostLoginAction(() => () => setShowBookingFlow(true));
+        setShowLoginModal(true);
+      }
+    );
   };
-
+  const handleConfirmLogin = () => {
+    localStorage.setItem("redirect", `/services/${id}`);
+    router.push("/login");
+  };
   const handleCloseBookingFlow = () => {
     setShowBookingFlow(false);
   };
-
+  const handleChatNow = () => {
+    handleProtectedAction(handleChat, () => {
+      setPostLoginAction(() => handleChat);
+      setShowLoginModal(true);
+    });
+  };
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setContactSubmitting(true);
@@ -1168,12 +1186,18 @@ export default function ServiceDetail() {
                                       }
                                       alt={clinic.name}
                                       fill
-                                      className={`object-cover ${clinic.isActivated === false ? "grayscale" : ""}`}
+                                      className={`object-cover ${
+                                        clinic.isActivated === false
+                                          ? "grayscale"
+                                          : ""
+                                      }`}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                     <div className="absolute bottom-0 left-0 p-4 flex gap-2">
                                       <Badge className="bg-white text-rose-600 hover:bg-gray-100">
-                                        {clinic.isParent ? t("mainBranch") : t("branch")}
+                                        {clinic.isParent
+                                          ? t("mainBranch")
+                                          : t("branch")}
                                       </Badge>
                                       {clinic.isActivated !== false ? (
                                         <Badge className="bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
@@ -1194,16 +1218,21 @@ export default function ServiceDetail() {
                                       <div className="flex items-start gap-2">
                                         <MapPin className="h-4 w-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
                                         <span className="dark:text-gray-300">
-                                          {clinic.address || t("contactForAddress")}
+                                          {clinic.address ||
+                                            t("contactForAddress")}
                                         </span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Phone className="h-4 w-4 text-rose-500 dark:text-rose-400" />
-                                        <span className="dark:text-gray-300">{clinic.phoneNumber}</span>
+                                        <span className="dark:text-gray-300">
+                                          {clinic.phoneNumber}
+                                        </span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Mail className="h-4 w-4 text-rose-500 dark:text-rose-400" />
-                                        <span className="dark:text-gray-300">{clinic.email}</span>
+                                        <span className="dark:text-gray-300">
+                                          {clinic.email}
+                                        </span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Globe className="h-4 w-4 text-rose-500 dark:text-rose-400" />
@@ -1217,12 +1246,19 @@ export default function ServiceDetail() {
                                         variant="ghost"
                                         className="p-0 h-auto text-rose-600 hover:text-rose-700 hover:bg-transparent dark:text-rose-400 dark:hover:text-rose-300"
                                       >
-                                        {t("getDirections")} <ArrowRight className="h-4 w-4 ml-1" />
+                                        {t("getDirections")}{" "}
+                                        <ArrowRight className="h-4 w-4 ml-1" />
                                       </Button>
                                       {clinic.isActivated !== false ? (
-                                        <Button variant="secondary">{t("bookHere")}</Button>
+                                        <Button variant="secondary">
+                                          {t("bookHere")}
+                                        </Button>
                                       ) : (
-                                        <Button variant="secondary" disabled className="opacity-50 cursor-not-allowed">
+                                        <Button
+                                          variant="secondary"
+                                          disabled
+                                          className="opacity-50 cursor-not-allowed"
+                                        >
                                           {t("serviceUnavailable")}
                                         </Button>
                                       )}
@@ -1565,7 +1601,7 @@ export default function ServiceDetail() {
                         <Button
                           variant="outline"
                           className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-                          onClick={handleChat}
+                          onClick={handleChatNow}
                         >
                           Tư vấn ngay
                         </Button>
@@ -1708,6 +1744,11 @@ export default function ServiceDetail() {
             userData={user}
           />
         )}
+        <ModalConfirmLogin
+          isOpen={showLoginModal}
+          onCancel={() => setShowLoginModal(false)}
+          onConfirm={handleConfirmLogin}
+        />
       </div>
     </Suspense>
   );

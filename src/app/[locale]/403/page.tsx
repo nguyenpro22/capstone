@@ -1,27 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { ArrowLeftCircle } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { ROLE } from "@/constants/role.constant";
-import { roleRoutesMap, routeAccess } from "@/constants/route.constant";
+import { roleRoutesMap } from "@/constants/route.constant";
 import { getAccessToken } from "@/utils";
-import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
 export default function Forbidden(): JSX.Element {
   const router = useRouter();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
-  // 🔐 Lấy thông tin người dùng từ Redux
   const user = useSelector((state: RootState) => state.auth.user);
   const role = user?.roleName || ROLE.GUEST;
-
-  // ✅ Kiểm tra đã đăng nhập chưa
-  const isLoggedIn = !!getAccessToken();
+  const isLoggedIn = Boolean(getAccessToken());
 
   useEffect(() => {
     setMounted(true);
@@ -29,26 +27,24 @@ export default function Forbidden(): JSX.Element {
 
   const handleGoBack = () => {
     try {
-      const referrer = document.referrer;
-      const origin = window.location.origin;
-
-      if (referrer && referrer.startsWith(origin)) {
-        const refPath = new URL(referrer).pathname;
-
-        // 🛡️ Kiểm tra quyền truy cập bằng routeAccess
-        if (routeAccess(refPath, role, isLoggedIn)) {
-          router.push(refPath);
-          return;
-        }
-      }
+      const route = roleRoutesMap[role]?.[0] || "/";
+      router.push(route);
     } catch (error) {
-      console.warn("Không thể lấy referrer:", error);
+      console.warn("Không thể chuyển hướng:", error);
     }
-
-    // 🚪 Nếu không hợp lệ → về route mặc định theo role
-    const defaultRoute = roleRoutesMap[role]?.[0] || "/home";
-    router.push(defaultRoute);
   };
+
+  const handlePrimaryAction = () => {
+    if (isLoggedIn) {
+      handleGoBack();
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const buttonText = isLoggedIn
+    ? "Quay lại nơi phù hợp"
+    : "Đăng nhập để truy cập";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 flex items-center justify-center relative overflow-hidden">
@@ -80,9 +76,7 @@ export default function Forbidden(): JSX.Element {
             </svg>
           </div>
 
-          <h1 className="text-4xl font-bold text-white tracking-tight mb-2">
-            403 - Truy cập bị từ chối
-          </h1>
+          <h1 className="text-4xl font-bold mb-2">403 - Truy cập bị từ chối</h1>
           <p className="text-gray-400 text-lg">
             Bạn không có quyền truy cập vào trang này.
           </p>
@@ -90,11 +84,11 @@ export default function Forbidden(): JSX.Element {
 
         <div className="mt-8 flex justify-center">
           <Button
-            onClick={handleGoBack}
+            onClick={handlePrimaryAction}
             className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg shadow-md transition-all"
           >
             <ArrowLeftCircle className="w-5 h-5" />
-            Quay lại nơi phù hợp
+            {buttonText}
           </Button>
         </div>
       </motion.div>

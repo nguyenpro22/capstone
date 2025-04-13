@@ -45,32 +45,6 @@ export default function LivestreamViewPage() {
   }, []);
 
   useEffect(() => {
-    if (!isBrowser) return;
-
-    // Check for dark mode preference
-    const isDarkMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(isDarkMode);
-
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isBrowser]);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", String(newDarkMode));
-
-    if (newDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
-
-  useEffect(() => {
     const fetchRooms = async () => {
       if (!isBrowser || !isMounted) return;
 
@@ -555,19 +529,6 @@ export default function LivestreamViewPage() {
           <h1 className="text-2xl font-bold text-rose-600 dark:text-rose-500">
             Phát Trực Tiếp Beautify
           </h1>
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-            aria-label={
-              darkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"
-            }
-          >
-            {darkMode ? (
-              <Sun className="h-5 w-5 text-amber-400" />
-            ) : (
-              <Moon className="h-5 w-5 text-gray-700" />
-            )}
-          </button>
         </div>
       </header>
 
