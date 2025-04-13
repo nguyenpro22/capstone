@@ -28,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetClinicByIdV2Query } from "@/features/clinic/api";
 
 export default function ClinicDetailPage() {
-  const t = useTranslations("clinicDetail");
+  const t = useTranslations("clinicViewDetail");
   const params = useParams();
   const router = useRouter();
   const clinicId = params.id as string;

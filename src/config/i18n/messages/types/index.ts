@@ -23,7 +23,9 @@ import { BookingFlowMessages } from "./booking-flow";
 import { sidebarMessages } from "./sidebar";
 import { navbarAdminMessages } from "./navbarAdmin";
 import { buyPackageTranslations } from "./buy-package";
-
+import { clinicView } from "./clinic-view";
+import { ClinicCardTranslation } from "./clinicCard";
+import { ClinicDetailTranslation } from "./clinic-view-detail";
 
 export type Messages = {
   home: homeMessages;
@@ -52,4 +54,7 @@ export type Messages = {
   sidebar: sidebarMessages;
   navbarAdmin: navbarAdminMessages;
   buyPackage: buyPackageTranslations;
+  clinicView: clinicView;
+  clinicCard: ClinicCardTranslation;
+  clinicViewDetail: ClinicDetailTranslation;
 };

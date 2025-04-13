@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { MapPin, Building, ArrowRight, Mail } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,10 @@ interface ClinicCardProps {
 
 export function ClinicCard({ clinic, featured = false }: ClinicCardProps) {
   const router = useRouter();
+  const t = useTranslations("clinicCard");
 
   const handleClinicClick = () => {
-    router.push(`/clinics/${clinic.id}`);
+    router.push(`/clinic-view/${clinic.id}`);
   };
 
   return (
@@ -40,7 +42,7 @@ export function ClinicCard({ clinic, featured = false }: ClinicCardProps) {
           {featured && (
             <div className="absolute top-4 right-4">
               <div className="bg-primary text-white px-3 py-1 rounded-full text-xs font-medium">
-                Featured
+                {t("featured")}
               </div>
             </div>
           )}
@@ -54,7 +56,7 @@ export function ClinicCard({ clinic, featured = false }: ClinicCardProps) {
                 variant="outline"
                 className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30"
               >
-                Pending Activation
+                {t("pending")}
               </Badge>
             )}
           </div>
@@ -76,7 +78,7 @@ export function ClinicCard({ clinic, featured = false }: ClinicCardProps) {
               <Building className="h-4 w-4 text-primary" />
               <span className="text-sm">
                 {clinic.totalBranches}{" "}
-                {clinic.totalBranches === 1 ? "branch" : "branches"}
+                {clinic.totalBranches === 1 ? t("branch") : t("branches")}
               </span>
             </div>
             <Button
@@ -84,7 +86,7 @@ export function ClinicCard({ clinic, featured = false }: ClinicCardProps) {
               size="sm"
               className="rounded-full group-hover:bg-primary group-hover:text-white transition-all duration-300"
             >
-              View details
+              {t("viewDetails")}
               <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>

@@ -18,10 +18,13 @@ import { registerClinic } from "./registerClinic";
 import { livestream } from "./livestream";
 import { livestreamRoom } from "./livestream-room";
 import { clinicProfileMessages } from "./clinicProfile";
-import { bookingFlowMessages } from './booking-flow';
-import { sidebarMessages } from './sidebar';
-import { navbarAdminMessages } from './navbarAdmin';
-import { buyPackageMessages } from './buy-package';
+import { bookingFlowMessages } from "./booking-flow";
+import { sidebarMessages } from "./sidebar";
+import { navbarAdminMessages } from "./navbarAdmin";
+import { buyPackageMessages } from "./buy-package";
+import { clinicView } from "./clinic-view";
+import { clinicCard } from "./clinicCard";
+import { clinicViewDetail } from "./clinic-view-detail";
 
 const vi = {
   home: homeMessages,
@@ -48,7 +51,10 @@ const vi = {
   bookingFlow: bookingFlowMessages,
   sidebar: sidebarMessages,
   navbarAdmin: navbarAdminMessages,
-  buyPackage: buyPackageMessages
+  buyPackage: buyPackageMessages,
+  clinicView,
+  clinicViewDetail,
+  clinicCard,
 };
 
 export default vi;
