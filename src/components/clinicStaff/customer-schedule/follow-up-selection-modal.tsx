@@ -14,6 +14,8 @@ import { Calendar, CheckCircle2, Clock, User } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import type { CustomerSchedule } from "@/features/customer-schedule/types"
+// Add the useTranslations import
+import { useTranslations } from "next-intl"
 
 interface FollowUpSelectionModalProps {
   isOpen: boolean
@@ -28,6 +30,8 @@ export default function FollowUpSelectionModal({
   schedules,
   onScheduleSelected,
 }: FollowUpSelectionModalProps) {
+  // Add the translation hook
+  const t = useTranslations("customerSchedule")
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null)
 
   const handleSubmit = () => {
@@ -47,10 +51,8 @@ export default function FollowUpSelectionModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Select Appointment for Follow-up</DialogTitle>
-          <DialogDescription>
-            Multiple appointments need follow-ups. Please select which one you had like to schedule next.
-          </DialogDescription>
+          <DialogTitle>{t("selectAppointmentForFollowUp")}</DialogTitle>
+          <DialogDescription>{t("multipleAppointmentsNeedFollowUps")}</DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
@@ -98,10 +100,10 @@ export default function FollowUpSelectionModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={!selectedScheduleId}>
-            Schedule Follow-up
+            {t("scheduleFollowUp")}
           </Button>
         </DialogFooter>
       </DialogContent>

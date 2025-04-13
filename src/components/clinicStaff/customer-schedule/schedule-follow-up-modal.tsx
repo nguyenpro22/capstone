@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { format } from "date-fns"
-import { CalendarIcon, Check, Loader2, Clock, AlertCircle } from "lucide-react"
+import { format, isToday } from "date-fns"
+import { CalendarIcon, Check, Loader2, Clock, AlertCircle } from 'lucide-react'
 import { toast } from "react-toastify"
 
 import {
@@ -24,6 +24,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import type { CustomerSchedule } from "@/features/customer-schedule/types"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
+
+// Add the useTranslations import at the top of the file
+import { useTranslations } from "next-intl"
 
 interface ScheduleFollowUpModalProps {
   schedule: CustomerSchedule | null
@@ -111,6 +114,8 @@ const allTimeSlots = [
 ]
 
 export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuccess }: ScheduleFollowUpModalProps) {
+  // Add this line inside the component function, near the top with other hooks
+  const t = useTranslations("customerSchedule")
   const token = getAccessToken()
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null
   const clinicId = tokenData?.clinicId || ""
@@ -129,7 +134,7 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
     if (isOpen && schedule) {
       fetchScheduleDetails(schedule.id)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, schedule])
 
   const fetchScheduleDetails = async (scheduleId: string) => {
@@ -242,10 +247,29 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
     console.log("Current busyTimeSlots in useMemo:", busyTimeSlots)
     if (!busyTimeSlots.length) {
       console.log("No busy slots, returning all time slots:", allTimeSlots)
-      return allTimeSlots
+      return allTimeSlots.filter((timeSlot) => {
+        // If selected date is today, filter out past time slots
+        if (date && isToday(date)) {
+          const now = new Date()
+          const [hours, minutes] = timeSlot.split(":").map(Number)
+          const slotTime = new Date(date)
+          slotTime.setHours(hours, minutes, 0)
+          return slotTime > now
+        }
+        return true
+      })
     }
 
     const filteredSlots = allTimeSlots.filter((timeSlot) => {
+      // If selected date is today, filter out past time slots
+      if (date && isToday(date)) {
+        const now = new Date()
+        const [hours, minutes] = timeSlot.split(":").map(Number)
+        const slotTime = new Date(date)
+        slotTime.setHours(hours, minutes, 0)
+        if (slotTime <= now) return false
+      }
+
       const slotStartMinutes = convertTimeToMinutes(timeSlot)
       const slotEndMinutes = slotStartMinutes + 30
 
@@ -271,7 +295,7 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
 
     console.log("Filtered available time slots:", filteredSlots)
     return filteredSlots
-  }, [busyTimeSlots])
+  }, [busyTimeSlots, date])
 
   // Group time slots by period
   const timeSlotGroups = useMemo(() => groupTimeSlots(availableTimeSlots), [availableTimeSlots])
@@ -311,12 +335,11 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
 
   if (isLoadingSchedule && !scheduleDetail) {
     return (
-      
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Schedule Follow-up Appointment</DialogTitle>
-            <DialogDescription>Loading appointment details...</DialogDescription>
+            <DialogTitle>{t("scheduleFollowUp")}</DialogTitle>
+            <DialogDescription>{t("loadingAppointmentDetails")}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-center items-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-pink-500 dark:text-pink-400" />
@@ -330,16 +353,16 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Schedule Follow-up Appointment</DialogTitle>
+          <DialogTitle>{t("scheduleFollowUp")}</DialogTitle>
           <DialogDescription>
-            Select a date and time for the next appointment for {schedule?.customerName}.
+            {t("selectDateTimeForNextAppointment")} {schedule?.customerName}.
           </DialogDescription>
         </DialogHeader>
 
         {viewMode === "calendar" ? (
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{t("date")}</Label>
               <div className="relative">
                 <Button
                   id="date"
@@ -349,7 +372,7 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
                   onClick={toggleCalendar}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Select date</span>}
+                  {date ? format(date, "PPP") : <span>{t("selectDate")}</span>}
                 </Button>
                 {showCalendar && (
                   <div
@@ -370,7 +393,7 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
                     <div className="flex justify-end p-2 border-t dark:border-gray-700">
                       <Button size="sm" variant="outline" onClick={confirmDateSelection} className="flex items-center">
                         <Check className="mr-1 h-4 w-4" />
-                        Confirm
+                        {t("confirm")}
                       </Button>
                     </div>
                   </div>
@@ -382,39 +405,39 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
           <div className="grid gap-4 py-4">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-medium">Select Time</h3>
+                <h3 className="text-lg font-medium">{t("selectTime")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {date ? formatDateForDisplay(date) : "Please select a date"}
+                  {date ? formatDateForDisplay(date) : t("pleaseSelectDate")}
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={goBackToCalendar}>
-                Change Date
+                {t("changeDate")}
               </Button>
             </div>
 
             {isLoadingBusyTimes ? (
               <div className="flex justify-center items-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-pink-500 dark:text-pink-400 mr-2" />
-                <span>Loading available times...</span>
+                <span>{t("loadingAvailableTimes")}</span>
               </div>
             ) : (
               <div className="space-y-4">
                 <TimeSlotGroup
-                  title="Morning"
+                  title={t("morning")}
                   timeSlots={timeSlotGroups.morning}
                   selectedTime={startTime}
                   onTimeSelect={handleTimeSelect}
                 />
 
                 <TimeSlotGroup
-                  title="Afternoon"
+                  title={t("afternoon")}
                   timeSlots={timeSlotGroups.afternoon}
                   selectedTime={startTime}
                   onTimeSelect={handleTimeSelect}
                 />
 
                 <TimeSlotGroup
-                  title="Evening"
+                  title={t("evening")}
                   timeSlots={timeSlotGroups.evening}
                   selectedTime={startTime}
                   onTimeSelect={handleTimeSelect}
@@ -423,9 +446,9 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
                 {availableTimeSlots.length === 0 && (
                   <Alert variant="default" className="mt-4">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>No Available Times</AlertTitle>
+                    <AlertTitle>{t("noAvailableTimes")}</AlertTitle>
                     <AlertDescription>
-                      The doctor is fully booked on this date. Please select another date.
+                      {t("doctorFullyBooked")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -434,7 +457,7 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
 
             {startTime && (
               <div className="mt-4 p-4 bg-primary/5 rounded-lg">
-                <p className="font-medium">Selected appointment:</p>
+                <p className="font-medium">{t("selectedAppointment")}:</p>
                 <div className="flex items-center mt-2">
                   <Badge variant="outline" className="mr-2">
                     {date ? formatDateForDisplay(date) : ""}
@@ -451,16 +474,16 @@ export default function ScheduleFollowUpModal({ schedule, isOpen, onClose, onSuc
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading || isLoadingBusyTimes || !date || !startTime}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Scheduling...
+                {t("scheduling")}
               </>
             ) : (
-              "Schedule Follow-up"
+              t("scheduleFollowUp")
             )}
           </Button>
         </DialogFooter>
