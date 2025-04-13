@@ -14,7 +14,7 @@ import EditDoctorForm from "@/components/clinicManager/doctor/EditDoctorForm"
 import ViewDoctorModal from "@/components/clinicManager/doctor/view-doctor-modal"
 import ChangeDoctorBranchForm from "@/components/clinicManager/doctor/ChangeDoctorBranchForm"
 
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { MoreVertical } from "lucide-react"
 import { MenuPortal } from "@/components/ui/menu-portal"
@@ -293,7 +293,7 @@ export default function DoctorPage() {
 
   return (
     <div className="p-6 dark:bg-gray-950" onClick={handleCloseMenu}>
-      <ToastContainer />
+    
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
           {t("doctorList") || "Doctor List"}

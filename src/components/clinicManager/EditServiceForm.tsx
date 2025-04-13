@@ -12,13 +12,14 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ImagePlus, Loader2, Save, XCircle, Trash2, Edit, FileText, Building } from "lucide-react"
+import { ImagePlus, Loader2, Save, XCircle, Trash2, Edit, FileText, Building } from 'lucide-react'
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import dynamic from "next/dynamic"
 import ReactSelect from "react-select"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
@@ -34,6 +35,8 @@ interface UpdateServiceFormProps {
 }
 
 const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, categories, onClose, onSaveSuccess }) => {
+  const t = useTranslations("service") 
+  
   const [formData, setFormData] = useState<UpdateService>({
     ...initialData,
     clinicId: "",
@@ -141,8 +144,8 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     setValidationErrors({})
 
     if (selectedBranches.length === 0) {
-      setValidationErrors((prev) => ({ ...prev, branches: "At least one branch must be selected" }))
-      toast.error("Please select at least one branch")
+      setValidationErrors((prev) => ({ ...prev, branches: t("updateService.branchesRequired") }))
+      toast.error(t("updateService.selectBranch"))
       return
     }
 
@@ -164,11 +167,11 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
 
     try {
       await updateService({ id: formData.id, data: updatedFormData }).unwrap()
-      toast.success("Service updated successfully!")
+      toast.success(t("success.serviceUpdated"))
       onSaveSuccess()
     } catch (error) {
       console.error("Update failed:", error)
-      toast.error("Failed to update service. Please try again.")
+      toast.error(t("errors.updateServiceFailed"))
     }
   }
 
@@ -239,23 +242,23 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
     <Card className="w-[650px] max-h-[85vh] border-none shadow-lg dark:shadow-gray-900 flex flex-col">
 
       <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-t-lg">
-        <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Update Service</CardTitle>
+        <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t("updateService.title")}</CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-300">
-          Update your service details and images
+          {t("updateService.subtitle")}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="p-6 space-y-6 max-h-[60vh] overflow-y-auto pr-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Service Name
+            {t("updateService.serviceName")}
           </Label>
           <Input
             id="name"
             name="name"
             value={formData.name || ""}
             onChange={handleFormChange}
-            placeholder="Enter service name"
+            placeholder={t("updateService.serviceNamePlaceholder")}
             className="border-gray-200 focus:border-pink-300 focus:ring-pink-200 dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-500 dark:bg-gray-700"
           />
         </div>
@@ -266,7 +269,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300"
           >
             <FileText className="h-4 w-4" />
-            Description
+            {t("updateService.description")}
           </Label>
           <div
             style={{
@@ -279,7 +282,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
               <QuillEditor
                 value={formData.description || ""}
                 onChange={handleDescriptionChange}
-                placeholder="Enter service description"
+                placeholder={t("updateService.descriptionPlaceholder")}
               />
             )}
           </div>
@@ -306,11 +309,11 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
               marginBottom: "8px",
             }}
           >
-            Category
+            {t("updateService.category")}
           </Label>
           <Select value={formData.category?.id} onValueChange={handleCategoryChange}>
             <SelectTrigger className="border-gray-200 focus:border-pink-300 focus:ring-pink-200 dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-500 dark:bg-gray-700">
-              <SelectValue placeholder="Select a category" />
+              <SelectValue placeholder={t("updateService.categoryPlaceholder")} />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
               {categories.map((category) => (
@@ -325,7 +328,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         <div className="space-y-2 mt-6">
           <Label className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300">
             <Building className="h-4 w-4" />
-            Branches <span className="text-red-500">*</span>
+            {t("updateService.branches")} <span className="text-red-500">*</span>
           </Label>
           <ReactSelect
             isMulti
@@ -343,7 +346,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             options={branchOptions}
             isDisabled={isLoadingBranches}
             isSearchable
-            placeholder="Select Branches"
+            placeholder={t("updateService.selectBranches")}
             styles={selectStyles}
             className="react-select-container"
             classNamePrefix="react-select"
@@ -385,12 +388,12 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           )}
           {branchOptions.length === 0 && !isLoadingBranches && (
             <p className="text-sm text-amber-600 dark:text-amber-400">
-              No branches available. Please create a branch first.
+              {t("updateService.noBranches")}
             </p>
           )}
           {selectedBranches.length > 0 && !validationErrors.branches && (
             <p className="text-sm text-green-600 dark:text-green-400">
-              {selectedBranches.length} branch{selectedBranches.length > 1 ? "es" : ""} selected
+              {t("updateService.branchesSelected", { count: selectedBranches.length })}
             </p>
           )}
         </div>
@@ -398,7 +401,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         <Separator className="my-4 dark:bg-gray-700" />
 
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cover Images</Label>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("updateService.coverImages")}</Label>
 
           {displayCoverImages.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 mb-3">
@@ -420,7 +423,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
                         type="button"
                         onClick={() => triggerFileInput("cover-image-input")}
                         className="p-2 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Change image"
+                        title={t("updateService.changeImage")}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -428,7 +431,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
                         type="button"
                         onClick={() => handleDeleteCoverImage(img.index)}
                         className="p-2 rounded-full bg-white dark:bg-gray-800 text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-                        title="Delete image"
+                        title={t("updateService.deleteImage")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -438,19 +441,19 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400 italic mb-3">No existing cover images</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 italic mb-3">{t("updateService.noCoverImages")}</div>
           )}
 
           {imagesToDelete.coverImages.length > 0 && (
             <div className="text-sm text-amber-600 dark:text-amber-400 mb-2">
-              {imagesToDelete.coverImages.length} image(s) marked for deletion
+              {t("updateService.imagesMarkedForDeletion", { count: imagesToDelete.coverImages.length })}
             </div>
           )}
 
           {selectedCoverFiles.length > 0 && (
             <>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Newly Selected Cover Images:
+                {t("updateService.newlySelectedImages")}
               </Label>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 {Array.from(selectedCoverFiles).map((file, index) => (
@@ -483,8 +486,8 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             >
               <ImagePlus className="mr-2 h-4 w-4" />
               {selectedCoverFiles.length > 0
-                ? `${selectedCoverFiles.length} files selected - Click to change`
-                : "Select Cover Images"}
+                ? t("updateService.filesSelected", { count: selectedCoverFiles.length })
+                : t("updateService.selectCoverImages")}
             </Button>
           </div>
         </div>
@@ -497,7 +500,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
         >
           <XCircle className="mr-2 h-4 w-4" />
-          Cancel
+          {t("cancel")}
         </Button>
         <Button
           onClick={handleSaveChanges}
@@ -507,12 +510,12 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
+              {t("updateService.saving")}
             </>
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Save Changes
+              {t("updateService.saveChanges")}
             </>
           )}
         </Button>

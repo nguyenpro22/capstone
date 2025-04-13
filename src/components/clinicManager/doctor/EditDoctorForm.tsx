@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { useUpdateDoctorMutation } from "@/features/clinic/api"
 import { useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } from "@/features/address/api"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 import type { Staff } from "@/features/clinic/types"

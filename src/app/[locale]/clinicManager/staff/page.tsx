@@ -14,7 +14,7 @@ import StaffForm from "@/components/clinicManager/staff/StaffForm"
 import EditStaffForm from "@/components/clinicManager/staff/EditStaffForm"
 import ViewStaffModal from "@/components/clinicManager/staff/view-staff-modal"
 
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { MoreVertical } from "lucide-react"
 import { MenuPortal } from "@/components/ui/menu-portal"

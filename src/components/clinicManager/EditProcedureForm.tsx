@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useUpdateProcedureMutation } from "@/features/clinic-service/api"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"

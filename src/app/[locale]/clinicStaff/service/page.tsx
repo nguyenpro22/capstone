@@ -27,9 +27,10 @@ import { useGetAllServicesQuery, useGetServiceByIdQuery } from "@/features/servi
 import { useDebounce } from "@/hooks/use-debounce"
 import Pagination from "@/components/common/Pagination/Pagination"
 import type { ServiceItem, Procedure } from "@/features/services/types"
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { motion } from "framer-motion"
+import { useTranslations } from "next-intl"
 
 // Format currency function for Vietnamese Dong
 const formatCurrency = (amount: number): string => {
@@ -59,6 +60,8 @@ const formatDuration = (minutes: number): string => {
 }
 
 export default function ServicePage() {
+  const t = useTranslations("clinicStaffService")
+
   // State for pagination, search, and sorting
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(9)
@@ -172,11 +175,8 @@ export default function ServicePage() {
     <div className="space-y-8">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl p-8 text-white shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">Service Management</h1>
-        <p className="text-purple-100 max-w-2xl">
-          Browse and manage all services offered at your clinic. View detailed information, procedures, and assigned
-          doctors.
-        </p>
+        <h1 className="text-3xl font-bold mb-2">{t("pageTitle")}</h1>
+        <p className="text-purple-100 max-w-2xl">{t("pageDescription")}</p>
       </div>
 
       {/* Search and Filter Section */}
@@ -186,7 +186,7 @@ export default function ServicePage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <Input
               className="pl-10 pr-4 py-2 border-gray-200 dark:border-gray-700 rounded-full focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="Search services..."
+              placeholder={t("searchPlaceholder")}
               value={searchTerm}
               onChange={handleSearchChange}
             />
@@ -195,7 +195,7 @@ export default function ServicePage() {
           <div className="flex items-center gap-3 w-full md:w-auto">
             <Button variant="outline" className="gap-2 rounded-full border-gray-200 dark:border-gray-700">
               <Filter size={16} />
-              Filter
+              {t("filter")}
               <ChevronDown size={16} />
             </Button>
 
@@ -220,7 +220,7 @@ export default function ServicePage() {
 
             <Button className="gap-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
               <Plus size={16} />
-              Add Service
+              {t("addService")}
             </Button>
           </div>
         </div>
@@ -231,17 +231,17 @@ export default function ServicePage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-md">
             <Loader2 className="h-12 w-12 animate-spin text-purple-500 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">Loading services...</p>
+            <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
           </div>
         ) : error ? (
           <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-md">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 mb-4">
               <X className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Failed to load services</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">Please try again later or contact support.</p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{t("errorTitle")}</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">{t("errorDescription")}</p>
             <Button variant="outline" onClick={() => window.location.reload()}>
-              Retry
+              {t("retry")}
             </Button>
           </div>
         ) : services.length === 0 ? (
@@ -249,8 +249,8 @@ export default function ServicePage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 mb-4">
               <Search className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No services found</h3>
-            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filters.</p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{t("noServicesTitle")}</h3>
+            <p className="text-gray-500 dark:text-gray-400">{t("noServicesDescription")}</p>
           </div>
         ) : viewMode === "grid" ? (
           // Grid View
@@ -270,7 +270,7 @@ export default function ServicePage() {
                     <CardTitle className="text-xl font-semibold line-clamp-1">{service.name}</CardTitle>
                     <CardDescription className="flex items-center gap-2">
                       <Badge variant="outline" className="rounded-full">
-                        {service.category?.name || "Uncategorized"}
+                        {service.category?.name || t("uncategorized")}
                       </Badge>
                     </CardDescription>
                   </CardHeader>
@@ -279,7 +279,7 @@ export default function ServicePage() {
                       <div className="flex items-start gap-2">
                         <DollarSign className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Price Range</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("priceRange")}</p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">{getPriceRange(service)}</p>
                         </div>
                       </div>
@@ -289,8 +289,10 @@ export default function ServicePage() {
                           <Tag className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Discount</p>
-                              <Badge className="bg-red-500 hover:bg-red-600">{service.discountPercent}% OFF</Badge>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("discount")}</p>
+                              <Badge className="bg-red-500 hover:bg-red-600">
+                                {service.discountPercent}% {t("off")}
+                              </Badge>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {getDiscountedPriceRange(service)}
@@ -307,7 +309,7 @@ export default function ServicePage() {
                       onClick={() => handleViewDetail(service.id)}
                     >
                       <Eye className="h-4 w-4" />
-                      View Details
+                      {t("viewDetails")}
                       <ArrowRight className="h-4 w-4 ml-auto" />
                     </Button>
                   </CardFooter>
@@ -322,11 +324,11 @@ export default function ServicePage() {
               <Table>
                 <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Discount</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("tableName")}</TableHead>
+                    <TableHead>{t("tableCategory")}</TableHead>
+                    <TableHead>{t("tablePrice")}</TableHead>
+                    <TableHead>{t("tableDiscount")}</TableHead>
+                    <TableHead className="text-right">{t("tableActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -335,18 +337,20 @@ export default function ServicePage() {
                       <TableCell className="font-medium">{service.name}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="rounded-full">
-                          {service.category?.name || "Uncategorized"}
+                          {service.category?.name || t("uncategorized")}
                         </Badge>
                       </TableCell>
                       <TableCell>{getPriceRange(service)}</TableCell>
                       <TableCell>
                         {service.discountPercent && service.discountPercent !== "0" ? (
                           <div>
-                            <Badge className="bg-red-500 hover:bg-red-600 mb-1">{service.discountPercent}% OFF</Badge>
+                            <Badge className="bg-red-500 hover:bg-red-600 mb-1">
+                              {service.discountPercent}% {t("off")}
+                            </Badge>
                             <div className="text-sm text-muted-foreground">{getDiscountedPriceRange(service)}</div>
                           </div>
                         ) : (
-                          "No discount"
+                          t("noDiscount")
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -357,7 +361,7 @@ export default function ServicePage() {
                           onClick={() => handleViewDetail(service.id)}
                         >
                           <Eye className="h-4 w-4" />
-                          View Detail
+                          {t("viewDetail")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -389,32 +393,31 @@ export default function ServicePage() {
           {isLoadingDetail ? (
             <div className="flex justify-center items-center py-16">
               <Loader2 className="h-12 w-12 animate-spin text-purple-500 mb-4" />
-              <span className="ml-2">Loading service details...</span>
+              <span className="ml-2">{t("loadingDetails")}</span>
             </div>
           ) : detailError ? (
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 mb-4">
                 <X className="h-8 w-8" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Failed to load service details
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Please try again later or contact support.</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{t("detailErrorTitle")}</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{t("detailErrorDescription")}</p>
             </div>
           ) : serviceDetailData ? (
             <>
               {/* Fixed Header Section */}
               <div className="flex-none">
                 {/* Service Header - Fixed */}
-                <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-6 text-white relative">
-                  
+                <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-6 text-white relative rounded-t-xl">
                   <h2 className="text-2xl font-bold mb-1">{serviceDetailData.name}</h2>
                   <div className="flex items-center gap-2 text-purple-100">
                     <Badge className="bg-white/20 hover:bg-white/30 text-white">
                       {serviceDetailData.category.name}
                     </Badge>
                     {serviceDetailData.discountPercent && serviceDetailData.discountPercent !== "0" && (
-                      <Badge className="bg-red-500 hover:bg-red-600">{serviceDetailData.discountPercent}% OFF</Badge>
+                      <Badge className="bg-red-500 hover:bg-red-600">
+                        {serviceDetailData.discountPercent}% {t("off")}
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -431,7 +434,7 @@ export default function ServicePage() {
                       onClick={() => setActiveTab("overview")}
                     >
                       <Info className="h-4 w-4" />
-                      Overview
+                      {t("overview")}
                     </button>
                     <button
                       className={`flex items-center gap-2 px-4 py-4 border-b-2 ${
@@ -442,7 +445,7 @@ export default function ServicePage() {
                       onClick={() => setActiveTab("procedures")}
                     >
                       <Layers className="h-4 w-4" />
-                      Procedures
+                      {t("procedures")}
                     </button>
                     <button
                       className={`flex items-center gap-2 px-4 py-4 border-b-2 ${
@@ -453,7 +456,7 @@ export default function ServicePage() {
                       onClick={() => setActiveTab("doctors")}
                     >
                       <Users className="h-4 w-4" />
-                      Doctors
+                      {t("doctors")}
                     </button>
                   </div>
                 </div>
@@ -470,12 +473,12 @@ export default function ServicePage() {
                           <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                               <DollarSign className="h-5 w-5 text-purple-500" />
-                              Pricing Information
+                              {t("pricingInformation")}
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
-                              <span className="text-gray-500 dark:text-gray-400">Price Range:</span>
+                              <span className="text-gray-500 dark:text-gray-400">{t("priceRange")}:</span>
                               <span className="font-semibold text-lg">
                                 {serviceDetailData.minPrice === serviceDetailData.maxPrice
                                   ? formatCurrency(serviceDetailData.minPrice)
@@ -485,9 +488,11 @@ export default function ServicePage() {
 
                             {serviceDetailData.discountPercent && serviceDetailData.discountPercent !== "0" && (
                               <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
-                                <span className="text-gray-500 dark:text-gray-400">Discount:</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t("discount")}:</span>
                                 <div className="flex items-center gap-2">
-                                  <Badge className="bg-red-500">{serviceDetailData.discountPercent}% OFF</Badge>
+                                  <Badge className="bg-red-500">
+                                    {serviceDetailData.discountPercent}% {t("off")}
+                                  </Badge>
                                   <span className="font-semibold">
                                     {serviceDetailData.discountMinPrice === serviceDetailData.discountMaxPrice
                                       ? formatCurrency(serviceDetailData.discountMinPrice)
@@ -503,17 +508,17 @@ export default function ServicePage() {
                           <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                               <Info className="h-5 w-5 text-purple-500" />
-                              Service Information
+                              {t("serviceInformation")}
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
-                              <span className="text-gray-500 dark:text-gray-400">Category:</span>
+                              <span className="text-gray-500 dark:text-gray-400">{t("category")}</span>
                               <Badge variant="outline">{serviceDetailData.category.name}</Badge>
                             </div>
 
                             <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-800">
-                              <span className="text-gray-500 dark:text-gray-400">Branding:</span>
+                              <span className="text-gray-500 dark:text-gray-400">{t("brandingLabel")}</span>
                               <span className="font-medium">{serviceDetailData.branding.name}</span>
                             </div>
                           </CardContent>
@@ -524,14 +529,14 @@ export default function ServicePage() {
                         <CardHeader>
                           <CardTitle className="text-lg flex items-center gap-2">
                             <Info className="h-5 w-5 text-purple-500" />
-                            Description
+                            {t("description")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <p
                             className="text-gray-700 dark:text-gray-300 leading-relaxed"
                             dangerouslySetInnerHTML={{
-                              __html: serviceDetailData.description || "No description available.",
+                              __html: serviceDetailData.description || t("noDescriptionAvailable"),
                             }}
                           />
                         </CardContent>
@@ -549,11 +554,9 @@ export default function ServicePage() {
                           <Layers className="h-8 w-8" />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                          No procedures available
+                          {t("noProceduresTitle")}
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
-                          This service does not have any defined procedures.
-                        </p>
+                        <p className="text-gray-500 dark:text-gray-400">{t("noProceduresDescription")}</p>
                       </div>
                     ) : (
                       <div className="relative">
@@ -576,7 +579,7 @@ export default function ServicePage() {
                                   </CardHeader>
                                   <CardContent>
                                     <h4 className="text-sm font-medium mb-3 text-gray-500 dark:text-gray-400">
-                                      Price Options:
+                                      {t("priceOptions")}
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                       {procedure.procedurePriceTypes.map((priceType) => (
@@ -595,19 +598,19 @@ export default function ServicePage() {
                                                 variant="outline"
                                                 className="border-purple-500 text-purple-500 dark:border-purple-400 dark:text-purple-400"
                                               >
-                                                Default
+                                                {t("default")}
                                               </Badge>
                                             )}
                                           </div>
                                           <div className="flex justify-between mt-2 text-sm">
                                             <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                              <Clock className="h-3.5 w-3.5" /> Duration:
+                                              <Clock className="h-3.5 w-3.5" /> {t("duration")}:
                                             </span>
                                             <span>{formatDuration(priceType.duration)}</span>
                                           </div>
                                           <div className="flex justify-between text-sm">
                                             <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                              <DollarSign className="h-3.5 w-3.5" /> Price:
+                                              <DollarSign className="h-3.5 w-3.5" /> {t("price")}:
                                             </span>
                                             <span className="font-medium">{formatCurrency(priceType.price)}</span>
                                           </div>
@@ -640,19 +643,17 @@ export default function ServicePage() {
                           <Users className="h-8 w-8" />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                          No doctors available
+                          {t("noDoctorsTitle")}
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
-                          This service does not have any assigned doctors.
-                        </p>
+                        <p className="text-gray-500 dark:text-gray-400">{t("noDoctorsDescription")}</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {serviceDetailData.doctorServices.map((doctorService) => (
-                          <Card key={doctorService.id} className="hover:shadow-md transition-shadow">
+                          <Card key={doctorService.id} className="hover:shadow-md transition-shadow overflow-hidden">
                             <CardContent className="pt-6">
-                              <div className="flex items-center gap-3 mb-4">
-                                <Avatar className="h-14 w-14 border-2 border-purple-100 dark:border-purple-900">
+                              <div className="flex items-start gap-3 mb-4">
+                                <Avatar className="h-14 w-14 border-2 border-purple-100 dark:border-purple-900 flex-shrink-0">
                                   <AvatarImage
                                     src={doctorService.doctor.profilePictureUrl || ""}
                                     alt={doctorService.doctor.fullName}
@@ -661,9 +662,17 @@ export default function ServicePage() {
                                     {getInitials(doctorService.doctor.fullName)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div>
-                                  <div className="font-medium text-lg">{doctorService.doctor.fullName}</div>
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                <div className="min-w-0 flex-1">
+                                  <div
+                                    className="font-medium text-lg truncate max-w-full"
+                                    title={doctorService.doctor.fullName}
+                                  >
+                                    {doctorService.doctor.fullName}
+                                  </div>
+                                  <div
+                                    className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-full"
+                                    title={doctorService.doctor.email}
+                                  >
                                     {doctorService.doctor.email}
                                   </div>
                                 </div>
@@ -671,8 +680,10 @@ export default function ServicePage() {
 
                               {doctorService.doctor.phoneNumber && (
                                 <div className="flex justify-between text-sm py-2 border-t border-gray-100 dark:border-gray-800">
-                                  <span className="text-gray-500 dark:text-gray-400">Phone:</span>
-                                  <span className="font-medium">{doctorService.doctor.phoneNumber}</span>
+                                  <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">{t("phone")}:</span>
+                                  <span className="font-medium truncate ml-2" title={doctorService.doctor.phoneNumber}>
+                                    {doctorService.doctor.phoneNumber}
+                                  </span>
                                 </div>
                               )}
 
@@ -680,16 +691,17 @@ export default function ServicePage() {
                                 doctorService.doctor.doctorCertificates.length > 0 && (
                                   <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-800">
                                     <div className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                                      Certificates:
+                                      {t("certificates")}:
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                       {doctorService.doctor.doctorCertificates.map((cert, index) => (
                                         <Badge
                                           key={index}
                                           variant="outline"
-                                          className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+                                          className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 max-w-full truncate"
+                                          title={cert.certificateName || t("certificate")}
                                         >
-                                          {cert.certificateName || "Certificate"}
+                                          {cert.certificateName || t("certificate")}
                                         </Badge>
                                       ))}
                                     </div>
@@ -710,9 +722,9 @@ export default function ServicePage() {
                 <Info className="h-8 w-8" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                No service details available
+                {t("noServiceDetailsTitle")}
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">The requested service information could not be found.</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("noServiceDetailsDescription")}</p>
             </div>
           )}
         </DialogContent>

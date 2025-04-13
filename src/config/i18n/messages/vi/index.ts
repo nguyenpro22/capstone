@@ -29,6 +29,10 @@ import { clinicCard } from "./clinicCard";
 import { clinicViewDetail } from "./clinic-view-detail";
 
 import { customerScheduleMessage } from './customerSchedule';
+import { clinicStaffServicePageMessages } from './clinicStaffService';
+import { clinicStaffOrderMessages } from './clinicStaffOrder';
+import { clinicStaffAppointmentMessages } from './clinicStaffAppointment';
+import { scheduleApprovalMessages } from './scheduleApproval';
 
 const vi = {
   home: homeMessages,
@@ -60,6 +64,10 @@ const vi = {
   clinicViewDetail,
   clinicCard,
   customerSchedule: customerScheduleMessage,
+  clinicStaffService: clinicStaffServicePageMessages,
+  clinicStaffOrder: clinicStaffOrderMessages,
+  clinicStaffAppointment: clinicStaffAppointmentMessages,
+  scheduleApproval: scheduleApprovalMessages,
 };
 
 export default vi;

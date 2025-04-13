@@ -6,12 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { X, Building2 } from "lucide-react"
 import { useAddStaffMutation, useGetBranchesQuery } from "@/features/clinic/api"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import { useTranslations } from "next-intl"
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
 // Add useTheme import
 import { useTheme } from "next-themes"
-import { ValidationErrorResponse } from "@/lib/api"
 
 // Define the form schema
 const staffSchema = z.object({
