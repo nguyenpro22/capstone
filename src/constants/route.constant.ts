@@ -34,6 +34,7 @@ export const clinicAdminRoutes = {
   INBOX: `${privateClinicAdminPath}/inbox`,
   MANAGE_LIVESTREAM: `${privateClinicAdminPath}/live-stream`,
   LIVESTREAM: `${privateClinicAdminPath}/live-stream/host-page`,
+  WALLET: `${privateClinicAdminPath}/wallet`,
 };
 
 // DOCTOR ROUTES
@@ -55,6 +56,7 @@ export const clinicStaffRoutes = {
   PROFILE: `${privateClinicStaffPath}/profile`,
   SERVICES: `${privateClinicStaffPath}/service`,
   INBOX: `${privateClinicStaffPath}/inbox`,
+  WALLET: `${privateClinicStaffPath}/wallet`,
 };
 
 // CUSTOMER ROUTES

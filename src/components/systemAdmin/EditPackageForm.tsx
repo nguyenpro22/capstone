@@ -6,7 +6,19 @@ import { useState, useRef, useEffect } from "react"
 import { useUpdatePackageMutation } from "@/features/package/api"
 import { toast } from "react-toastify"
 import { motion, AnimatePresence } from "framer-motion"
-import { Layers, X, AlertCircle, Package, FileText, DollarSign, Clock, Building2, Video, Users } from "lucide-react"
+import {
+  Layers,
+  X,
+  AlertCircle,
+  Package,
+  FileText,
+  DollarSign,
+  Clock,
+  Building2,
+  Video,
+  Users,
+  PlusCircle,
+} from "lucide-react"
 
 interface EditPackageFormProps {
   initialData: any
@@ -23,6 +35,8 @@ interface ValidationErrors {
   limitBranch?: string
   limitLiveStream?: string
   enhancedViewer?: string
+  priceBranchAddition?: string
+  priceLiveStreamAddition?: string
 }
 
 export default function EditPackageForm({ initialData, onClose, onSaveSuccess }: EditPackageFormProps) {
@@ -317,6 +331,28 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                 icon={Video}
                 placeholder="Enter live stream limit"
                 error={validationErrors.limitLiveStream}
+              />
+
+              {/* Price More Branch */}
+              <InputField
+                label="Price Per Additional Branch"
+                name="priceBranchAddition"
+                value={formData.priceBranchAddition || ""}
+                type="number"
+                icon={PlusCircle}
+                placeholder="Enter price per additional branch"
+                error={validationErrors.priceBranchAddition}
+              />
+
+              {/* Price More Livestream */}
+              <InputField
+                label="Price Per Additional Livestream"
+                name="priceLiveStreamAddition"
+                value={formData.priceLiveStreamAddition || ""}
+                type="number"
+                icon={PlusCircle}
+                placeholder="Enter price per additional livestream"
+                error={validationErrors.priceLiveStreamAddition}
               />
             </div>
 

@@ -54,7 +54,7 @@ export const packageCreateApi = createApi({
   }),
 });
 
-export const { useGetPackagesQuery, useLazyGetPackagesByIdQuery } = packageApi;
+export const { useGetPackagesQuery, useLazyGetPackagesByIdQuery, useGetPackagesByIdQuery } = packageApi;
 export const { useCreatePackageMutation,
               useUpdatePackageMutation, // Thêm API cập nhật gói
               useDeletePackageMutation,

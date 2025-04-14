@@ -20,4 +20,10 @@ export interface PaymentResponse {
     currentAmount: number
   }
   
-  
+  // Add this interface to your types file
+export interface SubscriptionOverPaymentRequest {
+  subscriptionId: string
+  currentAmount: number
+  additionBranch: number
+  additionLiveStream: number
+}

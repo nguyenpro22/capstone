@@ -4,9 +4,10 @@ export const buyPackageMessages: Messages["buyPackage"] = {
   // Header Section
   premiumBeautyPackages: "Premium Beauty Packages",
   enhanceYourBeautyServices: "Enhance Your Beauty Services",
-  chooseFromExclusiveRange: "Choose from our exclusive range of packages designed to elevate your clinics offerings and provide exceptional value to your customers",
+  chooseFromExclusiveRange:
+    "Choose from our exclusive range of packages designed to elevate your clinics offerings and provide exceptional value to your customers",
   searchPackages: "Search packages...",
-  
+
   // Features Section
   premiumQuality: "Premium Quality",
   premiumQualityDesc: "All packages are carefully curated to ensure the highest quality of service",
@@ -14,7 +15,7 @@ export const buyPackageMessages: Messages["buyPackage"] = {
   instantActivationDesc: "Start using your package immediately after successful payment",
   flexibleDuration: "Flexible Duration",
   flexibleDurationDesc: "Choose packages with durations that suit your business needs",
-  
+
   // Package Card
   active: "Active",
   inactive: "Inactive",
@@ -26,7 +27,7 @@ export const buyPackageMessages: Messages["buyPackage"] = {
   oneTimePayment: "One-time payment",
   purchaseNow: "Purchase Now",
   processing: "Processing...",
-  
+
   // Payment Dialog
   paymentQrCode: "Payment QR Code",
   scanQrCode: "Scan this QR code to complete your purchase of {packageName}",
@@ -35,7 +36,7 @@ export const buyPackageMessages: Messages["buyPackage"] = {
   waitingForPayment: "Waiting for payment...",
   paymentSuccessful: "Payment successful!",
   paymentFailed: "Payment failed. Please try again.",
-  
+
   // Payment Result Dialog
   paymentSuccessTitle: "Payment Successful",
   paymentFailedTitle: "Payment Failed",
@@ -47,13 +48,41 @@ export const buyPackageMessages: Messages["buyPackage"] = {
   close: "Close",
   goToDashboard: "Go to Dashboard",
   tryAgain: "Try Again",
-  
+
   // Error Messages
   failedToLoadPackages: "Failed to Load Packages",
   tryAgainLater: "Please try again later or contact support.",
   retry: "Retry",
-  clinicNotActivated: "Không thể thanh toán: Phòng khám chưa được kích hoạt",
+  clinicNotActivated: "Cannot process payment: Clinic is not activated",
   failedToGenerateQr: "Failed to generate payment QR code",
   failedToInitiatePayment: "Failed to initiate payment",
-  failedToConnectPayment: "Failed to connect to payment service"
+  failedToConnectPayment: "Failed to connect to payment service",
+  additionalLivestreamPrice: "Additional Livestream Price: {price}",
+  additionalBranchPrice: "Additional Branch Price: {price}",
+
+  // Tab Labels
+  packages: "Packages",
+  additionalSlots: "Additional Slots",
+
+  // Add-ons Tab
+  purchaseAdditionalSlots: "Purchase Additional Slots",
+  addMoreBranchesAndLivestreams: "Add more branches and livestreams to your current subscription package",
+  noActiveSubscription: "No Active Subscription",
+  purchasePackageFirst: "Please purchase a package before adding additional slots",
+  viewPackages: "View Packages",
+  currentPackage: "Current Package",
+
+  // Additional Branches and Livestreams
+  additionalBranches: "Additional Branches",
+  currentBranches: "Current branches: {count}",
+  perBranch: "per branch",
+  additionalLivestreams: "Additional Livestreams",
+  currentLivestreams: "Current livestreams: {count}",
+  perLivestream: "per livestream",
+
+  // Pricing and Purchase
+  totalPrice: "Total Price",
+  purchaseAddons: "Purchase Add-ons",
+  pleaseSelectAddons: "Please select at least one add-on",
+  scanQrCodeAddons: "Scan this QR code to complete your purchase of additional slots",
 }

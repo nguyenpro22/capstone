@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import PackageList from "@/components/clinicManager/packages/package-list"
+import SubscriptionManagement from "@/components/clinicManager/packages/package-list"
 
 export const metadata: Metadata = {
   title: "Buy Package - Beautify",
@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 
 export default function BuyPackagePage() {
     
-  return <PackageList />
+  return <SubscriptionManagement />
 }
 

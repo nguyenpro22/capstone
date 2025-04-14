@@ -55,6 +55,7 @@ import { chatApi, inboxApi } from "@/features/inbox/api";
 import { bankApi } from "@/features/bank/api";
 import { doctorServiceCommandApi } from "@/features/doctor-service/api";
 import { orderQueryApi } from "@/features/order/api";
+import { clinicManagerDashboardQueryApi } from "@/features/dashboard/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -103,6 +104,7 @@ const rootReducer = combineReducers({
   [chatApi.reducerPath]: chatApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [orderQueryApi.reducerPath]: orderQueryApi.reducer,
+  [clinicManagerDashboardQueryApi.reducerPath]: clinicManagerDashboardQueryApi.reducer,
 
 
 });
@@ -153,6 +155,8 @@ const store = configureStore({
       inboxApi.middleware,
       chatApi.middleware,
       orderQueryApi.middleware,
+      clinicManagerDashboardQueryApi.middleware,
+
     ),
 });
 
