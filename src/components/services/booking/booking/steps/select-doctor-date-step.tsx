@@ -187,8 +187,10 @@ export function SelectDoctorDateStep({
   if (loadingDoctors) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-muted-foreground">{t("loadingDoctors")}</p>
+        <div className="h-8 w-8 border-4 border-purple-500 dark:border-purple-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400">
+          {t("loadingDoctors")}
+        </p>
       </div>
     );
   }
@@ -196,7 +198,9 @@ export function SelectDoctorDateStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">{t("selectDoctor")}</h3>
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+          {t("selectDoctor")}
+        </h3>
 
         <div className="flex items-center space-x-2 mb-4">
           <Checkbox
@@ -205,8 +209,12 @@ export function SelectDoctorDateStep({
             onCheckedChange={(checked) =>
               handleSkipDoctorToggle(checked === true)
             }
+            className="border-purple-300 dark:border-purple-700 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 dark:data-[state=checked]:bg-purple-500 dark:data-[state=checked]:border-purple-500"
           />
-          <Label htmlFor="skip-doctor" className="text-sm cursor-pointer">
+          <Label
+            htmlFor="skip-doctor"
+            className="text-sm cursor-pointer text-gray-800 dark:text-gray-200"
+          >
             {t("skipDoctorSelection")}
           </Label>
         </div>
@@ -229,8 +237,10 @@ export function SelectDoctorDateStep({
           </RadioGroup>
         ) : (
           highestRatedDoctor && (
-            <div className="bg-primary/5 p-4 rounded-lg mb-4">
-              <p className="font-medium">{t("automaticallySelectedDoctor")}:</p>
+            <div className="bg-purple-50/70 dark:bg-purple-900/20 p-4 rounded-lg mb-4 border border-purple-100 dark:border-purple-800/20">
+              <p className="font-medium text-purple-800 dark:text-purple-300">
+                {t("automaticallySelectedDoctor")}:
+              </p>
               <div className="mt-2">
                 <DoctorItem
                   doctor={highestRatedDoctor}
@@ -245,14 +255,23 @@ export function SelectDoctorDateStep({
       </div>
 
       <div className="mt-8">
-        <h3 className="text-lg font-medium mb-4">{t("selectDateTime")}</h3>
-        <p className="text-muted-foreground mb-4">{t("pleaseSelectTime")}</p>
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+          {t("selectDateTime")}
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
+          {t("pleaseSelectTime")}
+        </p>
 
         {missingRequirements && (
-          <Alert variant="default" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t("missingInfo")}</AlertTitle>
-            <AlertDescription>
+          <Alert
+            variant="default"
+            className="mb-4 border-amber-200 dark:border-amber-800/30 bg-amber-50 dark:bg-amber-900/20"
+          >
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <AlertTitle className="text-amber-800 dark:text-amber-300">
+              {t("missingInfo")}
+            </AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-400">
               {!currentDoctor && !clinic
                 ? t("selectDoctorClinicFirst")
                 : !currentDoctor
@@ -264,8 +283,10 @@ export function SelectDoctorDateStep({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Calendar column */}
-          <div className="bg-muted/30 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">{t("selectDate")}</h4>
+          <div className="bg-purple-50/50 dark:bg-purple-900/10 p-4 rounded-lg border border-purple-100 dark:border-purple-800/20">
+            <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+              {t("selectDate")}
+            </h4>
             <CustomCalendar
               mode="single"
               selected={selectedDate}
@@ -285,12 +306,14 @@ export function SelectDoctorDateStep({
 
           {/* Time slots column */}
           <div>
-            <h4 className="font-medium mb-2">{t("selectTime")}</h4>
+            <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+              {t("selectTime")}
+            </h4>
             {selectedDate ? (
               isLoading ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-muted-foreground">
+                  <div className="h-8 w-8 border-4 border-purple-500 dark:border-purple-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gray-500 dark:text-gray-400">
                     {t("loadingTimeSlots")}
                   </p>
                 </div>
@@ -318,8 +341,8 @@ export function SelectDoctorDateStep({
                   />
 
                   {availableTimeSlots.length === 0 && (
-                    <div className="p-4 text-center bg-muted/30 rounded-lg">
-                      <p className="text-muted-foreground">
+                    <div className="p-4 text-center bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <p className="text-gray-500 dark:text-gray-400">
                         {t("noAvailableSlots")}
                       </p>
                     </div>
@@ -327,21 +350,28 @@ export function SelectDoctorDateStep({
                 </div>
               )
             ) : (
-              <div className="p-8 text-center bg-muted/30 rounded-lg h-full flex items-center justify-center">
-                <p className="text-muted-foreground">{t("selectDateFirst")}</p>
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-lg h-full flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                <p className="text-gray-500 dark:text-gray-400">
+                  {t("selectDateFirst")}
+                </p>
               </div>
             )}
           </div>
         </div>
 
         {selectedDate && selectedTime && (
-          <div className="mt-4 p-4 bg-primary/5 rounded-lg">
-            <p className="font-medium">{t("youSelected")}</p>
+          <div className="mt-4 p-4 bg-purple-50/70 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800/20">
+            <p className="font-medium text-purple-800 dark:text-purple-300">
+              {t("youSelected")}
+            </p>
             <div className="flex items-center mt-2">
-              <Badge variant="outline" className="mr-2">
+              <Badge
+                variant="outline"
+                className="mr-2 border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300"
+              >
                 {selectedDate ? formatDate(selectedDate) : ""}
               </Badge>
-              <Badge>
+              <Badge className="bg-purple-600 dark:bg-purple-500 text-white">
                 <Clock className="h-3 w-3 mr-1" />
                 {selectedTime}
               </Badge>

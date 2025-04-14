@@ -160,8 +160,10 @@ export function SelectServiceStep({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-muted-foreground">{t("loadingServices")}</p>
+        <div className="h-8 w-8 border-4 border-purple-500 dark:border-purple-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400">
+          {t("loadingServices")}
+        </p>
       </div>
     );
   }
@@ -169,8 +171,10 @@ export function SelectServiceStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">{t("selectService")}</h3>
-        <p className="text-muted-foreground mb-4">
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+          {t("selectService")}
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
           {t("pleaseSelectServices")}
         </p>
 
@@ -179,8 +183,12 @@ export function SelectServiceStep({
             id="use-default"
             checked={isDefault}
             onCheckedChange={(checked) => handleDefaultToggle(checked === true)}
+            className="border-purple-300 dark:border-purple-700 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 dark:data-[state=checked]:bg-purple-500 dark:data-[state=checked]:border-purple-500"
           />
-          <Label htmlFor="use-default" className="text-sm cursor-pointer">
+          <Label
+            htmlFor="use-default"
+            className="text-sm cursor-pointer text-gray-800 dark:text-gray-200"
+          >
             {t("useDefaultPackage")}
           </Label>
         </div>
@@ -197,18 +205,24 @@ export function SelectServiceStep({
               />
             ))
           ) : (
-            <p className="text-muted-foreground">{t("noProcedureDetails")}</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              {t("noProcedureDetails")}
+            </p>
           )}
         </div>
       </div>
 
-      <Separator />
+      <Separator className="bg-purple-100 dark:bg-purple-800/30" />
 
-      <div className="bg-primary/5 p-4 rounded-lg">
-        <h3 className="font-medium mb-2">{t("estimatedTotalCost")}</h3>
+      <div className="bg-purple-50/70 dark:bg-purple-900/10 p-4 rounded-lg border border-purple-100 dark:border-purple-800/20">
+        <h3 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+          {t("estimatedTotalCost")}
+        </h3>
         {isDefault ? (
           <div className="text-center p-4">
-            <p>{t("youSelectedDefaultPackageBestPrice")}</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {t("youSelectedDefaultPackageBestPrice")}
+            </p>
             <div className="mt-4">
               <PriceSummary selectedProcedures={selectedProcedures} />
             </div>

@@ -18,6 +18,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslations } from "next-intl"; // Import useTranslations
 import { SelectProceduresStep } from "./steps/select-procedures-step";
+import { cn } from "@/lib/utils";
 
 interface BookingFlowProps {
   service: ServiceDetail;
@@ -265,7 +266,7 @@ export function BookingFlow({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -278,12 +279,12 @@ export function BookingFlow({
         pauseOnHover
       />
       <div className="w-full max-w-3xl my-8 max-h-[90vh]">
-        <Card className="border-primary/10 shadow-lg">
+        <Card className="border-purple-200 dark:border-purple-800/30 shadow-lg">
           <CardContent className="p-0 flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="bg-primary/5 p-4 border-b">
+            <div className="bg-purple-50/70 dark:bg-purple-900/20 p-4 border-b border-purple-100 dark:border-purple-800/20">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">
+                <h2 className="text-xl font-bold text-purple-800 dark:text-purple-300">
                   {currentStep === steps.length - 1
                     ? t("bookingSuccessful")
                     : t("bookingService")}
@@ -292,7 +293,7 @@ export function BookingFlow({
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-800/30"
                 >
                   <span className="sr-only">{t("close")}</span>
                   <svg
@@ -323,13 +324,14 @@ export function BookingFlow({
                       style={{ width: `${100 / (steps.length - 1)}%` }}
                     >
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                           index < currentStep
-                            ? "bg-primary text-white"
+                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white"
                             : index === currentStep
-                            ? "bg-primary/80 text-white"
-                            : "bg-muted text-muted-foreground"
-                        }`}
+                            ? "bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-purple-400 dark:to-indigo-400 text-white"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                        )}
                       >
                         {index < currentStep ? (
                           <CheckCircle className="h-5 w-5" />
@@ -338,21 +340,23 @@ export function BookingFlow({
                         )}
                       </div>
                       <div
-                        className={`text-xs text-center ${
+                        className={cn(
+                          "text-xs text-center",
                           index <= currentStep
-                            ? "text-primary font-medium"
-                            : "text-muted-foreground"
-                        }`}
+                            ? "text-purple-700 dark:text-purple-300 font-medium"
+                            : "text-gray-500 dark:text-gray-400"
+                        )}
                       >
                         {step.title}
                       </div>
                       {index < steps.length - 2 && (
                         <div
-                          className={`h-0.5 absolute w-[calc(${
-                            100 / (steps.length - 1)
-                          }%-2rem)] ${
-                            index < currentStep ? "bg-primary" : "bg-muted"
-                          }`}
+                          className={cn(
+                            "h-0.5 absolute w-[calc(${100 / (steps.length - 1)}%-2rem)]",
+                            index < currentStep
+                              ? "bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-purple-400 dark:to-indigo-400"
+                              : "bg-gray-200 dark:bg-gray-700"
+                          )}
                           style={{
                             left: `calc(${
                               (index * 100) / (steps.length - 1)
@@ -368,21 +372,27 @@ export function BookingFlow({
             </div>
 
             {/* Step content */}
-            <div className="p-6 overflow-y-auto">{renderStepContent()}</div>
+            <div className="p-6 overflow-y-auto bg-white dark:bg-gray-900">
+              {renderStepContent()}
+            </div>
 
             {/* Footer - modified for success step */}
-            <div className="p-4 border-t bg-muted/30 flex justify-between">
+            <div className="p-4 border-t border-purple-100 dark:border-purple-800/20 bg-purple-50/50 dark:bg-purple-900/10 flex justify-between">
               {currentStep > 0 && currentStep < steps.length - 1 ? (
                 <Button
                   variant="outline"
                   onClick={handleBack}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   {t("back")}
                 </Button>
               ) : currentStep === 0 ? (
-                <Button variant="outline" onClick={onClose}>
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  className="border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                >
                   {t("cancel")}
                 </Button>
               ) : (
@@ -393,7 +403,7 @@ export function BookingFlow({
                 <Button
                   onClick={handleNext}
                   disabled={!canProceed() || isSubmitting}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
                 >
                   {currentStep < steps.length - 2 ? (
                     <>
@@ -407,7 +417,10 @@ export function BookingFlow({
                   )}
                 </Button>
               ) : (
-                <Button onClick={onClose} className="ml-auto">
+                <Button
+                  onClick={onClose}
+                  className="ml-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
+                >
                   {t("close")}
                 </Button>
               )}

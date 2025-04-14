@@ -2,13 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  CheckCircle,
-  Calendar,
-  ArrowRight,
-  Download,
-  Share2,
-} from "lucide-react";
+import { CheckCircle, ArrowRight } from "lucide-react";
 import type { BookingData } from "../../types/booking";
 import { useTranslations } from "next-intl"; // Import useTranslations
 
@@ -39,57 +33,82 @@ export function BookingSuccess({
 
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
-        <CheckCircle className="h-10 w-10 text-green-600" />
+      <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
+        <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
       </div>
 
-      <h2 className="text-2xl font-bold text-green-600 mb-2">
+      <h2 className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
         {t("bookingSuccessful")}
       </h2>
-      <p className="text-muted-foreground mb-6">{t("thankYou")}</p>
+      <p className="text-gray-500 dark:text-gray-400 mb-6">{t("thankYou")}</p>
 
-      <Card className="w-full max-w-md mb-6 border-green-200 bg-green-50">
+      <Card className="w-full max-w-md mb-6 border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-900/10">
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="font-medium">{t("bookingCode")}:</span>
-              <span className="font-bold">{bookingId}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {t("bookingCode")}:
+              </span>
+              <span className="font-bold text-gray-800 dark:text-gray-200">
+                {bookingId}
+              </span>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="font-medium">{t("service")}:</span>
-              <span>{service.name}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {t("service")}:
+              </span>
+              <span className="text-gray-800 dark:text-gray-200">
+                {service.name}
+              </span>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="font-medium">{t("clinic")}:</span>
-              <span>{clinic?.name}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {t("clinic")}:
+              </span>
+              <span className="text-gray-800 dark:text-gray-200">
+                {clinic?.name}
+              </span>
             </div>
 
             {doctor && (
               <div className="flex justify-between items-center">
-                <span className="font-medium">{t("doctor")}:</span>
-                <span>{doctor.fullName}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {t("doctor")}:
+                </span>
+                <span className="text-gray-800 dark:text-gray-200">
+                  {doctor.fullName}
+                </span>
               </div>
             )}
 
             <div className="flex justify-between items-center">
-              <span className="font-medium">{t("time")}:</span>
-              <span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {t("time")}:
+              </span>
+              <span className="text-gray-800 dark:text-gray-200">
                 {formattedDate} {formattedTime}
               </span>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="font-medium">{t("customer")}:</span>
-              <span>{customerInfo.name}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {t("customer")}:
+              </span>
+              <span className="text-gray-800 dark:text-gray-200">
+                {customerInfo.name}
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       <div className="mt-8 w-full max-w-md">
-        <Button onClick={onClose} className="w-full">
+        <Button
+          onClick={onClose}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
+        >
           <span>{t("finish")}</span>
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
