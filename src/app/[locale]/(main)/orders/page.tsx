@@ -61,8 +61,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { BookingDetailDialog } from "@/components/services/user/booking-detail-dialog";
-import { OrderDetailDialog } from "@/components/services/user/order-detail-dialog";
 
 import {
   useGetBookingsQuery,
@@ -70,11 +68,14 @@ import {
   useGetBookingByIdQuery,
 } from "@/features/booking/api";
 import { skipToken } from "@reduxjs/toolkit/query";
-import type { Booking, Order } from "@/features/booking/types";
+import type { Booking } from "@/features/booking/types";
+import { BookingDetailDialog } from "@/components/services/user/booking-detail-dialog";
+import { OrderDetailDialog } from "@/components/services/user/order-detail-dialog";
+import { OrderItem } from "@/features/order/types";
 
 export default function UserOrdersPage() {
   const [activeTab, setActiveTab] = useState("orders");
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

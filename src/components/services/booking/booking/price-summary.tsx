@@ -25,7 +25,9 @@ export function PriceSummary({
   if (selectedProcedures.length === 0) {
     return (
       <div className={cn("text-center py-2", className)}>
-        <p className="text-muted-foreground">Chưa có dịch vụ nào được chọn</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Chưa có dịch vụ nào được chọn
+        </p>
       </div>
     );
   }
@@ -41,14 +43,19 @@ export function PriceSummary({
             key={`${item.procedure.id}-${item.priceTypeId}`}
             className="mb-3"
           >
-            <div className="text-left mb-1">{item.procedure.name}</div>
+            <div className="text-left mb-1 text-gray-800 dark:text-gray-200">
+              {item.procedure.name}
+            </div>
             <div className="flex justify-between items-center">
               {priceType && (
-                <Badge variant="outline" className="ml-2 text-xs">
+                <Badge
+                  variant="outline"
+                  className="ml-2 text-xs border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300"
+                >
                   {priceType.name}
                 </Badge>
               )}
-              <div className="text-right">
+              <div className="text-right text-purple-700 dark:text-purple-300">
                 {(priceType?.price || 0).toLocaleString("vi-VN")}đ
               </div>
             </div>
@@ -56,25 +63,33 @@ export function PriceSummary({
         );
       })}
 
-      <Separator className="my-3" />
+      <Separator className="my-3 bg-purple-100 dark:bg-purple-800/30" />
 
       <div className="flex justify-between">
-        <span>Tạm tính</span>
-        <span>{subtotal.toLocaleString("vi-VN")}đ</span>
+        <span className="text-gray-600 dark:text-gray-400">Tạm tính</span>
+        <span className="text-gray-800 dark:text-gray-200">
+          {subtotal.toLocaleString("vi-VN")}đ
+        </span>
       </div>
 
       {showVAT && (
         <div className="flex justify-between">
-          <span>Thuế VAT (10%)</span>
-          <span>{vat.toLocaleString("vi-VN")}đ</span>
+          <span className="text-gray-600 dark:text-gray-400">
+            Thuế VAT (10%)
+          </span>
+          <span className="text-gray-800 dark:text-gray-200">
+            {vat.toLocaleString("vi-VN")}đ
+          </span>
         </div>
       )}
 
-      <Separator className="my-2" />
+      <Separator className="my-2 bg-purple-100 dark:bg-purple-800/30" />
 
       <div className="flex justify-between font-bold text-lg">
-        <span>Tổng cộng</span>
-        <span className="text-primary">{total.toLocaleString("vi-VN")}đ</span>
+        <span className="text-gray-800 dark:text-gray-200">Tổng cộng</span>
+        <span className="text-purple-700 dark:text-purple-300">
+          {total.toLocaleString("vi-VN")}đ
+        </span>
       </div>
     </div>
   );

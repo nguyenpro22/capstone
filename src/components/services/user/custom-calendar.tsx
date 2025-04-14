@@ -1,232 +1,200 @@
 "use client";
 
+import type React from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface CalendarProps {
-  mode: "single";
-  selected?: Date;
-  onSelect?: (date: Date | undefined) => void;
-  disabled?: (date: Date) => boolean;
   className?: string;
+  disabledDates?: Date[];
+  selectedDate?: Date;
+  onDateSelect?: (date: Date) => void;
 }
 
-export function CustomCalendar({
-  mode,
-  selected,
-  onSelect,
-  disabled,
+const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const monthYearFormat = new Intl.DateTimeFormat("default", {
+  month: "long",
+  year: "numeric",
+});
+const dayFormat = new Intl.DateTimeFormat("default", { day: "numeric" });
+
+const CustomCalendar: React.FC<CalendarProps> = ({
   className,
-}: CalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState<Date>(
-    selected || new Date()
-  );
+  disabledDates = [],
+  selectedDate,
+  onDateSelect,
+}) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Update current month when selected date changes
-  useEffect(() => {
-    if (selected) {
-      setCurrentMonth(new Date(selected));
+  const handlePrevMonth = () => {
+    setCurrentMonth(
+      (prevMonth) => new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1)
+    );
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(
+      (prevMonth) => new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1)
+    );
+  };
+
+  const handleDateSelect = (
+    day: number,
+    isPrevMonth = false,
+    isNextMonth = false
+  ) => {
+    let year = currentMonth.getFullYear();
+    let month = currentMonth.getMonth();
+
+    if (isPrevMonth) {
+      month -= 1;
+      if (month < 0) {
+        month = 11;
+        year -= 1;
+      }
+    } else if (isNextMonth) {
+      month += 1;
+      if (month > 11) {
+        month = 0;
+        year += 1;
+      }
     }
-  }, [selected]);
 
-  // Get the first day of the month
+    const selected = new Date(year, month, day);
+    onDateSelect?.(selected);
+  };
+
+  const isDateDisabled = (
+    day: number,
+    isPrevMonth = false,
+    isNextMonth = false
+  ): boolean => {
+    let year = currentMonth.getFullYear();
+    let month = currentMonth.getMonth();
+
+    if (isPrevMonth) {
+      month -= 1;
+      if (month < 0) {
+        month = 11;
+        year -= 1;
+      }
+    } else if (isNextMonth) {
+      month += 1;
+      if (month > 11) {
+        month = 0;
+        year += 1;
+      }
+    }
+
+    const dateToCheck = new Date(year, month, day);
+    return disabledDates.some(
+      (disabledDate) =>
+        disabledDate.getFullYear() === dateToCheck.getFullYear() &&
+        disabledDate.getMonth() === dateToCheck.getMonth() &&
+        disabledDate.getDate() === dateToCheck.getDate()
+    );
+  };
+
+  const isDateSelected = (
+    day: number,
+    isPrevMonth = false,
+    isNextMonth = false
+  ): boolean => {
+    if (!selectedDate) return false;
+
+    let year = currentMonth.getFullYear();
+    let month = currentMonth.getMonth();
+
+    if (isPrevMonth) {
+      month -= 1;
+      if (month < 0) {
+        month = 11;
+        year -= 1;
+      }
+    } else if (isNextMonth) {
+      month += 1;
+      if (month > 11) {
+        month = 0;
+        year += 1;
+      }
+    }
+
+    const dateToCheck = new Date(year, month, day);
+
+    return (
+      selectedDate.getFullYear() === dateToCheck.getFullYear() &&
+      selectedDate.getMonth() === dateToCheck.getMonth() &&
+      selectedDate.getDate() === dateToCheck.getDate()
+    );
+  };
+
+  const isToday = (day: number): boolean => {
+    const today = new Date();
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const dateToCheck = new Date(year, month, day);
+
+    return (
+      today.getFullYear() === dateToCheck.getFullYear() &&
+      today.getMonth() === dateToCheck.getMonth() &&
+      today.getDate() === dateToCheck.getDate()
+    );
+  };
+
   const firstDayOfMonth = new Date(
     currentMonth.getFullYear(),
     currentMonth.getMonth(),
     1
   );
-
-  // Get the last day of the month
   const lastDayOfMonth = new Date(
     currentMonth.getFullYear(),
     currentMonth.getMonth() + 1,
     0
   );
-
-  // Get the day of the week for the first day of the month (0 = Sunday, 1 = Monday, etc.)
-  const firstDayOfWeek = firstDayOfMonth.getDay();
-
-  // Get the number of days in the month
   const daysInMonth = lastDayOfMonth.getDate();
-
-  // Get the previous month's last days to fill the first row
+  const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 (Sunday) to 6 (Saturday)
   const prevMonthLastDay = new Date(
     currentMonth.getFullYear(),
     currentMonth.getMonth(),
     0
   ).getDate();
 
-  // Get the next month's first days to fill the last row
-  const nextMonthFirstDays = 42 - (firstDayOfWeek + daysInMonth); // 42 = 6 rows * 7 days
-
-  // Days of the week
-  const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-
-  // Format month and year
-  const monthYearFormat = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-
-  // Handle month navigation
-  const handlePrevMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
-    );
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
-    );
-  };
-
-  // Handle date selection
-  const handleDateSelect = (
-    day: number,
-    isPrevMonth = false,
-    isNextMonth = false
-  ) => {
-    let selectedDate: Date;
-
-    if (isPrevMonth) {
-      selectedDate = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth() - 1,
-        day
-      );
-    } else if (isNextMonth) {
-      selectedDate = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth() + 1,
-        day
-      );
-    } else {
-      selectedDate = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day
-      );
-    }
-
-    if (disabled && disabled(selectedDate)) {
-      return;
-    }
-
-    onSelect?.(selectedDate);
-  };
-
-  // Check if a date is selected
-  const isDateSelected = (
-    day: number,
-    isPrevMonth = false,
-    isNextMonth = false
-  ) => {
-    if (!selected) return false;
-
-    let dateToCheck: Date;
-
-    if (isPrevMonth) {
-      dateToCheck = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth() - 1,
-        day
-      );
-    } else if (isNextMonth) {
-      dateToCheck = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth() + 1,
-        day
-      );
-    } else {
-      dateToCheck = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day
-      );
-    }
-
-    return (
-      selected.getDate() === dateToCheck.getDate() &&
-      selected.getMonth() === dateToCheck.getMonth() &&
-      selected.getFullYear() === dateToCheck.getFullYear()
-    );
-  };
-
-  // Check if a date is disabled
-  const isDateDisabled = (
-    day: number,
-    isPrevMonth = false,
-    isNextMonth = false
-  ) => {
-    if (!disabled) return false;
-
-    let dateToCheck: Date;
-
-    if (isPrevMonth) {
-      dateToCheck = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth() - 1,
-        day
-      );
-    } else if (isNextMonth) {
-      dateToCheck = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth() + 1,
-        day
-      );
-    } else {
-      dateToCheck = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day
-      );
-    }
-
-    return disabled(dateToCheck);
-  };
-
-  // Check if a date is today
-  const isToday = (day: number) => {
-    const today = new Date();
-    return (
-      day === today.getDate() &&
-      currentMonth.getMonth() === today.getMonth() &&
-      currentMonth.getFullYear() === today.getFullYear()
-    );
-  };
+  const nextMonthFirstDays =
+    42 - (firstDayOfWeek + daysInMonth) > 0
+      ? 42 - (firstDayOfWeek + daysInMonth)
+      : 0;
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="p-2 rounded-lg bg-white border shadow dark:bg-indigo-950/60 dark:border-indigo-800/30">
+      <div className="p-3 rounded-lg bg-white border shadow-sm dark:bg-indigo-950/60 dark:border-indigo-800/30">
         {/* Header with month/year and navigation */}
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex justify-between items-center mb-2">
           <button
             onClick={handlePrevMonth}
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-indigo-900/40"
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-indigo-900/40 transition-colors"
             aria-label="Previous month"
           >
-            <ChevronLeft className="h-3.5 w-3.5 text-gray-500 dark:text-indigo-300" />
+            <ChevronLeft className="h-4 w-4 text-gray-500 dark:text-indigo-300" />
           </button>
-          <h2 className="text-xs font-medium dark:text-indigo-200">
+          <h2 className="text-sm font-medium dark:text-indigo-200">
             {monthYearFormat.format(currentMonth)}
           </h2>
           <button
             onClick={handleNextMonth}
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-indigo-900/40"
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-indigo-900/40 transition-colors"
             aria-label="Next month"
           >
-            <ChevronRight className="h-3.5 w-3.5 text-gray-500 dark:text-indigo-300" />
+            <ChevronRight className="h-4 w-4 text-gray-500 dark:text-indigo-300" />
           </button>
         </div>
 
         {/* Days of week */}
-        <div className="grid grid-cols-7 mb-0.5">
+        <div className="grid grid-cols-7 mb-1">
           {daysOfWeek.map((day) => (
             <div
               key={day}
-              className="text-center text-[10px] text-gray-500 dark:text-indigo-300/70 font-medium py-0.5"
+              className="text-center text-xs text-gray-500 dark:text-indigo-300/70 font-medium py-1"
             >
               {day}
             </div>
@@ -234,7 +202,7 @@ export function CustomCalendar({
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-1">
           {/* Previous month days */}
           {Array.from({ length: firstDayOfWeek }).map((_, index) => {
             const day = prevMonthLastDay - firstDayOfWeek + index + 1;
@@ -246,7 +214,7 @@ export function CustomCalendar({
                 onClick={() => handleDateSelect(day, true)}
                 disabled={isPrevMonthDayDisabled}
                 className={cn(
-                  "h-6 w-full rounded-md text-center text-[10px]",
+                  "h-7 w-full rounded-md text-center text-xs transition-colors",
                   "text-gray-400 dark:text-indigo-500/50",
                   isPrevMonthDayDisabled
                     ? "opacity-50 cursor-not-allowed"
@@ -271,7 +239,7 @@ export function CustomCalendar({
                 onClick={() => handleDateSelect(day)}
                 disabled={isCurrentDayDisabled}
                 className={cn(
-                  "h-6 w-full rounded-md text-center text-[10px] dark:text-indigo-200",
+                  "h-7 w-full rounded-md text-center text-xs dark:text-indigo-200 transition-colors",
                   isToday(day) &&
                     !isDateSelected(day) &&
                     "font-bold text-purple-600 dark:text-purple-400",
@@ -298,7 +266,7 @@ export function CustomCalendar({
                 onClick={() => handleDateSelect(day, false, true)}
                 disabled={isNextMonthDayDisabled}
                 className={cn(
-                  "h-6 w-full rounded-md text-center text-[10px]",
+                  "h-7 w-full rounded-md text-center text-xs transition-colors",
                   "text-gray-400 dark:text-indigo-500/50",
                   isNextMonthDayDisabled
                     ? "opacity-50 cursor-not-allowed"
@@ -315,4 +283,6 @@ export function CustomCalendar({
       </div>
     </div>
   );
-}
+};
+
+export default CustomCalendar;

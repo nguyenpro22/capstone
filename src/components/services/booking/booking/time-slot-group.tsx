@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TimeSlotGroupProps {
@@ -29,13 +28,13 @@ export function TimeSlotGroup({
   const getBackgroundClass = () => {
     switch (title) {
       case "Buổi sáng":
-        return "bg-amber-50";
+        return "bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30";
       case "Buổi chiều":
-        return "bg-blue-50";
+        return "bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800/30";
       case "Buổi tối":
-        return "bg-purple-50";
+        return "bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800/30";
       default:
-        return "bg-gray-50";
+        return "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700/30";
     }
   };
 
@@ -49,12 +48,11 @@ export function TimeSlotGroup({
             className={cn(
               "flex items-center justify-center h-11 shadow-sm border-0",
               selectedTime === time
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "bg-white hover:bg-primary/10 text-foreground"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
+                : "bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700"
             )}
             onClick={() => onTimeSelect(time)}
           >
-            {/* <Clock className="h-3.5 w-3.5 mr-1.5" /> */}
             <span className="font-medium">{formatTimeRange(time)}</span>
           </Button>
         ))}
