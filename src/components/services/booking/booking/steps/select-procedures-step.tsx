@@ -20,17 +20,14 @@ export function SelectProceduresStep({
   updateBookingData,
 }: SelectProceduresStepProps) {
   const [selectedProcedures, setSelectedProcedures] = useState<
-    {
-      procedure: Procedure;
-      priceTypeId: string;
-    }[]
+    { procedure: Procedure; priceTypeId: string }[]
   >(bookingData.selectedProcedures || []);
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDefault, setIsDefault] = useState<boolean>(
     bookingData.isDefault || false
   );
-  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
+  const t = useTranslations("bookingFlow");
 
   const { service } = bookingData;
 
@@ -44,17 +41,13 @@ export function SelectProceduresStep({
         );
         setProcedures(proceduresData);
 
-        // Automatically select all procedures with their first price type
-        if (proceduresData.length > 0) {
+        // Automatically select the first price type for each procedure if no selection exists
+        if (proceduresData.length > 0 && selectedProcedures.length === 0) {
           const initialSelections = proceduresData.map((procedure) => ({
             procedure,
             priceTypeId: procedure.procedurePriceTypes[0]?.id || "",
           }));
-
-          // Only set if we don't already have selections
-          if (selectedProcedures.length === 0) {
-            setSelectedProcedures(initialSelections);
-          }
+          setSelectedProcedures(initialSelections);
         }
       } catch (error) {
         console.error("Error fetching procedures:", error);
@@ -67,43 +60,44 @@ export function SelectProceduresStep({
     fetchProcedures();
   }, [service, selectedProcedures.length]);
 
-  // Handle price type selection
+  // Handle price type change
   const handlePriceTypeChange = useCallback(
     (procedureId: string, priceTypeId: string) => {
-      console.log("Changing price type:", procedureId, priceTypeId);
-
-      // Tìm procedure tương ứng
       const procedure = procedures.find((p) => p.id === procedureId);
-
       if (!procedure) {
         console.error("Procedure not found:", procedureId);
         return;
       }
 
-      // Kiểm tra xem procedure đã có trong selectedProcedures chưa
-      const existingIndex = selectedProcedures.findIndex(
-        (item) => item.procedure.id === procedureId
-      );
-
-      if (existingIndex >= 0) {
-        // Nếu đã có, cập nhật priceTypeId
-        setSelectedProcedures((prev) =>
-          prev.map((item, index) =>
-            index === existingIndex ? { ...item, priceTypeId } : item
-          )
+      // Update selected price type for the procedure
+      setSelectedProcedures((prev) => {
+        const updated = prev.map((item) =>
+          item.procedure.id === procedureId ? { ...item, priceTypeId } : item
         );
-      } else {
-        // Nếu chưa có, thêm mới
-        setSelectedProcedures((prev) => [...prev, { procedure, priceTypeId }]);
-      }
+        return updated;
+      });
     },
-    [procedures, selectedProcedures]
+    [procedures]
   );
 
   // Handle default option toggle
   const handleDefaultToggle = (checked: boolean) => {
     setIsDefault(checked);
     updateBookingData({ isDefault: checked });
+
+    if (checked) {
+      const defaultSelections = procedures.map((procedure) => {
+        const sortedPriceTypes = [...procedure.procedurePriceTypes].sort(
+          (a, b) => a.price - b.price
+        );
+        const cheapest = sortedPriceTypes[0];
+        return {
+          procedure,
+          priceTypeId: cheapest?.id || "",
+        };
+      });
+      setSelectedProcedures(defaultSelections);
+    }
   };
 
   // Update parent component when selections change
@@ -125,8 +119,10 @@ export function SelectProceduresStep({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-muted-foreground">{t("loadingServices")}</p>
+        <div className="h-8 w-8 border-4 border-purple-500 dark:border-purple-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400">
+          {t("loadingServices")}
+        </p>
       </div>
     );
   }
@@ -134,8 +130,10 @@ export function SelectProceduresStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">{t("selectService")}</h3>
-        <p className="text-muted-foreground mb-4">
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+          {t("selectService")}
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
           {t("pleaseSelectServiceType")}
         </p>
 
@@ -144,10 +142,11 @@ export function SelectProceduresStep({
             id="use-default"
             checked={isDefault}
             onCheckedChange={(checked) => handleDefaultToggle(checked === true)}
+            className="border-purple-300 dark:border-purple-700 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 dark:data-[state=checked]:bg-purple-500 dark:data-[state=checked]:border-purple-500"
           />
           <Label
             htmlFor="use-default"
-            className="text-sm font-medium cursor-pointer"
+            className="text-sm font-medium cursor-pointer text-gray-800 dark:text-gray-200"
           >
             {t("useDefaultPackage")}
           </Label>
@@ -167,16 +166,20 @@ export function SelectProceduresStep({
         )}
       </div>
 
-      <Separator />
+      <Separator className="bg-purple-100 dark:bg-purple-800/30" />
 
-      <div className="bg-primary/5 p-4 rounded-lg">
-        <h3 className="font-medium mb-2">{t("estimatedTotalCost")}</h3>
+      <div className="bg-purple-50/70 dark:bg-purple-900/10 p-4 rounded-lg border border-purple-100 dark:border-purple-800/20">
+        <h3 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+          {t("estimatedTotalCost")}
+        </h3>
         {isDefault ? (
           <div className="text-center p-4">
-            <p>{t("youSelectedDefaultPackage")}</p>
-            <p className="font-medium mt-2">
-              {t("price")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ -{" "}
-              {service.discountMaxPrice.toLocaleString("vi-VN")}đ
+            <p className="text-gray-600 dark:text-gray-400">
+              {t("youSelectedDefaultPackage")}
+            </p>
+            <p className="font-medium mt-2 text-purple-700 dark:text-purple-300">
+              {t("price")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ
+              - {service.discountMaxPrice.toLocaleString("vi-VN")}đ
             </p>
           </div>
         ) : (

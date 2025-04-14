@@ -199,25 +199,25 @@ export function CustomCalendar({
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="p-4 rounded-lg bg-white border shadow">
+      <div className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-purple-100 dark:border-purple-800/20 shadow">
         {/* Header with month/year and navigation */}
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className="p-2 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-300"
             aria-label="Previous month"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-500" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-medium text-gray-800 dark:text-gray-200">
             {monthYearFormat.format(currentMonth)}
           </h2>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className="p-2 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-300"
             aria-label="Next month"
           >
-            <ChevronRight className="h-5 w-5 text-gray-500" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         </div>
 
@@ -226,7 +226,7 @@ export function CustomCalendar({
           {daysOfWeek.map((day) => (
             <div
               key={day}
-              className="text-center text-sm text-gray-500 font-medium py-2"
+              className="text-center text-sm text-gray-500 dark:text-gray-400 font-medium py-2"
             >
               {day}
             </div>
@@ -247,12 +247,12 @@ export function CustomCalendar({
                 disabled={isPrevMonthDayDisabled}
                 className={cn(
                   "h-10 w-full rounded-md text-center text-sm",
-                  "text-gray-400",
+                  "text-gray-400 dark:text-gray-600",
                   isPrevMonthDayDisabled
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-100",
+                    : "hover:bg-purple-50 dark:hover:bg-purple-900/20",
                   isDateSelected(day, true) &&
-                    "bg-primary text-white hover:bg-primary"
+                    "bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-600"
                 )}
               >
                 {day}
@@ -274,12 +274,12 @@ export function CustomCalendar({
                   "h-10 w-full rounded-md text-center text-sm",
                   isToday(day) &&
                     !isDateSelected(day) &&
-                    "font-bold text-primary",
+                    "font-bold text-purple-700 dark:text-purple-300",
                   isCurrentDayDisabled
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-100",
+                    : "hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-800 dark:text-gray-200",
                   isDateSelected(day) &&
-                    "bg-primary text-white hover:bg-primary font-normal"
+                    "bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-600 font-normal"
                 )}
               >
                 {day}
@@ -299,12 +299,12 @@ export function CustomCalendar({
                 disabled={isNextMonthDayDisabled}
                 className={cn(
                   "h-10 w-full rounded-md text-center text-sm",
-                  "text-gray-400",
+                  "text-gray-400 dark:text-gray-600",
                   isNextMonthDayDisabled
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-100",
+                    : "hover:bg-purple-50 dark:hover:bg-purple-900/20",
                   isDateSelected(day, false, true) &&
-                    "bg-primary text-white hover:bg-primary"
+                    "bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-600"
                 )}
               >
                 {day}
