@@ -71,6 +71,7 @@ export enum OrderStatus {
   IN_PROGRESS = "In Progress",
   COMPLETED = "Completed",
   UNCOMPLETED = "Uncompleted",
+  CANCELED = "Canceled",
 }
 
 export type CustomerSchedule = {

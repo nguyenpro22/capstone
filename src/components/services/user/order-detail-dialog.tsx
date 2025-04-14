@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
-  CreditCard,
   Package,
   CheckCircle2,
   AlertCircle,
@@ -24,20 +23,16 @@ import {
   User,
   X,
   PlusCircle,
+  Phone,
+  Mail,
+  Video,
+  Percent,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-
-interface Order {
-  id: string;
-  customerName: string;
-  serviceName: string;
-  finalAmount: number;
-  orderDate: string;
-  status: string;
-}
+import { OrderItem } from "@/features/order/types";
 
 interface OrderDetailDialogProps {
-  order: Order;
+  order: OrderItem;
   children: React.ReactNode;
 }
 
@@ -122,7 +117,7 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden border-0 shadow-xl">
+      <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden border-0 shadow-xl max-h-[90vh]">
         <div className="relative">
           <div className="absolute top-2 right-2 z-10">
             <Button
@@ -152,7 +147,7 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto">
           <div className="mb-6">
             <h3 className="font-semibold text-xl mb-2">{order.serviceName}</h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
@@ -205,6 +200,26 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
 
             <div className="flex items-start">
               <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
+                <Phone className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Số điện thoại</p>
+                <p className="font-medium">{order.customerPhone}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
+                <Mail className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium">{order.customerEmail}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
                 <Package className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -213,15 +228,39 @@ export function OrderDetailDialog({ order, children }: OrderDetailDialogProps) {
               </div>
             </div>
 
-            <div className="flex items-start">
-              <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
-                <CreditCard className="h-5 w-5 text-primary" />
+            {order.isFromLivestream && (
+              <div className="flex items-start">
+                <div className="bg-primary/10 dark:bg-primary/5 rounded-full p-2 mr-3 flex-shrink-0">
+                  <Video className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Livestream</p>
+                  <p className="font-medium">{order.livestreamName}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Tổng tiền</p>
-                <p className="font-semibold text-lg text-primary">
+            )}
+          </div>
+
+          <div className="mt-6 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+            <h4 className="font-medium mb-3">Chi tiết thanh toán</h4>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Tổng tiền:</span>
+                <span>{formatCurrency(order.totalAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 flex items-center">
+                  <Percent className="h-4 w-4 mr-1" /> Giảm giá:
+                </span>
+                <span className="text-red-500">
+                  -{formatCurrency(order.discount)}
+                </span>
+              </div>
+              <div className="border-t pt-2 mt-2 flex justify-between">
+                <span className="font-medium">Thành tiền:</span>
+                <span className="font-semibold text-lg text-primary">
                   {formatCurrency(order.finalAmount)}
-                </p>
+                </span>
               </div>
             </div>
           </div>

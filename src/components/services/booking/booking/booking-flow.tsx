@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { SelectClinicStep } from "./steps/select-clinic-step";
 import { SelectDoctorDateStep } from "./steps/select-doctor-date-step";
-import { SelectServiceStep } from "./steps/select-service-step";
 import { BookingSummaryStep } from "./steps/booking-summary-step";
 import { BookingSuccess } from "./steps/booking-success-step";
 import type { BookingData, Doctor } from "../types/booking";
@@ -18,6 +17,7 @@ import type { TokenData } from "@/utils";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslations } from "next-intl"; // Import useTranslations
+import { SelectProceduresStep } from "./steps/select-procedures-step";
 
 interface BookingFlowProps {
   service: ServiceDetail;
@@ -68,7 +68,7 @@ export function BookingFlow({
       ? []
       : [{ title: t("selectClinicStep"), component: SelectClinicStep }]),
     { title: t("selectDoctorDateStep"), component: SelectDoctorDateStep },
-    { title: t("selectServiceStep"), component: SelectServiceStep },
+    { title: t("selectServiceStep"), component: SelectProceduresStep },
     { title: t("confirmInfoStep"), component: BookingSummaryStep },
     { title: t("completeStep"), component: BookingSuccess },
   ];
@@ -239,7 +239,7 @@ export function BookingFlow({
         );
       case 2:
         return (
-          <SelectServiceStep
+          <SelectProceduresStep
             bookingData={bookingData}
             updateBookingData={updateBookingData}
           />

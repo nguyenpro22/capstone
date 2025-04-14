@@ -8,6 +8,7 @@ import {
   Order,
   TimeSlot,
 } from "../types";
+import { OrderItem } from "@/features/order/types";
 
 // API GET chạy trên port 3000
 export const bookingQueryApi = createApi({
@@ -73,7 +74,7 @@ export const bookingQueryApi = createApi({
       query: (date) => `bookings/appointments/${date}`,
     }),
     getOrders: builder.query<
-      IResCommon<IListResponse<Order>>,
+      IResCommon<IListResponse<OrderItem>>,
       {
         searchTerm?: string;
         sortColumn?: string;

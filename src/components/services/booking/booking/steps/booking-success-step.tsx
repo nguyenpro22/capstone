@@ -1,31 +1,41 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Calendar, ArrowRight, Download, Share2 } from "lucide-react"
-import type { BookingData } from "../../types/booking"
-import { useTranslations } from "next-intl" // Import useTranslations
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  CheckCircle,
+  Calendar,
+  ArrowRight,
+  Download,
+  Share2,
+} from "lucide-react";
+import type { BookingData } from "../../types/booking";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface BookingSuccessStepProps {
-  bookingId: string
-  bookingData: BookingData
-  onClose: () => void
+  bookingId: string;
+  bookingData: BookingData;
+  onClose: () => void;
 }
 
 function formatDate(date: Date): string {
-  const year = date?.getFullYear()
-  const month = `${date?.getMonth() + 1}`.padStart(2, "0")
-  const day = `${date?.getDate()}`.padStart(2, "0")
-  return `${year}-${month}-${day}`
+  const year = date?.getFullYear();
+  const month = `${date?.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date?.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-export function BookingSuccess({ bookingId, bookingData, onClose }: BookingSuccessStepProps) {
-  const { service, clinic, doctor, date, time, customerInfo } = bookingData
-  const t = useTranslations("bookingFlow") // Use the hook with the namespace
+export function BookingSuccess({
+  bookingId,
+  bookingData,
+  onClose,
+}: BookingSuccessStepProps) {
+  const { service, clinic, doctor, date, time, customerInfo } = bookingData;
+  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
 
   // Format date and time for display
-  const formattedDate = date ? formatDate(date) : ""
-  const formattedTime = time || ""
+  const formattedDate = date ? formatDate(date) : "";
+  const formattedTime = time || "";
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -33,7 +43,9 @@ export function BookingSuccess({ bookingId, bookingData, onClose }: BookingSucce
         <CheckCircle className="h-10 w-10 text-green-600" />
       </div>
 
-      <h2 className="text-2xl font-bold text-green-600 mb-2">{t("bookingSuccessful")}</h2>
+      <h2 className="text-2xl font-bold text-green-600 mb-2">
+        {t("bookingSuccessful")}
+      </h2>
       <p className="text-muted-foreground mb-6">{t("thankYou")}</p>
 
       <Card className="w-full max-w-md mb-6 border-green-200 bg-green-50">
@@ -76,23 +88,6 @@ export function BookingSuccess({ bookingId, bookingData, onClose }: BookingSucce
         </CardContent>
       </Card>
 
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-        <Button variant="outline" className="flex-1 flex items-center justify-center gap-2">
-          <Calendar className="h-4 w-4" />
-          <span>{t("addToCalendar")}</span>
-        </Button>
-
-        <Button variant="outline" className="flex-1 flex items-center justify-center gap-2">
-          <Download className="h-4 w-4" />
-          <span>{t("download")}</span>
-        </Button>
-
-        <Button variant="outline" className="flex-1 flex items-center justify-center gap-2">
-          <Share2 className="h-4 w-4" />
-          <span>{t("share")}</span>
-        </Button>
-      </div>
-
       <div className="mt-8 w-full max-w-md">
         <Button onClick={onClose} className="w-full">
           <span>{t("finish")}</span>
@@ -100,5 +95,5 @@ export function BookingSuccess({ bookingId, bookingData, onClose }: BookingSucce
         </Button>
       </div>
     </div>
-  )
+  );
 }

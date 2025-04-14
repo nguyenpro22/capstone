@@ -20,17 +20,14 @@ export function SelectProceduresStep({
   updateBookingData,
 }: SelectProceduresStepProps) {
   const [selectedProcedures, setSelectedProcedures] = useState<
-    {
-      procedure: Procedure;
-      priceTypeId: string;
-    }[]
+    { procedure: Procedure; priceTypeId: string }[]
   >(bookingData.selectedProcedures || []);
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDefault, setIsDefault] = useState<boolean>(
     bookingData.isDefault || false
   );
-  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
+  const t = useTranslations("bookingFlow");
 
   const { service } = bookingData;
 
@@ -44,17 +41,13 @@ export function SelectProceduresStep({
         );
         setProcedures(proceduresData);
 
-        // Automatically select all procedures with their first price type
-        if (proceduresData.length > 0) {
+        // Automatically select the first price type for each procedure if no selection exists
+        if (proceduresData.length > 0 && selectedProcedures.length === 0) {
           const initialSelections = proceduresData.map((procedure) => ({
             procedure,
             priceTypeId: procedure.procedurePriceTypes[0]?.id || "",
           }));
-
-          // Only set if we don't already have selections
-          if (selectedProcedures.length === 0) {
-            setSelectedProcedures(initialSelections);
-          }
+          setSelectedProcedures(initialSelections);
         }
       } catch (error) {
         console.error("Error fetching procedures:", error);
@@ -67,43 +60,44 @@ export function SelectProceduresStep({
     fetchProcedures();
   }, [service, selectedProcedures.length]);
 
-  // Handle price type selection
+  // Handle price type change
   const handlePriceTypeChange = useCallback(
     (procedureId: string, priceTypeId: string) => {
-      console.log("Changing price type:", procedureId, priceTypeId);
-
-      // Tìm procedure tương ứng
       const procedure = procedures.find((p) => p.id === procedureId);
-
       if (!procedure) {
         console.error("Procedure not found:", procedureId);
         return;
       }
 
-      // Kiểm tra xem procedure đã có trong selectedProcedures chưa
-      const existingIndex = selectedProcedures.findIndex(
-        (item) => item.procedure.id === procedureId
-      );
-
-      if (existingIndex >= 0) {
-        // Nếu đã có, cập nhật priceTypeId
-        setSelectedProcedures((prev) =>
-          prev.map((item, index) =>
-            index === existingIndex ? { ...item, priceTypeId } : item
-          )
+      // Update selected price type for the procedure
+      setSelectedProcedures((prev) => {
+        const updated = prev.map((item) =>
+          item.procedure.id === procedureId ? { ...item, priceTypeId } : item
         );
-      } else {
-        // Nếu chưa có, thêm mới
-        setSelectedProcedures((prev) => [...prev, { procedure, priceTypeId }]);
-      }
+        return updated;
+      });
     },
-    [procedures, selectedProcedures]
+    [procedures]
   );
 
   // Handle default option toggle
   const handleDefaultToggle = (checked: boolean) => {
     setIsDefault(checked);
     updateBookingData({ isDefault: checked });
+
+    if (checked) {
+      const defaultSelections = procedures.map((procedure) => {
+        const sortedPriceTypes = [...procedure.procedurePriceTypes].sort(
+          (a, b) => a.price - b.price
+        );
+        const cheapest = sortedPriceTypes[0];
+        return {
+          procedure,
+          priceTypeId: cheapest?.id || "",
+        };
+      });
+      setSelectedProcedures(defaultSelections);
+    }
   };
 
   // Update parent component when selections change
@@ -175,8 +169,8 @@ export function SelectProceduresStep({
           <div className="text-center p-4">
             <p>{t("youSelectedDefaultPackage")}</p>
             <p className="font-medium mt-2">
-              {t("price")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ -{" "}
-              {service.discountMaxPrice.toLocaleString("vi-VN")}đ
+              {t("price")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ
+              - {service.discountMaxPrice.toLocaleString("vi-VN")}đ
             </p>
           </div>
         ) : (

@@ -1,6 +1,6 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Procedure, ProcedurePriceType } from "../types/booking";
+import type { Procedure } from "../types/booking";
 
 interface ProcedureItemProps {
   procedure: Procedure;
@@ -10,7 +10,7 @@ interface ProcedureItemProps {
 
 export function ProcedureItem({
   procedure,
-  selectedPriceTypeId = "", // Giá trị mặc định là chuỗi rỗng
+  selectedPriceTypeId = "",
   onPriceTypeChange,
 }: ProcedureItemProps) {
   return (
@@ -29,7 +29,7 @@ export function ProcedureItem({
           <div className="space-y-2">
             {procedure.procedurePriceTypes.map((priceType) => {
               const radioId = `price-${procedure.id}-${priceType.id}`;
-              const isSelected = selectedPriceTypeId === priceType.id; // Xác định isSelected
+              const isSelected = selectedPriceTypeId === priceType.id;
 
               return (
                 <div
