@@ -55,6 +55,7 @@ import { chatApi, inboxApi } from "@/features/inbox/api";
 import { bankApi } from "@/features/bank/api";
 import { doctorServiceCommandApi } from "@/features/doctor-service/api";
 import { orderQueryApi } from "@/features/order/api";
+import { walletApi } from "@/features/customer-wallet/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -103,8 +104,7 @@ const rootReducer = combineReducers({
   [chatApi.reducerPath]: chatApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [orderQueryApi.reducerPath]: orderQueryApi.reducer,
-
-
+  [walletApi.reducerPath]: walletApi.reducer,
 });
 
 // Persisted reducer
@@ -153,6 +153,7 @@ const store = configureStore({
       inboxApi.middleware,
       chatApi.middleware,
       orderQueryApi.middleware,
+      walletApi.middleware
     ),
 });
 

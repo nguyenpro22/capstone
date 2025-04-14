@@ -170,6 +170,11 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
       label: t("footer.quickLinks.links.1.label"),
       href: customerRoutes.LIVESTREAM_VIEW,
     },
+
+    {
+      label: t("footer.quickLinks.links.4.label"),
+      href: "/clinic-view",
+    },
     {
       label: t("footer.quickLinks.links.3.label"),
       href: "/registerClinic",
@@ -225,21 +230,6 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
 
             {/* Language Toggle */}
             <LangToggle />
-
-            {/* Notifications - only for logged in users */}
-            {/* {token && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-9 w-9 text-gray-700 dark:text-gray-300 relative"
-              >
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary text-white text-xs">
-                  2
-                </Badge>
-                <span className="sr-only">Notifications</span>
-              </Button>
-            )} */}
 
             {/* User menu or login button */}
             {!token ? (

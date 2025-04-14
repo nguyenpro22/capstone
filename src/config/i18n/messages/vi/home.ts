@@ -290,6 +290,7 @@ export const homeMessages: Messages["home"] = {
         { label: "Tư vấn trực tiếp", href: "#" },
         { label: "Dịch Vụ", href: "#" },
         { label: "Đăng ký phòng khám", href: "#" },
+        { label: "Danh sách phòng khám", href: "#" },
       ],
     },
 

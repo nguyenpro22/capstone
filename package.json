@@ -76,6 +76,7 @@
     "react-select": "^5.10.0",
     "react-to-print": "^3.0.6",
     "react-toastify": "^11.0.3",
+    "read-vietnamese-number": "^2.1.5",
     "recharts": "^2.15.1",
     "redux-persist": "^6.0.0",
     "shadcn-ui": "^0.9.4",

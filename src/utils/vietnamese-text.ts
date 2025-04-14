@@ -1,3 +1,33 @@
+import {
+  InvalidFormatError,
+  InvalidNumberError,
+  NotEnoughUnitError,
+  ReadingConfig,
+  doReadNumber,
+} from "read-vietnamese-number";
+
+const config = new ReadingConfig();
+config.unit = ["đồng"];
+
+export const numberToWords = (value: string) => {
+  try {
+    // Đọc số và chuyển đổi thành chữ với đơn vị là "đồng"
+    const result = doReadNumber(config, value);
+    return result.toUpperCase();
+  } catch (err) {
+    // Handle errors
+    if (err instanceof InvalidFormatError) {
+      return "Định dạng input không hợp lệ";
+    } else if (err instanceof InvalidNumberError) {
+      return "Số không hợp lệ";
+    } else if (err instanceof NotEnoughUnitError) {
+      return "Không đủ đơn vị đọc số";
+    } else {
+      return "Lỗi không xác định";
+    }
+  }
+};
+
 /**
  * Ensures proper rendering of Unicode characters, especially for Vietnamese text
  * @param text The text to normalize
