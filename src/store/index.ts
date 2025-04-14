@@ -160,7 +160,7 @@ const store = configureStore({
       chatApi.middleware,
       orderQueryApi.middleware,
       walletQueryApi.middleware,
-      walletCommandApi.middleware
+      walletCommandApi.middleware,
       clinicManagerDashboardQueryApi.middleware,
 
     ),
