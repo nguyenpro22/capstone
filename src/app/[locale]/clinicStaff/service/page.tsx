@@ -218,10 +218,10 @@ export default function ServicePage() {
               </Button>
             </div>
 
-            <Button className="gap-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
+            {/* <Button className="gap-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
               <Plus size={16} />
               {t("addService")}
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
@@ -324,11 +324,11 @@ export default function ServicePage() {
               <Table>
                 <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
                   <TableRow>
-                    <TableHead>{t("tableName")}</TableHead>
-                    <TableHead>{t("tableCategory")}</TableHead>
-                    <TableHead>{t("tablePrice")}</TableHead>
-                    <TableHead>{t("tableDiscount")}</TableHead>
-                    <TableHead className="text-right">{t("tableActions")}</TableHead>
+                    <TableHead>{t("name")}</TableHead>
+                    <TableHead>{t("category")}</TableHead>
+                    <TableHead>{t("price")}</TableHead>
+                    <TableHead>{t("discount")}</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

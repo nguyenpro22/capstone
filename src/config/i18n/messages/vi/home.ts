@@ -311,6 +311,6 @@ export const homeMessages: Messages["home"] = {
       placeholder: "Email của bạn",
       button: "Đăng Ký",
     },
-    copyright: "© {year} Trung Tâm Thẩm Mỹ. Đã đăng ký bản quyền.",
+    copyright: "© 2025 Trung Tâm Thẩm Mỹ. Đã đăng ký bản quyền.",
   },
 };

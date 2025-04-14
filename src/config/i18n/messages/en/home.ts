@@ -306,6 +306,6 @@ export const homeMessages: Messages["home"] = {
       placeholder: "Your email",
       button: "Subscribe",
     },
-    copyright: "© {year} Beauty Aesthetic. All rights reserved.",
+    copyright: "© 2025 Beauty Aesthetic. All rights reserved.",
   },
 };
