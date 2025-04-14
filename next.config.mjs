@@ -13,6 +13,7 @@ const nextConfig = {
       "thispersondoesnotexist.com",
       "cdn.nhathuoclongchau.com.vn",
       "benhvienjw.vn",
+      "api.vietqr.io",
     ],
   },
   reactStrictMode: false,

@@ -423,7 +423,6 @@ export default function ServiceDetail() {
     );
 
   const service = serviceData.value;
-  console.log(livestreamId);
 
   // Calculate discount information
   const hasDiscount = Number.parseFloat(service.discountPercent) > 0;
@@ -1742,6 +1741,7 @@ export default function ServiceDetail() {
             service={service}
             onClose={handleCloseBookingFlow}
             userData={user}
+            liveStreamRoomId={livestreamId || null}
           />
         )}
         <ModalConfirmLogin

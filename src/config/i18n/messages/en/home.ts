@@ -286,6 +286,7 @@ export const homeMessages: Messages["home"] = {
         { label: "Livestream Consultation", href: "#" },
         { label: "Services", href: "#" },
         { label: "Clinic Registration", href: "#" },
+        { label: "Clinics", href: "#" },
       ],
     },
     services: {
