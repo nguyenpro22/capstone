@@ -7,6 +7,7 @@ export type BookingFlowMessages = {
   errorOccurred: string;
   generalError: string;
   connectionError: string;
+  bookingService: string;
 
   // Navigation and steps
   next: string;
@@ -99,4 +100,8 @@ export type BookingFlowMessages = {
   doctor: string;
   time: string;
   customer: string;
+  formattedDate: string;
+  months: {
+    [key: number]: string; // Key là số tháng từ 0 đến 11
+  };
 };

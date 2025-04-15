@@ -9,7 +9,7 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   errorOccurred: "Đã xảy ra lỗi",
   generalError: "Đã xảy ra lỗi. Vui lòng thử lại.",
   connectionError: "Lỗi kết nối. Vui lòng kiểm tra kết nối internet của bạn.",
-
+  bookingService: "Đặt dịch vụ",
   // Navigation and steps
   next: "Tiếp theo",
   back: "Quay lại",
@@ -105,4 +105,19 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   doctor: "Bác sĩ",
   time: "Thời gian",
   customer: "Khách hàng",
+  formattedDate: "Ngày {date} tháng {month} năm {year}",
+  months: {
+    0: "1",
+    1: "2",
+    2: "3",
+    3: "4",
+    4: "5",
+    5: "6",
+    6: "7",
+    7: "8",
+    8: "9",
+    9: "10",
+    10: "11",
+    11: "12",
+  },
 };

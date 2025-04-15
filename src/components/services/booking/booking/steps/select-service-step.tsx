@@ -175,7 +175,7 @@ export function SelectServiceStep({
           {t("selectService")}
         </h3>
         <p className="text-gray-500 dark:text-gray-400 mb-4">
-          {t("pleaseSelectServices")}
+          {t("1111111111111111")}
         </p>
 
         <div className="flex items-center space-x-2 mb-4">
