@@ -341,6 +341,7 @@ export default function HostPage() {
     });
 
     conn.on("SystemError", async (message) => {
+      router.push("/clinicManager/live-stream");
       toast.error(message, {
         position: "top-right",
         autoClose: 3000,
