@@ -1,125 +1,137 @@
-"use client"
-import type React from "react"
-import { useState } from "react"
-import { XCircle, Search, Download, MoreVertical, Loader2, Eye, Edit } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useGetClinicsQuery, useLazyGetClinicByIdQuery, useUpdateClinicMutation } from "@/features/clinic/api"
-import { useTranslations } from "next-intl"
-import * as XLSX from "xlsx"
-import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import EditClinicForm from "@/components/systemStaff/EditClinicForm"
-import Pagination from "@/components/common/Pagination/Pagination"
-import type { Clinic } from "@/features/clinic/types"
-import { MenuPortal } from "@/components/ui/menu-portal"
-import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
-import { useTheme } from "next-themes"
-import ClinicDetailModal from "@/components/systemStaff/ClinicDetailModal"
+"use client";
+import type React from "react";
+import { useState } from "react";
+import {
+  XCircle,
+  Search,
+  Download,
+  MoreVertical,
+  Loader2,
+  Eye,
+  Edit,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  useGetClinicsQuery,
+  useLazyGetClinicByIdQuery,
+  useUpdateClinicMutation,
+} from "@/features/clinic/api";
+import { useTranslations } from "next-intl";
+import * as XLSX from "xlsx";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import EditClinicForm from "@/components/systemStaff/EditClinicForm";
+import Pagination from "@/components/common/Pagination/Pagination";
+import type { Clinic } from "@/features/clinic/types";
+import { MenuPortal } from "@/components/ui/menu-portal";
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch";
+import { useTheme } from "next-themes";
+import ClinicDetailModal from "@/components/systemStaff/ClinicDetailModal";
 
 const ClinicsList: React.FC = () => {
-  const { theme } = useTheme()
-  const t = useTranslations("clinic")
+  const { theme } = useTheme();
+  const t = useTranslations("clinic");
 
-  const [pageIndex, setPageIndex] = useState(1)
-  const pageSize = 5
-  const [searchTerm, setSearchTerm] = useState("")
-  const [viewClinic, setViewClinic] = useState<any | null>(null)
-  const [editClinic, setEditClinic] = useState<any | null>(null)
-  const [menuOpen, setMenuOpen] = useState<string | null>(null)
-  const [showEditForm, setShowEditForm] = useState(false)
-  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+  const [pageIndex, setPageIndex] = useState(1);
+  const pageSize = 5;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewClinic, setViewClinic] = useState<any | null>(null);
+  const [editClinic, setEditClinic] = useState<any | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
 
   const { data, isLoading, error, refetch } = useGetClinicsQuery({
     pageIndex,
     pageSize,
     searchTerm,
-  })
+  });
 
   // Use the delayed refetch hook
-  const delayedRefetch = useDelayedRefetch(refetch)
+  const delayedRefetch = useDelayedRefetch(refetch);
 
-  const [updateClinic] = useUpdateClinicMutation()
+  const [updateClinic] = useUpdateClinicMutation();
 
-  const clinics = data?.value.items || []
-  const totalCount = data?.value.totalCount || 0
-  const hasNextPage = data?.value.hasNextPage || false
-  const hasPreviousPage = data?.value.hasPreviousPage || false
+  const clinics = data?.value.items || [];
+  const totalCount = data?.value.totalCount || 0;
+  const hasNextPage = data?.value.hasNextPage || false;
+  const hasPreviousPage = data?.value.hasPreviousPage || false;
 
-  const [fetchClinicById] = useLazyGetClinicByIdQuery()
+  const [fetchClinicById] = useLazyGetClinicByIdQuery();
 
   const handleCloseMenu = () => {
-    setMenuOpen(null)
-  }
+    setMenuOpen(null);
+  };
 
   const handleToggleMenu = (clinicId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.nativeEvent.stopImmediatePropagation()
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     // Store the position of the button
-    setTriggerRect(e.currentTarget.getBoundingClientRect())
-    setMenuOpen(menuOpen === clinicId ? null : clinicId)
-  }
+    setTriggerRect(e.currentTarget.getBoundingClientRect());
+    setMenuOpen(menuOpen === clinicId ? null : clinicId);
+  };
 
   const handleMenuAction = async (action: string, clinicId: string) => {
     if (action === "view") {
       try {
-        const result = await fetchClinicById(clinicId).unwrap()
-        setViewClinic(result.value)
+        const result = await fetchClinicById(clinicId).unwrap();
+        setViewClinic(result.value);
       } catch (error) {
-        toast.error("Không thể lấy thông tin phòng khám!" + error)
-        setViewClinic(null)
+        toast.error("Không thể lấy thông tin phòng khám!" + error);
+        setViewClinic(null);
       }
     }
 
     if (action === "edit") {
       try {
-        const result = await fetchClinicById(clinicId).unwrap()
-        setEditClinic(result.value)
+        const result = await fetchClinicById(clinicId).unwrap();
+        setEditClinic(result.value);
       } catch (error) {
-        toast.error("Không thể lấy thông tin phòng khám!" + error)
-        setEditClinic(null)
+        toast.error("Không thể lấy thông tin phòng khám!" + error);
+        setEditClinic(null);
       }
-      setShowEditForm(true)
+      setShowEditForm(true);
     }
 
-    setMenuOpen(null)
-  }
+    setMenuOpen(null);
+  };
 
   const handleCloseEditForm = () => {
-    setViewClinic(null)
-    setShowEditForm(false)
-    setEditClinic(null)
-  }
+    setViewClinic(null);
+    setShowEditForm(false);
+    setEditClinic(null);
+  };
 
   const handleSaveSuccess = () => {
     // Thêm hàm này để xử lý khi lưu thành công
-    delayedRefetch() // Use delayed refetch instead of immediate refetch
-    handleCloseEditForm()
-  }
+    delayedRefetch(); // Use delayed refetch instead of immediate refetch
+    handleCloseEditForm();
+  };
 
   const handleToggleStatus = async (id: string) => {
-    const clinic = clinics.find((clinic) => clinic.id === id)
-    if (!clinic) return
+    const clinic = clinics.find((clinic) => clinic.id === id);
+    if (!clinic) return;
 
     try {
-      const updatedFormData = new FormData()
-      updatedFormData.append("clinicId", clinic.id || "")
-      updatedFormData.append("isActivated", (!clinic.isActivated).toString())
+      const updatedFormData = new FormData();
+      updatedFormData.append("clinicId", clinic.id || "");
+      updatedFormData.append("isActivated", (!clinic.isActivated).toString());
 
-      await updateClinic({ clinicId: id, data: updatedFormData }).unwrap()
-      toast.success("Trạng thái phòng khám đã được cập nhật!")
-      delayedRefetch() // Use delayed refetch instead of immediate refetch
+      await updateClinic({ clinicId: id, data: updatedFormData }).unwrap();
+      toast.success("Trạng thái phòng khám đã được cập nhật!");
+      delayedRefetch(); // Use delayed refetch instead of immediate refetch
     } catch (error) {
-      console.error("Failed to update status", error)
-      toast.error("Cập nhật trạng thái thất bại!")
+      console.error("Failed to update status", error);
+      toast.error("Cập nhật trạng thái thất bại!");
     }
-  }
+  };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(clinics)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Clinics")
-    XLSX.writeFile(workbook, "Clinics.xlsx")
-  }
+    const worksheet = XLSX.utils.json_to_sheet(clinics);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clinics");
+    XLSX.writeFile(workbook, "Clinics.xlsx");
+  };
 
   return (
     <div
@@ -127,7 +139,11 @@ const ClinicsList: React.FC = () => {
       onClick={handleCloseMenu}
     >
       {/* Toast Container */}
-      <ToastContainer position="top-right" autoClose={3000} theme={theme === "dark" ? "dark" : "light"} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme={theme === "dark" ? "dark" : "light"}
+      />
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -171,7 +187,9 @@ const ClinicsList: React.FC = () => {
         <div className="flex justify-center items-center py-20">
           <div className="flex flex-col items-center">
             <Loader2 className="h-10 w-10 text-indigo-500 dark:text-indigo-400 animate-spin mb-4" />
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Loading clinics...</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">
+              Loading clinics...
+            </p>
           </div>
         </div>
       )}
@@ -222,7 +240,10 @@ const ClinicsList: React.FC = () => {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {clinics.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-12 text-center text-slate-500 dark:text-slate-400"
+                    >
                       No clinics found
                     </td>
                   </tr>
@@ -231,7 +252,10 @@ const ClinicsList: React.FC = () => {
                     <motion.tr
                       key={clinic.id}
                       whileHover={{
-                        backgroundColor: theme === "dark" ? "rgba(30, 41, 59, 0.5)" : "rgba(238, 242, 255, 0.5)",
+                        backgroundColor:
+                          theme === "dark"
+                            ? "rgba(30, 41, 59, 0.5)"
+                            : "rgba(238, 242, 255, 0.5)",
                       }}
                       className="transition-colors duration-200 h-16 dark:text-gray-100"
                     >
@@ -296,8 +320,8 @@ const ClinicsList: React.FC = () => {
                               <li
                                 className="px-4 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleMenuAction("view", clinic.id)
+                                  e.stopPropagation();
+                                  handleMenuAction("view", clinic.id);
                                 }}
                               >
                                 <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
@@ -306,8 +330,8 @@ const ClinicsList: React.FC = () => {
                               <li
                                 className="px-4 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleMenuAction("edit", clinic.id)
+                                  e.stopPropagation();
+                                  handleMenuAction("edit", clinic.id);
                                 }}
                               >
                                 <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -341,7 +365,10 @@ const ClinicsList: React.FC = () => {
       )}
 
       {/* Clinic Detail Modal */}
-      <ClinicDetailModal clinic={viewClinic} onClose={() => setViewClinic(null)} />
+      <ClinicDetailModal
+        clinic={viewClinic}
+        onClose={() => setViewClinic(null)}
+      />
 
       {/* Edit Clinic Form */}
       {showEditForm && editClinic && (
@@ -367,12 +394,16 @@ const ClinicsList: React.FC = () => {
             exit={{ scale: 0.95, opacity: 0 }}
             className="relative z-10 w-full max-w-4xl mx-4"
           >
-            <EditClinicForm initialData={editClinic} onClose={handleCloseEditForm} onSaveSuccess={handleSaveSuccess} />
+            <EditClinicForm
+              initialData={editClinic}
+              onClose={handleCloseEditForm}
+              onSaveSuccess={handleSaveSuccess}
+            />
           </motion.div>
         </motion.div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ClinicsList
+export default ClinicsList;

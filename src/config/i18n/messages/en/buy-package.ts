@@ -74,10 +74,10 @@ export const buyPackageMessages: Messages["buyPackage"] = {
 
   // Additional Branches and Livestreams
   additionalBranches: "Additional Branches",
-  currentBranches: "Current branches: {count}",
+  currentBranches: "Current branches",
   perBranch: "per branch",
   additionalLivestreams: "Additional Livestreams",
-  currentLivestreams: "Current livestreams: {count}",
+  currentLivestreams: "Current livestreams",
   perLivestream: "per livestream",
 
   // Pricing and Purchase

@@ -53,6 +53,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.5.2",
+    "emoji-picker-react": "^4.12.2",
     "file-api": "^0.10.4",
     "firebase": "^11.6.0",
     "framer-motion": "^11.18.2",

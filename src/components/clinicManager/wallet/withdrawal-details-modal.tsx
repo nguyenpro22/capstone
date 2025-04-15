@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dialog,
@@ -7,65 +7,90 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
-import { ArrowDownToLine, Calendar, CreditCard, FileText, User } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import {
+  ArrowDownToLine,
+  Calendar,
+  CreditCard,
+  FileText,
+  User,
+} from "lucide-react";
 
 interface WithdrawalDetailsModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
   withdrawal: {
-    id: string
-    amount: number
-    status: string
-    date: string
-    bankAccount: string
-    transactionId: string
-    notes: string
-  }
+    id: string;
+    amount: number;
+    status: string;
+    date: string;
+    bankAccount: string;
+    transactionId: string;
+    notes: string;
+  };
   clinic: {
-    id: string
-    name: string
-  }
+    id: string;
+    name: string;
+    bankName?: string;
+    bankAccountNumber?: string;
+  };
 }
 
-export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawal, clinic }: WithdrawalDetailsModalProps) {
+export default function WithdrawalDetailsModal({
+  isOpen,
+  onClose,
+  withdrawal,
+  clinic,
+}: WithdrawalDetailsModalProps) {
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+        );
       case "pending":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+        );
       case "rejected":
-        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>
+        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   // Handle download receipt
   const handleDownloadReceipt = () => {
     // Implementation for downloading receipt
-    alert("Download receipt functionality would be implemented here")
-  }
+    alert("Download receipt functionality would be implemented here");
+  };
+
+  // Determine which bank account to display
+  const displayBankAccount =
+    clinic.bankName && clinic.bankAccountNumber
+      ? `${clinic.bankName} - ${clinic.bankAccountNumber}`
+      : withdrawal.bankAccount;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Withdrawal Details</DialogTitle>
-          <DialogDescription>Details for withdrawal from {clinic.name}'s wallet.</DialogDescription>
+          <DialogDescription>
+            Details for withdrawal from {clinic.name}'s wallet.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
@@ -77,7 +102,9 @@ export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawal, cl
 
             <div className="flex justify-between items-center pb-2 border-b">
               <div className="font-medium">Amount</div>
-              <div className="font-bold">{formatCurrency(withdrawal.amount)}</div>
+              <div className="font-bold">
+                {formatCurrency(withdrawal.amount)}
+              </div>
             </div>
 
             <div className="flex justify-between items-center pb-2 border-b">
@@ -92,13 +119,15 @@ export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawal, cl
               <div className="font-medium">Bank Account</div>
               <div className="flex items-center">
                 <CreditCard className="h-4 w-4 mr-1 text-gray-500" />
-                {withdrawal.bankAccount}
+                {displayBankAccount}
               </div>
             </div>
 
             <div className="flex justify-between items-center pb-2 border-b">
               <div className="font-medium">Transaction ID</div>
-              <div className="font-mono text-sm">{withdrawal.transactionId}</div>
+              <div className="font-mono text-sm">
+                {withdrawal.transactionId}
+              </div>
             </div>
 
             {withdrawal.notes && (
@@ -123,7 +152,11 @@ export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawal, cl
 
         <DialogFooter>
           {withdrawal.status === "completed" && (
-            <Button variant="outline" onClick={handleDownloadReceipt} className="mr-auto">
+            <Button
+              variant="outline"
+              onClick={handleDownloadReceipt}
+              className="mr-auto"
+            >
               <ArrowDownToLine className="h-4 w-4 mr-1" />
               Download Receipt
             </Button>
@@ -132,5 +165,5 @@ export default function WithdrawalDetailsModal({ isOpen, onClose, withdrawal, cl
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

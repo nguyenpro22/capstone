@@ -1,8 +1,8 @@
-"use client"
-import type React from "react"
-import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
-import Image from "next/image"
+"use client";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import Image from "next/image";
 import {
   Clock,
   Check,
@@ -17,170 +17,194 @@ import {
   AlertCircle,
   ArrowRight,
   PlusCircle,
-} from "lucide-react"
-import { useGetPackagesQuery } from "@/features/package/api"
-import { useCreatePaymentMutation } from "@/features/payment/api"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { toast } from "react-toastify"
-import type { Package } from "@/features/package/types"
-import Pagination from "@/components/common/Pagination/Pagination"
-import { useRouter } from "next/navigation"
-import PaymentService from "@/hooks/usePaymentStatus"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { useTheme } from "next-themes"
-import { useDebounce } from "@/hooks/use-debounce"
-import { useTranslations } from "next-intl"
-import { getAccessToken, GetDataByToken, getRefreshToken, type TokenData } from "@/utils"
-import { useRefreshTokenMutation } from "@/features/auth/api"
-import { setAccessToken, setRefreshToken } from "@/utils"
-import { useGetPackagesByIdQuery } from "@/features/package/api"
-import { useCreateSubscriptionOverPaymentMutation } from "@/features/payment/api"
+} from "lucide-react";
+import { useGetPackagesQuery } from "@/features/package/api";
+import { useCreatePaymentMutation } from "@/features/payment/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { toast } from "react-toastify";
+import type { Package } from "@/features/package/types";
+import Pagination from "@/components/common/Pagination/Pagination";
+import { useRouter } from "next/navigation";
+import PaymentService from "@/hooks/usePaymentStatus";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useTranslations } from "next-intl";
+import {
+  getAccessToken,
+  GetDataByToken,
+  getRefreshToken,
+  type TokenData,
+} from "@/utils";
+import { useRefreshTokenMutation } from "@/features/auth/api";
+import { setAccessToken, setRefreshToken } from "@/utils";
+import { useGetPackagesByIdQuery } from "@/features/package/api";
+import { useCreateSubscriptionOverPaymentMutation } from "@/features/payment/api";
 
-export default function PackageList() {
-  const t = useTranslations("buyPackage")
-  const { theme } = useTheme()
+export default function SubscriptionManagement() {
+  const t = useTranslations("buyPackage");
+  const { theme } = useTheme();
   // Get the token and extract clinicId
-  const token = getAccessToken()
+  const token = getAccessToken();
   // Add null check for token
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const subscriptionPackageId = tokenData?.subscriptionPackageId || ""
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const subscriptionPackageId = tokenData?.subscriptionPackageId || "";
 
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
-  const [showQR, setShowQR] = useState(false)
-  const [qrUrl, setQrUrl] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
-  const [pageIndex, setPageIndex] = useState(1)
-  const [paymentStatus, setPaymentStatus] = useState<"pending" | "success" | "failed" | "price-changed">("pending")
-  const [transactionId, setTransactionId] = useState<string | null>(null)
-  const pageSize = 6
-  const [showPaymentResult, setShowPaymentResult] = useState(false)
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [showQR, setShowQR] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
+  const [pageIndex, setPageIndex] = useState(1);
+  const [paymentStatus, setPaymentStatus] = useState<
+    "pending" | "success" | "failed" | "price-changed"
+  >("pending");
+  const [transactionId, setTransactionId] = useState<string | null>(null);
+  const pageSize = 6;
+  const [showPaymentResult, setShowPaymentResult] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{
-    amount: number | null
-    timestamp: string | null
-    message: string | null
+    amount: number | null;
+    timestamp: string | null;
+    message: string | null;
   }>({
     amount: null,
     timestamp: null,
     message: null,
-  })
+  });
   // Replace the single loading state with a map of loading states per package ID
-  const [loadingPackages, setLoadingPackages] = useState<Record<string, boolean>>({})
+  const [loadingPackages, setLoadingPackages] = useState<
+    Record<string, boolean>
+  >({});
   // Add new state variables inside the PackageList component
-  const [activeTab, setActiveTab] = useState("packages") // "packages" or "addons"
-  const [additionBranch, setAdditionBranch] = useState(0)
-  const [additionLiveStream, setAdditionLiveStream] = useState(0)
-  const [currentPackage, setCurrentPackage] = useState<any>(null)
-  const [addonQrUrl, setAddonQrUrl] = useState<string | null>(null)
-  const [addonTransactionId, setAddonTransactionId] = useState<string | null>(null)
-  const [loadingAddons, setLoadingAddons] = useState(false)
+  const [activeTab, setActiveTab] = useState("packages"); // "packages" or "addons"
+  const [additionBranch, setAdditionBranch] = useState(0);
+  const [additionLiveStream, setAdditionLiveStream] = useState(0);
+  const [currentPackage, setCurrentPackage] = useState<any>(null);
+  const [addonQrUrl, setAddonQrUrl] = useState<string | null>(null);
+  const [addonTransactionId, setAddonTransactionId] = useState<string | null>(
+    null
+  );
+  const [loadingAddons, setLoadingAddons] = useState(false);
 
   const { data, isLoading, error } = useGetPackagesQuery({
     pageIndex,
     pageSize,
     searchTerm: debouncedSearchTerm,
-  })
+  });
 
-  const [createPayment] = useCreatePaymentMutation()
+  const [createPayment] = useCreatePaymentMutation();
   // Inside the component, add the refreshToken mutation hook
-  const [refreshToken] = useRefreshTokenMutation()
+  const [refreshToken] = useRefreshTokenMutation();
   // Add the mutation for subscription over payment
-  const [createSubscriptionOverPayment] = useCreateSubscriptionOverPaymentMutation()
-  const router = useRouter()
+  const [createSubscriptionOverPayment] =
+    useCreateSubscriptionOverPaymentMutation();
+  const router = useRouter();
 
   // Add the query to get current package details
-  const { data: packageData, isLoading: isLoadingPackage } = useGetPackagesByIdQuery(subscriptionPackageId, {
-    skip: !subscriptionPackageId,
-  })
+  const { data: packageData, isLoading: isLoadingPackage } =
+    useGetPackagesByIdQuery(subscriptionPackageId, {
+      skip: !subscriptionPackageId,
+    });
 
   // Add useEffect to set current package when data is loaded
   useEffect(() => {
     if (packageData?.value) {
-      setCurrentPackage(packageData.value)
+      setCurrentPackage(packageData.value);
     }
-  }, [packageData])
+  }, [packageData]);
 
   // Add function to calculate total addon price
   const calculateAddonPrice = () => {
-    if (!currentPackage) return 0
-    const branchPrice = additionBranch * (currentPackage.priceBranchAddition || 0)
-    const livestreamPrice = additionLiveStream * (currentPackage.priceLiveStreamAddition || 0)
-    return branchPrice + livestreamPrice
-  }
+    if (!currentPackage) return 0;
+    const branchPrice =
+      additionBranch * (currentPackage.priceBranchAddition || 0);
+    const livestreamPrice =
+      additionLiveStream * (currentPackage.priceLiveStreamAddition || 0);
+    return branchPrice + livestreamPrice;
+  };
 
   // Add function to handle addon purchase
   const handleAddonPurchase = async () => {
     if (!currentPackage || (additionBranch === 0 && additionLiveStream === 0)) {
-      toast.error(t("pleaseSelectAddons"))
-      return
+      toast.error(t("pleaseSelectAddons"));
+      return;
     }
 
     try {
-      setLoadingAddons(true)
-      setPaymentStatus("pending")
+      setLoadingAddons(true);
+      setPaymentStatus("pending");
 
       const result = await createSubscriptionOverPayment({
         subscriptionId: currentPackage.id,
         currentAmount: calculateAddonPrice(),
         additionBranch,
         additionLiveStream,
-      }).unwrap()
+      }).unwrap();
 
       if (result.isSuccess && result.value.qrUrl) {
-        setAddonQrUrl(result.value.qrUrl)
+        setAddonQrUrl(result.value.qrUrl);
         if (result.value.transactionId) {
-          setAddonTransactionId(result.value.transactionId)
+          setAddonTransactionId(result.value.transactionId);
         }
-        setShowQR(true)
+        setShowQR(true);
       } else {
-        toast.error(t("failedToGenerateQr"))
+        toast.error(t("failedToGenerateQr"));
       }
     } catch (error: any) {
-      console.error("Addon payment error:", error)
+      console.error("Addon payment error:", error);
 
       if (error.data) {
-        const errorData = error.data
-        if (errorData.status === 400 && errorData.detail === "Clinic is not activated") {
-          toast.error(t("clinicNotActivated"))
+        const errorData = error.data;
+        if (
+          errorData.status === 400 &&
+          errorData.detail === "Clinic is not activated"
+        ) {
+          toast.error(t("clinicNotActivated"));
         } else if (errorData.title) {
-          toast.error(`${errorData.title}: ${errorData.detail || ""}`)
+          toast.error(`${errorData.title}: ${errorData.detail || ""}`);
         } else {
-          toast.error(errorData.detail || t("failedToInitiatePayment"))
+          toast.error(errorData.detail || t("failedToInitiatePayment"));
         }
       } else {
-        toast.error(t("failedToInitiatePayment"))
+        toast.error(t("failedToInitiatePayment"));
       }
     } finally {
-      setLoadingAddons(false)
+      setLoadingAddons(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (!transactionId) return
+    if (!transactionId) return;
 
-    const hasNotified = false // Add this flag to prevent multiple notifications
+    const hasNotified = false; // Add this flag to prevent multiple notifications
 
     const setupConnection = async () => {
       try {
-        await PaymentService.startConnection()
-        await PaymentService.joinPaymentSession(transactionId)
+        await PaymentService.startConnection();
+        await PaymentService.joinPaymentSession(transactionId);
 
         // Set up the payment status listener
         PaymentService.onPaymentStatusReceived(
           async (
             status: boolean,
             details?: {
-              amount?: number
-              timestamp?: string
-              message?: string
-            },
+              amount?: number;
+              timestamp?: string;
+              message?: string;
+            }
           ) => {
-            setPaymentStatus(status ? "success" : "failed")
+            setPaymentStatus(status ? "success" : "failed");
 
             // Store payment details if available
             if (details) {
@@ -188,204 +212,333 @@ export default function PackageList() {
                 amount: details.amount || null,
                 timestamp: details.timestamp || new Date().toISOString(),
                 message: details.message || null,
-              })
+              });
             }
 
             // If payment is successful, activate the package
             if (status) {
-              toast.success(t("paymentSuccessful"))
+              toast.success(t("paymentSuccessful"));
               // Close the QR dialog and show payment result
-              setShowQR(false)
-              setShowPaymentResult(true)
+              setShowQR(false);
+              setShowPaymentResult(true);
 
               // Add refreshToken call here
-              const accessToken = getAccessToken() as string
-              const refreshTokenValue = getRefreshToken() as string
+              const accessToken = getAccessToken() as string;
+              const refreshTokenValue = getRefreshToken() as string;
 
               if (accessToken && refreshTokenValue) {
                 try {
                   const result = await refreshToken({
                     accessToken,
                     refreshToken: refreshTokenValue,
-                  }).unwrap()
+                  }).unwrap();
 
                   if (result.isSuccess) {
                     // Save the new tokens
-                    setAccessToken(result.value.accessToken)
-                    setRefreshToken(result.value.refreshToken)
-                    console.log("Tokens refreshed successfully after payment")
+                    setAccessToken(result.value.accessToken);
+                    setRefreshToken(result.value.refreshToken);
+                    console.log("Tokens refreshed successfully after payment");
                   }
                 } catch (error) {
-                  console.error("Failed to refresh tokens after payment:", error)
+                  console.error(
+                    "Failed to refresh tokens after payment:",
+                    error
+                  );
                 }
               }
 
               // Refresh the page after a delay to show updated package status
               setTimeout(() => {
-                router.push("/clinicManager/dashboard")
-              }, 5000)
+                router.push("/clinicManager/dashboard");
+              }, 5000);
             } else {
-              toast.error(details?.message || "Payment failed. Please try again.")
+              toast.error(
+                details?.message || "Payment failed. Please try again."
+              );
               // Show payment result with failure details
-              setShowQR(false)
-              setShowPaymentResult(true)
+              setShowQR(false);
+              setShowPaymentResult(true);
             }
-          },
-        )
+          }
+        );
 
         // Set up the subscription price changed listener
         PaymentService.onSubscriptionPriceChanged((isValid: boolean) => {
           if (!isValid) {
-            toast.error("The subscription price has changed. Please initiate a new payment.")
-            setShowQR(false)
-            setPaymentStatus("price-changed")
-            setShowPaymentResult(true)
+            toast.error(
+              "The subscription price has changed. Please initiate a new payment."
+            );
+            setShowQR(false);
+            setPaymentStatus("price-changed");
+            setShowPaymentResult(true);
 
             // Optionally redirect after showing the message
             setTimeout(() => {
-              router.push("/clinicManager/subscriptions")
-            }, 5000)
+              router.push("/clinicManager/subscriptions");
+            }, 5000);
           }
-        })
+        });
       } catch (error) {
-        console.error("Failed to set up SignalR connection:", error)
-        toast.error("Failed to connect to payment service")
+        console.error("Failed to set up SignalR connection:", error);
+        toast.error("Failed to connect to payment service");
       }
-    }
+    };
 
-    setupConnection()
+    setupConnection();
 
     // Clean up the connection when component unmounts
     return () => {
       if (transactionId) {
-        PaymentService.leavePaymentSession(transactionId)
+        PaymentService.leavePaymentSession(transactionId);
       }
-    }
-  }, [transactionId, router, selectedPackage, t, refreshToken])
+    };
+  }, [transactionId, router, selectedPackage, t, refreshToken]);
+
+  useEffect(() => {
+    if (!addonTransactionId) return;
+
+    const hasNotified = false; // Add this flag to prevent multiple notifications
+
+    const setupConnection = async () => {
+      try {
+        await PaymentService.startConnection();
+        await PaymentService.joinPaymentSession(addonTransactionId);
+
+        // Set up the payment status listener
+        PaymentService.onPaymentStatusReceived(
+          async (
+            status: boolean,
+            details?: {
+              amount?: number;
+              timestamp?: string;
+              message?: string;
+            }
+          ) => {
+            setPaymentStatus(status ? "success" : "failed");
+
+            // Store payment details if available
+            if (details) {
+              setPaymentDetails({
+                amount: details.amount || null,
+                timestamp: details.timestamp || new Date().toISOString(),
+                message: details.message || null,
+              });
+            }
+
+            // If payment is successful, activate the package
+            if (status) {
+              toast.success(t("paymentSuccessful"));
+              // Close the QR dialog and show payment result
+              setShowQR(false);
+              setShowPaymentResult(true);
+
+              // Add refreshToken call here
+              const accessToken = getAccessToken() as string;
+              const refreshTokenValue = getRefreshToken() as string;
+
+              if (accessToken && refreshTokenValue) {
+                try {
+                  const result = await refreshToken({
+                    accessToken,
+                    refreshToken: refreshTokenValue,
+                  }).unwrap();
+
+                  if (result.isSuccess) {
+                    // Save the new tokens
+                    setAccessToken(result.value.accessToken);
+                    setRefreshToken(result.value.refreshToken);
+                    console.log("Tokens refreshed successfully after payment");
+                  }
+                } catch (error) {
+                  console.error(
+                    "Failed to refresh tokens after payment:",
+                    error
+                  );
+                }
+              }
+
+              // Refresh the page after a delay to show updated package status
+              setTimeout(() => {
+                router.push("/clinicManager/branch");
+              }, 5000);
+            } else {
+              toast.error(
+                details?.message || "Payment failed. Please try again."
+              );
+              // Show payment result with failure details
+              setShowQR(false);
+              setShowPaymentResult(true);
+            }
+          }
+        );
+
+        // Set up the subscription price changed listener
+        PaymentService.onSubscriptionPriceChanged((isValid: boolean) => {
+          if (!isValid) {
+            toast.error(
+              "The subscription price has changed. Please initiate a new payment."
+            );
+            setShowQR(false);
+            setPaymentStatus("price-changed");
+            setShowPaymentResult(true);
+
+            // Optionally redirect after showing the message
+            setTimeout(() => {
+              router.push("/clinicManager/buy-package");
+            }, 5000);
+          }
+        });
+      } catch (error) {
+        console.error("Failed to set up SignalR connection:", error);
+        toast.error("Failed to connect to payment service");
+      }
+    };
+
+    setupConnection();
+
+    // Clean up the connection when component unmounts
+    return () => {
+      if (addonTransactionId) {
+        PaymentService.leavePaymentSession(addonTransactionId);
+      }
+    };
+  }, [addonTransactionId, router, selectedPackage, t, refreshToken]);
 
   // Filter out the Trial package with ID 4b7171f4-3219-4688-9f7c-625687a95867
   const packages = (data?.value?.items || []).filter(
-    (pkg: Package) => pkg.id !== "4b7171f4-3219-4688-9f7c-625687a95867",
-  )
-  const totalCount = data?.value?.totalCount || 0
-  const hasNextPage = data?.value?.hasNextPage
-  const hasPreviousPage = data?.value?.hasPreviousPage
+    (pkg: Package) => pkg.id !== "4b7171f4-3219-4688-9f7c-625687a95867"
+  );
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = data?.value?.hasNextPage;
+  const hasPreviousPage = data?.value?.hasPreviousPage;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(price)
-  }
+    }).format(price);
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
+    setSearchTerm(e.target.value);
     // Page index will be reset by the useEffect when debouncedSearchTerm changes
-    const accessToken = getAccessToken() as string
-    const refreshToken = getRefreshToken() as string
-    console.log("access", accessToken)
-    console.log("refresh", refreshToken)
-  }
+    const accessToken = getAccessToken() as string;
+    const refreshToken = getRefreshToken() as string;
+    console.log("access", accessToken);
+    console.log("refresh", refreshToken);
+  };
 
   // Update the handlePurchase function to use package-specific loading state
   const handlePurchase = async (pkg: Package) => {
     try {
-      setSelectedPackage(pkg)
-      setPaymentStatus("pending")
+      setSelectedPackage(pkg);
+      setPaymentStatus("pending");
 
       // Set loading state for just this package
-      setLoadingPackages((prev) => ({ ...prev, [pkg.id]: true }))
+      setLoadingPackages((prev) => ({ ...prev, [pkg.id]: true }));
 
-      const result = await createPayment({ subscriptionId: pkg.id, currentAmount: pkg.price }).unwrap()
+      const result = await createPayment({
+        subscriptionId: pkg.id,
+        currentAmount: pkg.price,
+      }).unwrap();
       if (result.isSuccess && result.value.qrUrl) {
-        setQrUrl(result.value.qrUrl)
-        setAddonQrUrl(null) // Reset addon QR
+        setQrUrl(result.value.qrUrl);
+        setAddonQrUrl(null); // Reset addon QR
         // Store the transaction ID for SignalR connection
         if (result.value.transactionId) {
-          setTransactionId(result.value.transactionId)
-          setAddonTransactionId(null) // Reset addon transaction ID
+          setTransactionId(result.value.transactionId);
+          setAddonTransactionId(null); // Reset addon transaction ID
         }
-        setShowQR(true)
+        setShowQR(true);
       } else {
-        toast.error(t("failedToGenerateQr"))
+        toast.error(t("failedToGenerateQr"));
       }
     } catch (error: any) {
-      console.error("Payment error:", error)
+      console.error("Payment error:", error);
 
       // Handle structured error response
       if (error.data) {
-        const errorData = error.data
+        const errorData = error.data;
 
         // Check for specific error cases
-        if (errorData.status === 400 && errorData.detail === "Clinic is not activated") {
-          toast.error(t("clinicNotActivated"))
+        if (
+          errorData.status === 400 &&
+          errorData.detail === "Clinic is not activated"
+        ) {
+          toast.error(t("clinicNotActivated"));
         } else if (errorData.title) {
-          toast.error(`${errorData.title}: ${errorData.detail || ""}`)
+          toast.error(`${errorData.title}: ${errorData.detail || ""}`);
         } else {
-          toast.error(errorData.detail || t("failedToInitiatePayment"))
+          toast.error(errorData.detail || t("failedToInitiatePayment"));
         }
       } else {
-        toast.error(t("failedToInitiatePayment"))
+        toast.error(t("failedToInitiatePayment"));
       }
     } finally {
       // Clear loading state for this package
-      setLoadingPackages((prev) => ({ ...prev, [pkg.id]: false }))
+      setLoadingPackages((prev) => ({ ...prev, [pkg.id]: false }));
     }
-  }
+  };
 
   // Also update the handleRetryPayment function with similar error handling
   const handleRetryPayment = async () => {
-    if (!selectedPackage) return
+    if (!selectedPackage) return;
 
-    setShowPaymentResult(false)
-    setPaymentStatus("pending")
+    setShowPaymentResult(false);
+    setPaymentStatus("pending");
 
     try {
       // Set loading state for the selected package
-      setLoadingPackages((prev) => ({ ...prev, [selectedPackage.id]: true }))
+      setLoadingPackages((prev) => ({ ...prev, [selectedPackage.id]: true }));
 
       const result = await createPayment({
         subscriptionId: selectedPackage.id,
         currentAmount: selectedPackage.price,
-      }).unwrap()
+      }).unwrap();
       if (result.isSuccess && result.value.qrUrl) {
-        setQrUrl(result.value.qrUrl)
+        setQrUrl(result.value.qrUrl);
         if (result.value.transactionId) {
-          setTransactionId(result.value.transactionId)
+          setTransactionId(result.value.transactionId);
         }
-        setShowQR(true)
+        setShowQR(true);
       } else {
-        toast.error(t("failedToGenerateQr"))
+        toast.error(t("failedToGenerateQr"));
       }
     } catch (error: any) {
-      console.error("Payment retry error:", error)
+      console.error("Payment retry error:", error);
 
       // Handle structured error response
       if (error.data) {
-        const errorData = error.data
+        const errorData = error.data;
 
         // Check for specific error cases
-        if (errorData.status === 400 && errorData.detail === "Clinic is not activated") {
-          toast.error(t("clinicNotActivated"))
+        if (
+          errorData.status === 400 &&
+          errorData.detail === "Clinic is not activated"
+        ) {
+          toast.error(t("clinicNotActivated"));
         } else if (errorData.title) {
-          toast.error(`${errorData.title}: ${errorData.detail || ""}`)
+          toast.error(`${errorData.title}: ${errorData.detail || ""}`);
         } else {
-          toast.error(errorData.detail || t("failedToInitiatePayment"))
+          toast.error(errorData.detail || t("failedToInitiatePayment"));
         }
       } else {
-        toast.error(t("failedToInitiatePayment"))
+        toast.error(t("failedToInitiatePayment"));
       }
     } finally {
       // Clear loading state for the selected package
       if (selectedPackage) {
-        setLoadingPackages((prev) => ({ ...prev, [selectedPackage.id]: false }))
+        setLoadingPackages((prev) => ({
+          ...prev,
+          [selectedPackage.id]: false,
+        }));
       }
     }
-  }
+  };
 
   useEffect(() => {
-    setPageIndex(1) // Reset to first page when search term changes
-  }, [debouncedSearchTerm])
+    setPageIndex(1); // Reset to first page when search term changes
+  }, [debouncedSearchTerm]);
 
   if (isLoading) {
     return (
@@ -397,7 +550,10 @@ export default function PackageList() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border bg-white dark:bg-gray-800 dark:border-gray-700 p-6 shadow-lg">
+              <div
+                key={i}
+                className="rounded-2xl border bg-white dark:bg-gray-800 dark:border-gray-700 p-6 shadow-lg"
+              >
                 <Skeleton className="h-8 w-32 mb-4 dark:bg-gray-700" />
                 <Skeleton className="h-4 w-full mb-2 dark:bg-gray-700" />
                 <Skeleton className="h-4 w-2/3 mb-4 dark:bg-gray-700" />
@@ -408,7 +564,7 @@ export default function PackageList() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -416,15 +572,23 @@ export default function PackageList() {
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 p-8 flex items-center justify-center">
         <div className="text-center">
           <X className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("failedToLoadPackages")}</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{t("tryAgainLater")}</p>
-          <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {t("failedToLoadPackages")}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            {t("tryAgainLater")}
+          </p>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="gap-2"
+          >
             <RefreshCw className="h-4 w-4" />
             {t("retry")}
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -437,7 +601,9 @@ export default function PackageList() {
             className="inline-flex items-center justify-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-gray-800 shadow-md"
           >
             <Sparkles className="h-5 w-5 text-pink-500 dark:text-pink-400" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t("premiumBeautyPackages")}</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              {t("premiumBeautyPackages")}
+            </span>
           </motion.div>
 
           <motion.h1
@@ -445,7 +611,9 @@ export default function PackageList() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-serif font-semibold mb-4 bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-400 dark:to-purple-400 bg-clip-text text-transparent"
           >
-            {activeTab === "packages" ? t("enhanceYourBeautyServices") : t("purchaseAdditionalSlots")}
+            {activeTab === "packages"
+              ? t("enhanceYourBeautyServices")
+              : t("purchaseAdditionalSlots")}
           </motion.h1>
 
           <motion.p
@@ -454,7 +622,9 @@ export default function PackageList() {
             transition={{ delay: 0.2 }}
             className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8"
           >
-            {activeTab === "packages" ? t("chooseFromExclusiveRange") : t("addMoreBranchesAndLivestreams")}
+            {activeTab === "packages"
+              ? t("chooseFromExclusiveRange")
+              : t("addMoreBranchesAndLivestreams")}
           </motion.p>
 
           {/* Search Bar - Only show for packages tab */}
@@ -491,7 +661,7 @@ export default function PackageList() {
             },
           ].map((feature, index) => (
             <motion.div
-              key={index}
+              key={feature.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
@@ -500,8 +670,12 @@ export default function PackageList() {
               <div className="p-3 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 dark:from-pink-500/20 dark:to-purple-500/20 mb-4">
                 <feature.icon className="h-6 w-6 text-pink-500 dark:text-pink-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{feature.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">{feature.description}</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                {feature.title}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
         </div>
@@ -511,17 +685,19 @@ export default function PackageList() {
             <div className="flex space-x-1">
               <button
                 onClick={() => {
-                  setActiveTab("packages")
+                  setActiveTab("packages");
                   // Reset addon transaction data when switching tabs
                   if (addonTransactionId) {
                     try {
-                      PaymentService.leavePaymentSession(addonTransactionId).catch((error) =>
-                        console.error("Error leaving addon session:", error),
-                      )
+                      PaymentService.leavePaymentSession(
+                        addonTransactionId
+                      ).catch((error) =>
+                        console.error("Error leaving addon session:", error)
+                      );
                     } catch (error) {
-                      console.error("Error in addon cleanup:", error)
+                      console.error("Error in addon cleanup:", error);
                     }
-                    setAddonTransactionId(null)
+                    setAddonTransactionId(null);
                   }
                 }}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
@@ -534,17 +710,18 @@ export default function PackageList() {
               </button>
               <button
                 onClick={() => {
-                  setActiveTab("addons")
+                  setActiveTab("addons");
                   // Reset main transaction data when switching tabs
                   if (transactionId) {
                     try {
-                      PaymentService.leavePaymentSession(transactionId).catch((error) =>
-                        console.error("Error leaving main session:", error),
-                      )
+                      PaymentService.leavePaymentSession(transactionId).catch(
+                        (error) =>
+                          console.error("Error leaving main session:", error)
+                      );
                     } catch (error) {
-                      console.error("Error in main cleanup:", error)
+                      console.error("Error in main cleanup:", error);
                     }
-                    setTransactionId(null)
+                    setTransactionId(null);
                   }
                 }}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
@@ -576,9 +753,16 @@ export default function PackageList() {
             ) : !currentPackage ? (
               <Card className="p-6 text-center">
                 <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{t("noActiveSubscription")}</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{t("purchasePackageFirst")}</p>
-                <Button onClick={() => setActiveTab("packages")} className="mx-auto">
+                <h3 className="text-xl font-semibold mb-2">
+                  {t("noActiveSubscription")}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  {t("purchasePackageFirst")}
+                </p>
+                <Button
+                  onClick={() => setActiveTab("packages")}
+                  className="mx-auto"
+                >
                   {t("viewPackages")}
                 </Button>
               </Card>
@@ -594,7 +778,8 @@ export default function PackageList() {
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
-                          <ShieldCheck className="h-5 w-5 text-pink-500" /> {t("additionalBranches")}
+                          <ShieldCheck className="h-5 w-5 text-pink-500" />{" "}
+                          {t("additionalBranches")}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                           {t("currentBranches")}: {currentPackage.limitBranch}
@@ -603,24 +788,31 @@ export default function PackageList() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => setAdditionBranch(Math.max(0, additionBranch - 1))}
+                            onClick={() =>
+                              setAdditionBranch(Math.max(0, additionBranch - 1))
+                            }
                             disabled={additionBranch === 0}
                             className="h-8 w-8"
                           >
                             -
                           </Button>
-                          <div className="w-16 text-center font-medium">{additionBranch}</div>
+                          <div className="w-16 text-center font-medium">
+                            {additionBranch}
+                          </div>
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => setAdditionBranch(additionBranch + 1)}
+                            onClick={() =>
+                              setAdditionBranch(additionBranch + 1)
+                            }
                             className="h-8 w-8"
                           >
                             +
                           </Button>
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                          {formatPrice(currentPackage.priceBranchAddition)} {t("perBranch")}
+                          {formatPrice(currentPackage.priceBranchAddition)}{" "}
+                          {t("perBranch")}
                         </p>
                       </div>
                     </div>
@@ -628,33 +820,44 @@ export default function PackageList() {
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
-                          <Zap className="h-5 w-5 text-pink-500" /> {t("additionalLivestreams")}
+                          <Zap className="h-5 w-5 text-pink-500" />{" "}
+                          {t("additionalLivestreams")}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                          {t("currentLivestreams")}: {currentPackage.limitLiveStream}
+                          {t("currentLivestreams")}:{" "}
+                          {currentPackage.limitLiveStream}
                         </p>
                         <div className="flex items-center">
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => setAdditionLiveStream(Math.max(0, additionLiveStream - 1))}
+                            onClick={() =>
+                              setAdditionLiveStream(
+                                Math.max(0, additionLiveStream - 1)
+                              )
+                            }
                             disabled={additionLiveStream === 0}
                             className="h-8 w-8"
                           >
                             -
                           </Button>
-                          <div className="w-16 text-center font-medium">{additionLiveStream}</div>
+                          <div className="w-16 text-center font-medium">
+                            {additionLiveStream}
+                          </div>
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => setAdditionLiveStream(additionLiveStream + 1)}
+                            onClick={() =>
+                              setAdditionLiveStream(additionLiveStream + 1)
+                            }
                             className="h-8 w-8"
                           >
                             +
                           </Button>
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                          {formatPrice(currentPackage.priceLiveStreamAddition)} {t("perLivestream")}
+                          {formatPrice(currentPackage.priceLiveStreamAddition)}{" "}
+                          {t("perLivestream")}
                         </p>
                       </div>
                     </div>
@@ -662,7 +865,9 @@ export default function PackageList() {
 
                   <div className="border-t pt-6">
                     <div className="flex justify-between items-center mb-6">
-                      <div className="text-lg font-medium">{t("totalPrice")}:</div>
+                      <div className="text-lg font-medium">
+                        {t("totalPrice")}:
+                      </div>
                       <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
                         {formatPrice(calculateAddonPrice())}
                       </div>
@@ -671,7 +876,10 @@ export default function PackageList() {
                     <Button
                       onClick={handleAddonPurchase}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-500 dark:hover:to-purple-500 transition-all duration-300"
-                      disabled={(additionBranch === 0 && additionLiveStream === 0) || loadingAddons}
+                      disabled={
+                        (additionBranch === 0 && additionLiveStream === 0) ||
+                        loadingAddons
+                      }
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       {loadingAddons ? t("processing") : t("purchaseAddons")}
@@ -687,13 +895,15 @@ export default function PackageList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               {packages.map((pkg: any, index: number) => (
                 <motion.div
-                  key={pkg.documentId}
+                  key={pkg.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className={cn(
                     "relative overflow-hidden rounded-2xl border bg-white dark:bg-gray-800 p-6 shadow-lg transition-all duration-300 hover:shadow-xl",
-                    pkg.isActivated ? "border-pink-200 dark:border-pink-800" : "border-gray-200 dark:border-gray-700",
+                    pkg.isActivated
+                      ? "border-pink-200 dark:border-pink-800"
+                      : "border-gray-200 dark:border-gray-700"
                   )}
                 >
                   {/* Package Status Badge */}
@@ -702,7 +912,7 @@ export default function PackageList() {
                       "absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-medium",
                       pkg.isActivated
                         ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                        : "bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+                        : "bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                     )}
                   >
                     {pkg.isActivated ? (
@@ -720,17 +930,25 @@ export default function PackageList() {
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
                       <Sparkles className="h-5 w-5 text-pink-500 dark:text-pink-400" />
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{pkg.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {pkg.name}
+                      </h3>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{pkg.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                      {pkg.description}
+                    </p>
                     <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                       <Clock className="h-4 w-4" />
-                      <span>{t("durationDays", { duration: pkg.duration })}</span>
+                      <span>
+                        {t("durationDays", { duration: pkg.duration })}
+                      </span>
                     </div>
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                         <Zap className="h-4 w-4" />
-                        <span>{t("liveStreams", { count: pkg.limitLiveStream })}</span>
+                        <span>
+                          {t("liveStreams", { count: pkg.limitLiveStream })}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                         <ShieldCheck className="h-4 w-4" />
@@ -738,18 +956,26 @@ export default function PackageList() {
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                         <Sparkles className="h-4 w-4" />
-                        <span>{t("enhancedViewers", { count: pkg.enhancedViewer })}</span>
+                        <span>
+                          {t("enhancedViewers", { count: pkg.enhancedViewer })}
+                        </span>
                       </div>
 
                       {/* Additional pricing information */}
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                         <PlusCircle className="h-4 w-4" />
-                        <span>{t("additionalBranchPrice", { price: formatPrice(pkg.priceBranchAddition) })}</span>
+                        <span>
+                          {t("additionalBranchPrice", {
+                            price: formatPrice(pkg.priceBranchAddition),
+                          })}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
                         <PlusCircle className="h-4 w-4" />
                         <span>
-                          {t("additionalLivestreamPrice", { price: formatPrice(pkg.priceLiveStreamAddition) })}
+                          {t("additionalLivestreamPrice", {
+                            price: formatPrice(pkg.priceLiveStreamAddition),
+                          })}
                         </span>
                       </div>
                     </div>
@@ -758,8 +984,12 @@ export default function PackageList() {
                   {/* Price and Action */}
                   <div className="mt-auto">
                     <div className="mb-4">
-                      <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{formatPrice(pkg.price)}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t("oneTimePayment")}</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        {formatPrice(pkg.price)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t("oneTimePayment")}
+                      </p>
                     </div>
                     <Button
                       onClick={() => handlePurchase(pkg)}
@@ -767,7 +997,9 @@ export default function PackageList() {
                       disabled={!pkg.isActivated || loadingPackages[pkg.id]}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
-                      {loadingPackages[pkg.id] ? t("processing") : t("purchaseNow")}
+                      {loadingPackages[pkg.id]
+                        ? t("processing")
+                        : t("purchaseNow")}
                     </Button>
                   </div>
 
@@ -794,25 +1026,29 @@ export default function PackageList() {
           onOpenChange={(open) => {
             if (!open) {
               // When closing the dialog, safely leave the payment session
-              const currentTransactionId = transactionId || addonTransactionId
+              const currentTransactionId = transactionId || addonTransactionId;
               if (currentTransactionId) {
                 try {
                   // Wrap in try-catch to prevent errors from bubbling up
-                  PaymentService.leavePaymentSession(currentTransactionId).catch((error) => {
-                    console.error("Error leaving payment session:", error)
+                  PaymentService.leavePaymentSession(
+                    currentTransactionId
+                  ).catch((error) => {
+                    console.error("Error leaving payment session:", error);
                     // Don't throw the error further
-                  })
+                  });
                 } catch (error) {
-                  console.error("Error in payment session cleanup:", error)
+                  console.error("Error in payment session cleanup:", error);
                 }
               }
             }
-            setShowQR(open)
+            setShowQR(open);
           }}
         >
           <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
             <DialogHeader>
-              <DialogTitle className="text-center font-serif dark:text-gray-100">{t("paymentQrCode")}</DialogTitle>
+              <DialogTitle className="text-center font-serif dark:text-gray-100">
+                {t("paymentQrCode")}
+              </DialogTitle>
               <DialogDescription className="text-center dark:text-gray-300">
                 {activeTab === "packages"
                   ? t("scanQrCode", { packageName: selectedPackage?.name })
@@ -823,7 +1059,10 @@ export default function PackageList() {
               {qrUrl || addonQrUrl ? (
                 <div className="relative w-64 h-64 mb-4">
                   <Image
-                    src={(activeTab === "packages" ? qrUrl : addonQrUrl) || "/placeholder.svg"}
+                    src={
+                      (activeTab === "packages" ? qrUrl : addonQrUrl) ||
+                      "/placeholder.svg"
+                    }
                     alt="Payment QR Code"
                     fill
                     className="object-contain rounded-lg"
@@ -831,7 +1070,9 @@ export default function PackageList() {
                 </div>
               ) : (
                 <div className="w-64 h-64 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg mb-4 flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-600">
-                  <p className="text-gray-500 dark:text-gray-300 text-center px-4">Loading QR Code...</p>
+                  <p className="text-gray-500 dark:text-gray-300 text-center px-4">
+                    Loading QR Code...
+                  </p>
                 </div>
               )}
               <div className="text-center space-y-2">
@@ -840,7 +1081,9 @@ export default function PackageList() {
                     ? selectedPackage && formatPrice(selectedPackage.price)
                     : formatPrice(calculateAddonPrice())}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t("scanWithBankingApp")}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t("scanWithBankingApp")}
+                </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-4">
                   <Clock className="h-4 w-4" />
                   <span>{t("qrCodeExpires")}</span>
@@ -875,16 +1118,18 @@ export default function PackageList() {
           open={showPaymentResult}
           onOpenChange={(open) => {
             if (!open) {
-              setShowPaymentResult(false)
+              setShowPaymentResult(false);
               // Reset payment status if dialog is closed
-              setPaymentStatus("pending")
+              setPaymentStatus("pending");
             }
           }}
         >
           <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
             <DialogHeader>
               <DialogTitle className="text-center font-serif dark:text-gray-100">
-                {paymentStatus === "success" ? t("paymentSuccessTitle") : t("paymentFailedTitle")}
+                {paymentStatus === "success"
+                  ? t("paymentSuccessTitle")
+                  : t("paymentFailedTitle")}
               </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col items-center p-6">
@@ -901,13 +1146,17 @@ export default function PackageList() {
                           amount: paymentDetails.amount
                             ? formatPrice(paymentDetails.amount)
                             : selectedPackage
-                              ? formatPrice(selectedPackage.price)
-                              : "N/A",
+                            ? formatPrice(selectedPackage.price)
+                            : "N/A",
                         })}
                       </p>
                       {paymentDetails.timestamp && (
                         <p className="text-sm text-green-600 dark:text-green-400 mb-4">
-                          {t("transactionTime", { time: new Date(paymentDetails.timestamp).toLocaleString() })}
+                          {t("transactionTime", {
+                            time: new Date(
+                              paymentDetails.timestamp
+                            ).toLocaleString(),
+                          })}
                         </p>
                       )}
                       <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
@@ -923,7 +1172,8 @@ export default function PackageList() {
                           className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 dark:from-green-600 dark:to-emerald-600 dark:hover:from-green-500 dark:hover:to-emerald-500"
                         >
                           <Link href="/clinicManager/dashboard">
-                            {t("goToDashboard")} <ArrowRight className="ml-2 h-4 w-4" />
+                            {t("goToDashboard")}{" "}
+                            <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </div>
@@ -965,5 +1215,5 @@ export default function PackageList() {
         </Dialog>
       </div>
     </div>
-  )
+  );
 }

@@ -217,3 +217,45 @@ export interface Doctor {
   doctorCertificates: any | null;
   branchs?: Array<Branch>;
 }
+
+export interface ClinicBranchesData {
+  clinics: {
+    id: string;
+    name: string;
+    logo: string | null;
+    balance: number;
+    pendingWithdrawals: number;
+    totalEarnings: number;
+    bankName: string;
+    bankAccountNumber: string;
+    isMainClinic: boolean;
+  }[];
+  totals: {
+    totalBalance: number;
+    totalPendingWithdrawals: number;
+    totalEarnings: number;
+  };
+}
+export interface ClinicBranchData {
+  id: string;
+  name: string;
+  logo: string | null;
+  balance: number;
+  pendingWithdrawals: number;
+  totalEarnings: number;
+  bankName: string;
+  bankAccountNumber: string;
+  isMainClinic: boolean;
+}
+
+
+// Định nghĩa type cho toàn bộ response
+export interface ClinicBranchesResponse {
+  value: ClinicBranchesData;
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
+}

@@ -1,11 +1,27 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Calendar, ChevronDown, Download, Filter, Loader2, MapPin, Plus, RefreshCw, Search } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react";
+import {
+  Calendar,
+  ChevronDown,
+  Download,
+  Filter,
+  Loader2,
+  MapPin,
+  Plus,
+  RefreshCw,
+  Search,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,97 +29,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { format } from "date-fns"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import WithdrawalRequestModal from "@/components/clinicManager/wallet/withdrawal-request-modal"
-import WalletBalanceChart from "@/components/clinicStaff/wallet/wallet-balance-chart"
-import WithdrawalDetailsModal from "@/components/clinicManager/wallet/withdrawal-details-modal"
-
-// Mock data for a single branch (in a real app, this would come from the user's session or API)
-const branchData = {
-  id: "b1",
-  clinicId: "1",
-  name: "Skin Care Đà Nẵng - Hải Châu",
-  address: "123 Nguyễn Văn Linh, Hải Châu, Đà Nẵng",
-  logo: "/placeholder.svg?height=40&width=40",
-  balance: 5500000,
-  pendingWithdrawals: 1000000,
-  totalEarnings: 22000000,
-  status: "active",
-  clinic: {
-    id: "1",
-    name: "Skin Care Đà Nẵng",
-  },
-}
-
-// Mock data for transactions
-const transactionsData = [
-  {
-    id: "t1",
-    branchId: "b1",
-    amount: 1200000,
-    type: "income",
-    status: "completed",
-    date: "2023-12-05T10:30:00",
-    description: "Service payment - Facial Treatment",
-    customer: "Nguyễn Văn A",
-  },
-  {
-    id: "t2",
-    branchId: "b1",
-    amount: 800000,
-    type: "income",
-    status: "completed",
-    date: "2023-12-04T14:45:00",
-    description: "Service payment - Skin Rejuvenation",
-    customer: "Trần Thị B",
-  },
-  {
-    id: "t3",
-    branchId: "b1",
-    amount: 500000,
-    type: "expense",
-    status: "completed",
-    date: "2023-12-03T09:15:00",
-    description: "Supply purchase - Skincare products",
-    customer: "N/A",
-  },
-  {
-    id: "t4",
-    branchId: "b1",
-    amount: 1500000,
-    type: "income",
-    status: "completed",
-    date: "2023-12-05T16:20:00",
-    description: "Service payment - Premium Facial",
-    customer: "Lê Văn C",
-  },
-  {
-    id: "t5",
-    branchId: "b1",
-    amount: 700000,
-    type: "expense",
-    status: "completed",
-    date: "2023-12-02T11:00:00",
-    description: "Equipment maintenance",
-    customer: "N/A",
-  },
-  {
-    id: "t6",
-    branchId: "b1",
-    amount: 900000,
-    type: "income",
-    status: "pending",
-    date: "2023-12-04T13:30:00",
-    description: "Service payment - Skin Analysis",
-    customer: "Phạm Thị D",
-  },
-]
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import WithdrawalRequestModal from "@/components/clinicManager/wallet/withdrawal-request-modal";
+import WalletBalanceChart from "@/components/clinicStaff/wallet/wallet-balance-chart";
+import WithdrawalDetailsModal from "@/components/clinicManager/wallet/withdrawal-details-modal";
+import { useGetBranchDetailByIdQuery } from "@/features/clinic/api"; // Import API hook
+import { useToast } from "@/hooks/use-toast";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import { useGetWalletTransactionsForBranchQuery } from "@/features/wallet-transaction/api"; // Import wallet transactions API hook
+import type { TransactionalRequest } from "@/features/wallet-transaction/types";
+import Pagination from "@/components/common/Pagination/Pagination";
 
 // Mock data for withdrawal history
 const withdrawalHistoryData = [
@@ -137,173 +89,255 @@ const withdrawalHistoryData = [
     transactionId: "TRX567891234",
     notes: "Quarterly withdrawal",
   },
-]
+];
 
 export default function BranchWalletPage() {
-  // In a real application, you would get the branch ID from the user's session
-  // For now, we'll use the mock data directly
-  const [branch, setBranch] = useState(branchData)
-  const [transactions, setTransactions] = useState(transactionsData)
-  const [withdrawals, setWithdrawals] = useState(withdrawalHistoryData)
+  // Get the token and extract clinicId
+  const token = getAccessToken();
+  // Add null check for token
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
+  // State for pagination and filtering
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [sortColumn, setSortColumn] = useState("createOnUtc");
+  const [sortOrder, setSortOrder] = useState("desc");
+  // Fetch branch data using the API
+  const {
+    data: branchData,
+    isLoading: isLoadingBranch,
+    refetch,
+  } = useGetBranchDetailByIdQuery(clinicId);
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  // Fetch wallet transactions using the API
+  const {
+    data: transactionsResponse,
+    isLoading: isLoadingTransactions,
+    refetch: refetchTransactions,
+  } = useGetWalletTransactionsForBranchQuery({
+    pageIndex,
+    pageSize,
+    searchTerm: debouncedSearchTerm,
+    sortColumn,
+    sortOrder,
+  });
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setPageIndex(1);
+  }, [debouncedSearchTerm]);
+
+  // Map API response to component state
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  const { toast } = useToast();
+  const [withdrawals, setWithdrawals] = useState(withdrawalHistoryData);
+
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
     from: undefined,
     to: undefined,
-  })
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [typeFilter, setTypeFilter] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false)
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<any>(null)
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("transactions")
+  });
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<any>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("transactions");
+  const [withdrawalPageIndex, setWithdrawalPageIndex] = useState(1);
 
-  // Fetch branch data
+  // Get the branch from API response
+  const branch = branchData?.value || null;
+
+  // Process transactions data when API response changes
   useEffect(() => {
-    // In a real application, you would fetch the branch data from an API
-    // based on the logged-in user's branch ID
-    setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setBranch(branchData)
-      setTransactions(transactionsData)
-      setWithdrawals(withdrawalHistoryData)
-      setIsLoading(false)
-    }, 500)
-  }, [])
+    if (transactionsResponse?.isSuccess && transactionsResponse.value) {
+      const mappedTransactions = transactionsResponse.value.items.map(
+        (item: TransactionalRequest) => ({
+          id: item.id,
+          branchId: item.clinicId,
+          amount: item.amount,
+          type:
+            item.transactionType.toLowerCase() === "withdrawal"
+              ? "expense"
+              : "income",
+          status: item.status.toLowerCase().includes("completed")
+            ? "completed"
+            : item.status.toLowerCase().includes("waiting")
+            ? "pending"
+            : "rejected",
+          date: item.transactionDate,
+          description: item.description,
+          customer: item.clinicName,
+        })
+      );
+      setTransactions(mappedTransactions);
+    }
+  }, [transactionsResponse]);
 
   // Filter transactions based on filters
   const filteredTransactions = transactions.filter((transaction) => {
     // Filter by type
-    if (typeFilter !== "all" && transaction.type !== typeFilter) return false
+    if (typeFilter !== "all" && transaction.type !== typeFilter) return false;
 
     // Filter by status
-    if (statusFilter !== "all" && transaction.status !== statusFilter) return false
+    if (statusFilter !== "all" && transaction.status !== statusFilter)
+      return false;
 
     // Filter by date range
     if (dateRange.from || dateRange.to) {
-      const transactionDate = new Date(transaction.date)
-      if (dateRange.from && transactionDate < dateRange.from) return false
+      const transactionDate = new Date(transaction.date);
+      if (dateRange.from && transactionDate < dateRange.from) return false;
       if (dateRange.to) {
-        const endDate = new Date(dateRange.to)
-        endDate.setHours(23, 59, 59, 999)
-        if (transactionDate > endDate) return false
+        const endDate = new Date(dateRange.to);
+        endDate.setHours(23, 59, 59, 999);
+        if (transactionDate > endDate) return false;
       }
     }
 
     // Filter by search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       return (
         transaction.description.toLowerCase().includes(query) ||
         transaction.customer.toLowerCase().includes(query) ||
         transaction.id.toLowerCase().includes(query)
-      )
+      );
     }
 
-    return true
-  })
+    return true;
+  });
 
   // Filter withdrawals based on filters
   const filteredWithdrawals = withdrawals.filter((withdrawal) => {
     // Filter by status
-    if (statusFilter !== "all" && withdrawal.status !== statusFilter) return false
+    if (statusFilter !== "all" && withdrawal.status !== statusFilter)
+      return false;
 
     // Filter by date range
     if (dateRange.from || dateRange.to) {
-      const withdrawalDate = new Date(withdrawal.date)
-      if (dateRange.from && withdrawalDate < dateRange.from) return false
+      const withdrawalDate = new Date(withdrawal.date);
+      if (dateRange.from && withdrawalDate < dateRange.from) return false;
       if (dateRange.to) {
-        const endDate = new Date(dateRange.to)
-        endDate.setHours(23, 59, 59, 999)
-        if (withdrawalDate > endDate) return false
+        const endDate = new Date(dateRange.to);
+        endDate.setHours(23, 59, 59, 999);
+        if (withdrawalDate > endDate) return false;
       }
     }
 
     // Filter by search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       return (
         withdrawal.transactionId.toLowerCase().includes(query) ||
         withdrawal.notes.toLowerCase().includes(query) ||
         withdrawal.bankAccount.toLowerCase().includes(query)
-      )
+      );
     }
 
-    return true
-  })
+    return true;
+  });
 
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+        );
       case "pending":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+        );
       case "rejected":
-        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>
+        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   // Get type badge
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "income":
-        return <Badge className="bg-green-500 hover:bg-green-600">Income</Badge>
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">Income</Badge>
+        );
       case "expense":
-        return <Badge className="bg-red-500 hover:bg-red-600">Expense</Badge>
+        return <Badge className="bg-red-500 hover:bg-red-600">Expense</Badge>;
       default:
-        return <Badge>{type}</Badge>
+        return <Badge>{type}</Badge>;
     }
-  }
+  };
 
   // Handle withdrawal request
   const handleWithdrawalRequest = () => {
-    setIsWithdrawalModalOpen(true)
-  }
+    if (!branch) {
+      toast({
+        title: "Error",
+        description: "Cannot request withdrawal. Branch data is not available.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsWithdrawalModalOpen(true);
+  };
 
   // Handle view withdrawal details
   const handleViewDetails = (withdrawal: any) => {
-    setSelectedWithdrawal(withdrawal)
-    setIsDetailsModalOpen(true)
-  }
+    setSelectedWithdrawal(withdrawal);
+    setIsDetailsModalOpen(true);
+  };
 
   // Handle refresh data
   const handleRefresh = () => {
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-  }
+    refetch();
+    refetchTransactions();
+  };
 
   // Handle export data
   const handleExport = () => {
     // Implementation for exporting data
-    alert("Export functionality would be implemented here")
-  }
+    alert("Export functionality would be implemented here");
+  };
 
   // Clear all filters
   const clearFilters = () => {
-    setDateRange({ from: undefined, to: undefined })
-    setStatusFilter("all")
-    setTypeFilter("all")
-    setSearchQuery("")
-  }
+    setDateRange({ from: undefined, to: undefined });
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setSearchQuery("");
+    setPageIndex(1);
+    setWithdrawalPageIndex(1);
+  };
 
-  if (isLoading) {
+  useEffect(() => {
+    setPageIndex(1);
+    setWithdrawalPageIndex(1);
+  }, [debouncedSearchTerm]);
+
+  if (isLoadingBranch || !branch) {
     return (
       <div className="container mx-auto py-12 flex justify-center items-center">
         <div className="text-center">
@@ -311,7 +345,7 @@ export default function BranchWalletPage() {
           <h2 className="text-xl font-medium">Loading branch wallet data...</h2>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -319,11 +353,22 @@ export default function BranchWalletPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Branch Wallet</h1>
-          <p className="text-muted-foreground mt-1">Manage financial transactions and withdrawals for {branch.name}</p>
+          <p className="text-muted-foreground mt-1">
+            Manage financial transactions and withdrawals for {branch.name}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoadingBranch}
+          >
+            {isLoadingBranch ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-1" />
+            )}
             Refresh
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport}>
@@ -338,14 +383,19 @@ export default function BranchWalletPage() {
         <CardHeader className="pb-2">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={branch.logo || "/placeholder.svg"} alt={branch.name} />
+              <AvatarImage
+                src={branch.logo || "/placeholder.svg"}
+                alt={branch.name}
+              />
               <AvatarFallback>{branch.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-xl font-bold text-indigo-800 dark:text-indigo-300">{branch.name}</CardTitle>
+              <CardTitle className="text-xl font-bold text-indigo-800 dark:text-indigo-300">
+                {branch.name}
+              </CardTitle>
               <CardDescription className="flex items-center gap-1 mt-1">
                 <MapPin className="h-3.5 w-3.5" />
-                {branch.address}
+                {branch.bankName} - {branch.bankAccountNumber}
               </CardDescription>
             </div>
           </div>
@@ -353,27 +403,39 @@ export default function BranchWalletPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Current Balance</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Current Balance
+              </h3>
               <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                 {formatCurrency(branch.balance)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Available for withdrawal</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Available for withdrawal
+              </p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Pending Withdrawals</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Pending Withdrawals
+              </h3>
               <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                 {formatCurrency(branch.pendingWithdrawals)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Being processed</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Being processed
+              </p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Total Earnings</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Total Earnings
+              </h3>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(branch.totalEarnings)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Lifetime earnings</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Lifetime earnings
+              </p>
             </div>
           </div>
         </CardContent>
@@ -402,10 +464,16 @@ export default function BranchWalletPage() {
       <Card>
         <CardHeader>
           <CardTitle>Financial Activity</CardTitle>
-          <CardDescription>View all financial activities for {branch.name}</CardDescription>
+          <CardDescription>
+            View all financial activities for {branch.name}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="transactions" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="transactions"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className="mb-4">
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
@@ -423,7 +491,8 @@ export default function BranchWalletPage() {
                           {dateRange.from ? (
                             dateRange.to ? (
                               <>
-                                {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
                               </>
                             ) : (
                               format(dateRange.from, "LLL dd, y")
@@ -445,9 +514,9 @@ export default function BranchWalletPage() {
                           }}
                           onSelect={(range) => {
                             if (range) {
-                              setDateRange({ from: range.from, to: range.to })
+                              setDateRange({ from: range.from, to: range.to });
                             } else {
-                              setDateRange({ from: undefined, to: undefined })
+                              setDateRange({ from: undefined, to: undefined });
                             }
                           }}
                           numberOfMonths={2}
@@ -461,16 +530,29 @@ export default function BranchWalletPage() {
                         <Button variant="outline" size="sm" className="h-9">
                           <Filter className="h-4 w-4 mr-2" />
                           Type:{" "}
-                          {typeFilter === "all" ? "All" : typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}
+                          {typeFilter === "all"
+                            ? "All"
+                            : typeFilter.charAt(0).toUpperCase() +
+                              typeFilter.slice(1)}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setTypeFilter("all")}>All</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTypeFilter("income")}>Income</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTypeFilter("expense")}>Expense</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTypeFilter("all")}>
+                          All
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setTypeFilter("income")}
+                        >
+                          Income
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setTypeFilter("expense")}
+                        >
+                          Expense
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
 
@@ -482,22 +564,43 @@ export default function BranchWalletPage() {
                           Status:{" "}
                           {statusFilter === "all"
                             ? "All"
-                            : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                            : statusFilter.charAt(0).toUpperCase() +
+                              statusFilter.slice(1)}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setStatusFilter("all")}>All</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setStatusFilter("completed")}>Completed</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setStatusFilter("pending")}>Pending</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("all")}
+                        >
+                          All
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("completed")}
+                        >
+                          Completed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("pending")}
+                        >
+                          Pending
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
 
                     {/* Clear Filters Button */}
-                    {(dateRange.from || statusFilter !== "all" || typeFilter !== "all" || searchQuery) && (
-                      <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+                    {(dateRange.from ||
+                      statusFilter !== "all" ||
+                      typeFilter !== "all" ||
+                      searchQuery) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-9"
+                      >
                         Clear Filters
                       </Button>
                     )}
@@ -530,17 +633,30 @@ export default function BranchWalletPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredTransactions.length > 0 ? (
+                      {isLoadingTransactions ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                            <p className="mt-2">Loading transactions...</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredTransactions.length > 0 ? (
                         filteredTransactions.map((transaction) => (
                           <TableRow key={transaction.id}>
                             <TableCell className="font-medium">
                               {format(new Date(transaction.date), "dd/MM/yyyy")}
                             </TableCell>
-                            <TableCell className="font-semibold">{formatCurrency(transaction.amount)}</TableCell>
-                            <TableCell>{getTypeBadge(transaction.type)}</TableCell>
+                            <TableCell className="font-semibold">
+                              {formatCurrency(transaction.amount)}
+                            </TableCell>
+                            <TableCell>
+                              {getTypeBadge(transaction.type)}
+                            </TableCell>
                             <TableCell>{transaction.description}</TableCell>
                             <TableCell>{transaction.customer}</TableCell>
-                            <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                            <TableCell>
+                              {getStatusBadge(transaction.status)}
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
@@ -553,6 +669,25 @@ export default function BranchWalletPage() {
                     </TableBody>
                   </Table>
                 </div>
+                {filteredTransactions.length > 0 &&
+                  transactionsResponse?.value && (
+                    <div className="mt-4">
+                      <Pagination
+                        pageIndex={pageIndex}
+                        pageSize={pageSize}
+                        totalCount={transactionsResponse.value.totalCount || 0}
+                        hasNextPage={
+                          pageIndex <
+                          Math.ceil(
+                            (transactionsResponse.value.totalCount || 0) /
+                              pageSize
+                          )
+                        }
+                        hasPreviousPage={pageIndex > 1}
+                        onPageChange={(newPage) => setPageIndex(newPage)}
+                      />
+                    </div>
+                  )}
               </div>
             </TabsContent>
 
@@ -568,7 +703,8 @@ export default function BranchWalletPage() {
                           {dateRange.from ? (
                             dateRange.to ? (
                               <>
-                                {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
                               </>
                             ) : (
                               format(dateRange.from, "LLL dd, y")
@@ -590,9 +726,9 @@ export default function BranchWalletPage() {
                           }}
                           onSelect={(range) => {
                             if (range) {
-                              setDateRange({ from: range.from, to: range.to })
+                              setDateRange({ from: range.from, to: range.to });
                             } else {
-                              setDateRange({ from: undefined, to: undefined })
+                              setDateRange({ from: undefined, to: undefined });
                             }
                           }}
                           numberOfMonths={2}
@@ -608,23 +744,47 @@ export default function BranchWalletPage() {
                           Status:{" "}
                           {statusFilter === "all"
                             ? "All"
-                            : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                            : statusFilter.charAt(0).toUpperCase() +
+                              statusFilter.slice(1)}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setStatusFilter("all")}>All</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setStatusFilter("completed")}>Completed</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setStatusFilter("pending")}>Pending</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setStatusFilter("rejected")}>Rejected</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("all")}
+                        >
+                          All
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("completed")}
+                        >
+                          Completed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("pending")}
+                        >
+                          Pending
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("rejected")}
+                        >
+                          Rejected
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
 
                     {/* Clear Filters Button */}
-                    {(dateRange.from || statusFilter !== "all" || searchQuery) && (
-                      <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+                    {(dateRange.from ||
+                      statusFilter !== "all" ||
+                      searchQuery) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-9"
+                      >
                         Clear Filters
                       </Button>
                     )}
@@ -663,14 +823,24 @@ export default function BranchWalletPage() {
                             <TableCell className="font-medium">
                               {format(new Date(withdrawal.date), "dd/MM/yyyy")}
                             </TableCell>
-                            <TableCell className="font-semibold">{formatCurrency(withdrawal.amount)}</TableCell>
-                            <TableCell>{withdrawal.bankAccount}</TableCell>
-                            <TableCell>
-                              <span className="font-mono text-xs">{withdrawal.transactionId}</span>
+                            <TableCell className="font-semibold">
+                              {formatCurrency(withdrawal.amount)}
                             </TableCell>
-                            <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
+                            <TableCell>{`${branch.bankName} - ${branch.bankAccountNumber}`}</TableCell>
+                            <TableCell>
+                              <span className="font-mono text-xs">
+                                {withdrawal.transactionId}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(withdrawal.status)}
+                            </TableCell>
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" onClick={() => handleViewDetails(withdrawal)}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewDetails(withdrawal)}
+                              >
                                 View Details
                               </Button>
                             </TableCell>
@@ -686,6 +856,23 @@ export default function BranchWalletPage() {
                     </TableBody>
                   </Table>
                 </div>
+                {filteredWithdrawals.length > 0 && (
+                  <div className="mt-4">
+                    <Pagination
+                      pageIndex={withdrawalPageIndex}
+                      pageSize={pageSize}
+                      totalCount={withdrawals.length}
+                      hasNextPage={
+                        withdrawalPageIndex <
+                        Math.ceil(withdrawals.length / pageSize)
+                      }
+                      hasPreviousPage={withdrawalPageIndex > 1}
+                      onPageChange={(newPage) =>
+                        setWithdrawalPageIndex(newPage)
+                      }
+                    />
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -693,28 +880,35 @@ export default function BranchWalletPage() {
       </Card>
 
       {/* Withdrawal Request Modal */}
-      <WithdrawalRequestModal
-        isOpen={isWithdrawalModalOpen}
-        onClose={() => setIsWithdrawalModalOpen(false)}
-        clinic={{
-          id: branch.id,
-          name: branch.name,
-          balance: branch.balance,
-        }}
-      />
+      {branch && (
+        <WithdrawalRequestModal
+          isOpen={isWithdrawalModalOpen}
+          onClose={() => setIsWithdrawalModalOpen(false)}
+          onSuccess={() => handleRefresh()}
+          clinic={{
+            id: branch.id,
+            name: branch.name,
+            balance: branch.balance,
+            bankName: branch.bankName,
+            bankAccountNumber: branch.bankAccountNumber,
+          }}
+        />
+      )}
 
       {/* Withdrawal Details Modal */}
-      {selectedWithdrawal && (
+      {selectedWithdrawal && branch && (
         <WithdrawalDetailsModal
           isOpen={isDetailsModalOpen}
-          onClose={() => setIsDetailsModalOpen(false)}
+          onClose={() => handleRefresh()}
           withdrawal={selectedWithdrawal}
           clinic={{
             id: branch.id,
             name: branch.name,
+            bankName: branch.bankName,
+            bankAccountNumber: branch.bankAccountNumber,
           }}
         />
       )}
     </div>
-  )
+  );
 }

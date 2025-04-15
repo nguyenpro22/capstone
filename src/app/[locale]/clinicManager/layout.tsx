@@ -1,5 +1,8 @@
 "use client";
-import { useState } from "react";
+
+import type React from "react";
+
+import { useEffect, useState, useLayoutEffect } from "react";
 import Sidebar from "@/components/common/Admin/Sidebar";
 import Navbar from "@/components/common/Admin/Navbar";
 import { ChevronRight } from "lucide-react";
@@ -9,10 +12,71 @@ export default function ClinicManagerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true)
+  // Initialize with true, but we'll check the actual size before rendering
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  // Add a state to track if we've completed the initial size check
+  const [initialCheckComplete, setInitialCheckComplete] = useState(false);
+
+  // Function to check if we're on a real mobile device vs just a narrow viewport
+  const isRealMobileDevice = () => {
+    // Check for touch capability as a better indicator of a mobile device
+    const hasTouchScreen =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    // Check for a narrow viewport
+    const hasNarrowViewport = window.innerWidth < 768;
+
+    // If it has touch AND a narrow viewport, it's likely a real mobile device
+    // If it just has a narrow viewport (like when dev tools are open), it's probably not
+    return hasTouchScreen && hasNarrowViewport;
+  };
 
   const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen)
+    setSidebarOpen(!isSidebarOpen);
+  };
+
+  // Use useLayoutEffect to run before the browser paints
+  // This helps prevent the flash of incorrect sidebar state
+  useLayoutEffect(() => {
+    // Only close the sidebar on initial load if it's a real mobile device
+    const shouldCloseSidebar = isRealMobileDevice();
+    setSidebarOpen(!shouldCloseSidebar);
+    setInitialCheckComplete(true);
+
+    // Store the sidebar state in localStorage to persist across refreshes
+    const storedState = localStorage.getItem("sidebarOpen");
+    if (storedState !== null) {
+      setSidebarOpen(storedState === "true");
+    }
+  }, []);
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    if (initialCheckComplete) {
+      localStorage.setItem("sidebarOpen", String(isSidebarOpen));
+    }
+  }, [isSidebarOpen, initialCheckComplete]);
+
+  useEffect(() => {
+    // Function to handle resize events, including developer tools opening
+    const handleResize = () => {
+      // If we're not on a real mobile device but the viewport is narrow (like when dev tools are open)
+      // and the sidebar is closed, we should open it
+      if (!isRealMobileDevice() && !isSidebarOpen && window.innerWidth < 1200) {
+        setSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Also run once on mount to ensure correct initial state
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isSidebarOpen]);
+
+  // Don't render until we've completed the initial check
+  if (!initialCheckComplete) {
+    return null; // Or a loading spinner
   }
 
   return (
@@ -21,7 +85,7 @@ export default function ClinicManagerLayout({
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-950 shadow-md dark:shadow-gray-900 transform transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } overflow-y-auto`}
       >
         <Sidebar
           role="clinicManager"
@@ -32,7 +96,11 @@ export default function ClinicManagerLayout({
       </div>
 
       {/* Main Content */}
-      <div className={`flex flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
+      <div
+        className={`flex flex-1 flex-col transition-all duration-300 ${
+          isSidebarOpen ? "md:ml-64" : "ml-0"
+        }`}
+      >
         {/* Navbar with toggle button when sidebar is closed */}
         <div className="relative">
           {!isSidebarOpen && (
@@ -53,5 +121,5 @@ export default function ClinicManagerLayout({
         <main className="p-6 dark:bg-gray-950 dark:text-white">{children}</main>
       </div>
     </div>
-  )
+  );
 }

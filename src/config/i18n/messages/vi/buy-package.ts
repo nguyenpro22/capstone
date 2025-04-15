@@ -74,15 +74,15 @@ export const buyPackageMessages: Messages["buyPackage"] = {
 
   // Additional Branches and Livestreams
   additionalBranches: "Chi Nhánh Bổ Sung",
-  currentBranches: "Chi nhánh hiện tại: {count}",
+  currentBranches: "Chi nhánh hiện tại",
   perBranch: "mỗi chi nhánh",
   additionalLivestreams: "Lượt Phát Trực Tiếp Bổ Sung",
-  currentLivestreams: "Lượt phát trực tiếp hiện tại: {count}",
+  currentLivestreams: "Lượt phát trực tiếp hiện tại",
   perLivestream: "mỗi lượt phát trực tiếp",
 
   // Pricing and Purchase
   totalPrice: "Tổng Tiền",
-  purchaseAddons: "Mua Bổ Sung",
+  purchaseAddons: "Mua Thêm",
   pleaseSelectAddons: "Vui lòng chọn ít nhất một slot bổ sung",
   scanQrCodeAddons: "Quét mã QR này để hoàn tất việc mua slot bổ sung",
 }

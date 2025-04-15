@@ -1,8 +1,7 @@
-"use client"
+"use client";
+import { useState } from "react";
+import type React from "react";
 
-import type React from "react"
-
-import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -10,195 +9,226 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Check, Loader2 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import { useCreateWalletWithdrawMutation } from "@/features/clinic-wallet/api";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface WithdrawalRequestModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void; // Add this callback prop
   clinic: {
-    id: string
-    name: string
-    balance: number
-  }
+    id: string;
+    name: string;
+    balance: number;
+    bankName: string;
+    bankAccountNumber: string;
+  };
 }
 
-// Mock bank accounts
-const bankAccounts = [
-  { id: "1", name: "Vietcombank - 1234567890" },
-  { id: "2", name: "Techcombank - 9876543210" },
-  { id: "3", name: "BIDV - 5678912345" },
-]
+export default function WithdrawalRequestModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  clinic,
+}: WithdrawalRequestModalProps) {
+  const [createWalletWithdraw, { isLoading }] =
+    useCreateWalletWithdrawMutation();
 
-export default function WithdrawalRequestModal({ isOpen, onClose, clinic }: WithdrawalRequestModalProps) {
-  const [amount, setAmount] = useState("")
-  const [bankAccount, setBankAccount] = useState("")
-  const [notes, setNotes] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [amountError, setAmountError] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
 
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Validate form
+  const validateForm = () => {
+    let isValid = true;
 
     // Validate amount
-    const numAmount = Number(amount.replace(/[^0-9]/g, ""))
-    if (!numAmount || numAmount <= 0) {
-      setError("Please enter a valid amount")
-      return
-    }
-
-    if (numAmount > clinic.balance) {
-      setError(`Withdrawal amount cannot exceed available balance (${formatCurrency(clinic.balance)})`)
-      return
-    }
-
-    if (!bankAccount) {
-      setError("Please select a bank account")
-      return
-    }
-
-    setError(null)
-    setIsSubmitting(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSuccess(true)
-
-      // Close modal after showing success message
-      setTimeout(() => {
-        handleClose()
-      }, 2000)
-    }, 1500)
-  }
-
-  // Handle close and reset form
-  const handleClose = () => {
-    setAmount("")
-    setBankAccount("")
-    setNotes("")
-    setError(null)
-    setSuccess(false)
-    onClose()
-  }
-
-  // Format input amount with currency
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove non-numeric characters
-    const value = e.target.value.replace(/[^0-9]/g, "")
-
-    // Format with thousand separators
-    if (value) {
-      const numValue = Number.parseInt(value, 10)
-      setAmount(numValue.toLocaleString("vi-VN"))
+    if (!amount) {
+      setAmountError("Amount is required");
+      isValid = false;
+    } else if (isNaN(Number(amount))) {
+      setAmountError("Amount must be a number");
+      isValid = false;
+    } else if (Number(amount) <= 0) {
+      setAmountError("Amount must be greater than 0");
+      isValid = false;
+    } else if (Number(amount) > clinic.balance) {
+      setAmountError("Amount cannot exceed available balance");
+      isValid = false;
     } else {
-      setAmount("")
+      setAmountError("");
     }
-  }
+
+    // Validate description
+    if (!description) {
+      setDescriptionError("Description is required");
+      isValid = false;
+    } else if (description.length < 5) {
+      setDescriptionError("Description must be at least 5 characters");
+      isValid = false;
+    } else if (description.length > 200) {
+      setDescriptionError("Description must be less than 200 characters");
+      isValid = false;
+    } else {
+      setDescriptionError("");
+    }
+
+    return isValid;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    try {
+      // Call API to create withdrawal request
+      await createWalletWithdraw({
+        clinicId: clinic.id,
+        amount: Number(amount),
+        description,
+      }).unwrap();
+
+      // Show success message
+      toast.success("Request withdraw success");
+
+      // Reset form and close modal
+      resetForm();
+      onClose();
+
+      // Call the onSuccess callback to trigger data refetch in the parent component
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error: any) {
+      console.error("Failed to submit withdrawal request:", error);
+      toast.error(error.data.detail);
+    }
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setAmount("");
+    setDescription("");
+    setAmountError("");
+    setDescriptionError("");
+  };
+
+  // Handle close
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Request Withdrawal</DialogTitle>
           <DialogDescription>
-            Request a withdrawal from {clinic.name}'s wallet. Available balance: {formatCurrency(clinic.balance)}
+            Enter the amount you want to withdraw from your clinic wallet.
           </DialogDescription>
         </DialogHeader>
 
-        {success ? (
-          <div className="py-6">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <Check className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-medium text-green-800">Withdrawal Request Submitted</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                Your withdrawal request has been submitted successfully. It will be processed within 1-3 business days.
-              </p>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="clinic">Clinic</Label>
+            <Input id="clinic" value={clinic.name} disabled />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+
+          <div className="space-y-2">
+            <Label htmlFor="balance">Available Balance</Label>
+            <Input
+              id="balance"
+              value={formatCurrency(clinic.balance)}
+              disabled
+            />
+          </div>
+
+          {/* Bank Account Information */}
+          <div className="space-y-2">
+            <Label htmlFor="bankAccount">Bank Account</Label>
+            <Input
+              id="bankAccount"
+              value={`${clinic.bankName} - ${clinic.bankAccountNumber}`}
+              disabled
+            />
+            <p className="text-xs text-muted-foreground">
+              Withdrawal will be processed to this bank account
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="amount">
+              Withdrawal Amount <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="amount"
+              placeholder="Enter amount in VND"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className={amountError ? "border-red-500" : ""}
+            />
+            {amountError && (
+              <p className="text-red-500 text-sm">{amountError}</p>
             )}
+          </div>
 
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="amount">Withdrawal Amount</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₫</span>
-                  <Input id="amount" className="pl-7" value={amount} onChange={handleAmountChange} placeholder="0" />
-                </div>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">
+              Description <span className="text-red-500">*</span>
+            </Label>
+            <Textarea
+              id="description"
+              placeholder="Reason for withdrawal"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className={descriptionError ? "border-red-500" : ""}
+            />
+            {descriptionError && (
+              <p className="text-red-500 text-sm">{descriptionError}</p>
+            )}
+          </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="bank-account">Bank Account</Label>
-                <Select value={bankAccount} onValueChange={setBankAccount}>
-                  <SelectTrigger id="bank-account">
-                    <SelectValue placeholder="Select bank account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bankAccounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add any notes about this withdrawal"
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Submit Request"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
+          <DialogFooter className="pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Submit Request"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

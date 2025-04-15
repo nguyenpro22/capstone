@@ -18,6 +18,7 @@ export const systemAdminRoutes = {
   SETTINGS: `${privateSystemAdminPath}/settings`,
   VOUCHER: `${privateSystemAdminPath}/voucher`,
   USERS: `${privateSystemAdminPath}/users`, // Sửa lỗi đường dẫn
+  WITHDRAWS: `${privateSystemAdminPath}/withdrawal-approval`, // Sửa lỗi đường dẫn
 };
 
 // CLINIC ADMIN ROUTES
@@ -35,6 +36,7 @@ export const clinicAdminRoutes = {
   MANAGE_LIVESTREAM: `${privateClinicAdminPath}/live-stream`,
   LIVESTREAM: `${privateClinicAdminPath}/live-stream/host-page`,
   WALLET: `${privateClinicAdminPath}/wallet`,
+  WITHDRAWS: `${privateClinicAdminPath}/withdrawal-approval`,
 };
 
 // DOCTOR ROUTES
