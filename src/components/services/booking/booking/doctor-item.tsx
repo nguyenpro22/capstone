@@ -1,3 +1,4 @@
+"use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -6,6 +7,7 @@ import type { Doctor } from "../types/booking";
 import { getInitials } from "../utils/booking-utils";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface DoctorItemProps {
   doctor: Doctor;
@@ -22,6 +24,7 @@ export function DoctorItem({
   radioId = `doctor-${doctor.id}`,
   showRadio = true,
 }: DoctorItemProps) {
+  const t = useTranslations("bookingFlow");
   return (
     <div className="flex">
       {showRadio && (
@@ -66,7 +69,7 @@ export function DoctorItem({
               </div>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Chuyên gia {serviceCategoryName}
+              {t("doctorSelect")} {serviceCategoryName}
             </div>
             {doctor.doctorCertificates &&
               doctor.doctorCertificates.length > 0 && (
