@@ -1,8 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
-import { IListResponse, IResCommon } from "@/lib/api";
-import { DoctorSchedule, DoctorWorkingSchedule } from "../types";
-import { register } from "module";
+import { ErrorResponse, IListResponse, IResCommon } from "@/lib/api";
+import { Certificate, DoctorWorkingSchedule } from "../types";
 
 export const doctorQueryApi = createApi({
   reducerPath: "doctorQueryApi",
@@ -30,6 +29,22 @@ export const doctorQueryApi = createApi({
         params: { searchTerm, sortColumn, sortOrder, pageNumber, pageSize },
       }),
     }),
+    getDoctorCertificates: builder.query<
+      IResCommon<Certificate[]>, // Định nghĩa kiểu trả về
+      { doctorId: string } // Định nghĩa tham số cho endpoint
+    >({
+      query: ({ doctorId }) => ({
+        url: `/doctor-certificates/doctors/${doctorId}/certificates`,
+        method: "GET", // Đảm bảo là phương thức GET
+      }),
+
+      transformErrorResponse: (response: {
+        status: number;
+        data: ErrorResponse;
+      }) => {
+        return response;
+      },
+    }),
   }),
 });
 
@@ -50,5 +65,9 @@ export const doctorCommandApi = createApi({
   }),
 });
 
-export const { useGetDoctorSchedulesQuery } = doctorQueryApi;
+export const {
+  useGetDoctorSchedulesQuery,
+  useGetDoctorCertificatesQuery,
+  useLazyGetDoctorCertificatesQuery,
+} = doctorQueryApi;
 export const { useAddAppointmentNoteMutation } = doctorCommandApi;

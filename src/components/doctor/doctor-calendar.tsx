@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
 import {
   format,
@@ -15,16 +17,10 @@ import {
   isToday,
   addWeeks,
   subWeeks,
+  isSameDay,
 } from "date-fns";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CalendarIcon,
-  Plus,
-  MoreHorizontal,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarIcon, Plus } from "lucide-react";
 import { AppointmentDetails } from "./appointment-details";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -35,15 +31,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
-import { DoctorWorkingSchedule } from "@/features/doctor/types";
+import type { DoctorWorkingSchedule } from "@/features/doctor/types";
 import { useGetDoctorSchedulesQuery } from "@/features/doctor/api";
+import { useTranslations } from "next-intl";
+import { AppointmentSidebar } from "./appointment-sidebar";
 
 export function DoctorCalendar() {
   const t = useTranslations("doctor");
@@ -52,6 +43,7 @@ export function DoctorCalendar() {
     useState<DoctorWorkingSchedule | null>(null);
   const [view, setView] = useState<"month" | "week">("month");
   const [weekDays, setWeekDays] = useState<Date[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Format date for API query - expand range for week view
   const queryStartDate =
@@ -139,6 +131,16 @@ export function DoctorCalendar() {
     }
   };
 
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   // Generate calendar days for month view
   const generateMonthView = () => {
     const firstDayOfMonth = startOfMonth(date);
@@ -161,51 +163,70 @@ export function DoctorCalendar() {
         const dayAppointments = appointmentsByDate[dateStr] || [];
         const isCurrentMonth = isSameMonth(currentDay, date);
         const isCurrentDay = isToday(currentDay);
+        const isSelected = selectedDate
+          ? isSameDay(currentDay, selectedDate)
+          : false;
 
         week.push(
           <div
             key={dateStr}
             className={cn(
-              "min-h-[120px] p-0 border border-border/40 relative group",
-              !isCurrentMonth && "bg-muted/10 dark:bg-muted/5",
-              isCurrentDay &&
-                "bg-primary/5 border-primary/30 dark:bg-primary/10"
+              "min-h-[120px] p-0 relative group transition-all duration-200 border-b border-r last:border-r-0 border-slate-200 dark:border-slate-800",
+              !isCurrentMonth && "bg-slate-50/50 dark:bg-slate-900/30",
+              isCurrentDay && "bg-sky-50 dark:bg-sky-900/20",
+              isSelected &&
+                "ring-2 ring-sky-500 dark:ring-sky-400 ring-inset z-10",
+              i === 6 && "bg-slate-50/80 dark:bg-slate-900/40", // Weekend styling
+              i === 5 && "bg-slate-50/80 dark:bg-slate-900/40" // Weekend styling
             )}
+            onClick={() => setSelectedDate(currentDay)}
           >
-            <div className="flex justify-between items-center p-2 border-b border-border/40">
+            <div className="flex justify-between items-center p-2">
               <span
                 className={cn(
-                  "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
-                  isCurrentDay && "bg-primary text-primary-foreground"
+                  "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-colors",
+                  isCurrentDay && "bg-sky-500 text-white",
+                  !isCurrentDay &&
+                    isCurrentMonth &&
+                    "hover:bg-slate-100 dark:hover:bg-slate-800",
+                  !isCurrentMonth && "text-slate-400 dark:text-slate-600",
+                  i >= 5 && "text-slate-500 dark:text-slate-400" // Weekend text color
                 )}
               >
                 {format(currentDay, "d")}
               </span>
 
-              {isCurrentMonth && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
+              {isCurrentMonth && dayAppointments.length > 0 && (
+                <Badge className="bg-sky-500/90 hover:bg-sky-600 text-white text-xs px-1.5 py-0 h-5 min-w-5 flex items-center justify-center rounded-full">
+                  {dayAppointments.length}
+                </Badge>
               )}
             </div>
 
             <div className="p-1 space-y-1 max-h-[80px] overflow-y-auto">
-              {dayAppointments.slice(0, 3).map((appointment) => (
-                <AppointmentItem
-                  key={appointment.workingScheduleId}
-                  appointment={appointment}
-                  onClick={() => handleAppointmentClick(appointment)}
-                />
-              ))}
+              {isCurrentMonth &&
+                dayAppointments
+                  .slice(0, 3)
+                  .map((appointment) => (
+                    <AppointmentItem
+                      key={appointment.workingScheduleId}
+                      appointment={appointment}
+                      onClick={() => handleAppointmentClick(appointment)}
+                    />
+                  ))}
 
-              {dayAppointments.length > 3 && (
-                <div className="text-xs text-center text-primary font-medium mt-1 py-0.5 bg-primary/5 dark:bg-primary/10 rounded">
+              {isCurrentMonth && dayAppointments.length > 3 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs justify-center mt-1 py-0.5 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-900/20"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedDate(currentDay);
+                  }}
+                >
                   +{dayAppointments.length - 3} more
-                </div>
+                </Button>
               )}
             </div>
           </div>
@@ -225,69 +246,99 @@ export function DoctorCalendar() {
     }
 
     return (
-      <div className="rounded-lg overflow-hidden shadow-sm border border-border/40 dark:border-border/20">
-        <div className="grid grid-cols-7 bg-muted/20 dark:bg-muted/10">
-          {dayNames.map((name) => (
+      <div className="rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <div className="grid grid-cols-7 bg-slate-100 dark:bg-slate-900">
+          {dayNames.map((name, index) => (
             <div
               key={name}
-              className="text-center text-sm font-medium text-muted-foreground py-3 border-b border-border/40 dark:border-border/20"
+              className={cn(
+                "text-center text-sm font-medium py-3 border-b border-slate-200 dark:border-slate-800",
+                index >= 5
+                  ? "text-slate-500 dark:text-slate-400"
+                  : "text-slate-600 dark:text-slate-300"
+              )}
             >
               {name}
             </div>
           ))}
         </div>
-        <div className="bg-card dark:bg-card/95">{weeks}</div>
+        <div>{weeks}</div>
       </div>
     );
   };
 
   // Generate time slots for week view
   const generateWeekView = () => {
-    // Time slots from 8 AM to 6 PM
-    const timeSlots = Array.from({ length: 11 }, (_, i) => i + 8);
+    // Time slots from 8 AM to 9 PM
+    const timeSlots = Array.from({ length: 14 }, (_, i) => i + 8);
 
     return (
-      <div className="rounded-lg overflow-hidden shadow-sm border border-border/40 dark:border-border/20">
-        <div className="grid grid-cols-8 bg-muted/20 dark:bg-muted/10">
-          <div className="p-3 text-center font-medium text-muted-foreground border-r border-b border-border/40 dark:border-border/20">
+      <div className="rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <div className="grid grid-cols-8 bg-slate-100 dark:bg-slate-900">
+          <div className="p-3 text-center font-medium text-slate-600 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-800">
             Time
           </div>
-          {weekDays.map((day) => (
-            <div
-              key={day.toString()}
-              className={cn(
-                "p-3 text-center border-r border-b last:border-r-0 border-border/40 dark:border-border/20",
-                isToday(day) && "bg-primary/5 dark:bg-primary/10"
-              )}
-            >
-              <div className="text-sm text-muted-foreground">
-                {format(day, "EEE")}
-              </div>
+          {weekDays.map((day, index) => {
+            const isSelected = selectedDate
+              ? isSameDay(day, selectedDate)
+              : false;
+            return (
               <div
+                key={day.toString()}
                 className={cn(
-                  "text-base font-medium",
-                  isToday(day) && "text-primary"
+                  "p-3 text-center border-r border-b last:border-r-0 border-slate-200 dark:border-slate-800 cursor-pointer transition-colors",
+                  isToday(day) && "bg-sky-50 dark:bg-sky-900/20",
+                  isSelected &&
+                    "bg-sky-100 dark:bg-sky-800/30 ring-1 ring-inset ring-sky-500",
+                  index >= 5 && "bg-slate-50/80 dark:bg-slate-900/40" // Weekend styling
                 )}
+                onClick={() => setSelectedDate(day)}
               >
-                {format(day, "d")}
+                <div
+                  className={cn(
+                    "text-sm",
+                    index >= 5
+                      ? "text-slate-500 dark:text-slate-400"
+                      : "text-slate-500 dark:text-slate-400"
+                  )}
+                >
+                  {format(day, "EEE")}
+                </div>
+                <div
+                  className={cn(
+                    "text-base font-medium",
+                    isSelected
+                      ? "text-sky-600 dark:text-sky-400"
+                      : isToday(day)
+                      ? "text-sky-500 dark:text-sky-400"
+                      : index >= 5
+                      ? "text-slate-600 dark:text-slate-300"
+                      : "text-slate-700 dark:text-slate-200"
+                  )}
+                >
+                  {format(day, "d")}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        <div className="bg-card dark:bg-card/95">
+        <div>
           {timeSlots.map((hour) => (
             <div
               key={hour}
-              className="grid grid-cols-8 border-b last:border-b-0 border-border/40 dark:border-border/20"
+              className="grid grid-cols-8 border-b last:border-b-0 border-slate-200 dark:border-slate-800"
             >
-              <div className="py-3 px-4 text-right text-sm text-muted-foreground border-r border-border/40 dark:border-border/20 bg-muted/10 dark:bg-muted/5">
+              <div className="py-3 px-4 text-right text-sm text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
                 {format(new Date(2000, 1, 1, hour), "h a")}
               </div>
 
               {weekDays.map((day, index) => {
                 const dateStr = format(day, "yyyy-MM-dd");
                 const appointments = appointmentsByDate[dateStr] || [];
+                const isSelected = selectedDate
+                  ? isSameDay(day, selectedDate)
+                  : false;
 
                 // Filter appointments for this hour
                 const hourAppointments = appointments.filter((appointment) => {
@@ -301,16 +352,22 @@ export function DoctorCalendar() {
                   <div
                     key={day.toString()}
                     className={cn(
-                      "p-1 min-h-[80px] border-r last:border-r-0 border-border/40 dark:border-border/20 relative group",
-                      isToday(day) && "bg-primary/5 dark:bg-primary/10",
-                      hour % 2 === 0 && "bg-muted/5 dark:bg-muted/[0.03]"
+                      "p-1 min-h-[80px] border-r last:border-r-0 border-slate-200 dark:border-slate-800 relative group",
+                      isToday(day) && "bg-sky-50 dark:bg-sky-900/20",
+                      isSelected && "bg-sky-100/50 dark:bg-sky-800/20",
+                      hour % 2 === 0 && "bg-slate-50/50 dark:bg-slate-900/30",
+                      index >= 5 && "bg-slate-50/80 dark:bg-slate-900/40" // Weekend styling
                     )}
+                    onClick={() => setSelectedDate(day)}
                   >
                     {hourAppointments.map((appointment) => (
                       <AppointmentItem
                         key={appointment.workingScheduleId}
                         appointment={appointment}
-                        onClick={() => handleAppointmentClick(appointment)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAppointmentClick(appointment);
+                        }}
                         showTime
                       />
                     ))}
@@ -318,7 +375,11 @@ export function DoctorCalendar() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100"
+                      className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-sky-500 dark:text-slate-500 dark:hover:text-sky-400"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Add new appointment logic
+                      }}
                     >
                       <Plus className="h-3 w-3" />
                     </Button>
@@ -332,76 +393,133 @@ export function DoctorCalendar() {
     );
   };
 
+  // Set initial selected date when view changes
+  useEffect(() => {
+    // If no date is selected or changing views, select today or the first day of the current view
+    if (!selectedDate) {
+      const today = new Date();
+      if (isSameMonth(today, date)) {
+        setSelectedDate(today);
+      } else {
+        // If current month doesn't include today, select the first day of the month
+        setSelectedDate(startOfMonth(date));
+      }
+    }
+  }, [view, date, selectedDate]);
+
   return (
-    <div className="space-y-6">
-      <Card className="border-none shadow-md bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 dark:bg-primary/20 p-2.5 rounded-full text-primary">
-                <CalendarIcon className="h-5 w-5" />
-              </div>
-              <h2 className="text-2xl font-semibold">{getViewTitle()}</h2>
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 px-6 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300 p-2.5 rounded-full">
+              <CalendarIcon className="h-5 w-5" />
             </div>
-
-            <div className="flex items-center gap-3 flex-wrap justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToToday}
-                className="h-9 shadow-sm hover:shadow dark:border-border/30 dark:bg-background/80"
-              >
-                {t("calendar.today")}
-              </Button>
-
-              <div className="flex items-center rounded-md shadow-sm bg-background dark:bg-background/80 dark:border dark:border-border/30">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-r-none"
-                  onClick={() => navigate("prev")}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="h-9 w-px bg-border dark:bg-border/30" />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-l-none"
-                  onClick={() => navigate("next")}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 shadow-sm hover:shadow dark:border-border/30 dark:bg-background/80"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200">
+              {getViewTitle()}
+            </h2>
           </div>
-        </CardContent>
-      </Card>
 
-      <Tabs value={view} onValueChange={(v) => setView(v as "month" | "week")}>
-        <div className="flex justify-end mb-4">
-          <TabsList className="dark:bg-muted/20">
-            <TabsTrigger value="month">{t("calendar.month")}</TabsTrigger>
-            <TabsTrigger value="week">{t("calendar.week")}</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="h-9 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              {t("calendar.today")}
+            </Button>
+
+            <div className="flex items-center rounded-md border border-slate-200 dark:border-slate-800">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-r-none text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                onClick={() => navigate("prev")}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="h-9 w-px bg-slate-200 dark:bg-slate-800" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-l-none text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                onClick={() => navigate("next")}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Button
+              size="sm"
+              className="h-9 bg-sky-500 hover:bg-sky-600 text-white"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              New appointment
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-grow flex flex-col md:flex-row overflow-hidden p-6 gap-6">
+        <div className="flex-grow flex flex-col overflow-hidden">
+          <Tabs
+            value={view}
+            onValueChange={(v) => setView(v as "month" | "week")}
+            className="flex flex-col h-full"
+          >
+            <div className="flex justify-between items-center mb-4 flex-shrink-0">
+              <h3 className="text-lg font-medium text-slate-700 dark:text-slate-300">
+                Schedule
+              </h3>
+              <TabsList className="bg-slate-100 dark:bg-slate-800 p-1">
+                <TabsTrigger
+                  value="month"
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-sky-600 dark:data-[state=active]:text-sky-400 data-[state=active]:shadow-sm"
+                >
+                  {t("calendar.month")}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="week"
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-sky-600 dark:data-[state=active]:text-sky-400 data-[state=active]:shadow-sm"
+                >
+                  {t("calendar.week")}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <div className="flex-grow overflow-hidden">
+              <TabsContent value="month" className="h-full overflow-auto mt-0">
+                {generateMonthView()}
+              </TabsContent>
+
+              <TabsContent value="week" className="h-full overflow-auto mt-0">
+                {generateWeekView()}
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
 
-        <TabsContent value="month">{generateMonthView()}</TabsContent>
-
-        <TabsContent value="week">{generateWeekView()}</TabsContent>
-      </Tabs>
+        {selectedDate && (
+          <div className="w-full md:w-80 lg:w-96 flex-shrink-0 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+            {/* Replace the generateSidebar function call with the AppointmentSidebar component */}
+            <AppointmentSidebar
+              selectedDate={selectedDate}
+              appointmentsByDate={appointmentsByDate}
+              handleAppointmentClick={handleAppointmentClick}
+            />
+          </div>
+        )}
+      </div>
 
       {isLoading && (
-        <div className="flex justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 dark:bg-slate-900/50 z-10 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-4 flex items-center gap-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-slate-300 dark:border-slate-600 border-t-sky-500"></div>
+            <span className="text-slate-700 dark:text-slate-300">
+              Loading calendar...
+            </span>
+          </div>
         </div>
       )}
 
@@ -417,7 +535,7 @@ export function DoctorCalendar() {
 
 interface AppointmentItemProps {
   appointment: DoctorWorkingSchedule;
-  onClick: () => void;
+  onClick: (e: React.SyntheticEvent) => void;
   showTime?: boolean;
 }
 
@@ -426,81 +544,25 @@ function AppointmentItem({
   onClick,
   showTime = false,
 }: AppointmentItemProps) {
-  const getStatusStyles = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return {
-          bg: "bg-amber-50 dark:bg-amber-950/40",
-          border: "border-l-2 border-amber-300 dark:border-amber-500/70",
-          text: "text-amber-700 dark:text-amber-300",
-        };
-      case "IN_PROGRESS":
-        return {
-          bg: "bg-blue-50 dark:bg-blue-950/40",
-          border: "border-l-2 border-blue-400 dark:border-blue-500/70",
-          text: "text-blue-700 dark:text-blue-300",
-        };
-      case "COMPLETED":
-        return {
-          bg: "bg-emerald-50 dark:bg-emerald-950/40",
-          border: "border-l-2 border-emerald-400 dark:border-emerald-500/70",
-          text: "text-emerald-700 dark:text-emerald-300",
-        };
-      case "UNCOMPLETED":
-        return {
-          bg: "bg-rose-50 dark:bg-rose-950/40",
-          border: "border-l-2 border-rose-400 dark:border-rose-500/70",
-          text: "text-rose-700 dark:text-rose-300",
-        };
-      default:
-        return {
-          bg: "bg-gray-50 dark:bg-gray-800/40",
-          border: "border-l-2 border-gray-300 dark:border-gray-600",
-          text: "text-gray-700 dark:text-gray-300",
-        };
-    }
-  };
-
-  const styles = getStatusStyles(appointment.status);
-
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <div
-            onClick={onClick}
-            className={cn(
-              "text-left text-xs p-1.5 rounded shadow-sm border group cursor-pointer hover:shadow transition-shadow",
-              styles.bg,
-              styles.border,
-              styles.text
-            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick(e);
+            }}
+            className="text-left text-xs p-1.5 rounded-md border border-slate-200 dark:border-slate-700 group cursor-pointer hover:shadow-sm transition-all bg-white dark:bg-slate-900"
           >
             <div className="flex items-center justify-between">
-              <div className="font-medium truncate flex-1">
+              <div className="font-medium truncate flex-1 text-slate-700 dark:text-slate-300">
                 {appointment.customerName}
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={onClick}>
-                    View details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem>Cancel</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <StatusDot status={appointment.status} />
             </div>
             {showTime && (
-              <div className="text-xs opacity-80 mt-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {format(
                   parseISO(`2000-01-01T${appointment.startTime}`),
                   "h:mm a"
@@ -525,12 +587,52 @@ function AppointmentItem({
               -{format(parseISO(`2000-01-01T${appointment.endTime}`), "h:mm a")}
             </div>
             <div className="text-xs">{appointment.serviceName}</div>
-            <Badge variant="outline" className="mt-1 text-xs">
-              {appointment.status}
-            </Badge>
+            <StatusBadge status={appointment.status} />
           </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+}
+
+function StatusDot({ status }: { status: string }) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-amber-500";
+      case "IN_PROGRESS":
+        return "bg-sky-500";
+      case "COMPLETED":
+        return "bg-emerald-500";
+      case "UNCOMPLETED":
+        return "bg-rose-500";
+      default:
+        return "bg-slate-500";
+    }
+  };
+
+  return <div className={`h-2 w-2 rounded-full ${getStatusColor(status)}`} />;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300";
+      case "IN_PROGRESS":
+        return "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300";
+      case "COMPLETED":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300";
+      case "UNCOMPLETED":
+        return "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300";
+      default:
+        return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+    }
+  };
+
+  return (
+    <Badge className={`font-normal text-xs ${getStatusStyles(status)}`}>
+      {status}
+    </Badge>
   );
 }

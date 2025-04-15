@@ -1,157 +1,176 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { redirect, usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Calendar,
-  User,
-  Settings,
   LogOut,
   ChevronRight,
   Menu,
-  BarChart4,
   Bell,
+  User2Icon,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import LangToggle from "../common/LangToggle";
 import ThemeToggle from "../common/ThemeToggle";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { clearToken, showError, showSuccess } from "@/utils";
 import { handleLogout } from "@/features/auth/utils";
+import { useGetUserProfileQuery } from "@/features/home/api";
+import { toast } from "react-toastify";
 
 export function Sidebar() {
   const t = useTranslations("doctor.sidebar");
   const locale = useLocale();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isRefetching, setIsRefetching] = useState(false);
   const router = useRouter();
+  const { data, isLoading, refetch } = useGetUserProfileQuery();
+
   const navItems = [
-    {
-      label: t("dashboard"),
-      href: `/${locale}/doctor/dashboard`,
-      icon: BarChart4,
-    },
     {
       label: t("calendar"),
       href: `/${locale}/doctor/calendar`,
       icon: Calendar,
-      badge: "12",
     },
     {
-      label: t("appointment"),
-      href: `/${locale}/doctor/patients`,
-      icon: User,
-    },
-    {
-      label: t("settings"),
-      href: `/${locale}/doctor/settings`,
-      icon: Settings,
+      label: t("accountSettings"),
+      href: `/${locale}/doctor/profile`,
+      icon: User2Icon,
     },
   ];
+
   const onLogout = async () => {
     await handleLogout({ router });
   };
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Header with logo */}
 
+  const handleRefetch = async () => {
+    try {
+      setIsRefetching(true);
+      await refetch();
+      toast(t("profileRefreshed"));
+    } catch (error) {
+    } finally {
+      setIsRefetching(false);
+    }
+  };
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-background/95 dark:bg-background/90 backdrop-blur-sm">
       {/* Profile section */}
-      <div className="px-4 py-5">
-        <div className="p-3 rounded-xl bg-gradient-to-r from-muted/80 to-muted/30 dark:from-muted/20 dark:to-muted/5 backdrop-blur-sm shadow-sm">
+      <div className="px-4 py-5 border-b border-border/30 dark:border-border/20">
+        <div className="p-3 rounded-xl bg-purple-50/80 dark:bg-purple-900/10 shadow-sm">
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border-2 border-background shadow-md">
-              <AvatarImage src="https://placehold.co/48x48.png" />
-              <AvatarFallback className="bg-primary text-primary-foreground font-medium">
-                DR
-              </AvatarFallback>
-            </Avatar>
+            {isLoading ? (
+              <Skeleton className="h-12 w-12 rounded-full" />
+            ) : (
+              <Avatar className="h-12 w-12 border border-border/30 dark:border-border/20 shadow-sm">
+                <AvatarImage src={data?.value?.profilePicture || ""} />
+                <AvatarFallback className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium">
+                  DR
+                </AvatarFallback>
+              </Avatar>
+            )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-base truncate">
-                Dr. Sarah Smith
-              </h3>
-              <p className="text-xs text-muted-foreground">Cardiologist</p>
+              {isLoading ? (
+                <Skeleton className="h-5 w-32" />
+              ) : (
+                <h3 className="font-semibold text-base truncate text-foreground">
+                  {data?.value?.fullName || t("doctor")}
+                </h3>
+              )}
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="rounded-full h-8 w-8 bg-background/80 hover:bg-background"
-            >
-              <Bell className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground"
+                onClick={handleRefetch}
+                disabled={isLoading || isRefetching}
+              >
+                <RefreshCw
+                  className={cn(
+                    "h-4 w-4",
+                    (isLoading || isRefetching) && "animate-spin"
+                  )}
+                />
+                <span className="sr-only">{t("refreshProfile")}</span>
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="sr-only">{t("notifications")}</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
         <div className="mb-2 px-4">
           <h2 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
             {t("mainMenu")}
           </h2>
         </div>
         <div className="space-y-1.5">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
+          {isLoading
+            ? // Loading skeleton for navigation items
+              Array(2)
+                .fill(0)
+                .map((_, index) => (
+                  <div key={index} className="px-4 py-3 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-9 w-9 rounded-lg" />
+                      <Skeleton className="h-5 w-32" />
+                    </div>
+                  </div>
+                ))
+            : navItems.map((item) => {
+                const isActive = pathname === item.href;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative",
-                  isActive
-                    ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md dark:shadow-primary/10"
-                    : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20 hover:shadow-sm"
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200",
-                    isActive
-                      ? "bg-white/20 text-primary-foreground"
-                      : "bg-muted/50 dark:bg-muted/30 text-muted-foreground group-hover:text-foreground group-hover:bg-muted/80 dark:group-hover:bg-muted/40"
-                  )}
-                >
-                  <item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
                     className={cn(
-                      "h-[18px] w-[18px] transition-all duration-200",
-                      !isActive && "group-hover:scale-110"
-                    )}
-                  />
-                </span>
-                <span className="flex-1">{item.label}</span>
-                {item.badge && (
-                  <Badge
-                    variant={isActive ? "outline" : "default"}
-                    className={cn(
-                      "ml-auto",
+                      "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative",
                       isActive
-                        ? "bg-white/20 text-primary-foreground hover:bg-white/30"
-                        : ""
+                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm"
+                        : "text-foreground hover:bg-muted/50 dark:hover:bg-muted/20 hover:shadow-sm"
                     )}
                   >
-                    {item.badge}
-                  </Badge>
-                )}
-                {isActive && (
-                  <ChevronRight className="h-4 w-4 ml-auto opacity-70" />
-                )}
-              </Link>
-            );
-          })}
+                    <span
+                      className={cn(
+                        "flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200",
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-muted/50 dark:bg-muted/30 text-muted-foreground group-hover:text-foreground group-hover:bg-muted/80 dark:group-hover:bg-muted/40"
+                      )}
+                    >
+                      <item.icon
+                        className={cn(
+                          "h-[18px] w-[18px] transition-all duration-200",
+                          !isActive && "group-hover:scale-110"
+                        )}
+                      />
+                    </span>
+                    <span className="flex-1">{item.label}</span>
+                    {isActive && (
+                      <ChevronRight className="h-4 w-4 ml-auto text-white/70" />
+                    )}
+                  </Link>
+                );
+              })}
         </div>
 
         <div className="mt-6 mb-2 px-4">
@@ -159,48 +178,33 @@ export function Sidebar() {
             {t("Settings")}
           </h2>
         </div>
-        <div className="px-3 py-2 rounded-xl bg-muted/30 dark:bg-muted/10 mx-1">
+        <div className="px-3 py-3 rounded-xl bg-muted/30 dark:bg-muted/10 mx-1 border border-border/30 dark:border-border/20">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-medium">{t("appearance")}</div>
+            <div className="text-sm font-medium text-foreground">
+              {t("appearance")}
+            </div>
             <ThemeToggle />
           </div>
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">{t("language")}</div>
+            <div className="text-sm font-medium text-foreground">
+              {t("language")}
+            </div>
             <LangToggle />
           </div>
         </div>
       </nav>
 
       {/* Footer with user actions */}
-      <div className="p-4 mt-auto">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start px-4 py-3 h-auto rounded-xl border-muted-foreground/20 hover:border-muted-foreground/30 hover:bg-muted/50 dark:hover:bg-muted/20"
-            >
-              <LogOut className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{t("signout")}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>{t("viewProfile")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>{t("accountSettings")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span onClick={onLogout}>{t("logout")}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="p-4 mt-auto border-t border-border/30 dark:border-border/20">
+        <Button
+          onClick={onLogout}
+          variant="outline"
+          className="w-full justify-start px-4 py-3 h-auto rounded-xl border-border/30 dark:border-border/20 hover:bg-muted/50 dark:hover:bg-muted/20 text-foreground"
+          disabled={isLoading}
+        >
+          <LogOut className="h-4 w-4 mr-2 text-muted-foreground" />
+          <span>{t("signout")}</span>
+        </Button>
       </div>
     </div>
   );
@@ -211,7 +215,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-sm shadow-md rounded-lg"
+        className="md:hidden fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-sm shadow-sm rounded-lg border border-border/30 dark:border-border/20"
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-5 w-5" />
@@ -219,13 +223,16 @@ export function Sidebar() {
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="p-0 w-[300px]">
+        <SheetContent
+          side="left"
+          className="p-0 w-[300px] border-r border-border/30 dark:border-border/20"
+        >
           <SidebarContent />
         </SheetContent>
       </Sheet>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:block fixed top-0 left-0 w-[300px] border-r border-border/10 dark:border-border/20 h-screen bg-background/95 dark:bg-background/90 backdrop-blur-sm shadow-xl z-30">
+      <div className="hidden md:block fixed top-0 left-0 w-[300px] border-r border-border/30 dark:border-border/20 h-screen shadow-sm z-30">
         <SidebarContent />
       </div>
     </>
