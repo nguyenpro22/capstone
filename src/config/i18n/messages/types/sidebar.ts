@@ -12,6 +12,7 @@ export type sidebarMessages = {
     voucher: string
     package: string
     categoryServices: string
+    withdrawalApproval: string
   
     // System Staff items
     user: string
@@ -24,6 +25,7 @@ export type sidebarMessages = {
     doctorManagement: string
     buyPackage: string
     liveStream: string
+    wallet: string
   
     // Clinic Staff items
     scheduleApproval: string
@@ -31,6 +33,8 @@ export type sidebarMessages = {
     appointment: string
     branchDoctor: string
     setting: string
+    walletAttachment: string
+
   
     // User items
     home: string
@@ -43,5 +47,6 @@ export type sidebarMessages = {
     logoutConfirmTitle: string
     logoutConfirmDescription: string
     cancel: string
+
   }
   

@@ -1,76 +1,125 @@
-"use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
+"use client";
+import { format, subDays } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
-// Sample data
-const schedules = [
-  {
-    id: 1,
-    customer: "Emma Thompson",
-    service: "Facial Treatment",
-    time: "10:00 AM",
-    status: "confirmed",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 2,
-    customer: "James Wilson",
-    service: "Hair Styling",
-    time: "11:30 AM",
-    status: "pending",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 3,
-    customer: "Sophia Garcia",
-    service: "Manicure & Pedicure",
-    time: "2:00 PM",
-    status: "confirmed",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 4,
-    customer: "Michael Brown",
-    service: "Massage Therapy",
-    time: "3:30 PM",
-    status: "cancelled",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 5,
-    customer: "Olivia Martinez",
-    service: "Skin Consultation",
-    time: "5:00 PM",
-    status: "confirmed",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-]
+} from "@/components/ui/dropdown-menu";
+import { useGetAppointmentsByDateQuery } from "@/features/booking/api";
+import { useGetDoctorsQuery } from "@/features/clinic/api";
+import { useTranslations } from "next-intl"; // Import useTranslations
+import { useState, useEffect } from "react";
 
 const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "confirmed":
-      return <Badge className="bg-green-500 hover:bg-green-600">Confirmed</Badge>
+  switch (status.toLowerCase()) {
+    case "in progress":
+      return (
+        <Badge className="bg-green-500 hover:bg-green-600">In Progress</Badge>
+      );
     case "pending":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+      );
     case "cancelled":
-      return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>
+      return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
+    case "completed":
+      return <Badge className="bg-blue-500 hover:bg-blue-600">Completed</Badge>;
     default:
-      return <Badge>{status}</Badge>
+      return <Badge>{status}</Badge>;
   }
-}
+};
 
 export default function DashboardPage() {
+  // Get translations for dashboard.clinicStaff namespace
+  const t = useTranslations("dashboard.clinicStaff");
+
+  // Get today's date in the required format (YYYY-MM-DD)
+  const today = new Date();
+  const todayFormatted = format(today, "yyyy-MM-dd");
+
+  // Get yesterday's date in the required format
+  const yesterday = subDays(today, 1);
+  const yesterdayFormatted = format(yesterday, "yyyy-MM-dd");
+
+  // State to store the clinic ID
+  const [clinicId, setClinicId] = useState<string>("");
+
+  // Fetch today's appointments
+  const { data: todayData, isLoading: isLoadingToday } =
+    useGetAppointmentsByDateQuery(todayFormatted);
+
+  // Fetch yesterday's appointments
+  const { data: yesterdayData, isLoading: isLoadingYesterday } =
+    useGetAppointmentsByDateQuery(yesterdayFormatted);
+
+  // Extract clinic ID from the first appointment (if available)
+  useEffect(() => {
+    if (
+      todayData?.value?.appointments &&
+      todayData.value.appointments.length > 0
+    ) {
+      setClinicId(todayData.value.appointments[0].clinic.id);
+    }
+  }, [todayData]);
+
+  // Fetch doctors for the clinic
+  const { data: doctorsData, isLoading: isLoadingDoctors } = useGetDoctorsQuery(
+    {
+      clinicId,
+      pageIndex: 1,
+      pageSize: 100, // Fetch a large number to get all doctors
+      searchTerm: "",
+      role: 1, // Assuming 1 is the role ID for doctors
+    },
+    { skip: !clinicId } // Skip the query if clinicId is not available
+  );
+
+  // Calculate metrics
+  const todayAppointments = todayData?.value?.appointments || [];
+  const yesterdayAppointments = yesterdayData?.value?.appointments || [];
+
+  const totalAppointments = todayAppointments.length;
+  const totalYesterdayAppointments = yesterdayAppointments.length;
+
+  // Calculate percentage change from yesterday
+  const percentageChange =
+    totalYesterdayAppointments > 0
+      ? Math.round(
+          ((totalAppointments - totalYesterdayAppointments) /
+            totalYesterdayAppointments) *
+            100
+        )
+      : 0;
+
+  // Count confirmed appointments (status "In Progress")
+  const confirmedAppointments = todayAppointments.filter(
+    (app: any) => app.status.toLowerCase() === "in progress"
+  ).length;
+
+  // Calculate confirmation rate
+  const confirmationRate =
+    totalAppointments > 0
+      ? Math.round((confirmedAppointments / totalAppointments) * 100)
+      : 0;
+
+  // Get total doctors count from the API
+  const totalDoctors = doctorsData?.value?.totalCount || 0;
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -78,85 +127,143 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Appointments</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {t("totalAppointments")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground mt-1">+8% from yesterday</p>
+            {isLoadingToday || isLoadingYesterday ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t("loading")}</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">{totalAppointments}</div>
+                <p
+                  className={`text-xs mt-1 ${
+                    percentageChange >= 0 ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  {percentageChange >= 0 ? "+" : ""}
+                  {percentageChange}% {t("fromYesterday")}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Confirmed Appointments</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {t("confirmedAppointments")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">18</div>
-            <p className="text-xs text-green-500 mt-1">75% confirmation rate</p>
+            {isLoadingToday ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t("loading")}</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">
+                  {confirmedAppointments}
+                </div>
+                <p className="text-xs text-green-500 mt-1">
+                  {confirmationRate}% {t("confirmationRate")}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Available Doctors</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {t("availableDoctors")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground mt-1">2 on leave today</p>
+            {isLoadingDoctors || !clinicId ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t("loading")}</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">{totalDoctors}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("atThisClinic")}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Today&apos;s Schedule</CardTitle>
+          <CardTitle>{t("todaySchedule")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {schedules.map((schedule) => (
-                <TableRow key={schedule.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={schedule.avatar} />
-                        <AvatarFallback>{schedule.customer.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span>{schedule.customer}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{schedule.service}</TableCell>
-                  <TableCell>{schedule.time}</TableCell>
-                  <TableCell>{getStatusBadge(schedule.status)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Appointment</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">Cancel</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isLoadingToday ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("customer")}</TableHead>
+                  <TableHead>{t("service")}</TableHead>
+                  <TableHead>{t("time")}</TableHead>
+                  <TableHead>{t("doctor")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {todayAppointments.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-6 text-muted-foreground"
+                    >
+                      {t("noAppointments")}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  todayAppointments.map((appointment: any) => (
+                    <TableRow key={appointment.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={appointment.customer.avatar || ""}
+                            />
+                            <AvatarFallback>
+                              {appointment.customer.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{appointment.customer.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{appointment.service.name}</TableCell>
+                      <TableCell>{`${appointment.startTime.substring(
+                        0,
+                        5
+                      )} - ${appointment.endTime.substring(0, 5)}`}</TableCell>
+                      <TableCell>{appointment.doctor.name}</TableCell>
+                      <TableCell>
+                        {getStatusBadge(appointment.status)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

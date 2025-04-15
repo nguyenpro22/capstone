@@ -168,9 +168,9 @@ export default function Navbar({ children, sidebarClosed = false }: NavbarProps)
                   <AvatarImage src="https://placehold.co/40x40.png" alt={name} />
                   <AvatarFallback>{(name ?? "").substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium text-foreground dark:text-white">{name}</span>
-                  <span className="text-xs text-muted-foreground dark:text-gray-400">{role}</span>
+                <div className="flex flex-col items-start max-w-[120px]">
+                  <span className="text-sm font-medium text-foreground dark:text-white truncate w-full">{name}</span>
+                  <span className="text-xs text-muted-foreground dark:text-gray-400 truncate w-full">{role}</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>

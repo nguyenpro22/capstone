@@ -14,6 +14,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   voucher: "Phiếu Giảm Giá",
   package: "Gói Dịch Vụ",
   categoryServices: "Danh Mục Dịch Vụ",
+  withdrawalApproval: "Lệnh Rút Tiền" ,
 
   // System Staff items
   user: "Người Dùng",
@@ -45,4 +46,10 @@ export const sidebarMessages: Messages["sidebar"] = {
   logoutConfirmTitle: "Bạn có chắc chắn muốn đăng xuất?",
   logoutConfirmDescription: "Điều này sẽ kết thúc phiên của bạn và đăng xuất bạn khỏi hệ thống.",
   cancel: "Hủy",
+  
+  // Clinic Manager items
+  wallet: "Ví Tiền",
+
+  // Clinic Staff items
+  walletAttachment: "Đính Kèm Ví",
 }

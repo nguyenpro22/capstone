@@ -1,3 +1,4 @@
+
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import {
@@ -59,6 +60,9 @@ import {
   walletCommandApi,
   walletQueryApi,
 } from "@/features/customer-wallet/api";
+import { clinicManagerDashboardQueryApi } from "@/features/dashboard/api";
+import { walletWithdrawCommandApi } from "@/features/clinic-wallet/api";
+import { walletTransactionCommandApi, walletTransactionQueryApi } from "@/features/wallet-transaction/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -107,8 +111,13 @@ const rootReducer = combineReducers({
   [chatApi.reducerPath]: chatApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [orderQueryApi.reducerPath]: orderQueryApi.reducer,
+  [clinicManagerDashboardQueryApi.reducerPath]: clinicManagerDashboardQueryApi.reducer,
   [walletQueryApi.reducerPath]: walletQueryApi.reducer,
   [walletCommandApi.reducerPath]: walletCommandApi.reducer,
+  [walletWithdrawCommandApi.reducerPath]: walletWithdrawCommandApi.reducer,
+  [walletTransactionQueryApi.reducerPath]: walletTransactionQueryApi.reducer,
+  [walletTransactionCommandApi.reducerPath]: walletTransactionCommandApi.reducer,
+
   [userCommandApi.reducerPath]: userCommandApi.reducer,
 });
 
@@ -160,7 +169,11 @@ const store = configureStore({
       orderQueryApi.middleware,
       walletQueryApi.middleware,
       walletCommandApi.middleware,
-      userCommandApi.middleware
+      userCommandApi.middleware,
+      clinicManagerDashboardQueryApi.middleware,
+      walletWithdrawCommandApi.middleware,
+      walletTransactionQueryApi.middleware,
+      walletTransactionCommandApi.middleware
     ),
 });
 

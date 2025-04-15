@@ -14,6 +14,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   voucher: "Voucher",
   package: "Package",
   categoryServices: "Category Services",
+  withdrawalApproval: "Withdrawal Approval",
 
   // System Staff items
   user: "User",
@@ -45,4 +46,10 @@ export const sidebarMessages: Messages["sidebar"] = {
   logoutConfirmTitle: "Are you sure you want to logout?",
   logoutConfirmDescription: "This will end your session and log you out of the system.",
   cancel: "Cancel",
+
+  // Clinic Manager items
+  wallet: "Wallet",
+
+  // Clinic Staff items
+  walletAttachment: "Wallet Attachment",
 }

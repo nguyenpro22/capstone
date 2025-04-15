@@ -8,6 +8,8 @@ export interface Package {
   limitBranch: number
   limitLiveStream: number
   enhancedViewer: number
+  priceBranchAddition: number
+  priceLiveStreamAddition: number
 }
 
 export interface PackagesResponse {

@@ -54,6 +54,22 @@ export default function ClinicProfilePage() {
     refetch()
   }
 
+  // Function to calculate remaining days
+  const calculateRemainingDays = (expiryDateStr: string) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Reset time to start of day
+
+    const expiryDate = new Date(expiryDateStr)
+    expiryDate.setHours(0, 0, 0, 0) // Reset time to start of day
+
+    // Calculate difference in milliseconds and convert to days
+    const diffTime = expiryDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    // Return 0 if negative (already expired)
+    return Math.max(0, diffDays)
+  }
+
   if (!clinicId) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
@@ -233,7 +249,7 @@ export default function ClinicProfilePage() {
                       {clinic.currentSubscription.isActivated ? t("active") : t("inactive")}
                     </Badge>
                   </div>
-{/* 
+                  {/* 
                   <p className="text-gray-600 dark:text-gray-400 mb-6 ml-7">{clinic.currentSubscription.description}</p> */}
 
                   <div className="flex flex-wrap justify-between mb-6">
@@ -316,11 +332,14 @@ export default function ClinicProfilePage() {
 
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400 text-sm">{t("daysRemaining")}:</span>
+                      {/* Calculate remaining days dynamically */}
                       <Badge
-                        variant={clinic.currentSubscription.daysLeft > 7 ? "default" : "destructive"}
+                        variant={
+                          calculateRemainingDays(clinic.currentSubscription.dateExpired) > 7 ? "default" : "destructive"
+                        }
                         className="px-2 py-0.5"
                       >
-                        {clinic.currentSubscription.daysLeft} {t("days")}
+                        {calculateRemainingDays(clinic.currentSubscription.dateExpired)} {t("days")}
                       </Badge>
                     </div>
                   </div>

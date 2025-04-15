@@ -3,10 +3,11 @@ import {
   Clinic,
   ClinicDetailResponse,
   ClinicsResponse,
-  BranchDetailResponse,
   Branch,
   Staff,
   Doctor,
+  ClinicBranchesData,
+  ClinicBranchData,
 } from "@/features/clinic/types";
 import { IListResponse, IResCommon, reAuthQuery } from "@/lib/api";
 
@@ -34,6 +35,15 @@ export const clinicsQueryApi = createApi({
     }),
     getBranchById: builder.query<IResCommon<Branch>, string>({
       query: (id) => `clinics/${id}?id=${id}`,
+    }),
+    // Thêm endpoint này vào trong phần endpoints của clinicsQueryApi
+    getAllBranches: builder.query<IResCommon<ClinicBranchesData>, void>({
+      query: () => `clinics/branches`,
+      providesTags: ["Clinic"],
+    }),
+    getBranchDetailById: builder.query<IResCommon<ClinicBranchData>, string>({
+      query: (clinicId) => `clinics/sub-clinics/${clinicId}`,
+      providesTags: ["Clinic"],
     }),
   }),
 });
@@ -282,6 +292,8 @@ export const {
   useGetBranchesQuery,
   useLazyGetBranchByIdQuery,
   useGetClinicByIdV2Query,
+  useGetAllBranchesQuery, // Thêm hook mới này
+  useGetBranchDetailByIdQuery,
 } = clinicsQueryApi;
 
 export const {
