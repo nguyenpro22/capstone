@@ -34,6 +34,7 @@ import { scheduleApprovalMessages } from "./scheduleApproval";
 import { doctor } from "./doctor";
 import { doctorProfile } from "./doctor-profile";
 import { doctorCertificate } from "./doctor-certificate";
+import { categoryMessages } from "./category";
 
 const en = {
   home: homeMessages,
@@ -72,6 +73,7 @@ const en = {
   doctor,
   doctorProfile,
   doctorCertificate,
+  category: categoryMessages,
 };
 
 export default en;

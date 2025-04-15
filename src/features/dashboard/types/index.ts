@@ -18,9 +18,32 @@ export interface ClinicDashboardInformation {
     totalSumRevenueNormal: number;
     totalSumRevenueLiveStream: number;
   }
+
+  export interface AdminDashboardInformation {
+    totalCountBranding: number;
+  totalCountBranches: number;
+  totalCountBrandPending: number;
+  totalCountService: number;
+  totalCountDoctor: number;
+  totalCountBronzeSubscription: number;
+  totalCountSilverSubscription: number;
+  totalCountGoldSubscription: number;
+  totalSumRevenue: number;
+  totalSystemSumRevenue: number;
+  totalSumBronzeSubscriptionRevenue: number;
+  totalSumSilverSubscriptionRevenue: number;
+  totalSumGoldSubscriptionRevenue: number;
+  totalSumClinicRevenue: number;
+  }
+  
   
   export interface ClinicDashboardDateTimeItem {
     information: ClinicDashboardInformation;
+    startDate: string;
+    endDate: string;
+  }
+  export interface AdminDashboardDateTimeItem {
+    information: AdminDashboardInformation;
     startDate: string;
     endDate: string;
   }
@@ -29,4 +52,10 @@ export interface ClinicDashboardInformation {
     datetimeInformation: ClinicDashboardInformation | null;
     datetimeInformationList: ClinicDashboardDateTimeItem[];
   }
+
+  export interface AdminDashboardDateTimeResponse {
+    systemInformation: AdminDashboardInformation | null;
+    systemInformationList: AdminDashboardDateTimeItem[];
+  }
+  
   

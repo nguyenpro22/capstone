@@ -1,13 +1,20 @@
-"use client"
-import { useState, useEffect } from "react"
-import type React from "react"
+"use client";
+import { useState, useEffect } from "react";
+import type React from "react";
 
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Filter,
   Plus,
@@ -24,123 +31,170 @@ import {
   ExternalLink,
   CheckCircle2,
   ChevronDown,
-} from "lucide-react"
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   useLazyGetCustomerSchedulesQuery,
   useLazyGetClinicSchedulesQuery,
   useUpdateScheduleStatusMutation,
   useLazyGetNextScheduleAvailabilityQuery,
-} from "@/features/customer-schedule/api"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { format, addDays } from "date-fns"
-import { cn } from "@/lib/utils"
-import { toast } from "react-toastify"
-import type { CustomerSchedule } from "@/features/customer-schedule/types"
-import ScheduleDetailsModal from "@/components/clinicStaff/customer-schedule/schedule-details-modal"
-import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/schedule-payment-modal"
-import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
-import ScheduleFollowUpModal from "@/components/clinicStaff/customer-schedule/schedule-follow-up-modal"
-import NextScheduleNotification from "@/components/clinicStaff/customer-schedule/next-schedule-notification"
-import Pagination from "@/components/common/Pagination/Pagination"
-import { useTranslations } from "next-intl"
+} from "@/features/customer-schedule/api";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format, addDays } from "date-fns";
+import { cn } from "@/lib/utils";
+import { toast } from "react-toastify";
+import type { CustomerSchedule } from "@/features/customer-schedule/types";
+import ScheduleDetailsModal from "@/components/clinicStaff/customer-schedule/schedule-details-modal";
+import SchedulePaymentModal from "@/components/clinicStaff/customer-schedule/schedule-payment-modal";
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch";
+import ScheduleFollowUpModal from "@/components/clinicStaff/customer-schedule/schedule-follow-up-modal";
+import NextScheduleNotification from "@/components/clinicStaff/customer-schedule/next-schedule-notification";
+import Pagination from "@/components/common/Pagination/Pagination";
+import { useTranslations } from "next-intl";
 
 // Import the follow-up selection modal
-import FollowUpSelectionModal from "@/components/clinicStaff/customer-schedule/follow-up-selection-modal"
+import FollowUpSelectionModal from "@/components/clinicStaff/customer-schedule/follow-up-selection-modal";
 
 // Add the import for EarlyCheckInModal at the top with the other imports
-import EarlyCheckInModal from "@/components/clinicStaff/customer-schedule/early-check-in-modal"
+import EarlyCheckInModal from "@/components/clinicStaff/customer-schedule/early-check-in-modal";
 
 // Define error response type
 interface ErrorResponse {
-  type: string
-  title: string
-  status: number
-  detail: string
-  errors: any | null
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  errors: any | null;
 }
 
 // Define the schedule status with follow-up info
 interface ScheduleWithFollowUpStatus extends CustomerSchedule {
-  needsFollowUp?: boolean
-  isCheckingFollowUp?: boolean
-  checkCompleted?: boolean // New flag to track if check has been completed
+  needsFollowUp?: boolean;
+  isCheckingFollowUp?: boolean;
+  checkCompleted?: boolean; // New flag to track if check has been completed
 }
 
 // Function to get the default date range based on the current date
 const getDefaultDateRange = () => {
-  const today = new Date()
-  const futureDate = addDays(today, 90)
+  const today = new Date();
+  const futureDate = addDays(today, 90);
   return {
     from: today,
     to: futureDate,
-  }
-}
+  };
+};
 
 export default function SchedulesPage() {
-  const t = useTranslations("customerSchedule")
+  const t = useTranslations("customerSchedule");
 
   // Customer search states
-  const [customerName, setCustomerName] = useState("")
-  const [customerPhone, setCustomerPhone] = useState("")
-  const [searchPerformed, setSearchPerformed] = useState(false)
-  const [errorResponse, setErrorResponse] = useState<ErrorResponse | null>(null)
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [errorResponse, setErrorResponse] = useState<ErrorResponse | null>(
+    null
+  );
 
   // Date range states
-  const [fromDate, setFromDate] = useState<Date | undefined>(undefined)
-  const [toDate, setToDate] = useState<Date | undefined>(undefined)
-  const [activeTab, setActiveTab] = useState("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(8)
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(8);
 
   // Modal states
-  const [selectedSchedule, setSelectedSchedule] = useState<CustomerSchedule | null>(null)
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
-  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false)
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<CustomerSchedule | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
 
   // Add a new state for the follow-up selection modal
-  const [isFollowUpSelectionModalOpen, setIsFollowUpSelectionModalOpen] = useState(false)
-  const [schedulesNeedingFollowUp, setSchedulesNeedingFollowUp] = useState<CustomerSchedule[]>([])
+  const [isFollowUpSelectionModalOpen, setIsFollowUpSelectionModalOpen] =
+    useState(false);
+  const [schedulesNeedingFollowUp, setSchedulesNeedingFollowUp] = useState<
+    CustomerSchedule[]
+  >([]);
 
-  const [scheduleNeedingFollowUp, setScheduleNeedingFollowUp] = useState<CustomerSchedule | null>(null)
+  const [scheduleNeedingFollowUp, setScheduleNeedingFollowUp] =
+    useState<CustomerSchedule | null>(null);
 
   // State to store schedules with follow-up status
-  const [schedulesWithFollowUpStatus, setSchedulesWithFollowUpStatus] = useState<ScheduleWithFollowUpStatus[]>([])
+  const [schedulesWithFollowUpStatus, setSchedulesWithFollowUpStatus] =
+    useState<ScheduleWithFollowUpStatus[]>([]);
 
   // Add these new state variables inside the SchedulesPage component, after the other state declarations
-  const [isEarlyCheckInModalOpen, setIsEarlyCheckInModalOpen] = useState(false)
-  const [earlyCheckInSchedule, setEarlyCheckInSchedule] = useState<CustomerSchedule | null>(null)
-  const [minutesEarly, setMinutesEarly] = useState(0)
+  const [isEarlyCheckInModalOpen, setIsEarlyCheckInModalOpen] = useState(false);
+  const [earlyCheckInSchedule, setEarlyCheckInSchedule] =
+    useState<CustomerSchedule | null>(null);
+  const [minutesEarly, setMinutesEarly] = useState(0);
 
   // Using RTK Query hooks
-  const [getCustomerSchedules, { data: scheduleResponse, isLoading: isLoadingCustomer, error: customerError }] =
-    useLazyGetCustomerSchedulesQuery()
-  const [getClinicSchedules, { data: clinicSchedulesResponse, isLoading: isLoadingClinic, error: clinicError }] =
-    useLazyGetClinicSchedulesQuery()
+  const [
+    getCustomerSchedules,
+    {
+      data: scheduleResponse,
+      isLoading: isLoadingCustomer,
+      error: customerError,
+    },
+  ] = useLazyGetCustomerSchedulesQuery();
+  const [
+    getClinicSchedules,
+    {
+      data: clinicSchedulesResponse,
+      isLoading: isLoadingClinic,
+      error: clinicError,
+    },
+  ] = useLazyGetClinicSchedulesQuery();
 
-  const [updateScheduleStatus, { isLoading: isUpdatingStatus }] = useUpdateScheduleStatusMutation()
+  const [updateScheduleStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateScheduleStatusMutation();
 
-  const [getNextScheduleAvailability, { isLoading: isCheckingNextSchedule }] = useLazyGetNextScheduleAvailabilityQuery()
+  const [getNextScheduleAvailability, { isLoading: isCheckingNextSchedule }] =
+    useLazyGetNextScheduleAvailabilityQuery();
 
   // Create delayed refetch functions
-  const delayedGetCustomerSchedules = useDelayedRefetch(getCustomerSchedules)
-  const delayedGetClinicSchedules = useDelayedRefetch(getClinicSchedules)
+  const delayedGetCustomerSchedules = useDelayedRefetch(getCustomerSchedules);
+  const delayedGetClinicSchedules = useDelayedRefetch(getClinicSchedules);
 
   // Format date for API
   const formatDateForApi = (date: Date | undefined) => {
-    if (!date) return ""
-    return format(date, "yyyy-MM-dd")
-  }
+    if (!date) return "";
+    return format(date, "yyyy-MM-dd");
+  };
+
+  // Replace the existing handleRefresh function with this updated version
+  const handleRefresh = () => {
+    if (searchPerformed && customerName && customerPhone) {
+      // If we're in search mode, use the current search parameters
+      getCustomerSchedules({
+        customerName,
+        customerPhone,
+      });
+    } else if (searchPerformed && (customerName || customerPhone)) {
+      // If only one search parameter is provided
+      getCustomerSchedules({
+        customerName: customerName || "",
+        customerPhone: customerPhone || "",
+      });
+    } else {
+      // If not in search mode, refresh the clinic schedules
+      fetchClinicSchedules();
+    }
+  };
 
   // Get status badge
   const getStatusBadge = (status: string) => {
@@ -150,72 +204,111 @@ export default function SchedulesPage() {
           <Badge className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700">
             {t("completed")}
           </Badge>
-        )
+        );
       case "pending":
         return (
           <Badge className="bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700">
             {t("pending")}
           </Badge>
-        )
+        );
       case "in progress":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
             {t("inProgress")}
           </Badge>
-        )
+        );
       case "uncompleted":
         return (
           <Badge className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700">
             {t("uncompleted")}
           </Badge>
-        )
+        );
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   // Check follow-up status for a single schedule
   const checkFollowUpStatus = async (schedule: CustomerSchedule) => {
     if (schedule.status.toLowerCase() !== "completed") {
-      return { ...schedule, needsFollowUp: false, isCheckingFollowUp: false, checkCompleted: false }
+      return {
+        ...schedule,
+        needsFollowUp: false,
+        isCheckingFollowUp: false,
+        checkCompleted: false,
+      };
     }
 
     try {
       // Mark as checking
       setSchedulesWithFollowUpStatus((prev) =>
-        prev.map((s) => (s.id === schedule.id ? { ...s, isCheckingFollowUp: true, checkCompleted: false } : s)),
-      )
+        prev.map((s) =>
+          s.id === schedule.id
+            ? { ...s, isCheckingFollowUp: true, checkCompleted: false }
+            : s
+        )
+      );
 
       // Call the API to check if a follow-up is needed
-      const result = await getNextScheduleAvailability(schedule.id).unwrap()
-      console.log(`Follow-up check result for ${schedule.id}:`, result)
+      const result = await getNextScheduleAvailability(schedule.id).unwrap();
+      console.log(`Follow-up check result for ${schedule.id}:`, result);
 
       // Update the schedule with follow-up status
-      const needsFollowUp = result.isSuccess && result.value === "Need to schedule for next step"
+      const needsFollowUp =
+        result.isSuccess && result.value === "Need to schedule for next step";
 
       setSchedulesWithFollowUpStatus((prev) =>
         prev.map((s) =>
-          s.id === schedule.id ? { ...s, needsFollowUp, isCheckingFollowUp: false, checkCompleted: true } : s,
-        ),
-      )
+          s.id === schedule.id
+            ? {
+                ...s,
+                needsFollowUp,
+                isCheckingFollowUp: false,
+                checkCompleted: true,
+              }
+            : s
+        )
+      );
 
-      return { ...schedule, needsFollowUp, isCheckingFollowUp: false, checkCompleted: true }
+      return {
+        ...schedule,
+        needsFollowUp,
+        isCheckingFollowUp: false,
+        checkCompleted: true,
+      };
     } catch (error) {
-      console.error(`Failed to check follow-up status for schedule ${schedule.id}:`, error)
+      console.error(
+        `Failed to check follow-up status for schedule ${schedule.id}:`,
+        error
+      );
 
       setSchedulesWithFollowUpStatus((prev) =>
         prev.map((s) =>
-          s.id === schedule.id ? { ...s, needsFollowUp: false, isCheckingFollowUp: false, checkCompleted: true } : s,
-        ),
-      )
+          s.id === schedule.id
+            ? {
+                ...s,
+                needsFollowUp: false,
+                isCheckingFollowUp: false,
+                checkCompleted: true,
+              }
+            : s
+        )
+      );
 
-      return { ...schedule, needsFollowUp: false, isCheckingFollowUp: false, checkCompleted: true }
+      return {
+        ...schedule,
+        needsFollowUp: false,
+        isCheckingFollowUp: false,
+        checkCompleted: true,
+      };
     }
-  }
+  };
 
   // Update the checkAllSchedulesFollowUpStatus function to ensure it checks all completed schedules
-  const checkAllSchedulesFollowUpStatus = async (schedules: CustomerSchedule[]) => {
-    console.log(`Checking follow-up status for ${schedules.length} schedules`)
+  const checkAllSchedulesFollowUpStatus = async (
+    schedules: CustomerSchedule[]
+  ) => {
+    console.log(`Checking follow-up status for ${schedules.length} schedules`);
 
     // Initialize all schedules with isCheckingFollowUp: true
     const initialSchedulesWithStatus = schedules.map((schedule) => ({
@@ -223,16 +316,20 @@ export default function SchedulesPage() {
       isCheckingFollowUp: true,
       needsFollowUp: false,
       checkCompleted: false,
-    }))
+    }));
 
-    setSchedulesWithFollowUpStatus(initialSchedulesWithStatus)
+    setSchedulesWithFollowUpStatus(initialSchedulesWithStatus);
 
     // Reset the schedules needing follow-up
-    setSchedulesNeedingFollowUp([])
+    setSchedulesNeedingFollowUp([]);
 
     // Check each completed schedule
-    const completedSchedules = schedules.filter((schedule) => schedule.status.toLowerCase() === "completed")
-    console.log(`Found ${completedSchedules.length} completed schedules to check`)
+    const completedSchedules = schedules.filter(
+      (schedule) => schedule.status.toLowerCase() === "completed"
+    );
+    console.log(
+      `Found ${completedSchedules.length} completed schedules to check`
+    );
 
     if (completedSchedules.length === 0) {
       // If no completed schedules, just update the state with initial values
@@ -242,67 +339,93 @@ export default function SchedulesPage() {
           isCheckingFollowUp: false,
           needsFollowUp: false,
           checkCompleted: false,
-        })),
-      )
-      return
+        }))
+      );
+      return;
     }
 
     // Collect all schedules that need follow-up
-    const needFollowUp: CustomerSchedule[] = []
+    const needFollowUp: CustomerSchedule[] = [];
 
     // Process each completed schedule sequentially
     for (let i = 0; i < completedSchedules.length; i++) {
-      const schedule = completedSchedules[i]
-      console.log(`Checking schedule ${i + 1}/${completedSchedules.length}: ${schedule.id}`)
+      const schedule = completedSchedules[i];
+      console.log(
+        `Checking schedule ${i + 1}/${completedSchedules.length}: ${
+          schedule.id
+        }`
+      );
 
       try {
         // Mark as checking
         setSchedulesWithFollowUpStatus((prev) =>
-          prev.map((s) => (s.id === schedule.id ? { ...s, isCheckingFollowUp: true, checkCompleted: false } : s)),
-        )
+          prev.map((s) =>
+            s.id === schedule.id
+              ? { ...s, isCheckingFollowUp: true, checkCompleted: false }
+              : s
+          )
+        );
 
         // Call the API to check if a follow-up is needed
-        const result = await getNextScheduleAvailability(schedule.id).unwrap()
-        console.log(`Result for schedule ${schedule.id}:`, result)
+        const result = await getNextScheduleAvailability(schedule.id).unwrap();
+        console.log(`Result for schedule ${schedule.id}:`, result);
 
         // Update the schedule with follow-up status - check for exact match with "Need to schedule for next step"
-        const needsFollowUp = result.isSuccess && result.value === "Need to schedule for next step"
+        const needsFollowUp =
+          result.isSuccess && result.value === "Need to schedule for next step";
 
         if (needsFollowUp) {
-          console.log(`Schedule ${schedule.id} needs follow-up`)
-          needFollowUp.push(schedule)
+          console.log(`Schedule ${schedule.id} needs follow-up`);
+          needFollowUp.push(schedule);
         }
 
         // Update the status in the state
         setSchedulesWithFollowUpStatus((prev) =>
           prev.map((s) =>
-            s.id === schedule.id ? { ...s, needsFollowUp, isCheckingFollowUp: false, checkCompleted: true } : s,
-          ),
-        )
+            s.id === schedule.id
+              ? {
+                  ...s,
+                  needsFollowUp,
+                  isCheckingFollowUp: false,
+                  checkCompleted: true,
+                }
+              : s
+          )
+        );
       } catch (error) {
-        console.error(`Failed to check follow-up status for schedule ${schedule.id}:`, error)
+        console.error(
+          `Failed to check follow-up status for schedule ${schedule.id}:`,
+          error
+        );
 
         // Update the status in the state to indicate error
         setSchedulesWithFollowUpStatus((prev) =>
           prev.map((s) =>
-            s.id === schedule.id ? { ...s, needsFollowUp: false, isCheckingFollowUp: false, checkCompleted: true } : s,
-          ),
-        )
+            s.id === schedule.id
+              ? {
+                  ...s,
+                  needsFollowUp: false,
+                  isCheckingFollowUp: false,
+                  checkCompleted: true,
+                }
+              : s
+          )
+        );
       }
     }
 
-    console.log(`Found ${needFollowUp.length} schedules needing follow-up`)
+    console.log(`Found ${needFollowUp.length} schedules needing follow-up`);
 
     // Update the state with all schedules needing follow-up
-    setSchedulesNeedingFollowUp(needFollowUp)
+    setSchedulesNeedingFollowUp(needFollowUp);
 
     // Set the first one for the notification if there's at least one
     if (needFollowUp.length > 0) {
-      setScheduleNeedingFollowUp(needFollowUp[0])
+      setScheduleNeedingFollowUp(needFollowUp[0]);
     } else {
-      setScheduleNeedingFollowUp(null)
+      setScheduleNeedingFollowUp(null);
     }
-  }
+  };
 
   // Search for customer schedules
   const searchSchedules = async () => {
@@ -313,24 +436,24 @@ export default function SchedulesPage() {
         status: 400,
         detail: t("pleaseEnterNameOrPhone"),
         errors: null,
-      })
-      return
+      });
+      return;
     }
 
-    setErrorResponse(null)
+    setErrorResponse(null);
 
     try {
       // Call the RTK Query hook for customer search
       const result = await getCustomerSchedules({
         customerName,
         customerPhone,
-      })
+      });
 
       if ("error" in result) {
         // Handle the error response
-        const errorData = result.error as any
+        const errorData = result.error as any;
         if (errorData?.data) {
-          setErrorResponse(errorData.data as ErrorResponse)
+          setErrorResponse(errorData.data as ErrorResponse);
         } else {
           setErrorResponse({
             type: "500",
@@ -338,87 +461,93 @@ export default function SchedulesPage() {
             status: 500,
             detail: t("unexpectedError"),
             errors: null,
-          })
+          });
         }
       } else if (result.data) {
         // Check follow-up status for all schedules
-        const schedules = result.data.value || []
+        const schedules = result.data.value || [];
         if (Array.isArray(schedules)) {
-          await checkAllSchedulesFollowUpStatus(schedules)
+          await checkAllSchedulesFollowUpStatus(schedules);
         }
       }
 
-      setSearchPerformed(true)
+      setSearchPerformed(true);
       // Reset pagination to first page when searching
-      setCurrentPage(1)
+      setCurrentPage(1);
     } catch (err) {
-      console.error("Failed to fetch schedules:", err)
+      console.error("Failed to fetch schedules:", err);
       setErrorResponse({
         type: "500",
         title: t("serverError"),
         status: 500,
         detail: t("unexpectedError"),
         errors: null,
-      })
+      });
     }
-  }
+  };
 
   // Handle Enter key press for customer search
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      searchSchedules()
+      searchSchedules();
     }
-  }
+  };
 
   // Create search term for date range
   const createDateRangeSearchTerm = (from?: Date, to?: Date) => {
     if (!from && !to) {
-      const defaultRange = getDefaultDateRange()
-      from = defaultRange.from
-      to = defaultRange.to
+      const defaultRange = getDefaultDateRange();
+      from = defaultRange.from;
+      to = defaultRange.to;
     } else if (from && !to) {
-      to = addDays(from, 30) // Default to 30 days after from date
+      to = addDays(from, 30); // Default to 30 days after from date
     } else if (!from && to) {
-      from = addDays(to, -30) // Default to 30 days before to date
+      from = addDays(to, -30); // Default to 30 days before to date
     }
 
-    return `${formatDateForApi(from)} to ${formatDateForApi(to)}`
-  }
+    return `${formatDateForApi(from)} to ${formatDateForApi(to)}`;
+  };
 
   // Fetch clinic schedules
   const fetchClinicSchedules = async () => {
     // If no custom date range is selected, use the default range based on active tab
-    let searchTerm
-    const sortOrder = activeTab === "past" ? "desc" : "asc"
+    let searchTerm;
+    const sortOrder = activeTab === "past" ? "desc" : "asc";
 
     if (!fromDate && !toDate) {
-      const today = new Date()
+      const today = new Date();
 
       if (activeTab === "upcoming") {
         // For upcoming: from today to 3 months in the future
-        const futureDate = addDays(today, 90)
-        searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(futureDate)}`
+        const futureDate = addDays(today, 90);
+        searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(
+          futureDate
+        )}`;
       } else if (activeTab === "past") {
         // For past: from 3 months ago to yesterday
-        const yesterday = new Date(today)
-        yesterday.setDate(yesterday.getDate() - 1)
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-        const threeMonthsAgo = new Date(today)
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(yesterday)}`
+        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
+          yesterday
+        )}`;
       } else {
         // For all: from 3 months ago to 3 months in the future
-        const threeMonthsAgo = new Date(today)
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-        const threeMonthsAhead = new Date(today)
-        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
+        const threeMonthsAhead = new Date(today);
+        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3);
 
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(threeMonthsAhead)}`
+        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
+          threeMonthsAhead
+        )}`;
       }
     } else {
-      searchTerm = createDateRangeSearchTerm(fromDate, toDate)
+      searchTerm = createDateRangeSearchTerm(fromDate, toDate);
     }
 
     try {
@@ -429,96 +558,102 @@ export default function SchedulesPage() {
         searchTerm,
         sortColumn: "bookingDate",
         sortOrder,
-      })
+      });
 
       // Check if we have valid data and check follow-up status for completed schedules
       if (result.data?.value?.items) {
-        await checkAllSchedulesFollowUpStatus(result.data.value.items)
+        await checkAllSchedulesFollowUpStatus(result.data.value.items);
       }
 
-      return result
+      return result;
     } catch (error) {
-      console.error("Failed to fetch clinic schedules:", error)
-      return { data: null, error }
+      console.error("Failed to fetch clinic schedules:", error);
+      return { data: null, error };
     }
-  }
+  };
 
   // Handle date range change
   const handleDateRangeChange = async () => {
     // Validate that at least one date is selected
     if (!fromDate && !toDate) {
-      toast.error(t("selectAtLeastOneDate"))
-      return
+      toast.error(t("selectAtLeastOneDate"));
+      return;
     }
 
-    setCurrentPage(1) // Reset to first page when filters change
-    setSearchPerformed(false) // Reset search state when applying date filters
+    setCurrentPage(1); // Reset to first page when filters change
+    setSearchPerformed(false); // Reset search state when applying date filters
 
-    const result = await fetchClinicSchedulesWithTab(activeTab)
+    const result = await fetchClinicSchedulesWithTab(activeTab);
 
     // Check follow-up status for completed schedules
     if (result?.data?.value?.items) {
-      await checkAllSchedulesFollowUpStatus(result.data.value.items)
+      await checkAllSchedulesFollowUpStatus(result.data.value.items);
     }
-  }
+  };
 
   // Replace the handleTabChange function with this updated version
   const handleTabChange = (value: string) => {
-    console.log("Tab changed to:", value)
+    console.log("Tab changed to:", value);
 
     // Reset search state when changing tabs
-    setSearchPerformed(false)
-    setCustomerName("")
-    setCustomerPhone("")
+    setSearchPerformed(false);
+    setCustomerName("");
+    setCustomerPhone("");
 
     // Reset custom date range when changing tabs
-    setFromDate(undefined)
-    setToDate(undefined)
+    setFromDate(undefined);
+    setToDate(undefined);
 
     // First update the active tab state
-    setActiveTab(value)
+    setActiveTab(value);
 
     // Reset to first page when tab changes - but don't trigger a fetch here
-    setCurrentPage(1)
+    setCurrentPage(1);
 
     // We don't need to call fetchClinicSchedulesWithTab here anymore
     // The useEffect with [currentPage, activeTab] dependencies will handle it
-  }
+  };
 
   // Add this new function that accepts the tab value as a parameter
   const fetchClinicSchedulesWithTab = async (tabValue: string) => {
     // If no custom date range is selected, use the default range based on active tab
-    let searchTerm
-    const sortOrder = tabValue === "past" ? "desc" : "asc"
+    let searchTerm;
+    const sortOrder = tabValue === "past" ? "desc" : "asc";
 
     if (!fromDate && !toDate) {
-      const today = new Date()
+      const today = new Date();
 
       if (tabValue === "upcoming") {
         // For upcoming: from today to 3 months in the future
-        const futureDate = addDays(today, 90)
-        searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(futureDate)}`
+        const futureDate = addDays(today, 90);
+        searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(
+          futureDate
+        )}`;
       } else if (tabValue === "past") {
         // For past: from 3 months ago to yesterday
-        const yesterday = new Date(today)
-        yesterday.setDate(yesterday.getDate() - 1)
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-        const threeMonthsAgo = new Date(today)
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(yesterday)}`
+        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
+          yesterday
+        )}`;
       } else {
         // For all: from 3 months ago to 3 months in the future
-        const threeMonthsAgo = new Date(today)
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-        const threeMonthsAhead = new Date(today)
-        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
+        const threeMonthsAhead = new Date(today);
+        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3);
 
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(threeMonthsAhead)}`
+        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
+          threeMonthsAhead
+        )}`;
       }
     } else {
-      searchTerm = createDateRangeSearchTerm(fromDate, toDate)
+      searchTerm = createDateRangeSearchTerm(fromDate, toDate);
     }
 
     try {
@@ -529,55 +664,55 @@ export default function SchedulesPage() {
         searchTerm,
         sortColumn: "bookingDate",
         sortOrder,
-      })
+      });
 
       // Check if we have valid data and check follow-up status for completed schedules
       if (result.data?.value?.items) {
-        await checkAllSchedulesFollowUpStatus(result.data.value.items)
+        await checkAllSchedulesFollowUpStatus(result.data.value.items);
       }
 
-      return result
+      return result;
     } catch (error) {
-      console.error("Failed to fetch clinic schedules:", error)
-      return { data: null, error }
+      console.error("Failed to fetch clinic schedules:", error);
+      return { data: null, error };
     }
-  }
+  };
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage)
-  }
+    setCurrentPage(newPage);
+  };
 
   // Handle view schedule details
   const handleViewSchedule = (schedule: CustomerSchedule) => {
-    setSelectedSchedule(schedule)
-    setIsDetailsModalOpen(true)
-  }
+    setSelectedSchedule(schedule);
+    setIsDetailsModalOpen(true);
+  };
 
   // Handle checkout/payment
   const handleCheckout = (schedule: CustomerSchedule) => {
-    setSelectedSchedule(schedule)
-    setIsPaymentModalOpen(true)
-  }
+    setSelectedSchedule(schedule);
+    setIsPaymentModalOpen(true);
+  };
 
   // Replace the existing handleCheckIn function with this updated version
   const handleCheckIn = async (schedule: CustomerSchedule) => {
     // Check if the check-in is early by comparing current time with scheduled time
-    const now = new Date()
-    const [hours, minutes] = schedule.startTime.split(":").map(Number)
-    const scheduledTime = new Date(now)
-    scheduledTime.setHours(hours, minutes, 0, 0)
+    const now = new Date();
+    const [hours, minutes] = schedule.startTime.split(":").map(Number);
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hours, minutes, 0, 0);
 
     // Calculate minutes early (if negative, the appointment is in the future)
-    const diffMs = scheduledTime.getTime() - now.getTime()
-    const diffMinutes = Math.ceil(diffMs / (1000 * 60))
+    const diffMs = scheduledTime.getTime() - now.getTime();
+    const diffMinutes = Math.ceil(diffMs / (1000 * 60));
 
     // If more than 5 minutes early, show the early check-in modal
     if (diffMinutes > 5) {
-      setEarlyCheckInSchedule(schedule)
-      setMinutesEarly(diffMinutes)
-      setIsEarlyCheckInModalOpen(true)
-      return
+      setEarlyCheckInSchedule(schedule);
+      setMinutesEarly(diffMinutes);
+      setIsEarlyCheckInModalOpen(true);
+      return;
     }
 
     // Otherwise proceed with normal check-in
@@ -585,165 +720,183 @@ export default function SchedulesPage() {
       await updateScheduleStatus({
         scheduleId: schedule.id,
         status: "In Progress",
-      }).unwrap()
+      }).unwrap();
 
-      toast.success(t("checkedInSuccessfully"))
+      toast.success(t("checkedInSuccessfully"));
 
       // Refresh the data based on current view
       if (searchPerformed) {
         // If we're in search mode, refresh the search results
-        delayedGetCustomerSchedules({ customerName, customerPhone })
+        delayedGetCustomerSchedules({ customerName, customerPhone });
       } else {
         // Otherwise refresh clinic schedules
-        fetchClinicSchedules()
+        fetchClinicSchedules();
       }
     } catch (error) {
-      console.error("Failed to check in:", error)
-      toast.error(t("failedToCheckIn"))
+      console.error("Failed to check in:", error);
+      toast.error(t("failedToCheckIn"));
     }
-  }
+  };
 
   // Add this new function to handle the confirmed early check-in
   const handleConfirmEarlyCheckIn = async () => {
-    if (!earlyCheckInSchedule) return
+    if (!earlyCheckInSchedule) return;
 
     try {
       await updateScheduleStatus({
         scheduleId: earlyCheckInSchedule.id,
         status: "In Progress",
-      }).unwrap()
+      }).unwrap();
 
-      toast.success(t("checkedInSuccessfully"))
+      toast.success(t("checkedInSuccessfully"));
 
       // Refresh the data based on current view
       if (searchPerformed) {
         // If we're in search mode, refresh the search results
-        delayedGetCustomerSchedules({ customerName, customerPhone })
+        delayedGetCustomerSchedules({ customerName, customerPhone });
       } else {
         // Otherwise refresh clinic schedules
-        fetchClinicSchedules()
+        fetchClinicSchedules();
       }
     } catch (error) {
-      console.error("Failed to check in:", error)
-      toast.error(t("failedToCheckIn"))
+      console.error("Failed to check in:", error);
+      toast.error(t("failedToCheckIn"));
     }
-  }
+  };
 
   // Update the shouldShowCheckInButton function to always return true for pending appointments
   // This allows the check-in button to appear regardless of date, and the early check-in logic
   // will handle the warning if needed
   const shouldShowCheckInButton = (schedule: CustomerSchedule) => {
     if (schedule.status.toLowerCase() !== "pending") {
-      return false
+      return false;
     }
 
     // Parse the booking date (assuming format is YYYY-MM-DD)
-    const bookingDate = new Date(schedule.bookingDate)
-    const today = new Date()
+    const bookingDate = new Date(schedule.bookingDate);
+    const today = new Date();
 
     // Reset time part for accurate date comparison
-    bookingDate.setHours(0, 0, 0, 0)
-    today.setHours(0, 0, 0, 0)
+    bookingDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
 
     // Only show check-in button if today is exactly the appointment date
-    return bookingDate.getTime() === today.getTime()
-  }
+    return bookingDate.getTime() === today.getTime();
+  };
 
   const handleScheduleFollowUp = (schedule: CustomerSchedule) => {
-    setSelectedSchedule(schedule)
-    setIsFollowUpModalOpen(true)
-  }
+    setSelectedSchedule(schedule);
+    setIsFollowUpModalOpen(true);
+  };
 
   // Update the notification click handler to open the selection modal if multiple schedules need follow-up
   const handleNotificationClick = () => {
     if (schedulesNeedingFollowUp.length > 1) {
-      setIsFollowUpSelectionModalOpen(true)
+      setIsFollowUpSelectionModalOpen(true);
     } else if (scheduleNeedingFollowUp) {
-      handleScheduleFollowUp(scheduleNeedingFollowUp)
+      handleScheduleFollowUp(scheduleNeedingFollowUp);
     }
-  }
+  };
 
   // Handle view next appointment
   const handleViewNextAppointment = (schedule: CustomerSchedule) => {
     // This would typically navigate to or show the next appointment
-    toast.info(`${t("viewingNextAppointment")} ${schedule.customerName}`)
+    toast.info(`${t("viewingNextAppointment")} ${schedule.customerName}`);
     // You could implement this based on your application's requirements
-  }
+  };
 
   // Effect to fetch schedules when component mounts or when dependencies change
   useEffect(() => {
     if (searchPerformed) {
       // If we're in search mode, don't refetch on page change
-      return
+      return;
     } else {
       // For normal clinic schedules, apply pagination
-      fetchClinicSchedulesWithTab(activeTab)
+      fetchClinicSchedulesWithTab(activeTab);
     }
-  }, [currentPage, activeTab]) // Add activeTab as a dependency
+  }, [currentPage, activeTab]); // Add activeTab as a dependency
 
   // Initial fetch when component mounts
   useEffect(() => {
     // Set default tab to "all"
-    setActiveTab("all")
+    setActiveTab("all");
 
     // Initial fetch will be handled by the other useEffect that depends on activeTab
-  }, [])
+  }, []);
 
   // Extract data from responses
-  const schedulesData = scheduleResponse?.value || []
-  const scheduleItems = Array.isArray(schedulesData) ? schedulesData : []
-  const clinicSchedules = clinicSchedulesResponse?.value?.items || []
-  const totalCount = clinicSchedulesResponse?.value?.totalCount || 0
-  const totalPages = Math.ceil(totalCount / pageSize)
+  const schedulesData = scheduleResponse?.value || [];
+  const scheduleItems = Array.isArray(schedulesData) ? schedulesData : [];
+  const clinicSchedules = clinicSchedulesResponse?.value?.items || [];
+  const totalCount = clinicSchedulesResponse?.value?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Format error message for clinic schedules
-  const clinicErrorMessage = clinicError ? ("error" in clinicError ? (clinicError.error as string) : t("error")) : null
+  const clinicErrorMessage = clinicError
+    ? "error" in clinicError
+      ? (clinicError.error as string)
+      : t("error")
+    : null;
 
   // Format time range
   const formatTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`
-  }
+    return `${startTime} - ${endTime}`;
+  };
 
   // Get schedule with follow-up status by ID
-  const getScheduleWithStatus = (schedule: CustomerSchedule): ScheduleWithFollowUpStatus => {
-    const scheduleWithStatus = schedulesWithFollowUpStatus.find((s) => s.id === schedule.id)
+  const getScheduleWithStatus = (
+    schedule: CustomerSchedule
+  ): ScheduleWithFollowUpStatus => {
+    const scheduleWithStatus = schedulesWithFollowUpStatus.find(
+      (s) => s.id === schedule.id
+    );
     if (scheduleWithStatus) {
-      return scheduleWithStatus
+      return scheduleWithStatus;
     }
-    return { ...schedule, needsFollowUp: false, isCheckingFollowUp: false, checkCompleted: false }
-  }
+    return {
+      ...schedule,
+      needsFollowUp: false,
+      isCheckingFollowUp: false,
+      checkCompleted: false,
+    };
+  };
 
   // Add a function to clear search
   const clearSearch = () => {
-    setCustomerName("")
-    setCustomerPhone("")
-    setSearchPerformed(false)
-    setErrorResponse(null)
+    setCustomerName("");
+    setCustomerPhone("");
+    setSearchPerformed(false);
+    setErrorResponse(null);
     // Reset to first page
-    setCurrentPage(1)
+    setCurrentPage(1);
     // Refresh the clinic schedules
-    fetchClinicSchedulesWithTab(activeTab)
-  }
+    fetchClinicSchedulesWithTab(activeTab);
+  };
 
   // Debug function to log schedule data
   const logScheduleData = (schedule: CustomerSchedule) => {
-    console.log(`Schedule ID: ${schedule.id}`)
-    console.log(`Status: ${schedule.status}`)
-    console.log(`isFirstCheckIn: ${schedule.isFirstCheckIn}`)
-  }
+    console.log(`Schedule ID: ${schedule.id}`);
+    console.log(`Status: ${schedule.status}`);
+    console.log(`isFirstCheckIn: ${schedule.isFirstCheckIn}`);
+  };
 
   // Function to render the appropriate action button for completed schedules
   const renderCompletedScheduleButton = (
     schedule: CustomerSchedule,
-    scheduleWithStatus: ScheduleWithFollowUpStatus,
+    scheduleWithStatus: ScheduleWithFollowUpStatus
   ) => {
     if (scheduleWithStatus.isCheckingFollowUp) {
       return (
-        <Button variant="default" size="sm" className="bg-gray-400 dark:bg-gray-600 text-white" disabled>
+        <Button
+          variant="default"
+          size="sm"
+          className="bg-gray-400 dark:bg-gray-600 text-white"
+          disabled
+        >
           <Loader2 className="h-4 w-4 animate-spin mr-1" />
           {t("checking")}
         </Button>
-      )
+      );
     } else if (scheduleWithStatus.needsFollowUp) {
       return (
         <Button
@@ -755,7 +908,7 @@ export default function SchedulesPage() {
           <Calendar className="h-4 w-4 mr-1" />
           {t("followUp")}
         </Button>
-      )
+      );
     } else if (scheduleWithStatus.checkCompleted) {
       // If check is completed and doesn't need follow-up, show View Next regardless of isFirstCheckIn
       return (
@@ -768,7 +921,7 @@ export default function SchedulesPage() {
           <ExternalLink className="h-4 w-4 mr-1" />
           {t("viewNext")}
         </Button>
-      )
+      );
     } else if (schedule.isFirstCheckIn) {
       // Only show Checkout if check hasn't been completed yet and it's the first check-in
       return (
@@ -781,7 +934,7 @@ export default function SchedulesPage() {
           <CreditCard className="h-4 w-4 mr-1" />
           {t("checkout")}
         </Button>
-      )
+      );
     } else {
       // Default fallback
       return (
@@ -794,9 +947,9 @@ export default function SchedulesPage() {
           <ExternalLink className="h-4 w-4 mr-1" />
           {t("viewNext")}
         </Button>
-      )
+      );
     }
-  }
+  };
 
   // Function to check if a schedule should show the check-in button
   // Keep the original logic that only shows the button when the date matches today
@@ -813,7 +966,7 @@ export default function SchedulesPage() {
   //   bookingDate.setHours(0, 0, 0, 0)
   //   today.setHours(0, 0, 0, 0)
 
-  //   // Only show check-in button if today is exactly the appointment date
+  // Only show check-in button if today is exactly the appointment date
   //   return bookingDate.getTime() === today.getTime()
   // }
 
@@ -859,10 +1012,10 @@ export default function SchedulesPage() {
                           {activeTab === "all"
                             ? t("all")
                             : activeTab === "upcoming"
-                              ? t("upcoming")
-                              : activeTab === "past"
-                                ? t("past")
-                                : t("all")}
+                            ? t("upcoming")
+                            : activeTab === "past"
+                            ? t("past")
+                            : t("all")}
                         </span>
                         <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
                       </Button>
@@ -870,23 +1023,41 @@ export default function SchedulesPage() {
                     <DropdownMenuContent align="start" className="w-[200px]">
                       <DropdownMenuItem
                         onClick={() => handleTabChange("all")}
-                        className={activeTab === "all" ? "bg-gray-100 dark:bg-gray-800 font-medium" : ""}
+                        className={
+                          activeTab === "all"
+                            ? "bg-gray-100 dark:bg-gray-800 font-medium"
+                            : ""
+                        }
                       >
-                        {activeTab === "all" && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
+                        {activeTab === "all" && (
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        )}
                         {t("all")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleTabChange("upcoming")}
-                        className={activeTab === "upcoming" ? "bg-gray-100 dark:bg-gray-800 font-medium" : ""}
+                        className={
+                          activeTab === "upcoming"
+                            ? "bg-gray-100 dark:bg-gray-800 font-medium"
+                            : ""
+                        }
                       >
-                        {activeTab === "upcoming" && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
+                        {activeTab === "upcoming" && (
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        )}
                         {t("upcoming")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleTabChange("past")}
-                        className={activeTab === "past" ? "bg-gray-100 dark:bg-gray-800 font-medium" : ""}
+                        className={
+                          activeTab === "past"
+                            ? "bg-gray-100 dark:bg-gray-800 font-medium"
+                            : ""
+                        }
                       >
-                        {activeTab === "past" && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
+                        {activeTab === "past" && (
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        )}
                         {t("past")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -901,15 +1072,24 @@ export default function SchedulesPage() {
                         variant={"outline"}
                         className={cn(
                           "w-full md:w-[150px] justify-start text-left font-normal border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
-                          !fromDate && "text-muted-foreground",
+                          !fromDate && "text-muted-foreground"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {fromDate ? format(fromDate, "MMM d, yyyy") : <span>{t("fromDate")}</span>}
+                        {fromDate ? (
+                          format(fromDate, "MMM d, yyyy")
+                        ) : (
+                          <span>{t("fromDate")}</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <CalendarComponent mode="single" selected={fromDate} onSelect={setFromDate} initialFocus />
+                      <CalendarComponent
+                        mode="single"
+                        selected={fromDate}
+                        onSelect={setFromDate}
+                        initialFocus
+                      />
                     </PopoverContent>
                   </Popover>
 
@@ -922,11 +1102,15 @@ export default function SchedulesPage() {
                         variant={"outline"}
                         className={cn(
                           "w-full md:w-[150px] justify-start text-left font-normal border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
-                          !toDate && "text-muted-foreground",
+                          !toDate && "text-muted-foreground"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {toDate ? format(toDate, "MMM d, yyyy") : <span>{t("toDate")}</span>}
+                        {toDate ? (
+                          format(toDate, "MMM d, yyyy")
+                        ) : (
+                          <span>{t("toDate")}</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -935,7 +1119,9 @@ export default function SchedulesPage() {
                         selected={toDate}
                         onSelect={setToDate}
                         initialFocus
-                        disabled={(date) => (fromDate ? date < fromDate : false)}
+                        disabled={(date) =>
+                          fromDate ? date < fromDate : false
+                        }
                       />
                     </PopoverContent>
                   </Popover>
@@ -945,7 +1131,11 @@ export default function SchedulesPage() {
                     disabled={isLoadingClinic || (!fromDate && !toDate)}
                     className="w-full md:w-auto bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 dark:from-red-600 dark:to-red-800 dark:hover:from-red-700 dark:hover:to-red-900 text-white font-medium shadow-sm"
                   >
-                    {isLoadingClinic ? <Loader2 className="h-4 w-4 animate-spin" /> : t("apply")}
+                    {isLoadingClinic ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      t("apply")
+                    )}
                   </Button>
                 </div>
               </div>
@@ -969,7 +1159,10 @@ export default function SchedulesPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerPhone" className="text-sm font-medium">
+                  <Label
+                    htmlFor="customerPhone"
+                    className="text-sm font-medium"
+                  >
                     {t("customerPhone")}
                   </Label>
                   <div className="relative">
@@ -1024,7 +1217,8 @@ export default function SchedulesPage() {
                 {searchPerformed ? (
                   scheduleItems.length > 0 ? (
                     <p className="text-purple-600 dark:text-purple-400">
-                      {t("found")} {scheduleItems.length} {t("scheduleFor")} {customerName || customerPhone}
+                      {t("found")} {scheduleItems.length} {t("scheduleFor")}{" "}
+                      {customerName || customerPhone}
                     </p>
                   ) : (
                     <p className="text-amber-600 dark:text-amber-400">
@@ -1035,21 +1229,27 @@ export default function SchedulesPage() {
                   <p>
                     {t("showingAllAppointments")}{" "}
                     {fromDate && toDate
-                      ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t("to")} ${format(toDate, "MMM d, yyyy")}`
+                      ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t(
+                          "to"
+                        )} ${format(toDate, "MMM d, yyyy")}`
                       : ""}
                   </p>
                 ) : activeTab === "upcoming" ? (
                   <p>
                     {t("showingUpcomingAppointments")}{" "}
                     {fromDate && toDate
-                      ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t("to")} ${format(toDate, "MMM d, yyyy")}`
+                      ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t(
+                          "to"
+                        )} ${format(toDate, "MMM d, yyyy")}`
                       : t("forTheNext90Days")}
                   </p>
                 ) : (
                   <p>
                     {t("showingPastAppointments")}{" "}
                     {fromDate && toDate
-                      ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t("to")} ${format(toDate, "MMM d, yyyy")}`
+                      ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t(
+                          "to"
+                        )} ${format(toDate, "MMM d, yyyy")}`
                       : t("fromTheLast90Days")}
                   </p>
                 )}
@@ -1074,70 +1274,108 @@ export default function SchedulesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-center">{t("customer")}</TableHead>
-                      <TableHead className="text-center">{t("service")}</TableHead>
-                      <TableHead className="text-center">{t("doctor")}</TableHead>
+                      <TableHead className="text-center">
+                        {t("customer")}
+                      </TableHead>
+                      <TableHead className="text-center">
+                        {t("service")}
+                      </TableHead>
+                      <TableHead className="text-center">
+                        {t("doctor")}
+                      </TableHead>
                       <TableHead className="text-center">{t("date")}</TableHead>
                       <TableHead className="text-center">{t("time")}</TableHead>
-                      <TableHead className="text-center">{t("status")}</TableHead>
-                      <TableHead className="text-center">{t("actions")}</TableHead>
+                      <TableHead className="text-center">
+                        {t("status")}
+                      </TableHead>
+                      <TableHead className="text-center">
+                        {t("actions")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {/* Show search results if search was performed and has results */}
                     {searchPerformed && scheduleItems.length > 0 ? (
                       scheduleItems.map((schedule: CustomerSchedule) => {
-                        const scheduleWithStatus = getScheduleWithStatus(schedule)
+                        const scheduleWithStatus =
+                          getScheduleWithStatus(schedule);
                         return (
                           <TableRow key={schedule.id}>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8 flex-shrink-0">
-                                  <AvatarFallback>{schedule.customerName.charAt(0)}</AvatarFallback>
+                                  <AvatarFallback>
+                                    {schedule.customerName.charAt(0)}
+                                  </AvatarFallback>
                                 </Avatar>
-                                <span className="truncate max-w-[150px]">{schedule.customerName}</span>
+                                <span className="truncate max-w-[150px]">
+                                  {schedule.customerName}
+                                </span>
                               </div>
                             </TableCell>
                             <TableCell className="max-w-[150px]">
-                              <div className="truncate">{schedule.serviceName}</div>
+                              <div className="truncate">
+                                {schedule.serviceName}
+                              </div>
                             </TableCell>
                             <TableCell className="max-w-[150px]">
-                              <div className="truncate">{schedule.doctorName}</div>
+                              <div className="truncate">
+                                {schedule.doctorName}
+                              </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">{schedule.bookingDate}</TableCell>
                             <TableCell className="whitespace-nowrap">
-                              {formatTimeRange(schedule.startTime, schedule.endTime)}
+                              {schedule.bookingDate}
                             </TableCell>
-                            <TableCell>{getStatusBadge(schedule.status)}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {formatTimeRange(
+                                schedule.startTime,
+                                schedule.endTime
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(schedule.status)}
+                            </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={() => handleViewSchedule(schedule)}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewSchedule(schedule)}
+                                >
                                   <Eye className="h-4 w-4 mr-1" />
                                   {t("view")}
                                 </Button>
 
-                                {(schedule.status === "In Progress" || schedule.status === "Uncompleted") &&
+                                {(schedule.status === "In Progress" ||
+                                  schedule.status === "Uncompleted") &&
                                   (() => {
                                     // Parse the booking date (assuming format is YYYY-MM-DD)
-                                    const bookingDate = new Date(schedule.bookingDate)
-                                    const today = new Date()
+                                    const bookingDate = new Date(
+                                      schedule.bookingDate
+                                    );
+                                    const today = new Date();
 
                                     // Reset time part for accurate date comparison
-                                    bookingDate.setHours(0, 0, 0, 0)
-                                    today.setHours(0, 0, 0, 0)
+                                    bookingDate.setHours(0, 0, 0, 0);
+                                    today.setHours(0, 0, 0, 0);
 
                                     // Only show checkout buttons if today is exactly the appointment date
-                                    return bookingDate.getTime() === today.getTime() ? (
+                                    return bookingDate.getTime() ===
+                                      today.getTime() ? (
                                       <>
                                         {schedule.isFirstCheckIn ? (
                                           <Button
                                             variant="default"
                                             size="sm"
                                             className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
-                                            onClick={() => handleCheckout(schedule)}
+                                            onClick={() =>
+                                              handleCheckout(schedule)
+                                            }
                                           >
                                             <CreditCard className="h-4 w-4 mr-1" />
-                                            {schedule.status === "Uncompleted" ? t("reCheckout") : t("checkout")}
+                                            {schedule.status === "Uncompleted"
+                                              ? t("reCheckout")
+                                              : t("checkout")}
                                           </Button>
                                         ) : (
                                           <Button
@@ -1151,18 +1389,34 @@ export default function SchedulesPage() {
                                               })
                                                 .unwrap()
                                                 .then(() => {
-                                                  toast.success(t("appointmentCompletedSuccessfully"))
+                                                  toast.success(
+                                                    t(
+                                                      "appointmentCompletedSuccessfully"
+                                                    )
+                                                  );
                                                   // Refresh the schedules
                                                   if (searchPerformed) {
-                                                    delayedGetCustomerSchedules({ customerName, customerPhone })
+                                                    delayedGetCustomerSchedules(
+                                                      {
+                                                        customerName,
+                                                        customerPhone,
+                                                      }
+                                                    );
                                                   } else {
-                                                    fetchClinicSchedules()
+                                                    fetchClinicSchedules();
                                                   }
                                                 })
                                                 .catch((error) => {
-                                                  console.error("Failed to complete appointment:", error)
-                                                  toast.error(t("failedToCompleteAppointment"))
-                                                })
+                                                  console.error(
+                                                    "Failed to complete appointment:",
+                                                    error
+                                                  );
+                                                  toast.error(
+                                                    t(
+                                                      "failedToCompleteAppointment"
+                                                    )
+                                                  );
+                                                });
                                             }}
                                           >
                                             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -1170,7 +1424,7 @@ export default function SchedulesPage() {
                                           </Button>
                                         )}
                                       </>
-                                    ) : null
+                                    ) : null;
                                   })()}
 
                                 {/* Update the check-in button click handler in both places where it appears */}
@@ -1182,12 +1436,20 @@ export default function SchedulesPage() {
                                     onClick={() => handleCheckIn(schedule)}
                                     disabled={isUpdatingStatus}
                                   >
-                                    {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : t("checkIn")}
+                                    {isUpdatingStatus ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      t("checkIn")
+                                    )}
                                   </Button>
                                 )}
 
-                                {schedule.status.toLowerCase() === "completed" &&
-                                  renderCompletedScheduleButton(schedule, scheduleWithStatus)}
+                                {schedule.status.toLowerCase() ===
+                                  "completed" &&
+                                  renderCompletedScheduleButton(
+                                    schedule,
+                                    scheduleWithStatus
+                                  )}
 
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -1196,23 +1458,34 @@ export default function SchedulesPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleScheduleFollowUp(schedule)}>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleScheduleFollowUp(schedule)
+                                      }
+                                    >
                                       {t("scheduleFollowUp")}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>{t("sendReminder")}</DropdownMenuItem>
-                                    <DropdownMenuItem>{t("reschedule")}</DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      {t("sendReminder")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      {t("reschedule")}
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-red-600">{t("cancel")}</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-red-600">
+                                      {t("cancel")}
+                                    </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
                             </TableCell>
                           </TableRow>
-                        )
+                        );
                       })
                     ) : clinicSchedules.length > 0 ? (
                       clinicSchedules.map((schedule) => {
-                        const scheduleWithStatus = getScheduleWithStatus(schedule)
+                        const scheduleWithStatus =
+                          getScheduleWithStatus(schedule);
                         // Debug log to check schedule data
                         // logScheduleData(schedule);
                         return (
@@ -1220,51 +1493,78 @@ export default function SchedulesPage() {
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8 flex-shrink-0">
-                                  <AvatarFallback>{schedule.customerName.charAt(0)}</AvatarFallback>
+                                  <AvatarFallback>
+                                    {schedule.customerName.charAt(0)}
+                                  </AvatarFallback>
                                 </Avatar>
-                                <span className="truncate max-w-[150px]">{schedule.customerName}</span>
+                                <span className="truncate max-w-[150px]">
+                                  {schedule.customerName}
+                                </span>
                               </div>
                             </TableCell>
                             <TableCell className="max-w-[150px]">
-                              <div className="truncate">{schedule.serviceName}</div>
+                              <div className="truncate">
+                                {schedule.serviceName}
+                              </div>
                             </TableCell>
                             <TableCell className="max-w-[150px]">
-                              <div className="truncate">{schedule.doctorName}</div>
+                              <div className="truncate">
+                                {schedule.doctorName}
+                              </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">{schedule.bookingDate}</TableCell>
                             <TableCell className="whitespace-nowrap">
-                              {formatTimeRange(schedule.startTime, schedule.endTime)}
+                              {schedule.bookingDate}
                             </TableCell>
-                            <TableCell>{getStatusBadge(schedule.status)}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {formatTimeRange(
+                                schedule.startTime,
+                                schedule.endTime
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(schedule.status)}
+                            </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={() => handleViewSchedule(schedule)}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewSchedule(schedule)}
+                                >
                                   <Eye className="h-4 w-4 mr-1" />
                                   {t("view")}
                                 </Button>
 
-                                {(schedule.status === "In Progress" || schedule.status === "Uncompleted") &&
+                                {(schedule.status === "In Progress" ||
+                                  schedule.status === "Uncompleted") &&
                                   (() => {
                                     // Parse the booking date (assuming format is YYYY-MM-DD)
-                                    const bookingDate = new Date(schedule.bookingDate)
-                                    const today = new Date()
+                                    const bookingDate = new Date(
+                                      schedule.bookingDate
+                                    );
+                                    const today = new Date();
 
                                     // Reset time part for accurate date comparison
-                                    bookingDate.setHours(0, 0, 0, 0)
-                                    today.setHours(0, 0, 0, 0)
+                                    bookingDate.setHours(0, 0, 0, 0);
+                                    today.setHours(0, 0, 0, 0);
 
                                     // Only show checkout buttons if today is exactly the appointment date
-                                    return bookingDate.getTime() === today.getTime() ? (
+                                    return bookingDate.getTime() ===
+                                      today.getTime() ? (
                                       <>
                                         {schedule.isFirstCheckIn ? (
                                           <Button
                                             variant="default"
                                             size="sm"
                                             className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
-                                            onClick={() => handleCheckout(schedule)}
+                                            onClick={() =>
+                                              handleCheckout(schedule)
+                                            }
                                           >
                                             <CreditCard className="h-4 w-4 mr-1" />
-                                            {schedule.status === "Uncompleted" ? t("reCheckout") : t("checkout")}
+                                            {schedule.status === "Uncompleted"
+                                              ? t("reCheckout")
+                                              : t("checkout")}
                                           </Button>
                                         ) : (
                                           <Button
@@ -1278,14 +1578,25 @@ export default function SchedulesPage() {
                                               })
                                                 .unwrap()
                                                 .then(() => {
-                                                  toast.success(t("appointmentCompletedSuccessfully"))
+                                                  toast.success(
+                                                    t(
+                                                      "appointmentCompletedSuccessfully"
+                                                    )
+                                                  );
                                                   // Refresh the schedules
-                                                  fetchClinicSchedules()
+                                                  fetchClinicSchedules();
                                                 })
                                                 .catch((error) => {
-                                                  console.error("Failed to complete appointment:", error)
-                                                  toast.error(t("failedToCompleteAppointment"))
-                                                })
+                                                  console.error(
+                                                    "Failed to complete appointment:",
+                                                    error
+                                                  );
+                                                  toast.error(
+                                                    t(
+                                                      "failedToCompleteAppointment"
+                                                    )
+                                                  );
+                                                });
                                             }}
                                           >
                                             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -1293,7 +1604,7 @@ export default function SchedulesPage() {
                                           </Button>
                                         )}
                                       </>
-                                    ) : null
+                                    ) : null;
                                   })()}
 
                                 {/* Update the check-in button click handler in both places where it appears */}
@@ -1305,12 +1616,20 @@ export default function SchedulesPage() {
                                     onClick={() => handleCheckIn(schedule)}
                                     disabled={isUpdatingStatus}
                                   >
-                                    {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : t("checkIn")}
+                                    {isUpdatingStatus ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      t("checkIn")
+                                    )}
                                   </Button>
                                 )}
 
-                                {schedule.status.toLowerCase() === "completed" &&
-                                  renderCompletedScheduleButton(schedule, scheduleWithStatus)}
+                                {schedule.status.toLowerCase() ===
+                                  "completed" &&
+                                  renderCompletedScheduleButton(
+                                    schedule,
+                                    scheduleWithStatus
+                                  )}
 
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -1319,28 +1638,41 @@ export default function SchedulesPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleScheduleFollowUp(schedule)}>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleScheduleFollowUp(schedule)
+                                      }
+                                    >
                                       {t("scheduleFollowUp")}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>{t("sendReminder")}</DropdownMenuItem>
-                                    <DropdownMenuItem>{t("reschedule")}</DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      {t("sendReminder")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      {t("reschedule")}
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-red-600">{t("cancel")}</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-red-600">
+                                      {t("cancel")}
+                                    </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
                             </TableCell>
                           </TableRow>
-                        )
+                        );
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground dark:text-gray-400">
+                        <TableCell
+                          colSpan={7}
+                          className="text-center py-8 text-muted-foreground dark:text-gray-400"
+                        >
                           {searchPerformed
                             ? t("noSchedulesFoundForCustomer")
                             : activeTab === "upcoming"
-                              ? t("noUpcomingSchedulesFound")
-                              : t("noPastSchedulesFound")}
+                            ? t("noUpcomingSchedulesFound")
+                            : t("noPastSchedulesFound")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -1372,8 +1704,8 @@ export default function SchedulesPage() {
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
         onCheckout={() => {
-          setIsDetailsModalOpen(false)
-          setIsPaymentModalOpen(true)
+          setIsDetailsModalOpen(false);
+          setIsPaymentModalOpen(true);
         }}
         disableCheckout={selectedSchedule?.status.toLowerCase() === "pending"}
       />
@@ -1383,6 +1715,7 @@ export default function SchedulesPage() {
         schedule={selectedSchedule}
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
+        onSuccess={() => handleRefresh()}
       />
 
       {/* Follow-up Modal */}
@@ -1392,15 +1725,19 @@ export default function SchedulesPage() {
         onClose={() => setIsFollowUpModalOpen(false)}
         onSuccess={() => {
           // Clear the notification after successful scheduling
-          if (selectedSchedule && scheduleNeedingFollowUp && selectedSchedule.id === scheduleNeedingFollowUp.id) {
-            setScheduleNeedingFollowUp(null)
+          if (
+            selectedSchedule &&
+            scheduleNeedingFollowUp &&
+            selectedSchedule.id === scheduleNeedingFollowUp.id
+          ) {
+            setScheduleNeedingFollowUp(null);
           }
 
           // Refresh the schedules
           if (searchPerformed) {
-            delayedGetCustomerSchedules({ customerName, customerPhone })
+            delayedGetCustomerSchedules({ customerName, customerPhone });
           } else {
-            fetchClinicSchedules()
+            fetchClinicSchedules();
           }
         }}
       />
@@ -1411,8 +1748,8 @@ export default function SchedulesPage() {
         onClose={() => setIsFollowUpSelectionModalOpen(false)}
         schedules={schedulesNeedingFollowUp}
         onScheduleSelected={(schedule) => {
-          setIsFollowUpSelectionModalOpen(false)
-          handleScheduleFollowUp(schedule)
+          setIsFollowUpSelectionModalOpen(false);
+          handleScheduleFollowUp(schedule);
         }}
       />
 
@@ -1426,5 +1763,5 @@ export default function SchedulesPage() {
         scheduledTime={earlyCheckInSchedule?.startTime || ""}
       />
     </div>
-  )
+  );
 }

@@ -6,6 +6,7 @@ import * as signalR from "@microsoft/signalr";
 import { Loader2, Sun, Moon, Users, Clock, Calendar, Play } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import Image from "next/image";
 
 interface Room {
   id: string;
@@ -609,10 +610,12 @@ export default function LivestreamViewPage() {
                       <div className="absolute bottom-4 w-full z-20 flex justify-between items-center">
                         <div className="pl-4 flex items-center">
                           <div className="w-10 h-10 rounded-full overflow-hidden mr-3 bg-rose-100 dark:bg-rose-900/50">
-                            <img
+                            <Image
                               src={`https://i.pravatar.cc/100?u=${currentRoom.id}`}
                               alt="avatar"
                               className="w-full h-full object-cover"
+                              width={100}
+                              height={100}
                             />
                           </div>
                           <div>
@@ -677,10 +680,12 @@ export default function LivestreamViewPage() {
                         >
                           {/* Thumbnail */}
                           <div className="relative w-1/3">
-                            <img
+                            <Image
                               src={`https://picsum.photos/seed/${room.id}/400/225`}
                               alt={room.name}
                               className="w-full h-full object-cover"
+                              width={100}
+                              height={100}
                             />
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                               <Play className="h-8 w-8 text-white" />
@@ -764,10 +769,12 @@ export default function LivestreamViewPage() {
                         className="relative aspect-video cursor-pointer"
                         onClick={() => changePreview(room.id)}
                       >
-                        <img
+                        <Image
                           src={`https://picsum.photos/seed/${room.id}/400/225`}
                           alt={room.name}
                           className="w-full h-full object-cover"
+                          width={100}
+                          height={100}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">

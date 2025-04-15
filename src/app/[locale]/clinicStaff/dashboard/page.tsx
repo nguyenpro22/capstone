@@ -22,31 +22,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useGetAppointmentsByDateQuery } from "@/features/booking/api";
 import { useGetDoctorsQuery } from "@/features/clinic/api";
-import { useTranslations } from "next-intl"; // Import useTranslations
+import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-
-const getStatusBadge = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "in progress":
-      return (
-        <Badge className="bg-green-500 hover:bg-green-600">In Progress</Badge>
-      );
-    case "pending":
-      return (
-        <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
-      );
-    case "cancelled":
-      return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
-    case "completed":
-      return <Badge className="bg-blue-500 hover:bg-blue-600">Completed</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
 
 export default function DashboardPage() {
   // Get translations for dashboard.clinicStaff namespace
   const t = useTranslations("dashboard.clinicStaff");
+
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "in progress":
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">
+            {t("statusBadges.inProgress")}
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600">
+            {t("statusBadges.pending")}
+          </Badge>
+        );
+      case "cancelled":
+        return (
+          <Badge className="bg-red-500 hover:bg-red-600">
+            {t("statusBadges.cancelled")}
+          </Badge>
+        );
+      case "completed":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">
+            {t("statusBadges.completed")}
+          </Badge>
+        );
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
 
   // Get today's date in the required format (YYYY-MM-DD)
   const today = new Date();
@@ -122,7 +134,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <h1 className="text-2xl font-bold">{t("dashboardTitle")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -255,6 +267,28 @@ export default function DashboardPage() {
                       <TableCell>{appointment.doctor.name}</TableCell>
                       <TableCell>
                         {getStatusBadge(appointment.status)}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              {t("viewDetails")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              {t("editAppointment")}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-500">
+                              {t("cancel")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
