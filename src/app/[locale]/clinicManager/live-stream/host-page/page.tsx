@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import * as signalR from "@microsoft/signalr";
 import HostPageStreamScreen from "@/components/clinicManager/livestream/host-page-stream-screen";
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Define types for our data structures
 interface AnalyticsData {
@@ -336,6 +338,13 @@ export default function HostPage() {
     conn.on("JanusError", async (message) => {
       console.error("🚨 Janus Error:", message);
       alert(`Error: ${message}`);
+    });
+
+    conn.on("SystemError", async (message) => {
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     });
 
     conn.on(
