@@ -1,8 +1,10 @@
+"use client";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Procedure } from "../types/booking";
 import { calculateTotalPrice } from "../utils/booking-utils";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface PriceSummaryProps {
   selectedProcedures: {
@@ -18,6 +20,8 @@ export function PriceSummary({
   showVAT = false,
   className,
 }: PriceSummaryProps) {
+  const t = useTranslations("bookingFlow");
+
   const subtotal = calculateTotalPrice(selectedProcedures);
   const vat = Math.round(subtotal * 0.1);
   const total = subtotal + (showVAT ? vat : 0);
@@ -26,7 +30,7 @@ export function PriceSummary({
     return (
       <div className={cn("text-center py-2", className)}>
         <p className="text-gray-500 dark:text-gray-400">
-          Chưa có dịch vụ nào được chọn
+          {t("noServiceSelection")}
         </p>
       </div>
     );
@@ -66,7 +70,9 @@ export function PriceSummary({
       <Separator className="my-3 bg-purple-100 dark:bg-purple-800/30" />
 
       <div className="flex justify-between">
-        <span className="text-gray-600 dark:text-gray-400">Tạm tính</span>
+        <span className="text-gray-600 dark:text-gray-400">
+          {t("subtotal")}
+        </span>
         <span className="text-gray-800 dark:text-gray-200">
           {subtotal.toLocaleString("vi-VN")}đ
         </span>
@@ -75,7 +81,7 @@ export function PriceSummary({
       {showVAT && (
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-400">
-            Thuế VAT (10%)
+            {t("vatTax")}
           </span>
           <span className="text-gray-800 dark:text-gray-200">
             {vat.toLocaleString("vi-VN")}đ
@@ -86,7 +92,7 @@ export function PriceSummary({
       <Separator className="my-2 bg-purple-100 dark:bg-purple-800/30" />
 
       <div className="flex justify-between font-bold text-lg">
-        <span className="text-gray-800 dark:text-gray-200">Tổng cộng</span>
+        <span className="text-gray-800 dark:text-gray-200">{t("total")}</span>
         <span className="text-purple-700 dark:text-purple-300">
           {total.toLocaleString("vi-VN")}đ
         </span>

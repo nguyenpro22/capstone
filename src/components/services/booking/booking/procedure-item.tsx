@@ -2,10 +2,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { Procedure } from "../types/booking";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ProcedureItemProps {
   procedure: Procedure;
-  selectedPriceTypeId?: string; // Thêm lại prop này, đặt là optional
+  selectedPriceTypeId?: string;
   onPriceTypeChange: (procedureId: string, priceTypeId: string) => void;
 }
 
@@ -14,6 +15,8 @@ export function ProcedureItem({
   selectedPriceTypeId = "",
   onPriceTypeChange,
 }: ProcedureItemProps) {
+  const t = useTranslations("bookingFlow");
+
   return (
     <Card className="overflow-hidden border-purple-100 dark:border-purple-800/20">
       <CardContent className="p-0">
@@ -29,7 +32,7 @@ export function ProcedureItem({
 
         <div className="bg-purple-50/50 dark:bg-purple-900/10 p-4 border-t border-purple-100 dark:border-purple-800/20">
           <h4 className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2">
-            Chọn loại dịch vụ:
+            {t("selectServiceType")}
           </h4>
           <div className="space-y-2">
             {procedure.procedurePriceTypes.map((priceType) => {
