@@ -337,11 +337,11 @@ export default function HostPage() {
 
     conn.on("JanusError", async (message) => {
       console.error("🚨 Janus Error:", message);
-      router.push("/clinicManager/live-stream");
       alert(`Error: ${message}`);
     });
 
     conn.on("SystemError", async (message) => {
+      router.push("/clinicManager/live-stream");
       toast.error(message, {
         position: "top-right",
         autoClose: 3000,
