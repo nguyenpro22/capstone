@@ -28,3 +28,11 @@ export type DoctorSchedule = {
   doctorId: string;
   workingDates: WorkingDate[];
 };
+export type Certificate = {
+  id: string;
+  doctorName: string;
+  certificateUrl: string;
+  certificateName: string;
+  expiryDate: string;
+  note: string | null;
+};

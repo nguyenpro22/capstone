@@ -28,11 +28,14 @@ import { clinicView } from "./clinic-view";
 import { clinicCard } from "./clinicCard";
 import { clinicViewDetail } from "./clinic-view-detail";
 
-import { customerScheduleMessage } from './customerSchedule';
-import { clinicStaffServicePageMessages } from './clinicStaffService';
-import { clinicStaffOrderMessages } from './clinicStaffOrder';
-import { clinicStaffAppointmentMessages } from './clinicStaffAppointment';
-import { scheduleApprovalMessages } from './scheduleApproval';
+import { customerScheduleMessage } from "./customerSchedule";
+import { clinicStaffServicePageMessages } from "./clinicStaffService";
+import { clinicStaffOrderMessages } from "./clinicStaffOrder";
+import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
+import { scheduleApprovalMessages } from "./scheduleApproval";
+import { doctor } from "./doctor";
+import { doctorProfile } from "./doctor-profile";
+import { doctorCertificate } from "./doctor-certificate";
 
 const vi = {
   home: homeMessages,
@@ -68,6 +71,9 @@ const vi = {
   clinicStaffOrder: clinicStaffOrderMessages,
   clinicStaffAppointment: clinicStaffAppointmentMessages,
   scheduleApproval: scheduleApprovalMessages,
+  doctor,
+  doctorProfile,
+  doctorCertificate,
 };
 
 export default vi;

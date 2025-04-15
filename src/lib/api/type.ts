@@ -14,13 +14,25 @@ export interface IResCommon<T> {
   };
 }
 
-export interface IErrorResponse {
-  success?: boolean;
-  status?: number;
-  message?: string;
-  code?: number;
+export interface ErrorResponse {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  errors: any;
+}
+export interface ErrorDetail {
+  code: string;
+  message: string;
 }
 
+export interface ErrorMutationResponse {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  errors: ErrorDetail[];
+}
 // New validation error interfaces
 export interface ValidationErrorItem {
   code: string;
@@ -49,7 +61,6 @@ export interface IListResponse<T> {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
 }
-
 
 export interface IResListCommon<T> {
   value: T[];

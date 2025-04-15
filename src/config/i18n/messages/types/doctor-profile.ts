@@ -1,0 +1,63 @@
+// Profile.ts - Kiểu dữ liệu cho Profile
+export interface DoctorProfile {
+  personalInformation: string;
+  personalInfoDescription: string;
+  addressInformation: string;
+  addressInfoDescription: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  dateOfBirth: string;
+  selectDate: string;
+  phone: string;
+  email: string;
+  city: string;
+  selectCity: string;
+  district: string;
+  selectDistrict: string;
+  ward: string;
+  selectWard: string;
+  streetAddress: string;
+  fullAddress: string;
+  saveChanges: string;
+  profileUpdated: string;
+  profileUpdateSuccess: string;
+  errorUpdatingProfile: string;
+  errorLoadingProfile: string;
+  tryAgainLater: string;
+  firstNameRequired: string;
+  lastNameRequired: string;
+  dateOfBirthRequired: string;
+  invalidEmail: string;
+  invalidPhone: string;
+  selectCityFirst: string;
+  selectDistrictFirst: string;
+  loadingProvinces: string;
+  loadingDistricts: string;
+  loadingWards: string;
+  noDistrictsFound: string;
+  noWardsFound: string;
+  enterStreetAddress: string;
+  errorFetchingProvinces: string;
+  errorFetchingDistricts: string;
+  errorFetchingWards: string;
+  tryAgain: string;
+  noProfileFound: string;
+  profileNotFoundDescription: string;
+  updateProfile: string;
+  editProfile: string;
+  cancelEdit: string;
+  cancel: string;
+  noAddressProvided: string;
+  formattedDate: string;
+  months: {
+    [key: number]: string; // Key là số tháng từ 0 đến 11
+  };
+  day: string;
+  month: string;
+  year: string;
+  profileImageRequired: string;
+  profileImageRequiredDescription: string;
+  noProfileImage: string;
+  uploadImage: string;
+}

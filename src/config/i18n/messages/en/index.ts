@@ -31,6 +31,9 @@ import { clinicStaffServicePageMessages } from "./clinicStaffService";
 import { clinicStaffOrderMessages } from "./clinicStaffOrder";
 import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
 import { scheduleApprovalMessages } from "./scheduleApproval";
+import { doctor } from "./doctor";
+import { doctorProfile } from "./doctor-profile";
+import { doctorCertificate } from "./doctor-certificate";
 
 const en = {
   home: homeMessages,
@@ -66,6 +69,9 @@ const en = {
   clinicStaffOrder: clinicStaffOrderMessages,
   clinicStaffAppointment: clinicStaffAppointmentMessages,
   scheduleApproval: scheduleApprovalMessages,
+  doctor,
+  doctorProfile,
+  doctorCertificate,
 };
 
 export default en;
