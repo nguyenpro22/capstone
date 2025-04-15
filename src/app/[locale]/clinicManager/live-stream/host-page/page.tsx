@@ -337,6 +337,7 @@ export default function HostPage() {
 
     conn.on("JanusError", async (message) => {
       console.error("🚨 Janus Error:", message);
+      router.push("/clinicManager/live-stream");
       alert(`Error: ${message}`);
     });
 
