@@ -25,14 +25,17 @@ import { useLazyGetDoctorBusyTimesQuery } from "@/features/working-schedule/api"
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import type { CustomerSchedule } from "@/features/customer-schedule/types";
+import type {
+  CustomerSchedule,
+  CustomerScheduleForClinic,
+} from "@/features/customer-schedule/types";
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 
 // Add the useTranslations import at the top of the file
 import { useTranslations } from "next-intl";
 
-interface ScheduleFollowUpModalProps {
-  schedule: CustomerSchedule | null;
+interface ScheduleChangeForCustomerModalProps {
+  schedule: CustomerScheduleForClinic | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
@@ -126,12 +129,12 @@ const allTimeSlots = [
   "16:30:00",
 ];
 
-export default function ScheduleFollowUpModal({
+export default function ScheduleChangeForCustomerModal({
   schedule,
   isOpen,
   onClose,
   onSuccess,
-}: ScheduleFollowUpModalProps) {
+}: ScheduleChangeForCustomerModalProps) {
   // Add this line inside the component function, near the top with other hooks
   const t = useTranslations("customerSchedule");
   const token = getAccessToken();
@@ -373,7 +376,7 @@ export default function ScheduleFollowUpModal({
         customerScheduleId: schedule.id,
         date: format(date, "yyyy-MM-dd"),
         startTime,
-        isNext: true,
+        isNext: false,
       }).unwrap();
 
       toast.success("Follow-up appointment scheduled successfully");

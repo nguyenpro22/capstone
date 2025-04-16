@@ -15,10 +15,11 @@ import {
   useGetClinicsQuery,
   useLazyGetClinicByIdQuery,
   useUpdateClinicMutation,
+  useChangeStatusBranchMutation,
 } from "@/features/clinic/api";
 import { useTranslations } from "next-intl";
 import * as XLSX from "xlsx";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EditClinicForm from "@/components/systemStaff/EditClinicForm";
 import Pagination from "@/components/common/Pagination/Pagination";
@@ -108,16 +109,14 @@ const ClinicsList: React.FC = () => {
     handleCloseEditForm();
   };
 
+  const [changeStatusBranch] = useChangeStatusBranchMutation();
+
   const handleToggleStatus = async (id: string) => {
     const clinic = clinics.find((clinic) => clinic.id === id);
     if (!clinic) return;
 
     try {
-      const updatedFormData = new FormData();
-      updatedFormData.append("clinicId", clinic.id || "");
-      updatedFormData.append("isActivated", (!clinic.isActivated).toString());
-
-      await updateClinic({ clinicId: id, data: updatedFormData }).unwrap();
+      await changeStatusBranch({ id }).unwrap();
       toast.success("Trạng thái phòng khám đã được cập nhật!");
       delayedRefetch(); // Use delayed refetch instead of immediate refetch
     } catch (error) {
@@ -138,13 +137,6 @@ const ClinicsList: React.FC = () => {
       className="container mx-auto p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 shadow-xl rounded-2xl border border-indigo-100/50 dark:border-indigo-900/50"
       onClick={handleCloseMenu}
     >
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        theme={theme === "dark" ? "dark" : "light"}
-      />
-
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>

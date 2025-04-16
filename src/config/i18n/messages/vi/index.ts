@@ -37,6 +37,8 @@ import { doctor } from "./doctor";
 import { doctorProfile } from "./doctor-profile";
 import { doctorCertificate } from "./doctor-certificate";
 import { categoryMessages } from "./category";
+import { walletMessages } from "./wallet";
+import { chatMessages } from "./chat";
 
 const vi = {
   home: homeMessages,
@@ -76,6 +78,8 @@ const vi = {
   doctorProfile,
   doctorCertificate,
   category: categoryMessages,
+  wallet: walletMessages,
+  chat: chatMessages
 };
 
 export default vi;
