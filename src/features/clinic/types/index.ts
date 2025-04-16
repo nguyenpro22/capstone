@@ -16,6 +16,7 @@ export interface Clinic {
   operatingLicenseExpiryDate: string 
   profilePictureUrl: string | null
   totalBranches: number
+  branchLimit: number
   isActivated: boolean
   bankName: string
   bankAccountNumber: string
