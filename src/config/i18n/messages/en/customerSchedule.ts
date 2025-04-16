@@ -3,6 +3,8 @@ import type { Messages } from "../types"
 export const customerScheduleMessage: Messages["customerSchedule"] = {
   customerSchedules: "Customer Schedules",
   allSchedules: "All Schedules",
+  contact: "Contact",
+  sending: "Sending...",
   newSchedule: "New Schedule",
   all: "All",
   upcoming: "Upcoming",

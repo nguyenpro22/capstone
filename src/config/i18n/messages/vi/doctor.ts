@@ -62,4 +62,41 @@ export const doctor: Messages["doctorService"] = {
     emptyDesc: "Không có cuộc hẹn nào được lên lịch cho ngày này",
     addButton: "Thêm cuộc hẹn",
   },
+  clinicStaff: {
+    title: "Bác sĩ chi nhánh",
+    search: {
+      placeholder: "Tìm kiếm bác sĩ...",
+      filter: "Lọc",
+    },
+    loading: "Đang tải danh sách bác sĩ...",
+    error: "Không thể tải danh sách bác sĩ. Vui lòng thử lại sau.",
+    noData: "Không tìm thấy bác sĩ nào. Hãy thử điều chỉnh tiêu chí tìm kiếm.",
+    card: {
+      doctor: "Bác sĩ",
+      email: "Email:",
+      phone: "Điện thoại:",
+      branches: "Chi nhánh:",
+      noBranches: "Chưa được phân công chi nhánh",
+      viewSchedule: "Xem lịch",
+      edit: "Chỉnh sửa",
+    },
+    table: {
+      title: "Lịch làm việc của bác sĩ",
+      description: "Quản lý lịch làm việc của bác sĩ",
+      columns: {
+        doctor: "Bác sĩ",
+        email: "Email",
+        phone: "Điện thoại",
+        branches: "Chi nhánh",
+        actions: "Thao tác",
+      },
+      actions: {
+        view: "Xem",
+        editProfile: "Chỉnh sửa hồ sơ",
+        editSchedule: "Chỉnh sửa lịch",
+        assignToBranch: "Phân công chi nhánh",
+        deactivate: "Vô hiệu hóa",
+      },
+    },
+  }
 };

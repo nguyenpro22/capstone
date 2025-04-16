@@ -176,29 +176,11 @@ export default function ScheduleDetailsModal({
               <h3 className={`font-medium ${accentTextClass}`}>
                 {t("appointmentInformation")}
               </h3>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleChatNow}
-                  size="sm"
-                  disabled={isSendingMessage}
-                  className={`${
-                    isDark
-                      ? "bg-gray-800 text-pink-300 border-pink-800 hover:bg-gray-700"
-                      : "text-pink-600 border-pink-200 hover:bg-pink-50"
-                  } h-8 px-2 py-1`}
-                >
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  {isSendingMessage
-                    ? t("sending") || "Đang gửi..."
-                    : t("contact") || "Liên hệ"}
-                </Button>
-                <Badge
-                  className={`${getStatusColorClass()} font-medium px-3 py-1`}
-                >
-                  {schedule.status}
-                </Badge>
-              </div>
+              <Badge
+                className={`${getStatusColorClass()} font-medium px-3 py-1`}
+              >
+                {schedule.status}
+              </Badge>
             </div>
 
             <div className="space-y-4">
@@ -289,6 +271,25 @@ export default function ScheduleDetailsModal({
                   </div>
                 </div>
               )}
+
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleChatNow}
+                  size="sm"
+                  disabled={isSendingMessage}
+                  className={`${
+                    isDark
+                      ? "bg-gray-800 text-pink-300 border-pink-800 hover:bg-gray-700"
+                      : "text-pink-600 border-pink-200 hover:bg-pink-50"
+                  } h-8 px-2 py-1 w-full`}
+                >
+                  <MessageSquare className="h-4 w-4 mr-1" />
+                  {isSendingMessage
+                    ? t("sending") || "Đang gửi..."
+                    : t("contact") || "Liên hệ"}
+                </Button>
+              </div>
             </div>
           </div>
 

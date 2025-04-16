@@ -439,10 +439,10 @@ export default function AppointmentsPage() {
                 {format(selectedDate, "MMMM d, yyyy")}
               </CardDescription>
             </div>
-            <Button className="gap-2">
+            {/* <Button className="gap-2">
               <Plus size={16} />
               {t("add")}
-            </Button>
+            </Button> */}
           </CardHeader>
 
           {/* Scrollable Content */}
@@ -582,12 +582,12 @@ export default function AppointmentsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4">
+                  {/* <div className="mt-4">
                     <Button variant="outline" size="sm" className="gap-1">
                       <Plus size={14} />
                       {t("addAppointment")}
                     </Button>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>

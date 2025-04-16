@@ -2,6 +2,8 @@ import type { Messages } from "../types"
 
 export const customerScheduleMessage: Messages["customerSchedule"] = {
   customerSchedules: "Lịch Hẹn Khách Hàng",
+  contact: "Liên hệ",
+  sending: "Đang gửi...",
   allSchedules: "Tất Cả Lịch Hẹn",
   newSchedule: "Lịch Hẹn Mới",
   all: "Tất Cả",
