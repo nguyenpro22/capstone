@@ -78,7 +78,7 @@ const BranchesList: React.FC = () => {
 
   // Get subscription data
   // const currentSubscription = clinicData?.value?.currentSubscription
-  const branchLimit = clinicData?.value?.limitBranch || 0;
+  const branchLimit = clinicData?.value?.branchLimit || 0;
   const currentBranchCount = allBranches.length;
 
   // Check if branch limit is reached

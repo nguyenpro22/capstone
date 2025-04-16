@@ -11,7 +11,7 @@ export interface Clinic {
   ward: string | null;
   fullAddress: string;
   taxCode: string;
-  limitBranch: number;
+  branchLimit: number;
   businessLicenseUrl: string;
   operatingLicenseUrl: string;
   operatingLicenseExpiryDate: string;
