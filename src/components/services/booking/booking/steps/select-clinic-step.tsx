@@ -95,50 +95,21 @@ export function SelectClinicStep({
           </div>
         )}
 
-        <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-purple-50 dark:bg-purple-900/20">
-            <TabsTrigger
-              value="list"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
-            >
-              {t("list")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="map"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
-            >
-              {t("map")}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="list" className="mt-4">
-            <RadioGroup
-              value={selectedClinicId || ""}
-              onValueChange={handleClinicSelect}
-              className="space-y-3"
-            >
-              {clinics.map((clinic) => (
-                <ClinicItem
-                  key={clinic.id}
-                  clinic={clinic}
-                  isSelected={selectedClinicId === clinic.id}
-                  isActive={clinic.isActivated !== false}
-                  disabled={clinic.isActivated === false}
-                />
-              ))}
-            </RadioGroup>
-          </TabsContent>
-          <TabsContent value="map" className="mt-4">
-            <Card className="border-purple-100 dark:border-purple-800/20">
-              <CardContent className="p-4">
-                <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {t("clinicMap")}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <RadioGroup
+          value={selectedClinicId || ""}
+          onValueChange={handleClinicSelect}
+          className="space-y-3"
+        >
+          {clinics.map((clinic) => (
+            <ClinicItem
+              key={clinic.id}
+              clinic={clinic}
+              isSelected={selectedClinicId === clinic.id}
+              isActive={clinic.isActivated !== false}
+              disabled={clinic.isActivated === false}
+            />
+          ))}
+        </RadioGroup>
       </div>
     </div>
   );

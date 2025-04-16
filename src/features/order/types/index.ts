@@ -14,3 +14,13 @@ export type OrderItem = {
   isFromLivestream: boolean;
   livestreamName: string;
 };
+
+export type ServiceBooking = {
+  id: string;
+  serviceName: string;
+  procedurePriceType: string;
+  price: number;
+  duration: number; // in minutes
+  customerEmail: string;
+  customerPhone: string;
+};

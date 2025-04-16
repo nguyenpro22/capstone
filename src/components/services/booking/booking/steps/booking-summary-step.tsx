@@ -136,7 +136,11 @@ export function BookingSummaryStep({
                     <div className="flex items-center gap-2">
                       <CalendarIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                       <span className="text-gray-800 dark:text-gray-200">
-                        {formatDate(date)}
+                        {t("formattedDate", {
+                          date: date.getDate(),
+                          month: t(`months.${date.getMonth()}`),
+                          year: date.getFullYear(),
+                        })}
                       </span>
                     </div>
                   )}
@@ -150,6 +154,7 @@ export function BookingSummaryStep({
                     </div>
                   )}
                 </div>
+                <div>Bạn sẽ cần phải đặt cọc trước 1 khoản tiền là 10%</div>
               </div>
             </CardContent>
           </Card>

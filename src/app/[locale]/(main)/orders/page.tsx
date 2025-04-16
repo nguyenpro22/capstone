@@ -62,12 +62,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
-import {
-  useGetBookingsQuery,
-  useGetOrdersQuery,
-  useGetBookingByIdQuery,
-} from "@/features/booking/api";
-import { skipToken } from "@reduxjs/toolkit/query";
+import { useGetBookingsQuery, useGetOrdersQuery } from "@/features/booking/api";
 import type { Booking } from "@/features/booking/types";
 import { BookingDetailDialog } from "@/components/services/user/booking-detail-dialog";
 import { OrderDetailDialog } from "@/components/services/user/order-detail-dialog";
@@ -86,7 +81,7 @@ export default function UserOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: ordersData, isLoading: ordersLoading } = useGetOrdersQuery({
-    pageIndex: currentPage - 1,
+    pageIndex: currentPage,
     pageSize: 10,
     searchTerm,
     sortColumn: "orderDate",
@@ -95,8 +90,8 @@ export default function UserOrdersPage() {
 
   const { data: bookingsData, isLoading: bookingsLoading } =
     useGetBookingsQuery({
-      pageIndex: currentPage - 1,
-      pageSize: 10,
+      pageIndex: currentPage,
+      pageSize: 100,
       searchTerm,
       sortColumn: "date",
       sortOrder: "desc",
@@ -104,9 +99,6 @@ export default function UserOrdersPage() {
 
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
     null
-  );
-  const { data: bookingDetail } = useGetBookingByIdQuery(
-    selectedBookingId ?? skipToken
   );
 
   // Fetch data
