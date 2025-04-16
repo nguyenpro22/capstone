@@ -48,11 +48,43 @@ export const orderQueryApi = createApi({
         return response;
       },
     }),
+
+
+    getOrdersForClinicAdmin: builder.query<
+      IResCommon<IListResponse<OrderItem>>,
+      {
+        pageIndex?: number;
+        pageSize?: number;
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+      }
+    >({
+      query: ({
+        pageIndex = 1,
+        pageSize = 10,
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+      }) => ({
+        url: `/orders/clinic/branches`,
+        method: "GET",
+        params: {
+          pageIndex,
+          pageSize,
+          searchTerm,
+          sortColumn,
+          sortOrder,
+        },
+      }),
+    }),
   }),
 });
 
 export const {
   useGetOrdersQuery,
+  useGetOrdersForClinicAdminQuery,
+  useLazyGetOrdersForClinicAdminQuery,
   useLazyGetOrdersQuery,
   useGetOrderDetailByIdQuery,
   useLazyGetOrderDetailByIdQuery,

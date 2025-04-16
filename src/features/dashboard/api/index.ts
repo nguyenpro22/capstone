@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { reAuthQuery } from "@/lib/api/reAuthQuery"
 import type { IListResponse, IResCommon } from "@/lib/api"
-import { ClinicDashboard, ClinicDashboardDateTimeResponse } from "../types";
+import { AdminDashboardDateTimeResponse, ClinicDashboard, ClinicDashboardDateTimeResponse } from "../types";
 
 // Query API for read operations
 export const clinicManagerDashboardQueryApi = createApi({
@@ -40,6 +40,32 @@ export const clinicManagerDashboardQueryApi = createApi({
           };
         },
       }),
+
+      getDashboardAdminByDateTime: builder.query<IResCommon<AdminDashboardDateTimeResponse>, {
+        startDate?: string;
+        endDate?: string;
+        isDisplayWeek?: boolean;
+        date?: string;
+      }>({
+        query: (params) => {
+          const queryParams: Record<string, string | boolean> = {};
+      
+          if (params.date) {
+            queryParams.date = params.date;
+          } else if (params.startDate && params.endDate && typeof params.isDisplayWeek === 'boolean') {
+            queryParams.startDate = params.startDate;
+            queryParams.endDate = params.endDate;
+            queryParams.isDisplayWeek = params.isDisplayWeek;
+          }
+      
+          return {
+            url: `/dashboards/systems/datetime`,
+            method: "GET",
+            params: queryParams,
+          };
+        },
+      }),
+      
       
 
       // Get next schedule availability
@@ -57,6 +83,8 @@ export const {
     useLazyGetDashboardQuery,
     useGetDashboardByDateTimeQuery,
     useLazyGetDashboardByDateTimeQuery,
+    useGetDashboardAdminByDateTimeQuery,
+    useLazyGetDashboardAdminByDateTimeQuery,
     useLazyGetNextScheduleAvailabilityQuery,
   } = clinicManagerDashboardQueryApi
   

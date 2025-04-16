@@ -36,6 +36,7 @@ import { scheduleApprovalMessages } from "./scheduleApproval";
 import { doctor } from "./doctor";
 import { doctorProfile } from "./doctor-profile";
 import { doctorCertificate } from "./doctor-certificate";
+import { categoryMessages } from "./category";
 
 const vi = {
   home: homeMessages,
@@ -74,6 +75,7 @@ const vi = {
   doctor,
   doctorProfile,
   doctorCertificate,
+  category: categoryMessages,
 };
 
 export default vi;

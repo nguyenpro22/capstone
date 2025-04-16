@@ -33,6 +33,7 @@ import { clinicStaffOrderMessages } from "./clinicStaffOrder";
 import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
 import { Certificates } from "./doctor-certificate";
 import { DoctorProfile } from "./doctor-profile";
+import { categoryMessages } from "./category";
 
 export type Messages = {
   home: homeMessages;
@@ -71,4 +72,5 @@ export type Messages = {
   scheduleApproval: scheduleApprovalMessages;
   doctorCertificate: Certificates;
   doctorProfile: DoctorProfile;
+  category: categoryMessages;
 };

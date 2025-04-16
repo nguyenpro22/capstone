@@ -2,6 +2,7 @@ export interface CustomerSchedule {
   id: string
   orderId: string
   amount: number
+  userId: string
   customerName: string
   customerPhoneNumber: string
   serviceName: string
