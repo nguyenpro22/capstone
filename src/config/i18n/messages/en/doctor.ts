@@ -62,4 +62,41 @@ export const doctor: Messages["doctorService"] = {
     emptyDesc: "There are no appointments scheduled for this day",
     addButton: "Add appointment",
   },
+  clinicStaff: {
+    title: "Branch Doctors",
+    search: {
+      placeholder: "Search doctors...",
+      filter: "Filter",
+    },
+    loading: "Loading doctors...",
+    error: "Failed to load doctors. Please try again later.",
+    noData: "No doctors found. Try adjusting your search criteria.",
+    card: {
+      doctor: "Doctor",
+      email: "Email:",
+      phone: "Phone:",
+      branches: "Branches:",
+      noBranches: "No branches assigned",
+      viewSchedule: "View Schedule",
+      edit: "Edit",
+    },
+    table: {
+      title: "Doctor Schedules",
+      description: "Manage doctor availability",
+      columns: {
+        doctor: "Doctor",
+        email: "Email",
+        phone: "Phone",
+        branches: "Branches",
+        actions: "Actions",
+      },
+      actions: {
+        view: "View",
+        editProfile: "Edit Profile",
+        editSchedule: "Edit Schedule",
+        assignToBranch: "Assign to Branch",
+        deactivate: "Deactivate",
+      },
+    },
+  }
 };

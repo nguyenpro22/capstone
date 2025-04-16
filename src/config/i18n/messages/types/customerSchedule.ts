@@ -1,5 +1,6 @@
 export type customerScheduleTranslations = {
     customerSchedules: string
+    contact: string
     allSchedules: string
     newSchedule: string
     all: string
@@ -123,5 +124,6 @@ export type customerScheduleTranslations = {
   // Follow-up selection modal translations
   selectAppointmentForFollowUp: string
   multipleAppointmentsNeedFollowUps: string
+  sending: string
   }
   
