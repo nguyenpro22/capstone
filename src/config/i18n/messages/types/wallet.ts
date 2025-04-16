@@ -160,6 +160,7 @@ export type walletMessages = {
       completed: string
       pending: string
       rejected: string
+      waiting: string
     }
     actions: {
       refresh: string

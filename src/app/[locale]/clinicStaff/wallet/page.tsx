@@ -147,6 +147,8 @@ export default function BranchWalletPage() {
           status: item.status.toLowerCase().includes("completed")
             ? "completed"
             : item.status.toLowerCase().includes("waiting")
+            ? "waiting"
+            : item.status.toLowerCase().includes("pending")
             ? "pending"
             : "rejected",
           date: item.transactionDate,
@@ -226,6 +228,12 @@ export default function BranchWalletPage() {
         return (
           <Badge className="bg-yellow-500 hover:bg-yellow-600">
             {t("status.pending")}
+          </Badge>
+        );
+      case "waiting":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">
+            {t("status.waiting") || "Waiting for Payment"}
           </Badge>
         );
       case "rejected":

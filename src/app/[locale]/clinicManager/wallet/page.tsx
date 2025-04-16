@@ -122,7 +122,7 @@ export default function WalletManagement() {
 }
 
 function ClinicWalletPage() {
-  const t = useTranslations("wallet.clinicManager");
+  const t = useTranslations("wallet.clinicWallet");
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
