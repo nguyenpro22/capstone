@@ -94,9 +94,7 @@ export const clinicsCommandApi = createApi({
       query: ({ id }) => ({
         url: `clinics/${id}/status`,
         method: "PATCH",
-        // params: { id: id }, // ID trong parameters
-
-        // No params needed as branchId is in the URL path
+      
       }),
     }),
   }),

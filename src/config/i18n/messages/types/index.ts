@@ -34,6 +34,8 @@ import { clinicStaffAppointmentMessages } from "./clinicStaffAppointment";
 import { Certificates } from "./doctor-certificate";
 import { DoctorProfile } from "./doctor-profile";
 import { categoryMessages } from "./category";
+import { walletMessages } from "./wallet";
+import { chatMessages } from "./chat";
 
 export type Messages = {
   home: homeMessages;
@@ -73,4 +75,6 @@ export type Messages = {
   doctorCertificate: Certificates;
   doctorProfile: DoctorProfile;
   category: categoryMessages;
+  wallet: walletMessages;
+  chat: chatMessages;
 };

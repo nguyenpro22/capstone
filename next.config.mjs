@@ -15,6 +15,7 @@ const nextConfig = {
       "benhvienjw.vn",
       "api.vietqr.io",
       "icon-library.com",
+      "vietqr.net",
     ],
   },
   reactStrictMode: false,

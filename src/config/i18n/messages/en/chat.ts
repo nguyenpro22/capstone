@@ -1,0 +1,26 @@
+import type { Messages } from "../types"
+
+export const chatMessages: Messages["chat"] = {
+  title: "Messages",
+  search: "Search conversations...",
+  noResults: "No results found",
+  online: "Online",
+  noMessages: "No messages",
+  startConversation: "Start a conversation with {name}",
+  noConversations: "No conversations yet",
+  selectConversation: "Select a conversation from the list to start messaging",
+  enableNotifications: "Enable notifications",
+  newMessages: "{count} new messages",
+  clickToView: "Click to view messages",
+  typeMessage: "Type a message...",
+  send: "Send message",
+  today: "Today",
+  yesterday: "Yesterday",
+  inputPlaceholder: "Type a message...",
+  loadingMessages: "Loading messages...",
+  loadingConversations: "Loading conversations...",
+  notifications: {
+    enabled: "Notifications enabled",
+    disabled: "Notifications disabled",
+  },
+}

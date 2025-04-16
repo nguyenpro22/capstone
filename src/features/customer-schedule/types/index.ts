@@ -6,7 +6,7 @@ export interface CustomerSchedule {
   customerName: string
   customerPhoneNumber: string
   serviceName: string
-  doctorName:string
+  doctorName:string 
   doctorId: string
   bookingDate: string
   startTime: string
@@ -16,12 +16,19 @@ export interface CustomerSchedule {
   note: string
   isFirstCheckIn: boolean
 }
+export interface CustomerScheduleForClinic {
+  id: string
+  customerName?: string
+  doctorId: string
+}
+
 
 // Define the interface for the update schedule request body
 export interface UpdateCustomerScheduleRequest {
   customerScheduleId: string
   date: string
   startTime: string
+  isNext: boolean
 }
 export interface ApproveCustomerScheduleRequest {
   customerScheduleId: string

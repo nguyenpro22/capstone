@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useGetClinicByIdQuery } from "@/features/clinic/api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useGetClinicByIdQuery } from "@/features/clinic/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Building2,
   Mail,
@@ -19,51 +19,58 @@ import {
   Landmark,
   BanknoteIcon,
   Clock,
-} from "lucide-react"
-import Image from "next/image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency, getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import { Button } from "@/components/ui/button"
-import ClinicEditForm from "@/components/clinicManager/profile/clinic-edit-form"
-import { motion } from "framer-motion"
-import { useTheme } from "next-themes"
-import { useTranslations } from "next-intl"
+} from "lucide-react";
+import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  formatCurrency,
+  getAccessToken,
+  GetDataByToken,
+  type TokenData,
+} from "@/utils";
+import { Button } from "@/components/ui/button";
+import ClinicEditForm from "@/components/clinicManager/profile/clinic-edit-form";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 export default function ClinicProfilePage() {
-  const router = useRouter()
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const { theme } = useTheme()
-  const t = useTranslations("clinicProfile")
+  const router = useRouter();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { theme } = useTheme();
+  const t = useTranslations("clinicProfile");
 
   // Get clinicId from token
-  const token = getAccessToken()
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const clinicId = tokenData?.clinicId || ""
+  const token = getAccessToken();
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
 
   // Redirect if no clinicId is found
   useEffect(() => {
     if (!token) {
-      router.push("/login")
+      router.push("/login");
     }
-  }, [token, router])
+  }, [token, router]);
 
-  const { data, isLoading, error, refetch } = useGetClinicByIdQuery(clinicId)
-  const clinic = data?.value
+  const { data, isLoading, error, refetch } = useGetClinicByIdQuery(clinicId);
+  const clinic = data?.value;
 
   const handleEditSuccess = () => {
-    refetch()
-  }
+    refetch();
+  };
 
   if (!clinicId) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
         <Card className="w-full max-w-3xl shadow-lg">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">{t("authRequired")}</p>
+            <p className="text-center text-muted-foreground">
+              {t("authRequired")}
+            </p>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (error || !clinic) {
@@ -71,11 +78,13 @@ export default function ClinicProfilePage() {
       <div className="flex items-center justify-center h-[50vh]">
         <Card className="w-full max-w-3xl shadow-lg">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">{t("failedToLoad")}</p>
+            <p className="text-center text-muted-foreground">
+              {t("failedToLoad")}
+            </p>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -112,8 +121,10 @@ export default function ClinicProfilePage() {
             </Badge>
           </div>
 
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{clinic.name}</h1>
+          <div className="flex-1 text-center md:text-left pr-0 md:pr-24 lg:pr-32">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 break-words">
+              {clinic.name}
+            </h1>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-white/70" />
@@ -121,7 +132,9 @@ export default function ClinicProfilePage() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-white/70" />
-                <span className="text-sm text-white/90">{clinic.phoneNumber}</span>
+                <span className="text-sm text-white/90">
+                  {clinic.phoneNumber}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPinned className="w-4 h-4 text-white/70" />
@@ -146,7 +159,9 @@ export default function ClinicProfilePage() {
         <div className="md:col-span-1 space-y-6">
           <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
             <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-600/40 dark:to-indigo-600/40 px-6 py-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("clinicStaffDetails")}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                {t("clinicStaffDetails")}
+              </h3>
             </div>
             <CardContent className="space-y-5 pt-5">
               <div className="flex items-start gap-3">
@@ -154,8 +169,12 @@ export default function ClinicProfilePage() {
                   <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-200" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("address")}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{clinic.fullAddress || clinic.city}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("address")}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {clinic.fullAddress || clinic.city}
+                  </p>
                 </div>
               </div>
 
@@ -164,8 +183,12 @@ export default function ClinicProfilePage() {
                   <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-200" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("taxCode")}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{clinic.taxCode}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("taxCode")}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {clinic.taxCode}
+                  </p>
                 </div>
               </div>
 
@@ -175,7 +198,9 @@ export default function ClinicProfilePage() {
                   <Award className="w-5 h-5 text-purple-600 dark:text-purple-200" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("businessLicense")}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t("businessLicense")}
+                  </p>
                   {clinic.businessLicenseUrl ? (
                     <a
                       href={clinic.businessLicenseUrl}
@@ -186,7 +211,9 @@ export default function ClinicProfilePage() {
                       {t("viewBusinessLicense")}
                     </a>
                   ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-500">{t("noBusinessLicense")}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">
+                      {t("noBusinessLicense")}
+                    </p>
                   )}
                 </div>
               </div>
@@ -197,7 +224,9 @@ export default function ClinicProfilePage() {
           {clinic.currentSubscription && (
             <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
               <div className="bg-purple-100 dark:bg-purple-600/40 px-6 py-4 border-b dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t("currentSubscription")}</h3>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  {t("currentSubscription")}
+                </h3>
               </div>
               <CardContent className="p-6">
                 <div className="bg-purple-50 dark:bg-purple-900/20 p-6 rounded-lg">
@@ -223,18 +252,26 @@ export default function ClinicProfilePage() {
                       </h4>
                     </div>
                     <Badge
-                      variant={clinic.currentSubscription.isActivated ? "default" : "outline"}
+                      variant={
+                        clinic.currentSubscription.isActivated
+                          ? "default"
+                          : "outline"
+                      }
                       className={`px-3 py-1 text-xs font-medium ${
                         clinic.currentSubscription.isActivated
                           ? "bg-green-500 hover:bg-green-500/90 text-white"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                       }`}
                     >
-                      {clinic.currentSubscription.isActivated ? t("active") : t("inactive")}
+                      {clinic.currentSubscription.isActivated
+                        ? t("active")
+                        : t("inactive")}
                     </Badge>
                   </div>
 
-                  <p className="text-gray-600 dark:text-gray-400 mb-6 ml-7">{clinic.currentSubscription.description}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 ml-7">
+                    {clinic.currentSubscription.description}
+                  </p>
 
                   <div className="flex flex-wrap justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -243,7 +280,9 @@ export default function ClinicProfilePage() {
                         <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                           {clinic.currentSubscription.duration}
                         </span>
-                        <span className="text-gray-600 dark:text-gray-400 ml-1">{t("days")}</span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-1">
+                          {t("days")}
+                        </span>
                       </div>
                     </div>
 
@@ -253,7 +292,9 @@ export default function ClinicProfilePage() {
                         <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                           {clinic.currentSubscription.limitBranch}
                         </span>
-                        <span className="text-gray-600 dark:text-gray-400 ml-1">{t("branches")}</span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-1">
+                          {t("branches")}
+                        </span>
                       </div>
                     </div>
 
@@ -283,18 +324,24 @@ export default function ClinicProfilePage() {
                         <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                           {clinic.currentSubscription.limitLiveStream}
                         </span>
-                        <span className="text-gray-600 dark:text-gray-400 ml-1">{t("livestreams")}</span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-1">
+                          {t("livestreams")}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">{t("price")}:</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      {t("price")}:
+                    </span>
                     <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
                       {clinic.currentSubscription.price === 0
                         ? "Free"
-                        : `${formatCurrency(clinic.currentSubscription.price)}`} đ
-                        
+                        : `${formatCurrency(
+                            clinic.currentSubscription.price
+                          )}`}{" "}
+                      đ
                     </span>
                   </div>
                 </div>
@@ -368,9 +415,13 @@ export default function ClinicProfilePage() {
                           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-500/20 dark:to-indigo-500/20 p-4 rounded-lg border border-purple-100/50 dark:border-purple-500/40">
                             <div className="flex items-center gap-2 mb-2">
                               <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-300" />
-                              <p className="font-medium text-gray-800 dark:text-gray-200">{t("paymentInformation")}</p>
+                              <p className="font-medium text-gray-800 dark:text-gray-200">
+                                {t("paymentInformation")}
+                              </p>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">{t("paymentDescription")}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {t("paymentDescription")}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -400,7 +451,9 @@ export default function ClinicProfilePage() {
                           <CardContent className="pt-4">
                             <div className="flex items-start gap-2">
                               <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400 mt-0.5" />
-                              <p className="text-sm text-gray-600 dark:text-gray-300">{branch.address}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {branch.address}
+                              </p>
                             </div>
                           </CardContent>
                         </Card>
@@ -410,8 +463,12 @@ export default function ClinicProfilePage() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Building2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
-                    <p className="text-gray-500 dark:text-gray-400 mb-2">{t("noBranchesAvailable")}</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500">{t("noBranchesDescription")}</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">
+                      {t("noBranchesAvailable")}
+                    </p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
+                      {t("noBranchesDescription")}
+                    </p>
                   </div>
                 )}
               </TabsContent>
@@ -429,7 +486,7 @@ export default function ClinicProfilePage() {
         />
       )}
     </div>
-  )
+  );
 }
 
 function ClinicProfileSkeleton() {
@@ -510,5 +567,5 @@ function ClinicProfileSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -35,6 +35,9 @@ import { doctor } from "./doctor";
 import { doctorProfile } from "./doctor-profile";
 import { doctorCertificate } from "./doctor-certificate";
 import { categoryMessages } from "./category";
+import { walletMessages } from "./wallet";
+import { chatMessages } from "./chat";
+
 
 const en = {
   home: homeMessages,
@@ -74,6 +77,8 @@ const en = {
   doctorProfile,
   doctorCertificate,
   category: categoryMessages,
+  wallet: walletMessages,
+  chat: chatMessages
 };
 
 export default en;
