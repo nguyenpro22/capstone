@@ -33,7 +33,6 @@ import {
 import {
   Clock,
   CalendarIcon,
-  MessageCircle,
   Phone,
   ChevronRight,
   CheckCircle,
@@ -248,17 +247,6 @@ export default function ServiceDetail() {
   const { data: serviceData, error, isLoading } = useGetServiceByIdQuery(id);
   const user = useSelector((state: RootState) => state?.auth?.user);
   const router = useRouter();
-
-  // Define all state variables at the top level
-  const [bookingData, setBookingData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    date: new Date(),
-    notes: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactFormData, setContactFormData] = useState({
     name: "",
@@ -271,7 +259,6 @@ export default function ServiceDetail() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [sendMessage] = useSendMessageMutation();
-  const [doctor, setDoctor] = useState<Doctor>();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [postLoginAction, setPostLoginAction] = useState<() => void>(() => {});
   useEffect(() => {
@@ -326,32 +313,6 @@ export default function ServiceDetail() {
     } finally {
       setContactSubmitting(false);
     }
-  };
-
-  const handleBookingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setBookingSuccess(true);
-      setBookingData({
-        name: "",
-        phone: "",
-        email: "",
-        date: new Date(),
-        notes: "",
-      });
-    } catch (error) {
-      console.error("Error submitting booking:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleContactRequest = () => {
-    setShowContactModal(true);
   };
 
   // Helper functions
@@ -1536,15 +1497,6 @@ export default function ServiceDetail() {
                         <CalendarIcon className="h-4 w-4 mr-2" />
                         {t("bookNow")}
                       </GradientButton>
-                      <Button
-                        variant="outline"
-                        className="w-full dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
-                        size="lg"
-                        onClick={handleContactRequest}
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        {t("askQuestion")}
-                      </Button>
                     </div>
 
                     <Separator className="my-6 dark:bg-gray-600" />

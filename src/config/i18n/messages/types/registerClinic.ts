@@ -56,6 +56,7 @@ export type registerClinic = {
       addressRequired: string;
       cityRequired: string;
       districtRequired: string;
+      phoneInvalid: string;
       wardRequired: string;
       bankNameRequired: string;
       bankAccountRequired: string;
@@ -65,7 +66,7 @@ export type registerClinic = {
       phoneNumberExists: string;
       profilePictureRequired: string;
       businessLicenseRequired: string;
-      operatingLicenseRequired: string
+      operatingLicenseRequired: string;
     };
     toast: {
       missingFiles: {

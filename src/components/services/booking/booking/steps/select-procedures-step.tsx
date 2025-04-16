@@ -134,7 +134,7 @@ export function SelectProceduresStep({
           {t("selectService")}
         </h3>
         <p className="text-gray-500 dark:text-gray-400 mb-4">
-          {t("pleaseSelectServiceType")}
+          {t("pleaseSelectServices")}
         </p>
 
         <div className="flex items-center space-x-2 mb-4">
@@ -175,11 +175,10 @@ export function SelectProceduresStep({
         {isDefault ? (
           <div className="text-center p-4">
             <p className="text-gray-600 dark:text-gray-400">
-              {t("youSelectedDefaultPackage")}
+              {t("youSelectedDefaultPackageBestPrice")}
             </p>
             <p className="font-medium mt-2 text-purple-700 dark:text-purple-300">
-              {t("price")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ
-              - {service.discountMaxPrice.toLocaleString("vi-VN")}đ
+              {t("total")}: {service.discountMinPrice.toLocaleString("vi-VN")}đ
             </p>
           </div>
         ) : (

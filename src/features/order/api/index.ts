@@ -1,8 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
-import { IListResponse, IResCommon } from "@/lib/api";
-import { OrderItem } from "../types";
-
+import { ErrorResponse, IListResponse, IResCommon } from "@/lib/api";
+import { OrderItem, ServiceBooking } from "../types";
 
 export const orderQueryApi = createApi({
   reducerPath: "orderQueryApi",
@@ -37,11 +36,17 @@ export const orderQueryApi = createApi({
       }),
     }),
 
-    getOrderById: builder.query<IResCommon<OrderItem>, string>({
+    getOrderDetailById: builder.query<IResCommon<ServiceBooking[]>, string>({
       query: (id) => ({
-        url: `/orders/${id}`,
+        url: `/order-details/${id}`,
         method: "GET",
       }),
+      transformErrorResponse: (response: {
+        status: number;
+        data: ErrorResponse;
+      }) => {
+        return response;
+      },
     }),
 
 
@@ -81,6 +86,6 @@ export const {
   useGetOrdersForClinicAdminQuery,
   useLazyGetOrdersForClinicAdminQuery,
   useLazyGetOrdersQuery,
-  useGetOrderByIdQuery,
-  useLazyGetOrderByIdQuery,
+  useGetOrderDetailByIdQuery,
+  useLazyGetOrderDetailByIdQuery,
 } = orderQueryApi;

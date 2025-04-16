@@ -71,29 +71,6 @@ export function DoctorItem({
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {t("doctorSelect")} {serviceCategoryName}
             </div>
-            {doctor.doctorCertificates &&
-              doctor.doctorCertificates.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {Array.isArray(doctor.doctorCertificates) &&
-                    doctor.doctorCertificates.slice(0, 2).map((cert, i) => (
-                      <Badge
-                        key={i}
-                        variant="outline"
-                        className="text-xs border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300"
-                      >
-                        {typeof cert === "string" ? cert : cert.name}
-                      </Badge>
-                    ))}
-                  {doctor.doctorCertificates.length > 2 && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300"
-                    >
-                      +{doctor.doctorCertificates.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              )}
           </div>
         </div>
       </Label>

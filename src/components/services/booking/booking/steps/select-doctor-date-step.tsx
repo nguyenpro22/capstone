@@ -103,24 +103,27 @@ export function SelectDoctorDateStep({
           // Use the BookingService to calculate available time slots
           const slots = await BookingService.getAvailableTimeSlots(data.value);
 
-          // Filter out past time slots if the selected date is today
+          // Filter out time slots that are less than 2 hours from now
           const today = new Date();
           const isToday = selectedDate.toDateString() === today.toDateString();
 
-          if (isToday) {
-            const currentHour = today.getHours();
-            const currentMinute = today.getMinutes();
+          // Calculate the threshold time (current time + 2 hours)
+          const thresholdTime = new Date(today);
+          thresholdTime.setHours(today.getHours() + 2);
+          const thresholdHour = thresholdTime.getHours();
+          const thresholdMinute = thresholdTime.getMinutes();
 
-            // Filter out time slots that have already passed
+          if (isToday) {
+            // Filter out time slots that are within the next 2 hours
             const filteredSlots = slots.filter((timeSlot) => {
               const [hourStr, minuteStr] = timeSlot.split(":");
               const hour = Number.parseInt(hourStr, 10);
               const minute = Number.parseInt(minuteStr, 10);
 
-              // Compare with current time
+              // Compare with the threshold time (current time + 2 hours)
               return (
-                hour > currentHour ||
-                (hour === currentHour && minute > currentMinute)
+                hour > thresholdHour ||
+                (hour === thresholdHour && minute >= thresholdMinute)
               );
             });
 
@@ -369,7 +372,13 @@ export function SelectDoctorDateStep({
                 variant="outline"
                 className="mr-2 border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300"
               >
-                {selectedDate ? formatDate(selectedDate) : ""}
+                {selectedDate
+                  ? t("formattedDate", {
+                      date: selectedDate.getDate(),
+                      month: t(`months.${selectedDate.getMonth()}`),
+                      year: selectedDate.getFullYear(),
+                    })
+                  : ""}
               </Badge>
               <Badge className="bg-purple-600 dark:bg-purple-500 text-white">
                 <Clock className="h-3 w-3 mr-1" />

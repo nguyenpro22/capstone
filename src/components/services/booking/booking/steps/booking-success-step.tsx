@@ -103,16 +103,6 @@ export function BookingSuccess({
           </div>
         </CardContent>
       </Card>
-
-      <div className="mt-8 w-full max-w-md">
-        <Button
-          onClick={onClose}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
-        >
-          <span>{t("finish")}</span>
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
     </div>
   );
 }
