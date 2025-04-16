@@ -1,7 +1,8 @@
 "use client";
 
 import { format, parseISO } from "date-fns";
-import { ArrowRight, Calendar, Clock, Plus, Users } from "lucide-react";
+import { vi } from "date-fns/locale";
+import { ArrowRight, Calendar, Clock, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -34,31 +35,21 @@ export function AppointmentSidebar({
   // Move the useTranslations hooks to the component level
   const t = useTranslations("doctor");
   const sidebarT = useTranslations("doctor.sidebarList");
-  console.log("selectedDate:", selectedDate);
 
   if (!selectedDate) return null;
 
   const dateStr = format(selectedDate, "yyyy-MM-dd");
-  console.log("dateStr:", dateStr);
   const appointments = appointmentsByDate[dateStr] || [];
-  console.log("appointments:", dateStr);
 
-  // Format dates using the translation functions
-  const formattedDate = sidebarT("title", {
-    date: new Intl.DateTimeFormat("vi-VN", {
-      timeZone: "Asia/Bangkok",
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(selectedDate),
-  });
-  console.log("dateFormat:", formattedDate);
+  // Format dates using Vietnamese locale
+  const formattedDate = format(
+    selectedDate,
+    "EEEE, 'ngày' dd 'tháng' MM 'năm' yyyy",
+    { locale: vi }
+  );
 
-  // Get the day of the week and day of the month
-  const dayOfWeek = format(selectedDate, "EEEE");
-  const dayOfMonth = format(selectedDate, "d");
-  const monthYear = format(selectedDate, "MMMM yyyy");
+  // Get the month and year for subtitle in Vietnamese
+  const monthYear = format(selectedDate, "'Tháng' MM, yyyy", { locale: vi });
 
   return (
     <div className="h-full flex flex-col">
@@ -77,19 +68,17 @@ export function AppointmentSidebar({
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className={cn(
-                "bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200",
-                "dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50",
-                "rounded-lg px-2.5 py-0.5"
-              )}
-            >
-              {appointments.length} {t("calendar.appointments")}
-            </Badge>
-          </div>
+        <div className="flex items-center">
+          <Badge
+            variant="outline"
+            className={cn(
+              "bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200",
+              "dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50",
+              "rounded-lg px-2.5 py-0.5"
+            )}
+          >
+            {appointments.length} {t("calendar.appointments")}
+          </Badge>
         </div>
       </div>
 
@@ -118,16 +107,17 @@ export function AppointmentSidebar({
                     <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                       <Clock className="h-3.5 w-3.5 text-blue-400 dark:text-blue-500" />
                       <span>
-                        {sidebarT("timeRange", {
-                          startTime: format(
-                            parseISO(`2000-01-01T${appointment.startTime}`),
-                            "h:mm a"
-                          ),
-                          endTime: format(
-                            parseISO(`2000-01-01T${appointment.endTime}`),
-                            "h:mm a"
-                          ),
-                        })}
+                        {format(
+                          parseISO(`2000-01-01T${appointment.startTime}`),
+                          "HH:mm",
+                          { locale: vi }
+                        )}{" "}
+                        -{" "}
+                        {format(
+                          parseISO(`2000-01-01T${appointment.endTime}`),
+                          "HH:mm",
+                          { locale: vi }
+                        )}
                       </span>
                     </div>
                     <div className="mt-3 flex items-center justify-between">
