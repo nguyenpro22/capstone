@@ -44,7 +44,15 @@ export function AppointmentSidebar({
   console.log("appointments:", dateStr);
 
   // Format dates using the translation functions
-  const formattedDate = sidebarT("title", { date: selectedDate });
+  const formattedDate = sidebarT("title", {
+    date: new Intl.DateTimeFormat("vi-VN", {
+      timeZone: "Asia/Bangkok",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(selectedDate),
+  });
   console.log("dateFormat:", formattedDate);
 
   // Get the day of the week and day of the month
