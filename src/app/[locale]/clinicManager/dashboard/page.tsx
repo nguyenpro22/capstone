@@ -1,5 +1,6 @@
-"use client"
-import React, { useState, useRef, useEffect } from "react"
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
 import {
   AlertCircle,
   Calendar,
@@ -10,8 +11,8 @@ import {
   ShoppingCart,
   ClipboardCheck,
   DollarSign,
-} from "lucide-react"
-import { useGetDashboardByDateTimeQuery } from "@/features/dashboard/api"
+} from "lucide-react";
+import { useGetDashboardByDateTimeQuery } from "@/features/dashboard/api";
 import {
   BarChart as RechartsBarChart,
   Bar,
@@ -22,72 +23,86 @@ import {
   Legend,
   ResponsiveContainer,
   type TooltipProps,
-} from "recharts"
+} from "recharts";
+import { useTranslations, useLocale } from "next-intl";
 
 // Define TypeScript interfaces
 interface DateTimeInformation {
-  totalCountOrderCustomer: number
-  totalCountScheduleCustomer: number
-  totalCountCustomerSchedule: number
-  totalCountCustomerSchedulePending: number
-  totalCountCustomerScheduleInProgress: number
-  totalCountCustomerScheduleCompleted: number
-  totalSumRevenue: number
-  totalCountOrderPending: number
-  totalSumRevenueNormal: number
-  totalSumRevenueLiveStream: number
+  totalCountOrderCustomer: number;
+  totalCountScheduleCustomer: number;
+  totalCountCustomerSchedule: number;
+  totalCountCustomerSchedulePending: number;
+  totalCountCustomerScheduleInProgress: number;
+  totalCountCustomerScheduleCompleted: number;
+  totalSumRevenue: number;
+  totalCountOrderPending: number;
+  totalSumRevenueNormal: number;
+  totalSumRevenueLiveStream: number;
 }
 
 interface DateTimeInformationWithRange {
-  information: DateTimeInformation
-  startDate: string
-  endDate: string
+  information: DateTimeInformation;
+  startDate: string;
+  endDate: string;
 }
 
 interface DashboardResponse {
   value?: {
-    datetimeInformation?: DateTimeInformation
-    datetimeInformationList?: DateTimeInformationWithRange[]
-  }
-  isSuccess: boolean
-  isFailure: boolean
+    datetimeInformation?: DateTimeInformation;
+    datetimeInformationList?: DateTimeInformationWithRange[];
+  };
+  isSuccess: boolean;
+  isFailure: boolean;
   error: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
 }
 
 interface PercentChanges {
-  orderCustomers: number
-  scheduleCustomers: number
-  customerSchedules: number
+  orderCustomers: number;
+  scheduleCustomers: number;
+  customerSchedules: number;
 }
 
 // Date formatting helper functions
 const formatDate = (date: Date): string => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const formatApiDate = (dateStr: string): string => {
-  return dateStr
-}
+  return dateStr;
+};
 
 const formatDisplayDate = (dateStr: string): string => {
-  const date = new Date(dateStr)
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  return `${months[date.getMonth()]} ${date.getDate()}`
-}
+  const date = new Date(dateStr);
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return `${months[date.getMonth()]} ${date.getDate()}`;
+};
 
 // Define PieChart props interface
 interface PieChartProps {
-  pendingCount: number
-  inProgressCount: number
-  completedCount: number
-  canceledCount: number
-  totalCount: number
+  pendingCount: number;
+  inProgressCount: number;
+  completedCount: number;
+  canceledCount: number;
+  totalCount: number;
 }
 
 // PieChart component
@@ -98,22 +113,23 @@ const PieChart: React.FC<PieChartProps> = ({
   canceledCount,
   totalCount,
 }) => {
-  const canvasRef = useRef(null)
+  const canvasRef = useRef(null);
+  const t = useTranslations("dashboard.clinicManager");
 
   React.useEffect(() => {
-    if (!canvasRef.current || totalCount === 0) return
+    if (!canvasRef.current || totalCount === 0) return;
 
-    const canvas: HTMLCanvasElement = canvasRef.current
-    const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d")
-    if (!ctx) return
+    const canvas: HTMLCanvasElement = canvasRef.current;
+    const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
+    if (!ctx) return;
 
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Set dimensions
-    const centerX = canvas.width / 2
-    const centerY = canvas.height / 2
-    const radius = Math.min(centerX, centerY) - 10
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 10;
 
     // Define colors
     const colors = {
@@ -121,63 +137,76 @@ const PieChart: React.FC<PieChartProps> = ({
       inProgress: "#3b82f6", // blue-500
       completed: "#10b981", // emerald-500
       canceled: "#ef4444", // red-500
-    }
+    };
 
     // Calculate angles
-    let startAngle = 0
+    let startAngle = 0;
     const drawSegment = (value: number, color: string): number | void => {
-      if (value === 0) return
+      if (value === 0) return;
 
-      const segmentAngle = (value / totalCount) * 2 * Math.PI
+      const segmentAngle = (value / totalCount) * 2 * Math.PI;
 
-      ctx.beginPath()
-      ctx.moveTo(centerX, centerY)
-      ctx.arc(centerX, centerY, radius, startAngle, startAngle + segmentAngle)
-      ctx.closePath()
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, startAngle, startAngle + segmentAngle);
+      ctx.closePath();
 
-      ctx.fillStyle = color
-      ctx.fill()
+      ctx.fillStyle = color;
+      ctx.fill();
 
       // Add a white border
-      ctx.strokeStyle = "white"
-      ctx.lineWidth = 2
-      ctx.stroke()
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-      startAngle += segmentAngle
-    }
+      startAngle += segmentAngle;
+    };
 
     // Draw segments
-    drawSegment(pendingCount, colors.pending)
-    drawSegment(inProgressCount, colors.inProgress)
-    drawSegment(completedCount, colors.completed)
-    drawSegment(canceledCount, colors.canceled)
+    drawSegment(pendingCount, colors.pending);
+    drawSegment(inProgressCount, colors.inProgress);
+    drawSegment(completedCount, colors.completed);
+    drawSegment(canceledCount, colors.canceled);
 
     // Draw center circle (optional, for donut chart)
-    ctx.beginPath()
-    ctx.arc(centerX, centerY, radius * 0.6, 0, 2 * Math.PI)
-    ctx.fillStyle = "white"
-    ctx.fill()
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius * 0.6, 0, 2 * Math.PI);
+    ctx.fillStyle = "white";
+    ctx.fill();
 
     // Add text in the center
-    ctx.fillStyle = "#1e293b" // slate-800
-    ctx.font = "bold 20px Inter, system-ui, sans-serif"
-    ctx.textAlign = "center"
-    ctx.textBaseline = "middle"
-    ctx.fillText(`${totalCount}`, centerX, centerY - 10)
-    ctx.font = "14px Inter, system-ui, sans-serif"
-    ctx.fillText("Total", centerX, centerY + 15)
-  }, [pendingCount, inProgressCount, completedCount, canceledCount, totalCount])
+    ctx.fillStyle = "#1e293b"; // slate-800
+    ctx.font = "bold 20px Inter, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${totalCount}`, centerX, centerY - 10);
+    ctx.font = "14px Inter, system-ui, sans-serif";
+    ctx.fillText("Total", centerX, centerY + 15);
+  }, [
+    pendingCount,
+    inProgressCount,
+    completedCount,
+    canceledCount,
+    totalCount,
+  ]);
 
-  return <canvas ref={canvasRef} width={300} height={300} className="w-full h-full" />
-}
+  return (
+    <canvas
+      ref={canvasRef}
+      width={300}
+      height={300}
+      className="w-full h-full"
+    />
+  );
+};
 
 // Define CustomerMetricsChart props interface
 interface CustomerMetricsChartProps {
-  orderCustomers: number
-  scheduleCustomers: number
-  customerSchedules: number
-  timeLabel: string
-  percentChanges: PercentChanges | null
+  orderCustomers: number;
+  scheduleCustomers: number;
+  customerSchedules: number;
+  timeLabel: string;
+  percentChanges: PercentChanges | null;
 }
 
 // CustomerMetricsChart component
@@ -188,11 +217,13 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
   timeLabel,
   percentChanges,
 }) => {
+  const t = useTranslations("dashboard.clinicManager");
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-6 transition-all hover:shadow-lg">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
         <Users className="w-5 h-5 mr-2 text-indigo-500" />
-        Customer Metrics ({timeLabel})
+        {t("metrics.customerMetrics")} ({timeLabel})
       </h3>
 
       <div className="space-y-8">
@@ -201,10 +232,12 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
           <div className="flex justify-between">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
               <ShoppingCart className="w-4 h-4 mr-1.5 text-indigo-400" />
-              Order Customers
+              {t("metrics.orderCustomers")}
             </span>
             <div className="flex items-center">
-              <span className="text-sm font-bold text-gray-800 dark:text-gray-100 mr-2">{orderCustomers}</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-100 mr-2">
+                {orderCustomers}
+              </span>
               {percentChanges && (
                 <span
                   className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center ${
@@ -227,7 +260,16 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
             <div
               className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all duration-500 ease-in-out"
               style={{
-                width: `${Math.min(100, (orderCustomers / Math.max(orderCustomers, scheduleCustomers, customerSchedules)) * 100)}%`,
+                width: `${Math.min(
+                  100,
+                  (orderCustomers /
+                    Math.max(
+                      orderCustomers,
+                      scheduleCustomers,
+                      customerSchedules
+                    )) *
+                    100
+                )}%`,
               }}
             ></div>
           </div>
@@ -238,10 +280,12 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
           <div className="flex justify-between">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
               <Calendar className="w-4 h-4 mr-1.5 text-violet-400" />
-              Schedule Customers
+              {t("metrics.scheduleCustomers")}
             </span>
             <div className="flex items-center">
-              <span className="text-sm font-bold text-gray-800 dark:text-gray-100 mr-2">{scheduleCustomers}</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-100 mr-2">
+                {scheduleCustomers}
+              </span>
               {percentChanges && (
                 <span
                   className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center ${
@@ -264,7 +308,16 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
             <div
               className="h-full bg-violet-500 dark:bg-violet-400 rounded-full transition-all duration-500 ease-in-out"
               style={{
-                width: `${Math.min(100, (scheduleCustomers / Math.max(orderCustomers, scheduleCustomers, customerSchedules)) * 100)}%`,
+                width: `${Math.min(
+                  100,
+                  (scheduleCustomers /
+                    Math.max(
+                      orderCustomers,
+                      scheduleCustomers,
+                      customerSchedules
+                    )) *
+                    100
+                )}%`,
               }}
             ></div>
           </div>
@@ -275,10 +328,12 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
           <div className="flex justify-between">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
               <ClipboardCheck className="w-4 h-4 mr-1.5 text-teal-400" />
-              Customer Schedules
+              {t("metrics.customerSchedules")}
             </span>
             <div className="flex items-center">
-              <span className="text-sm font-bold text-gray-800 dark:text-gray-100 mr-2">{customerSchedules}</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-100 mr-2">
+                {customerSchedules}
+              </span>
               {percentChanges && (
                 <span
                   className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center ${
@@ -301,62 +356,107 @@ const CustomerMetricsChart: React.FC<CustomerMetricsChartProps> = ({
             <div
               className="h-full bg-teal-500 dark:bg-teal-400 rounded-full transition-all duration-500 ease-in-out"
               style={{
-                width: `${Math.min(100, (customerSchedules / Math.max(orderCustomers, scheduleCustomers, customerSchedules)) * 100)}%`,
+                width: `${Math.min(
+                  100,
+                  (customerSchedules /
+                    Math.max(
+                      orderCustomers,
+                      scheduleCustomers,
+                      customerSchedules
+                    )) *
+                    100
+                )}%`,
               }}
             ></div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Calculate percentage change
-const calculatePercentageChange = (current: number, previous: number): number => {
-  if (previous === 0) return current > 0 ? 100 : 0
-  return ((current - previous) / previous) * 100
-}
+const calculatePercentageChange = (
+  current: number,
+  previous: number
+): number => {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+};
 
 // Custom tooltip for charts
-const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{label}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+          {label}
+        </p>
         {payload.map((entry, index) => (
-          <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-gray-700 dark:text-gray-300">{entry.name}:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{entry.value}</span>
+          <div
+            key={`item-${index}`}
+            className="flex items-center gap-2 text-sm"
+          >
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-gray-700 dark:text-gray-300">
+              {entry.name}:
+            </span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">
+              {entry.value}
+            </span>
           </div>
         ))}
       </div>
-    )
+    );
   }
-  return null
-}
+  return null;
+};
 
 // Custom Bar Chart component for date range data
 const TimeSeriesBarChart: React.FC<{
-  data: DateTimeInformationWithRange[]
-  isWeekly: boolean
-  fields: string[]
-  title: string
-  icon: React.ReactNode
+  data: DateTimeInformationWithRange[];
+  isWeekly: boolean;
+  fields: string[];
+  title: string;
+  icon: React.ReactNode;
 }> = ({ data, isWeekly, fields, title, icon }) => {
+  const t = useTranslations("dashboard.clinicManager");
+
   // Prepare data for the chart
   const chartData = data.map((item) => {
     // Format the label based on whether it's weekly or monthly
-    const startDate = new Date(item.startDate)
-    const endDate = new Date(item.endDate)
+    const startDate = new Date(item.startDate);
+    const endDate = new Date(item.endDate);
 
-    let label = ""
+    let label = "";
     if (isWeekly) {
-      label = `${formatDisplayDate(item.startDate)} - ${formatDisplayDate(item.endDate)}`
+      label = `${formatDisplayDate(item.startDate)} - ${formatDisplayDate(
+        item.endDate
+      )}`;
     } else {
       // For monthly view, just show the month name
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      label = monthNames[startDate.getMonth()]
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      label = monthNames[startDate.getMonth()];
     }
 
     return {
@@ -371,8 +471,8 @@ const TimeSeriesBarChart: React.FC<{
       Revenue: item.information.totalSumRevenue,
       NormalRevenue: item.information.totalSumRevenueNormal,
       LiveStreamRevenue: item.information.totalSumRevenueLiveStream,
-    }
-  })
+    };
+  });
 
   // Define color schema for the bars
   const colorMap = {
@@ -386,23 +486,40 @@ const TimeSeriesBarChart: React.FC<{
     Revenue: "#f97316", // orange-500
     NormalRevenue: "#06b6d4", // cyan-500
     LiveStreamRevenue: "#ec4899", // pink-500
-  }
+  };
 
-  const [visibleMetrics, setVisibleMetrics] = useState(fields)
+  const [visibleMetrics, setVisibleMetrics] = useState(fields);
 
   const toggleMetric = (metric: string) => {
     if (visibleMetrics.includes(metric)) {
-      setVisibleMetrics(visibleMetrics.filter((m) => m !== metric))
+      setVisibleMetrics(visibleMetrics.filter((m) => m !== metric));
     } else {
-      setVisibleMetrics([...visibleMetrics, metric])
+      setVisibleMetrics([...visibleMetrics, metric]);
     }
-  }
+  };
+
+  // Map field names to translated labels
+  const getFieldLabel = (field: string): string => {
+    const fieldMap: Record<string, string> = {
+      OrderCustomers: t("metrics.orderCustomers"),
+      ScheduleCustomers: t("metrics.scheduleCustomers"),
+      CustomerSchedules: t("metrics.customerSchedules"),
+      Pending: t("status.pending"),
+      InProgress: t("status.inProgress"),
+      Completed: t("status.completed"),
+      OrderPending: `${t("status.pending")} ${t("metrics.orderCustomers")}`,
+      Revenue: t("revenue.revenue"),
+      NormalRevenue: t("revenue.normalRevenue"),
+      LiveStreamRevenue: t("revenue.liveStreamRevenue"),
+    };
+    return fieldMap[field] || field;
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-6 transition-all hover:shadow-lg">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
         {icon}
-        {title} ({isWeekly ? "Weekly" : "Monthly"})
+        {title} ({isWeekly ? t("rangeView.weekly") : t("rangeView.monthly")})
       </h3>
 
       <div className="mb-5 flex flex-wrap gap-2">
@@ -416,14 +533,17 @@ const TimeSeriesBarChart: React.FC<{
                 : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
-            {metric}
+            {getFieldLabel(metric)}
           </button>
         ))}
       </div>
 
       <div className="w-full h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <RechartsBarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+          <RechartsBarChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="name"
@@ -440,13 +560,17 @@ const TimeSeriesBarChart: React.FC<{
               tickLine={{ stroke: "#e5e7eb" }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: 10 }} iconType="circle" iconSize={8} />
+            <Legend
+              wrapperStyle={{ paddingTop: 10 }}
+              iconType="circle"
+              iconSize={8}
+            />
             {visibleMetrics.map((metric) => (
               <Bar
                 key={metric}
                 dataKey={metric}
                 fill={colorMap[metric as keyof typeof colorMap]}
-                name={metric}
+                name={getFieldLabel(metric)}
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
                 animationEasing="ease-in-out"
@@ -456,46 +580,49 @@ const TimeSeriesBarChart: React.FC<{
         </ResponsiveContainer>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Dashboard Component
 const Dashboard: React.FC = () => {
+  const t = useTranslations("dashboard.clinicManager");
+  const locale = useLocale();
+
   // View mode and date range states
-  const [timeRange, setTimeRange] = useState<"week" | "month">("week")
+  const [timeRange, setTimeRange] = useState<"week" | "month">("week");
 
   // Date range states
-  const today = new Date()
-  const [startDate, setStartDate] = useState(formatDate(today))
-  const [endDate, setEndDate] = useState(formatDate(today))
-  const [selectedDate, setSelectedDate] = useState(formatDate(today))
+  const today = new Date();
+  const [startDate, setStartDate] = useState(formatDate(today));
+  const [endDate, setEndDate] = useState(formatDate(today));
+  const [selectedDate, setSelectedDate] = useState(formatDate(today));
 
   // Calculate date ranges based on current settings
   const getDateRanges = () => {
-    const now = new Date()
-    const startDateValue = new Date(now)
-    const endDateValue = new Date(now)
+    const now = new Date();
+    const startDateValue = new Date(now);
+    const endDateValue = new Date(now);
 
     if (timeRange === "week") {
       // Get last 4 weeks
-      startDateValue.setDate(now.getDate() - (now.getDay() + 28)) // Go back 4 weeks + days to get to a Sunday
-      endDateValue.setDate(now.getDate() + (6 - now.getDay())) // Go forward to the end of the current week (Saturday)
+      startDateValue.setDate(now.getDate() - (now.getDay() + 28)); // Go back 4 weeks + days to get to a Sunday
+      endDateValue.setDate(now.getDate() + (6 - now.getDay())); // Go forward to the end of the current week (Saturday)
     } else if (timeRange === "month") {
       // Get last 6 months
-      startDateValue.setMonth(now.getMonth() - 6)
-      startDateValue.setDate(1) // First day of that month
-      endDateValue.setMonth(now.getMonth() + 1)
-      endDateValue.setDate(0) // Last day of current month
+      startDateValue.setMonth(now.getMonth() - 6);
+      startDateValue.setDate(1); // First day of that month
+      endDateValue.setMonth(now.getMonth() + 1);
+      endDateValue.setDate(0); // Last day of current month
     }
 
-    setStartDate(formatDate(startDateValue))
-    setEndDate(formatDate(endDateValue))
-  }
+    setStartDate(formatDate(startDateValue));
+    setEndDate(formatDate(endDateValue));
+  };
 
   // Call this when viewMode or timeRange changes
   useEffect(() => {
-    getDateRanges()
-  }, [timeRange])
+    getDateRanges();
+  }, [timeRange]);
 
   // Prepare API call parameters based on current view mode
   // Range view API call
@@ -509,10 +636,10 @@ const Dashboard: React.FC = () => {
     endDate: endDate,
     isDisplayWeek: timeRange === "week",
   }) as {
-    data?: DashboardResponse
-    error?: any
-    isLoading: boolean
-  }
+    data?: DashboardResponse;
+    error?: any;
+    isLoading: boolean;
+  };
 
   // Daily view API call
   const {
@@ -525,15 +652,15 @@ const Dashboard: React.FC = () => {
     endDate: undefined,
     isDisplayWeek: undefined,
   }) as {
-    data?: DashboardResponse
-    error?: any
-    isLoading: boolean
-  }
+    data?: DashboardResponse;
+    error?: any;
+    isLoading: boolean;
+  };
 
   // Also get yesterday's data for comparison (for daily view)
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-  const formattedYesterday = formatDate(yesterday)
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const formattedYesterday = formatDate(yesterday);
 
   const {
     data: yesterdayData,
@@ -545,15 +672,15 @@ const Dashboard: React.FC = () => {
     endDate: undefined,
     isDisplayWeek: undefined,
   }) as {
-    data?: DashboardResponse
-    error?: any
-    isLoading: boolean
-  }
+    data?: DashboardResponse;
+    error?: any;
+    isLoading: boolean;
+  };
 
   // Process API response data
-  const todayInfo = dailyData?.value?.datetimeInformation
-  const dateRangeList = rangeData?.value?.datetimeInformationList
-  const yesterdayInfo = yesterdayData?.value?.datetimeInformation
+  const todayInfo = dailyData?.value?.datetimeInformation;
+  const dateRangeList = rangeData?.value?.datetimeInformationList;
+  const yesterdayInfo = yesterdayData?.value?.datetimeInformation;
 
   // Calculate percentage changes vs yesterday (for daily view)
   const percentChanges: PercentChanges | null =
@@ -561,30 +688,33 @@ const Dashboard: React.FC = () => {
       ? {
           orderCustomers: calculatePercentageChange(
             todayInfo.totalCountOrderCustomer,
-            yesterdayInfo.totalCountOrderCustomer || 0,
+            yesterdayInfo.totalCountOrderCustomer || 0
           ),
           scheduleCustomers: calculatePercentageChange(
             todayInfo.totalCountScheduleCustomer,
-            yesterdayInfo.totalCountScheduleCustomer || 0,
+            yesterdayInfo.totalCountScheduleCustomer || 0
           ),
           customerSchedules: calculatePercentageChange(
             todayInfo.totalCountCustomerSchedule,
-            yesterdayInfo.totalCountCustomerSchedule || 0,
+            yesterdayInfo.totalCountCustomerSchedule || 0
           ),
         }
-      : null
+      : null;
 
   // Handle date inputs
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, type: "start" | "end" | "single") => {
-    const value = e.target.value
+  const handleDateChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "start" | "end" | "single"
+  ) => {
+    const value = e.target.value;
     if (type === "start") {
-      setStartDate(value)
+      setStartDate(value);
     } else if (type === "end") {
-      setEndDate(value)
+      setEndDate(value);
     } else {
-      setSelectedDate(value)
+      setSelectedDate(value);
     }
-  }
+  };
 
   // Main render function
   if (rangeLoading || dailyLoading || yesterdayLoading) {
@@ -592,10 +722,12 @@ const Dashboard: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-gray-200 border-t-indigo-500 rounded-full animate-spin mx-auto"></div>
-          <p className="mt-6 text-gray-600 dark:text-gray-300 font-medium">Loading dashboard data...</p>
+          <p className="mt-6 text-gray-600 dark:text-gray-300 font-medium">
+            {t("loading")}
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (rangeError || dailyError) {
@@ -603,29 +735,38 @@ const Dashboard: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center max-w-md p-8 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">An error occurred</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            {t("error.title")}
+          </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Failed to fetch dashboard data. Please try again later.
+            {t("error.message")}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
-            Try Again
+            {t("error.tryAgain")}
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header with language switcher */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t("title")}
+          </h1>
+        </div>
+
         {/* Range View Section */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
             <BarChart3 className="w-6 h-6 mr-2 text-indigo-500" />
-            Range View
+            {t("rangeView.title")}
           </h2>
 
           {/* Range View Controls */}
@@ -640,7 +781,7 @@ const Dashboard: React.FC = () => {
                       : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
-                  Weekly
+                  {t("rangeView.weekly")}
                 </button>
                 <button
                   onClick={() => setTimeRange("month")}
@@ -650,7 +791,7 @@ const Dashboard: React.FC = () => {
                       : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
-                  Monthly
+                  {t("rangeView.monthly")}
                 </button>
               </div>
 
@@ -664,7 +805,9 @@ const Dashboard: React.FC = () => {
                     className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
                 </div>
-                <span className="mx-2 text-gray-500 dark:text-gray-400">to</span>
+                <span className="mx-2 text-gray-500 dark:text-gray-400">
+                  {t("rangeView.to")}
+                </span>
                 <div className="flex items-center">
                   <Calendar className="w-5 h-5 text-indigo-500 mr-2" />
                   <input
@@ -685,32 +828,47 @@ const Dashboard: React.FC = () => {
                 <TimeSeriesBarChart
                   data={dateRangeList}
                   isWeekly={timeRange === "week"}
-                  fields={["OrderCustomers", "OrderPending", "ScheduleCustomers"]}
-                  title="Customer Orders"
-                  icon={<ShoppingCart className="w-5 h-5 mr-2 text-indigo-500" />}
+                  fields={[
+                    "OrderCustomers",
+                    "OrderPending",
+                    "ScheduleCustomers",
+                  ]}
+                  title={t("charts.customerOrders")}
+                  icon={
+                    <ShoppingCart className="w-5 h-5 mr-2 text-indigo-500" />
+                  }
                 />
                 <TimeSeriesBarChart
                   data={dateRangeList}
                   isWeekly={timeRange === "week"}
-                  fields={["CustomerSchedules", "Pending", "InProgress", "Completed"]}
-                  title="Schedule Status"
+                  fields={[
+                    "CustomerSchedules",
+                    "Pending",
+                    "InProgress",
+                    "Completed",
+                  ]}
+                  title={t("charts.scheduleStatus")}
                   icon={<Calendar className="w-5 h-5 mr-2 text-violet-500" />}
                 />
                 <TimeSeriesBarChart
                   data={dateRangeList}
                   isWeekly={timeRange === "week"}
                   fields={["Revenue", "NormalRevenue", "LiveStreamRevenue"]}
-                  title="Revenue Performance"
-                  icon={<DollarSign className="w-5 h-5 mr-2 text-emerald-500" />}
+                  title={t("charts.revenuePerformance")}
+                  icon={
+                    <DollarSign className="w-5 h-5 mr-2 text-emerald-500" />
+                  }
                 />
               </>
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-8 flex items-center justify-center">
                 <div className="text-center">
                   <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">No Range Data Available</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                    {t("rangeView.noData.title")}
+                  </h3>
                   <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                    No data is available for the selected time period. Try selecting a different date range.
+                    {t("rangeView.noData.message")}
                   </p>
                 </div>
               </div>
@@ -722,7 +880,7 @@ const Dashboard: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
             <Calendar className="w-6 h-6 mr-2 text-indigo-500" />
-            Daily View
+            {t("dailyView.title")}
           </h2>
 
           {/* Daily View Controls */}
@@ -746,29 +904,38 @@ const Dashboard: React.FC = () => {
                   orderCustomers={todayInfo.totalCountOrderCustomer || 0}
                   scheduleCustomers={todayInfo.totalCountScheduleCustomer || 0}
                   customerSchedules={todayInfo.totalCountCustomerSchedule || 0}
-                  timeLabel="Today"
+                  timeLabel={t("dailyView.today")}
                   percentChanges={percentChanges}
                 />
 
                 <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-6 transition-all hover:shadow-lg">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
                     <ClipboardCheck className="w-5 h-5 mr-2 text-indigo-500" />
-                    Schedule Status Distribution
+                    {t("charts.scheduleStatusDistribution")}
                   </h3>
 
                   <div className="flex flex-col md:flex-row items-center justify-between">
                     <div className="w-full md:w-1/2 flex justify-center">
                       <div className="relative w-64 h-64">
                         <PieChart
-                          pendingCount={todayInfo.totalCountCustomerSchedulePending || 0}
-                          inProgressCount={todayInfo.totalCountCustomerScheduleInProgress || 0}
-                          completedCount={todayInfo.totalCountCustomerScheduleCompleted || 0}
+                          pendingCount={
+                            todayInfo.totalCountCustomerSchedulePending || 0
+                          }
+                          inProgressCount={
+                            todayInfo.totalCountCustomerScheduleInProgress || 0
+                          }
+                          completedCount={
+                            todayInfo.totalCountCustomerScheduleCompleted || 0
+                          }
                           canceledCount={Math.max(
                             0,
                             (todayInfo.totalCountCustomerSchedule || 0) -
-                              ((todayInfo.totalCountCustomerSchedulePending || 0) +
-                                (todayInfo.totalCountCustomerScheduleInProgress || 0) +
-                                (todayInfo.totalCountCustomerScheduleCompleted || 0)),
+                              ((todayInfo.totalCountCustomerSchedulePending ||
+                                0) +
+                                (todayInfo.totalCountCustomerScheduleInProgress ||
+                                  0) +
+                                (todayInfo.totalCountCustomerScheduleCompleted ||
+                                  0))
                           )}
                           totalCount={todayInfo.totalCountCustomerSchedule || 0}
                         />
@@ -780,7 +947,9 @@ const Dashboard: React.FC = () => {
                         <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
                           <div className="flex items-center">
                             <div className="w-4 h-4 bg-amber-500 dark:bg-amber-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t("status.pending")}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
@@ -792,7 +961,7 @@ const Dashboard: React.FC = () => {
                                 ? Math.round(
                                     (todayInfo.totalCountCustomerSchedulePending /
                                       todayInfo.totalCountCustomerSchedule) *
-                                      100,
+                                      100
                                   )
                                 : 0}
                               %)
@@ -803,11 +972,14 @@ const Dashboard: React.FC = () => {
                         <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                           <div className="flex items-center">
                             <div className="w-4 h-4 bg-blue-500 dark:bg-blue-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">In Progress</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t("status.inProgress")}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
-                              {todayInfo.totalCountCustomerScheduleInProgress || 0}
+                              {todayInfo.totalCountCustomerScheduleInProgress ||
+                                0}
                             </span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               (
@@ -815,7 +987,7 @@ const Dashboard: React.FC = () => {
                                 ? Math.round(
                                     (todayInfo.totalCountCustomerScheduleInProgress /
                                       todayInfo.totalCountCustomerSchedule) *
-                                      100,
+                                      100
                                   )
                                 : 0}
                               %)
@@ -826,11 +998,14 @@ const Dashboard: React.FC = () => {
                         <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
                           <div className="flex items-center">
                             <div className="w-4 h-4 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Completed</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t("status.completed")}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
-                              {todayInfo.totalCountCustomerScheduleCompleted || 0}
+                              {todayInfo.totalCountCustomerScheduleCompleted ||
+                                0}
                             </span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               (
@@ -838,7 +1013,7 @@ const Dashboard: React.FC = () => {
                                 ? Math.round(
                                     (todayInfo.totalCountCustomerScheduleCompleted /
                                       todayInfo.totalCountCustomerSchedule) *
-                                      100,
+                                      100
                                   )
                                 : 0}
                               %)
@@ -849,16 +1024,21 @@ const Dashboard: React.FC = () => {
                         <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
                           <div className="flex items-center">
                             <div className="w-4 h-4 bg-red-500 dark:bg-red-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Canceled</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t("status.canceled")}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
                               {Math.max(
                                 0,
                                 (todayInfo.totalCountCustomerSchedule || 0) -
-                                  ((todayInfo.totalCountCustomerSchedulePending || 0) +
-                                    (todayInfo.totalCountCustomerScheduleInProgress || 0) +
-                                    (todayInfo.totalCountCustomerScheduleCompleted || 0)),
+                                  ((todayInfo.totalCountCustomerSchedulePending ||
+                                    0) +
+                                    (todayInfo.totalCountCustomerScheduleInProgress ||
+                                      0) +
+                                    (todayInfo.totalCountCustomerScheduleCompleted ||
+                                      0))
                               )}
                             </span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -867,13 +1047,17 @@ const Dashboard: React.FC = () => {
                                 ? Math.round(
                                     (Math.max(
                                       0,
-                                      (todayInfo.totalCountCustomerSchedule || 0) -
-                                        ((todayInfo.totalCountCustomerSchedulePending || 0) +
-                                          (todayInfo.totalCountCustomerScheduleInProgress || 0) +
-                                          (todayInfo.totalCountCustomerScheduleCompleted || 0)),
+                                      (todayInfo.totalCountCustomerSchedule ||
+                                        0) -
+                                        ((todayInfo.totalCountCustomerSchedulePending ||
+                                          0) +
+                                          (todayInfo.totalCountCustomerScheduleInProgress ||
+                                            0) +
+                                          (todayInfo.totalCountCustomerScheduleCompleted ||
+                                            0))
                                     ) /
                                       todayInfo.totalCountCustomerSchedule) *
-                                      100,
+                                      100
                                   )
                                 : 0}
                               %)
@@ -889,9 +1073,11 @@ const Dashboard: React.FC = () => {
               <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-8 flex items-center justify-center">
                 <div className="text-center">
                   <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">No Daily Data Available</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                    {t("dailyView.noData.title")}
+                  </h3>
                   <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                    No data is available for the selected date. Try selecting a different date.
+                    {t("dailyView.noData.message")}
                   </p>
                 </div>
               </div>
@@ -900,7 +1086,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

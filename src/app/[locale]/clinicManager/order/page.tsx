@@ -1,90 +1,425 @@
-export default function Voucher() {
-    return (
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Order Lists</h1>
-         
-        </div>
-  
-        {/* Filters */}
-        <div className="flex items-center gap-4 mb-6">
-          <button className="flex items-center px-4 py-2 border rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200">
-            <span>Filter By</span>
-          </button>
-          <div className="flex gap-2">
-            <select className="border rounded-lg px-3 py-2 bg-white">
-              <option>14 Feb 2019</option>
-            </select>
-            <select className="border rounded-lg px-3 py-2 bg-white">
-              <option>Order Type</option>
-            </select>
-            <select className="border rounded-lg px-3 py-2 bg-white">
-              <option>Order Status</option>
-            </select>
-          </div>
-          <button className="flex items-center px-4 py-2 text-red-600 hover:text-red-700">
-            <span>Reset Filter</span>
-          </button>
-        </div>
-  
-        {/* Table */}
-        <div className="bg-white p-4 shadow rounded-lg">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="p-3 border">ID</th>
-                <th className="p-3 border">Name</th>
-                <th className="p-3 border">Address</th>
-                <th className="p-3 border">Date</th>
-                <th className="p-3 border">Type</th>
-                <th className="p-3 border">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="p-3 border">00001</td>
-                <td className="p-3 border">Christine Brooks</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">Percent</td>
-                <td className="p-3 border text-green-600 font-semibold">Completed</td>
-              </tr>
-              <tr>
-                <td className="p-3 border">00002</td>
-                <td className="p-3 border">Rosie Pearson</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">Percent</td>
-                <td className="p-3 border text-yellow-600 font-semibold">Processing</td>
-              </tr>
-              <tr>
-                <td className="p-3 border">00003</td>
-                <td className="p-3 border">Darrell Caldwell</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">Percent</td>
-                <td className="p-3 border text-red-600 font-semibold">Rejected</td>
-              </tr>
-              <tr>
-                <td className="p-3 border">00004</td>
-                <td className="p-3 border">Gilbert Johnston</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">14 Feb 2019</td>
-                <td className="p-3 border">Percent</td>
-                <td className="p-3 border text-green-600 font-semibold">Completed</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-  
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-4">
-          <button className="text-gray-500 hover:text-gray-700">Prev. Date</button>
-          <span className="text-sm text-gray-500">Rows per page: 5 - 1-5 of 6</span>
-          <button className="text-gray-500 hover:text-gray-700">Next Date</button>
-        </div>
-      </div>
-    );
+"use client";
+import { useState } from "react";
+import type React from "react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Filter,
+  ChevronDown,
+  MoreHorizontal,
+  Loader2,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useGetOrdersForClinicAdminQuery } from "@/features/order/api"; // Adjust the import path as needed
+import { useDebounce } from "@/hooks/use-debounce"; // Assuming you have this hook
+import Pagination from "@/components/common/Pagination/Pagination"; // Your existing pagination component
+import type { OrderItem } from "@/features/order/types";
+import { formatCurrency } from "@/utils";
+import { OrderDetailDialog } from "@/components/clinicStaff/order/order-detail-dialog";
+import { useTranslations } from "next-intl";
+
+const getStatusBadge = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "completed":
+      return (
+        <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+      );
+    case "pending":
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+      );
+    case "cancelled":
+    case "canceled":
+      return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
+    default:
+      return <Badge>{status}</Badge>;
   }
-  
+};
+
+// SortableTableHead component for column sorting
+interface SortableTableHeadProps {
+  column: string;
+  currentSortColumn: string;
+  currentSortOrder: string;
+  onSort: (column: string) => void;
+  children: React.ReactNode;
+}
+
+function SortableTableHead({
+  column,
+  currentSortColumn,
+  currentSortOrder,
+  onSort,
+  children,
+}: SortableTableHeadProps) {
+  const isActive = currentSortColumn === column;
+
+  return (
+    <TableHead
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={() => onSort(column)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {isActive && (
+          <span className="ml-1">
+            {currentSortOrder === "asc" ? (
+              <ArrowUp className="h-4 w-4" />
+            ) : (
+              <ArrowDown className="h-4 w-4" />
+            )}
+          </span>
+        )}
+      </div>
+    </TableHead>
+  );
+}
+
+export default function OrderPage() {
+  const t = useTranslations("clinicStaffOrder");
+
+  // State for pagination, search, and sorting
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortColumn, setSortColumn] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
+
+  // State for order detail dialog
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+  // Debounce search term to avoid too many API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Fetch orders using RTK Query
+  const { data, isLoading, error } = useGetOrdersForClinicAdminQuery({
+    pageIndex,
+    pageSize,
+    searchTerm: debouncedSearchTerm,
+    sortColumn,
+    sortOrder,
+  });
+
+  // Extract orders and pagination info from the response
+  const orders = data?.value?.items || [];
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = data?.value?.hasNextPage || false;
+  const hasPreviousPage = data?.value?.hasPreviousPage || false;
+
+  // Format date function
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setPageIndex(1); // Reset to first page when search changes
+  };
+
+  // Handle column sorting
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle sort order if clicking the same column
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      // Set new sort column and default to ascending order
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+    // Reset to first page when sorting changes
+    setPageIndex(1);
+  };
+
+  // Handle view order details
+  const handleViewOrderDetails = (order: OrderItem) => {
+    setSelectedOrder(order);
+    setIsDetailDialogOpen(true);
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setPageIndex(1); // Reset to first page when page size changes
+  };
+
+  // Reset all filters and sorting
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSortColumn("");
+    setSortOrder("");
+    setPageIndex(1);
+  };
+
+  // Active filters display
+  const hasActiveFilters = searchTerm || sortColumn;
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap gap-4 items-center">
+          <Input
+            className="w-64"
+            placeholder={t("searchPlaceholder")}
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <Button variant="outline" className="gap-2">
+            <Filter size={16} />
+            {t("filter")}
+            <ChevronDown size={16} />
+          </Button>
+          {hasActiveFilters && (
+            <Button variant="ghost" onClick={resetFilters} size="sm">
+              Reset Filters
+            </Button>
+          )}
+        </div>
+
+        {/* Active filters display */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-2">
+            {searchTerm && (
+              <Badge variant="outline" className="px-2 py-1">
+                Search: {searchTerm}
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="ml-2 hover:bg-muted rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+            {sortColumn && (
+              <Badge variant="outline" className="px-2 py-1">
+                Sort: {sortColumn} (
+                {sortOrder === "asc" ? "ascending" : "descending"})
+                <button
+                  onClick={() => {
+                    setSortColumn("");
+                    setSortOrder("");
+                  }}
+                  className="ml-2 hover:bg-muted rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("pageTitle")}</CardTitle>
+          <CardDescription>{t("pageDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">{t("loading")}</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              {t("errorLoadingOrders")}. {t("errorTryAgain")}
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableTableHead
+                      column="id"
+                      currentSortColumn={sortColumn}
+                      currentSortOrder={sortOrder}
+                      onSort={handleSort}
+                    >
+                      {t("orderId")}
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="customerName"
+                      currentSortColumn={sortColumn}
+                      currentSortOrder={sortOrder}
+                      onSort={handleSort}
+                    >
+                      {t("customerName")}
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="serviceName"
+                      currentSortColumn={sortColumn}
+                      currentSortOrder={sortOrder}
+                      onSort={handleSort}
+                    >
+                      {t("service")}
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="orderDate"
+                      currentSortColumn={sortColumn}
+                      currentSortOrder={sortOrder}
+                      onSort={handleSort}
+                    >
+                      {t("date")}
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="finalAmount"
+                      currentSortColumn={sortColumn}
+                      currentSortOrder={sortOrder}
+                      onSort={handleSort}
+                    >
+                      {t("finalAmount")}
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="status"
+                      currentSortColumn={sortColumn}
+                      currentSortOrder={sortOrder}
+                      onSort={handleSort}
+                    >
+                      Status
+                    </SortableTableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        {t("noOrdersFound")}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    orders.map((order: OrderItem) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">
+                          {order.id}
+                        </TableCell>
+                        <TableCell>{order.customerName}</TableCell>
+                        <TableCell>{order.serviceName}</TableCell>
+                        <TableCell>{formatDate(order.orderDate)}</TableCell>
+                        <TableCell>
+                          {formatCurrency(order.finalAmount)} đ
+                        </TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewOrderDetails(order)}
+                            >
+                              View
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  {t("printInvoice")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  Update Status
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  Cancel Order
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+
+              {/* Pagination and page size selector */}
+              {orders.length > 0 && (
+                <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {t("rowsPerPage")}:
+                    </span>
+                    <select
+                      className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+                      value={pageSize}
+                      onChange={(e) =>
+                        handlePageSizeChange(Number(e.target.value))
+                      }
+                    >
+                      <option value={6}>6</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span className="text-sm text-muted-foreground ml-4">
+                      Showing {(pageIndex - 1) * pageSize + 1} to{" "}
+                      {Math.min(pageIndex * pageSize, totalCount)} of{" "}
+                      {totalCount} results
+                    </span>
+                  </div>
+
+                  {/* Using your existing Pagination component */}
+                  <Pagination
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    totalCount={totalCount}
+                    hasNextPage={hasNextPage}
+                    hasPreviousPage={hasPreviousPage}
+                    onPageChange={setPageIndex}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Order Detail Dialog */}
+      <OrderDetailDialog
+        order={selectedOrder}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
+    </div>
+  );
+}
