@@ -17,6 +17,7 @@ const nextConfig = {
       "icon-library.com",
       "i.pravatar.cc",
       "picsum.photos",
+      "vietqr.net",
     ],
   },
   reactStrictMode: false,

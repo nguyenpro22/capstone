@@ -18,6 +18,7 @@ import {
   Clock,
   FileText,
   User,
+  Globe,
 } from "lucide-react";
 import {
   Card,
@@ -87,67 +88,28 @@ import { Separator } from "@/components/ui/separator";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { useGetWalletTransactionsForClinicQuery } from "@/features/wallet-transaction/api";
 import { useUpdateWithdrawalStatusForClinicMutation } from "@/features/wallet-transaction/api";
-
-// Mock data for withdrawal history
-const withdrawalHistory = [
-  {
-    id: "w1",
-    clinicId: "c0b7058f-8e72-4dee-8742-0df6206d1843",
-    amount: 5000000,
-    status: "completed",
-    date: "2023-11-15T10:30:00",
-    bankAccount: "Vietcombank - 1234567890",
-    transactionId: "TRX123456789",
-    notes: "Monthly withdrawal",
-  },
-  {
-    id: "w2",
-    clinicId: "c0b7058f-8e72-4dee-8742-0df6206d1843",
-    amount: 2000000,
-    status: "pending",
-    date: "2023-12-01T14:45:00",
-    bankAccount: "Vietcombank - 1234567890",
-    transactionId: "TRX987654321",
-    notes: "Urgent withdrawal",
-  },
-  {
-    id: "w3",
-    clinicId: "6ba72e3d-08b4-4783-8f46-3b1d2eaa1dea",
-    amount: 3500000,
-    status: "completed",
-    date: "2023-11-20T09:15:00",
-    bankAccount: "Techcombank - 9876543210",
-    transactionId: "TRX567891234",
-    notes: "Quarterly withdrawal",
-  },
-  {
-    id: "w4",
-    clinicId: "6e7e4870-d28d-4a2d-9d0f-9e29f2930fc5",
-    amount: 4200000,
-    status: "rejected",
-    date: "2023-11-25T16:20:00",
-    bankAccount: "BIDV - 5678912345",
-    transactionId: "TRX345678912",
-    notes: "Insufficient balance",
-  },
-  {
-    id: "w5",
-    clinicId: "c0b7058f-8e72-4dee-8742-0df6206d1843",
-    amount: 1800000,
-    status: "completed",
-    date: "2023-10-10T11:00:00",
-    bankAccount: "Vietcombank - 1234567890",
-    transactionId: "TRX234567891",
-    notes: "Regular withdrawal",
-  },
-];
+import { useTranslations, useLocale } from "next-intl";
 
 // Format currency helper function
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(amount);
+const formatCurrency = (amount: number, locale: string) => {
+  // Format the number according to locale, but without currency symbol
+  const formattedNumber = new Intl.NumberFormat(
+    locale === "vi" ? "vi-VN" : "en-US",
+    {
+      style: "decimal",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }
+  ).format(amount);
+
+  // For Vietnamese locale, add the đ symbol at the end with a space
+  if (locale === "vi") {
+    return `${formattedNumber} ₫`;
+  }
+  // For English locale, add the đ symbol at the end with a space
+  else {
+    return `${formattedNumber} ₫`;
+  }
 };
 
 export default function WalletManagement() {
@@ -160,6 +122,8 @@ export default function WalletManagement() {
 }
 
 function ClinicWalletPage() {
+  const t = useTranslations("wallet.clinicManager");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const clinicId = searchParams.get("clinicId") || ""; // Default to empty string
@@ -255,38 +219,8 @@ function ClinicWalletPage() {
     );
   }, [clinicId, clinics, mainClinic]);
 
-  // Filter withdrawals based on selected clinic and filters
-  const filteredWithdrawals = withdrawalHistory.filter((withdrawal) => {
-    // Filter by clinic
-    if (clinicId !== "all" && withdrawal.clinicId !== clinicId) return false;
-
-    // Filter by status
-    if (statusFilter !== "all" && withdrawal.status !== statusFilter)
-      return false;
-
-    // Filter by date range
-    if (dateRange.from || dateRange.to) {
-      const withdrawalDate = new Date(withdrawal.date);
-      if (dateRange.from && withdrawalDate < dateRange.from) return false;
-      if (dateRange.to) {
-        const endDate = new Date(dateRange.to);
-        endDate.setHours(23, 59, 59, 999);
-        if (withdrawalDate > endDate) return false;
-      }
-    }
-
-    // Filter by search query (transaction ID or notes)
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        withdrawal.transactionId.toLowerCase().includes(query) ||
-        withdrawal.notes.toLowerCase().includes(query) ||
-        withdrawal.bankAccount.toLowerCase().includes(query)
-      );
-    }
-
-    return true;
-  });
+  // We'll use the actual API data instead of mock data
+  const filteredWithdrawals = [];
 
   // Get transactions from API data
   const transactions = transactionsData?.value?.items || [];
@@ -303,7 +237,7 @@ function ClinicWalletPage() {
             variant="outline"
             className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 px-3 py-1 flex items-center justify-center"
           >
-            Withdrawal
+            {t("transactionTypes.withdrawal")}
           </Badge>
         );
       case "deposit":
@@ -312,7 +246,7 @@ function ClinicWalletPage() {
             variant="outline"
             className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 px-3 py-1 flex items-center justify-center"
           >
-            Deposit
+            {t("transactionTypes.deposit")}
           </Badge>
         );
       case "payment":
@@ -321,7 +255,7 @@ function ClinicWalletPage() {
             variant="outline"
             className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 px-3 py-1 flex items-center justify-center"
           >
-            Payment
+            {t("transactionTypes.payment")}
           </Badge>
         );
       default:
@@ -342,19 +276,26 @@ function ClinicWalletPage() {
       case "completed":
         return (
           <Badge className="bg-emerald-500 hover:bg-emerald-600 px-3 py-1 flex items-center justify-center">
-            Completed
+            {t("status.completed")}
           </Badge>
         );
       case "pending":
         return (
           <Badge className="bg-amber-500 hover:bg-amber-600 px-3 py-1 flex items-center justify-center">
-            Pending
+            {t("status.pending")}
           </Badge>
         );
       case "rejected":
         return (
           <Badge className="bg-rose-500 hover:bg-rose-600 px-3 py-1 flex items-center justify-center">
-            Rejected
+            {t("status.rejected")}
+          </Badge>
+        );
+      case "waitingforpayment":
+      case "waiting for payment":
+        return (
+          <Badge className="bg-purple-500 hover:bg-purple-600 px-3 py-1 flex items-center justify-center">
+            {t("status.waitingForPayment")}
           </Badge>
         );
       default:
@@ -393,12 +334,6 @@ function ClinicWalletPage() {
     refetch();
   };
 
-  // Handle export data
-  const handleExport = () => {
-    // Implementation for exporting data
-    alert("Export functionality would be implemented here");
-  };
-
   // Clear all filters
   const clearFilters = () => {
     setDateRange({ from: undefined, to: undefined });
@@ -415,23 +350,13 @@ function ClinicWalletPage() {
       setSortOrder("asc");
     }
   };
-
-  // Handle view transaction details
-  const handleViewTransactionDetails = (transaction: any) => {
-    setSelectedTransaction(transaction);
-    setIsDetailsModalOpen(true);
-    // Reset rejection state when opening modal
-    setRejectionReason("");
-    setShowRejectionInput(false);
-  };
-
   // Handle approve withdrawal
   const handleApprove = async () => {
     if (!selectedTransaction) return;
 
     try {
       // Show loading state
-      toast.info("Processing approval...", { autoClose: 2000 });
+      toast.info(t("notifications.processingApproval"), { autoClose: 2000 });
 
       const response = await updateWithdrawalStatus({
         withdrawalId: selectedTransaction.id,
@@ -442,7 +367,7 @@ function ClinicWalletPage() {
       console.log("Approval response:", response);
 
       // Always consider it a success if we reach here without throwing an exception
-      toast.success("Withdrawal request approved successfully");
+      toast.success(t("notifications.approvalSuccess"));
       setIsDetailsModalOpen(false);
       refetchTransactions(); // Refresh data after approval
     } catch (error: any) {
@@ -451,7 +376,7 @@ function ClinicWalletPage() {
       // Extract error message from the error response with fallbacks
       const errorDetail =
         error.data?.detail || error.data?.message || error.message;
-      toast.error(`Failed to approve withdrawal: ${errorDetail}`);
+      toast.error(t("notifications.approvalFailed", { error: errorDetail }));
     }
   };
 
@@ -466,7 +391,7 @@ function ClinicWalletPage() {
 
     try {
       // Show loading state
-      toast.info("Processing rejection...", { autoClose: 2000 });
+      toast.info(t("notifications.processingRejection"), { autoClose: 2000 });
 
       const response = await updateWithdrawalStatus({
         withdrawalId: selectedTransaction.id,
@@ -478,7 +403,7 @@ function ClinicWalletPage() {
       console.log("Rejection response:", response);
 
       // Always consider it a success if we reach here without throwing an exception
-      toast.success("Withdrawal request rejected successfully");
+      toast.success(t("notifications.rejectionSuccess"));
       setIsDetailsModalOpen(false);
       refetchTransactions(); // Refresh data after rejection
     } catch (error: any) {
@@ -487,7 +412,7 @@ function ClinicWalletPage() {
       // Extract error message from the error response with fallbacks
       const errorDetail =
         error.data?.detail || error.data?.message || error.message;
-      toast.error(`Failed to reject withdrawal: ${errorDetail}`);
+      toast.error(t("notifications.rejectionFailed", { error: errorDetail }));
     }
   };
 
@@ -503,7 +428,7 @@ function ClinicWalletPage() {
       console.log("Approval response:", response);
 
       // Always consider it a success if we reach here without throwing an exception
-      toast.success("Withdrawal request approved successfully");
+      toast.success(t("notifications.approvalSuccess"));
       refetchTransactions(); // Refresh data after approval
     } catch (error: any) {
       console.error("Failed to approve withdrawal:", error);
@@ -511,7 +436,7 @@ function ClinicWalletPage() {
       // Extract error message from the error response with fallbacks
       const errorDetail =
         error.data?.detail || error.data?.message || error.message;
-      toast.error(`Failed to approve withdrawal: ${errorDetail}`);
+      toast.error(t("notifications.approvalFailed", { error: errorDetail }));
     }
   };
 
@@ -560,9 +485,7 @@ function ClinicWalletPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Clinic Wallet Management
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -575,11 +498,7 @@ function ClinicWalletPage() {
             ) : (
               <RefreshCw className="h-4 w-4 mr-1" />
             )}
-            Refresh
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" />
-            Export
+            {t("actions.refresh")}
           </Button>
         </div>
       </div>
@@ -588,11 +507,9 @@ function ClinicWalletPage() {
       <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-100 dark:border-indigo-800/30 mb-6">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-indigo-800 dark:text-indigo-300">
-            Total Clinic Finances
+            {t("summary.title")}
           </CardTitle>
-          <CardDescription>
-            Summary of all clinics financial data
-          </CardDescription>
+          <CardDescription>{t("summary.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoadingBranches ? (
@@ -603,37 +520,37 @@ function ClinicWalletPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Total Balance
+                  {t("summary.totalBalance")}
                 </h3>
                 <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                  {formatCurrency(totals.totalBalance)}
+                  {formatCurrency(totals.totalBalance, locale)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Combined balance across all clinics
+                  {t("summary.totalBalanceDesc")}
                 </p>
               </div>
 
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Total Pending Withdrawals
+                  {t("summary.totalPendingWithdrawals")}
                 </h3>
                 <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                  {formatCurrency(totals.totalPendingWithdrawals)}
+                  {formatCurrency(totals.totalPendingWithdrawals, locale)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pending withdrawals across all clinics
+                  {t("summary.totalPendingWithdrawalsDesc")}
                 </p>
               </div>
 
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Total Earnings
+                  {t("summary.totalEarnings")}
                 </h3>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {formatCurrency(totals.totalEarnings)}
+                  {formatCurrency(totals.totalEarnings, locale)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Lifetime earnings across all clinics
+                  {t("summary.totalEarningsDesc")}
                 </p>
               </div>
             </div>
@@ -651,11 +568,13 @@ function ClinicWalletPage() {
                 ) : (
                   <Select value={clinicId} onValueChange={handleClinicChange}>
                     <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select clinic" />
+                      <SelectValue placeholder={t("clinic.selectClinic")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Select Clinic</SelectLabel>
+                        <SelectLabel>
+                          {t("clinic.selectClinicLabel")}
+                        </SelectLabel>
                         {clinics
                           .filter((clinic) => !clinic.isMainClinic)
                           .map((clinic) => (
@@ -668,13 +587,17 @@ function ClinicWalletPage() {
                   </Select>
                 )}
                 <CardTitle className="text-xl font-bold">
-                  {selectedClinic?.name || "Select a clinic"} Wallet
+                  {selectedClinic
+                    ? t("clinic.walletTitle", {
+                        clinicName: selectedClinic.name,
+                      })
+                    : t("clinic.selectToManage")}
                 </CardTitle>
               </div>
               <CardDescription className="mt-1">
                 {!selectedClinic
-                  ? "Please select a clinic to manage wallet"
-                  : "Manage wallet balance and withdrawals"}
+                  ? t("clinic.selectToManage")
+                  : t("clinic.manageWallet")}
               </CardDescription>
             </div>
             <Button
@@ -682,7 +605,7 @@ function ClinicWalletPage() {
               disabled={isLoadingBranches || !selectedClinic}
             >
               <Plus className="h-4 w-4 mr-1" />
-              Request Withdrawal
+              {t("actions.requestWithdrawal")}
             </Button>
           </div>
         </CardHeader>
@@ -692,7 +615,7 @@ function ClinicWalletPage() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Current Balance
+                    {t("clinic.currentBalance")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -701,10 +624,10 @@ function ClinicWalletPage() {
                   ) : (
                     <>
                       <div className="text-2xl font-bold">
-                        {formatCurrency(selectedClinic.balance)}
+                        {formatCurrency(selectedClinic.balance, locale)}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Available for withdrawal
+                        {t("clinic.availableForWithdrawal")}
                       </p>
                     </>
                   )}
@@ -714,7 +637,7 @@ function ClinicWalletPage() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Pending Withdrawals
+                    {t("clinic.pendingWithdrawals")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -723,10 +646,13 @@ function ClinicWalletPage() {
                   ) : (
                     <>
                       <div className="text-2xl font-bold">
-                        {formatCurrency(selectedClinic.pendingWithdrawals)}
+                        {formatCurrency(
+                          selectedClinic.pendingWithdrawals,
+                          locale
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Being processed
+                        {t("clinic.beingProcessed")}
                       </p>
                     </>
                   )}
@@ -736,7 +662,7 @@ function ClinicWalletPage() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Earnings
+                    {t("clinic.totalEarnings")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -745,10 +671,10 @@ function ClinicWalletPage() {
                   ) : (
                     <>
                       <div className="text-2xl font-bold">
-                        {formatCurrency(selectedClinic.totalEarnings)}
+                        {formatCurrency(selectedClinic.totalEarnings, locale)}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Lifetime earnings
+                        {t("clinic.lifetimeEarnings")}
                       </p>
                     </>
                   )}
@@ -763,9 +689,11 @@ function ClinicWalletPage() {
 
           <Tabs defaultValue="withdrawals">
             <TabsList className="mb-4">
-              <TabsTrigger value="withdrawals">Withdrawal History</TabsTrigger>
+              <TabsTrigger value="withdrawals">
+                {t("tabs.withdrawalHistory")}
+              </TabsTrigger>
               <TabsTrigger value="transactions">
-                Transaction History
+                {t("tabs.transactionHistory")}
               </TabsTrigger>
             </TabsList>
 
@@ -788,7 +716,7 @@ function ClinicWalletPage() {
                               format(dateRange.from, "LLL dd, y")
                             )
                           ) : (
-                            "Date Range"
+                            t("filters.dateRange")
                           )}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
@@ -819,36 +747,48 @@ function ClinicWalletPage() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="h-9">
                           <Filter className="h-4 w-4 mr-2" />
-                          Status:{" "}
+                          {t("filters.status")}:{" "}
                           {statusFilter === "all"
-                            ? "All"
-                            : statusFilter.charAt(0).toUpperCase() +
-                              statusFilter.slice(1)}
+                            ? t("filters.statusAll")
+                            : statusFilter === "completed"
+                            ? t("filters.statusCompleted")
+                            : statusFilter === "pending"
+                            ? t("filters.statusPending")
+                            : statusFilter === "rejected"
+                            ? t("filters.statusRejected")
+                            : t("filters.statusWaitingForPayment")}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                          {t("filters.status")}
+                        </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => setStatusFilter("all")}
                         >
-                          All
+                          {t("filters.statusAll")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setStatusFilter("completed")}
                         >
-                          Completed
+                          {t("filters.statusCompleted")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setStatusFilter("pending")}
                         >
-                          Pending
+                          {t("filters.statusPending")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setStatusFilter("rejected")}
                         >
-                          Rejected
+                          {t("filters.statusRejected")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("waitingForPayment")}
+                        >
+                          {t("filters.statusWaitingForPayment")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -863,7 +803,7 @@ function ClinicWalletPage() {
                         onClick={clearFilters}
                         className="h-9"
                       >
-                        Clear Filters
+                        {t("actions.clearFilters")}
                       </Button>
                     )}
                   </div>
@@ -873,7 +813,7 @@ function ClinicWalletPage() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
-                      placeholder="Search by transaction ID or notes..."
+                      placeholder={t("filters.searchWithdrawal")}
                       className="pl-8 w-full md:w-[300px]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -886,62 +826,40 @@ function ClinicWalletPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[100px]">Date</TableHead>
-                        <TableHead>Amount</TableHead>
-                        {clinicId === "all" && <TableHead>Clinic</TableHead>}
-                        <TableHead>Bank Account</TableHead>
-                        <TableHead>Transaction ID</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="w-[100px]">
+                          {t("table.date")}
+                        </TableHead>
+                        <TableHead>{t("table.amount")}</TableHead>
+                        {clinicId === "all" && (
+                          <TableHead>{t("table.clinic")}</TableHead>
+                        )}
+                        <TableHead>{t("table.bankAccount")}</TableHead>
+                        <TableHead>{t("table.transactionId")}</TableHead>
+                        <TableHead>{t("table.status")}</TableHead>
+                        <TableHead className="text-right">
+                          {t("table.actions")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredWithdrawals.length > 0 ? (
-                        filteredWithdrawals.map((withdrawal) => (
-                          <TableRow key={withdrawal.id}>
-                            <TableCell className="font-medium">
-                              {format(new Date(withdrawal.date), "dd/MM/yyyy")}
-                            </TableCell>
-                            <TableCell className="font-semibold">
-                              {formatCurrency(withdrawal.amount)}
-                            </TableCell>
-                            {clinicId === "all" && (
-                              <TableCell>
-                                {clinics.find(
-                                  (c) => c.id === withdrawal.clinicId
-                                )?.name || "Unknown"}
-                              </TableCell>
-                            )}
-                            <TableCell>{withdrawal.bankAccount}</TableCell>
-                            <TableCell>
-                              <span className="font-mono text-xs">
-                                {withdrawal.transactionId}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              {getStatusBadge(withdrawal.status)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewDetails(withdrawal)}
-                              >
-                                View Details
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={clinicId === "all" ? 7 : 6}
-                            className="h-24 text-center"
-                          >
-                            No withdrawal records found.
-                          </TableCell>
-                        </TableRow>
-                      )}
+                      <TableRow>
+                        <TableCell
+                          colSpan={clinicId === "all" ? 7 : 6}
+                          className="h-24 text-center"
+                        >
+                          <div className="flex flex-col items-center justify-center">
+                            <CreditCard className="h-10 w-10 text-muted-foreground mb-2" />
+                            <p className="text-lg font-medium">
+                              {t("table.noWithdrawals")}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {searchQuery
+                                ? t("table.searchAdjust")
+                                : t("table.transactionsAppear")}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </div>
@@ -968,7 +886,7 @@ function ClinicWalletPage() {
                               format(dateRange.from, "LLL dd, y")
                             )
                           ) : (
-                            "Date Range"
+                            t("filters.dateRange")
                           )}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
@@ -1004,7 +922,7 @@ function ClinicWalletPage() {
                         onClick={clearTransactionFilters}
                         className="h-9"
                       >
-                        Clear Filters
+                        {t("actions.clearFilters")}
                       </Button>
                     )}
                   </div>
@@ -1014,7 +932,7 @@ function ClinicWalletPage() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
-                      placeholder="Search by clinic name or description..."
+                      placeholder={t("filters.searchTransaction")}
                       className="pl-8 w-full md:w-[300px]"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -1033,7 +951,7 @@ function ClinicWalletPage() {
                             onClick={() => handleSort("transactionDate")}
                             className="flex items-center justify-center gap-1 font-semibold mx-auto"
                           >
-                            Date
+                            {t("table.date")}
                             <ArrowUpDown className="h-4 w-4" />
                           </Button>
                         </TableHead>
@@ -1043,7 +961,7 @@ function ClinicWalletPage() {
                             onClick={() => handleSort("clinicName")}
                             className="flex items-center justify-center gap-1 font-semibold mx-auto"
                           >
-                            Clinic
+                            {t("table.clinic")}
                             <ArrowUpDown className="h-4 w-4" />
                           </Button>
                         </TableHead>
@@ -1053,16 +971,22 @@ function ClinicWalletPage() {
                             onClick={() => handleSort("amount")}
                             className="flex items-center justify-center gap-1 font-semibold mx-auto"
                           >
-                            Amount
+                            {t("table.amount")}
                             <ArrowUpDown className="h-4 w-4" />
                           </Button>
                         </TableHead>
-                        <TableHead className="text-center">Type</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
                         <TableHead className="text-center">
-                          Description
+                          {t("table.type")}
                         </TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                        <TableHead className="text-center">
+                          {t("table.status")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.description")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.actions")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1071,7 +995,7 @@ function ClinicWalletPage() {
                           <TableCell colSpan={7} className="h-24 text-center">
                             <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                             <p className="mt-2 text-sm text-muted-foreground">
-                              Loading transactions...
+                              {t("table.loading")}
                             </p>
                           </TableCell>
                         </TableRow>
@@ -1112,7 +1036,7 @@ function ClinicWalletPage() {
                               "withdrawal"
                                 ? "- "
                                 : "+ "}
-                              {formatCurrency(transaction.amount)}
+                              {formatCurrency(transaction.amount, locale)}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex justify-center">
@@ -1159,7 +1083,7 @@ function ClinicWalletPage() {
                                         disabled={isUpdatingStatus}
                                       >
                                         <XCircle className="h-4 w-4 mr-1" />
-                                        Reject
+                                        {t("actions.reject")}
                                       </Button>
                                       <Button
                                         variant="ghost"
@@ -1171,7 +1095,7 @@ function ClinicWalletPage() {
                                         disabled={isUpdatingStatus}
                                       >
                                         <CheckCircle className="h-4 w-4 mr-1" />
-                                        Approve
+                                        {t("actions.approve")}
                                       </Button>
                                     </>
                                   )}
@@ -1185,12 +1109,12 @@ function ClinicWalletPage() {
                             <div className="flex flex-col items-center justify-center">
                               <CreditCard className="h-10 w-10 text-muted-foreground mb-2" />
                               <p className="text-lg font-medium">
-                                No transactions found
+                                {t("table.noTransactions")}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {searchTerm
-                                  ? "Try adjusting your search or filters"
-                                  : "Transactions will appear here when they are created"}
+                                  ? t("table.searchAdjust")
+                                  : t("table.transactionsAppear")}
                               </p>
                             </div>
                           </TableCell>
@@ -1210,6 +1134,77 @@ function ClinicWalletPage() {
                     hasPreviousPage={hasPreviousPage}
                     onPageChange={setPageIndex}
                   />
+                )}
+
+                {/* Export Button */}
+                {filteredTransactions.length > 0 && (
+                  <div className="flex justify-end mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        // Implementation for exporting withdrawal history
+                        const dataToExport = filteredTransactions.map(
+                          (transaction) => ({
+                            date: format(
+                              new Date(transaction.transactionDate),
+                              "dd/MM/yyyy"
+                            ),
+                            time: format(
+                              new Date(transaction.transactionDate),
+                              "HH:mm"
+                            ),
+                            clinic: transaction.clinicName,
+                            amount: formatCurrency(transaction.amount, locale),
+                            type: transaction.transactionType,
+                            status: transaction.status,
+                            description: transaction.description,
+                          })
+                        );
+
+                        // Create CSV content
+                        const headers = [
+                          t("table.date"),
+                          t("table.time"),
+                          t("table.clinic"),
+                          t("table.amount"),
+                          t("table.type"),
+                          t("table.status"),
+                          t("table.description"),
+                        ];
+                        const csvContent = [
+                          headers.join(","),
+                          ...dataToExport.map((row) =>
+                            Object.values(row).join(",")
+                          ),
+                        ].join("\n");
+
+                        // Create and download the file
+                        const blob = new Blob([csvContent], {
+                          type: "text/csv;charset=utf-8;",
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.setAttribute("href", url);
+                        link.setAttribute(
+                          "download",
+                          `withdrawal-history-${format(
+                            new Date(),
+                            "yyyy-MM-dd"
+                          )}.csv`
+                        );
+                        link.style.visibility = "hidden";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        toast.success(t("notifications.exportSuccess"));
+                      }}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      {t("actions.export")}
+                    </Button>
+                  </div>
                 )}
               </div>
             </TabsContent>
@@ -1257,10 +1252,11 @@ function ClinicWalletPage() {
         >
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Transaction Details</DialogTitle>
+              <DialogTitle>{t("transactionDetails.title")}</DialogTitle>
               <DialogDescription>
-                Details for {selectedTransaction.transactionType.toLowerCase()}{" "}
-                transaction
+                {t("transactionDetails.detailsFor", {
+                  type: selectedTransaction.transactionType.toLowerCase(),
+                })}
               </DialogDescription>
             </DialogHeader>
 
@@ -1277,7 +1273,8 @@ function ClinicWalletPage() {
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Transaction ID: {selectedTransaction.id.substring(0, 8)}
+                      {t("table.transactionId")}:{" "}
+                      {selectedTransaction.id.substring(0, 8)}
                       ...
                     </p>
                   </div>
@@ -1290,7 +1287,7 @@ function ClinicWalletPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Amount
+                    {t("transactionDetails.amount")}
                   </p>
                   <p
                     className={`text-lg font-semibold ${
@@ -1304,12 +1301,12 @@ function ClinicWalletPage() {
                     "withdrawal"
                       ? "- "
                       : "+ "}
-                    {formatCurrency(selectedTransaction.amount)}
+                    {formatCurrency(selectedTransaction.amount, locale)}
                   </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Date & Time
+                    {t("transactionDetails.dateTime")}
                   </p>
                   <div className="flex flex-col">
                     <p className="font-medium">
@@ -1331,7 +1328,7 @@ function ClinicWalletPage() {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Clinic
+                  {t("transactionDetails.clinic")}
                 </p>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
@@ -1346,7 +1343,7 @@ function ClinicWalletPage() {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Description
+                  {t("transactionDetails.description")}
                 </p>
                 <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-start gap-2">
@@ -1358,20 +1355,22 @@ function ClinicWalletPage() {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Created By
+                  {t("transactionDetails.createdBy")}
                 </p>
                 <p className="text-sm">
-                  {selectedTransaction.isMakeBySystem ? "System" : "User"}
+                  {selectedTransaction.isMakeBySystem
+                    ? t("transactionDetails.system")
+                    : t("transactionDetails.user")}
                 </p>
               </div>
 
               {showRejectionInput && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Rejection Reason
+                    {t("transactionDetails.rejectionReason")}
                   </p>
                   <Textarea
-                    placeholder="Please provide a reason for rejection"
+                    placeholder={t("transactionDetails.rejectionPlaceholder")}
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
                     className="resize-none"
@@ -1386,7 +1385,7 @@ function ClinicWalletPage() {
                 variant="outline"
                 onClick={() => setIsDetailsModalOpen(false)}
               >
-                Close
+                {t("actions.close")}
               </Button>
 
               {/* Show approval options only if status is pending and type is withdrawal */}
@@ -1403,12 +1402,12 @@ function ClinicWalletPage() {
                         {isUpdatingStatus ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Rejecting...
+                            {t("transactionDetails.rejecting")}
                           </>
                         ) : (
                           <>
                             <XCircle className="mr-2 h-4 w-4" />
-                            Confirm Rejection
+                            {t("actions.confirmRejection")}
                           </>
                         )}
                       </Button>
@@ -1418,7 +1417,7 @@ function ClinicWalletPage() {
                         onClick={() => setShowRejectionInput(true)}
                       >
                         <XCircle className="mr-2 h-4 w-4" />
-                        Reject
+                        {t("actions.reject")}
                       </Button>
                     )}
 
@@ -1431,12 +1430,12 @@ function ClinicWalletPage() {
                       {isUpdatingStatus ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Approving...
+                          {t("transactionDetails.approving")}
                         </>
                       ) : (
                         <>
                           <CheckCircle className="mr-2 h-4 w-4" />
-                          Approve
+                          {t("actions.approve")}
                         </>
                       )}
                     </Button>

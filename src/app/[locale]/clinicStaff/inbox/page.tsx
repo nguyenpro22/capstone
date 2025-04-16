@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { v4 as uuidv4 } from "uuid";
-import { Send, MessageSquare, Search, Clock, Bell } from "lucide-react";
+import { Send, MessageSquare, Search, Clock, Bell, Globe } from "lucide-react";
 import {
   useGetAllConversationQuery,
   useGetAllMessageConversationQuery,
@@ -14,6 +14,8 @@ import {
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import type { Conversation, Message } from "@/features/inbox/types";
 import { Badge } from "@/components/ui/badge";
+import { useTranslations, useLocale } from "next-intl";
+import { usePathname, useRouter } from "next/navigation";
 
 interface ConversationNotification {
   conversationId: string;
@@ -21,6 +23,9 @@ interface ConversationNotification {
 }
 
 export default function ChatScreen() {
+  const t = useTranslations("chat");
+  const locale = useLocale();
+
   const [inputMessage, setInputMessage] = useState("");
   const signalRef = useRef<signalR.HubConnection | null>(null);
   const [selectedConversation, setSelectedConversation] =
@@ -220,7 +225,7 @@ export default function ChatScreen() {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString(locale === "vi" ? "vi-VN" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -228,7 +233,7 @@ export default function ChatScreen() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString(locale === "vi" ? "vi-VN" : "en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -238,16 +243,21 @@ export default function ChatScreen() {
   return (
     <div className="min-h-[calc(100vh-160px)] bg-gradient-to-b from-rose-50/50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="container px-4 mx-auto py-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            {t("title")}
+          </h1>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 h-[calc(100vh-160px)]">
           {/* Conversation List */}
           <div className="md:col-span-1 lg:col-span-1 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden h-full flex flex-col">
             <div className="p-4 border-b dark:border-gray-800">
               <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                Tin nhắn
+                {t("title")}
               </h2>
               <div className="relative">
                 <Input
-                  placeholder="Tìm kiếm cuộc trò chuyện..."
+                  placeholder={t("search")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
@@ -285,6 +295,7 @@ export default function ChatScreen() {
                             <AvatarImage
                               src={
                                 conversation.friendImageUrl ||
+                                "/placeholder.svg" ||
                                 "/placeholder.svg"
                               }
                             />
@@ -316,10 +327,12 @@ export default function ChatScreen() {
                           <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                             {hasNewMessages ? (
                               <span className="text-rose-600 dark:text-rose-400">
-                                {notification?.newMessageCount} tin nhắn mới
+                                {t("newMessages", {
+                                  count: notification?.newMessageCount,
+                                })}
                               </span>
                             ) : (
-                              "Nhấn để xem tin nhắn"
+                              t("clickToView")
                             )}
                           </p>
                         </div>
@@ -329,7 +342,7 @@ export default function ChatScreen() {
                 ) : (
                   <div className="p-6 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center">
                     <Search className="h-8 w-8 mb-2 text-gray-400" />
-                    <p>Không tìm thấy kết quả</p>
+                    <p>{t("noResults")}</p>
                   </div>
                 )}
               </div>
@@ -347,6 +360,7 @@ export default function ChatScreen() {
                       <AvatarImage
                         src={
                           selectedConversation.friendImageUrl ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                       />
@@ -362,7 +376,7 @@ export default function ChatScreen() {
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <span className="h-1.5 w-1.5 bg-green-500 rounded-full inline-block mr-1.5"></span>
-                        Đang hoạt động
+                        {t("online")}
                       </p>
                     </div>
                   </div>
@@ -444,11 +458,12 @@ export default function ChatScreen() {
                         <MessageSquare className="h-8 w-8 text-rose-500" />
                       </div>
                       <h3 className="text-lg font-medium mb-2 text-gray-800 dark:text-gray-200">
-                        Không có tin nhắn
+                        {t("noMessages")}
                       </h3>
                       <p className="text-gray-500 max-w-xs">
-                        Hãy bắt đầu cuộc trò chuyện với{" "}
-                        {selectedConversation.friendName}
+                        {t("startConversation", {
+                          name: selectedConversation.friendName,
+                        })}
                       </p>
                     </div>
                   )}
@@ -459,7 +474,7 @@ export default function ChatScreen() {
                   <div className="flex items-center space-x-2">
                     <div className="flex-1 relative">
                       <Input
-                        placeholder="Nhập tin nhắn..."
+                        placeholder={t("inputPlaceholder")}
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={(e) => {
@@ -487,7 +502,7 @@ export default function ChatScreen() {
                       disabled={!inputMessage.trim()}
                     >
                       <Send className="h-4 w-4" />
-                      <span className="sr-only">Gửi tin nhắn</span>
+                      <span className="sr-only">{t("send")}</span>
                     </Button>
                   </div>
                 </div>
@@ -498,18 +513,17 @@ export default function ChatScreen() {
                   <MessageSquare className="h-10 w-10 text-rose-500" />
                 </div>
                 <h3 className="text-xl font-medium mb-3 text-gray-800 dark:text-gray-200">
-                  Chưa có cuộc trò chuyện nào
+                  {t("noConversations")}
                 </h3>
                 <p className="text-gray-500 max-w-sm mb-6">
-                  Chọn một cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn
-                  tin
+                  {t("selectConversation")}
                 </p>
                 <Button
                   variant="outline"
                   className="border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/20"
                 >
                   <Bell className="h-4 w-4 mr-2" />
-                  Bật thông báo
+                  {t("enableNotifications")}
                 </Button>
               </div>
             )}
