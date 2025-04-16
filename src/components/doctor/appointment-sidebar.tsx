@@ -34,6 +34,7 @@ export function AppointmentSidebar({
   // Move the useTranslations hooks to the component level
   const t = useTranslations("doctor");
   const sidebarT = useTranslations("doctor.sidebarList");
+  console.log(selectedDate);
 
   if (!selectedDate) return null;
 
@@ -78,14 +79,6 @@ export function AppointmentSidebar({
               {appointments.length} {t("calendar.appointments")}
             </Badge>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1 rounded-lg border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>{t("calendar.newAppointment")}</span>
-          </Button>
         </div>
       </div>
 
@@ -157,14 +150,6 @@ export function AppointmentSidebar({
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-xs">
             {sidebarT("emptyDesc")}
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4 gap-1.5 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>{t("calendar.createAppointment")}</span>
-          </Button>
         </div>
       )}
     </div>
