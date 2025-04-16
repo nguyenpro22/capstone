@@ -15,6 +15,8 @@ const nextConfig = {
       "benhvienjw.vn",
       "api.vietqr.io",
       "icon-library.com",
+      "i.pravatar.cc",
+      "picsum.photos",
     ],
   },
   reactStrictMode: false,
