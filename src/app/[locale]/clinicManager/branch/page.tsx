@@ -273,7 +273,7 @@ const BranchesList: React.FC = () => {
 
       {/* Branch Limit Info */}
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <span className="text-gray-700 dark:text-gray-300 font-medium">
             {t("branchLimit")}
           </span>
@@ -286,7 +286,7 @@ const BranchesList: React.FC = () => {
           >
             {currentBranchCount} / {branchLimit}
           </span>
-        </div>
+        </div> */}
         {isBranchLimitReached && (
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <AlertCircle className="h-4 w-4" />
