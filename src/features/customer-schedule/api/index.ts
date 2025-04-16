@@ -10,14 +10,19 @@ export const customerScheduleQueryApi = createApi({
   endpoints: (builder) => ({
     // Get customer schedules by customer name and phone
     getCustomerSchedules: builder.query<
-      IResCommon<IListResponse<CustomerSchedule>>,
-      { customerName: string; customerPhone: string }
-    >({
-      query: ({ customerName, customerPhone }) => ({
-        url: `/customer-schedules/customer/${encodeURIComponent(customerName)}?customerPhone=${encodeURIComponent(customerPhone)}`,
-        method: "GET",
-      }),
+    IResCommon<IListResponse<CustomerSchedule>>,
+    { 
+      customerName: string; 
+      customerPhone: string;
+      pageIndex?: number;
+      pageSize?: number;
+    }
+  >({
+    query: ({ customerName, customerPhone, pageIndex = 1, pageSize = 8 }) => ({
+      url: `/customer-schedules/customer/${encodeURIComponent(customerName)}?customerPhone=${encodeURIComponent(customerPhone)}&pageIndex=${pageIndex}&pageSize=${pageSize}`,
+      method: "GET",
     }),
+  }),
 
     // Get clinic schedules with pagination and filtering
     getClinicSchedules: builder.query<
@@ -138,6 +143,7 @@ export const customerScheduleCommandApi = createApi({
           customerScheduleId: data.customerScheduleId,
           date: data.date,
           startTime: data.startTime,
+          isNext: data.isNext ,
         },
       }),
     }),
