@@ -1,131 +1,139 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo } from "react"
-import dynamic from "next/dynamic"
+import { useEffect, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 // Import our local CSS instead of the package CSS
-import "@/styles/quill.css"
+import "@/styles/quill.css";
 
 // Dynamically import ReactQuill
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
-  loading: () => <div className="h-32 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />,
-})
+  loading: () => (
+    <div className="h-32 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />
+  ),
+});
 
 interface SimpleQuillEditorProps {
-  value: string
-  onChange: (data: string) => void
-  error?: boolean
-  placeholder?: string
+  value: string;
+  onChange: (data: string) => void;
+  error?: boolean;
+  placeholder?: string;
 }
 
-export default function SimpleQuillEditor({ value, onChange, error, placeholder }: SimpleQuillEditorProps) {
-  const [mounted, setMounted] = useState(false)
-  const [quillInstance, setQuillInstance] = useState<any>(null)
+export default function SimpleQuillEditor({
+  value,
+  onChange,
+  error,
+  placeholder,
+}: SimpleQuillEditorProps) {
+  const [mounted, setMounted] = useState(false);
+  const [quillInstance, setQuillInstance] = useState<any>(null);
 
   // Ensure component is mounted before rendering Quill
   useEffect(() => {
-    setMounted(true)
-    console.log("🔍 SimpleQuillEditor mounted")
+    setMounted(true);
+    console.log("🔍 SimpleQuillEditor mounted");
 
     // Find the Quill instance after component is mounted
     if (mounted) {
       // Wait a bit for the editor to initialize
       const timer = setTimeout(() => {
-        const quillEditor = document.querySelector(".quill-editor .ql-editor")
+        const quillEditor = document.querySelector(".quill-editor .ql-editor");
         if (quillEditor) {
           // Walk up to find the ReactQuill instance
-          let parent = quillEditor.parentElement
+          let parent = quillEditor.parentElement;
           while (parent && !parent.className.includes("quill-editor")) {
-            parent = parent.parentElement
+            parent = parent.parentElement;
           }
 
           if (parent) {
-            const quill = (parent as any).__quill
+            const quill = (parent as any).__quill;
             if (quill) {
-              console.log("🔍 Quill instance found")
-              setQuillInstance(quill)
+              console.log("🔍 Quill instance found");
+              setQuillInstance(quill);
             }
           }
         }
-      }, 500)
+      }, 500);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [mounted])
+  }, [mounted]);
 
   // Handle image upload
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleImageUpload = () => {
     if (!quillInstance) {
-      console.log("❌ Quill instance not found")
-      return
+      console.log("❌ Quill instance not found");
+      return;
     }
 
-    console.log("🔍 Image upload handler triggered")
-    const input = document.createElement("input")
-    input.setAttribute("type", "file")
-    input.setAttribute("accept", "image/*")
-    input.style.display = "none"
+    console.log("🔍 Image upload handler triggered");
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.style.display = "none";
 
     // Append to body and remove after selection
-    document.body.appendChild(input)
+    document.body.appendChild(input);
 
     input.onchange = async () => {
       if (!input.files?.length) {
-        document.body.removeChild(input)
-        return
+        document.body.removeChild(input);
+        return;
       }
 
-      const file = input.files[0]
-      console.log("🔍 File selected:", file.name)
+      const file = input.files[0];
+      console.log("🔍 File selected:", file.name);
 
       try {
-        console.log("🚀 Sending API request to /api/upload-image")
+        console.log("🚀 Sending API request to /api/upload-image");
 
         // Create FormData for upload
-        const formData = new FormData()
-        formData.append("image", file)
+        const formData = new FormData();
+        formData.append("image", file);
 
         // Upload image to your server
         const response = await fetch("/api/upload-image", {
           method: "POST",
           body: formData,
-        })
+        });
 
-        console.log(`📡 API response status: ${response.status}`)
+        console.log(`📡 API response status: ${response.status}`);
 
         if (!response.ok) {
-          throw new Error(`Upload failed with status: ${response.status}`)
+          throw new Error(`Upload failed with status: ${response.status}`);
         }
 
-        const data = await response.json()
-        console.log("📦 API response data:", data)
-        const imageUrl = data.url
+        const data = await response.json();
+        console.log("📦 API response data:", data);
+        const imageUrl = data.url;
 
         // Insert the image at cursor position
-        const range = quillInstance.getSelection(true)
-        quillInstance.insertEmbed(range.index, "image", imageUrl)
-        quillInstance.setSelection(range.index + 1)
+        const range = quillInstance.getSelection(true);
+        quillInstance.insertEmbed(range.index, "image", imageUrl);
+        quillInstance.setSelection(range.index + 1);
 
-        console.log("🖼️ Image inserted successfully")
+        console.log("🖼️ Image inserted successfully");
       } catch (error) {
-        console.error("❌ Error uploading image:", error)
-        alert("Lỗi khi tải ảnh lên. Vui lòng thử lại.")
+        console.error("❌ Error uploading image:", error);
+        alert("Lỗi khi tải ảnh lên. Vui lòng thử lại.");
       } finally {
-        document.body.removeChild(input)
+        document.body.removeChild(input);
       }
-    }
+    };
 
-    input.click()
-  }
+    input.click();
+  };
 
   // Update toolbar handlers when quill instance changes
   useEffect(() => {
     if (quillInstance) {
-      console.log("🔧 Setting up image handler")
-      const toolbar = quillInstance.getModule("toolbar")
-      toolbar.addHandler("image", handleImageUpload)
+      console.log("🔧 Setting up image handler");
+      const toolbar = quillInstance.getModule("toolbar");
+      toolbar.addHandler("image", handleImageUpload);
     }
-  }, [handleImageUpload, quillInstance])
+  }, [handleImageUpload, quillInstance]);
 
   // Quill modules configuration
   const modules = useMemo(
@@ -142,8 +150,8 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
         ],
       },
     }),
-    [],
-  )
+    []
+  );
 
   // Quill formats
   const formats = [
@@ -160,14 +168,20 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
     "code-block",
     "indent",
     "align",
-  ]
+  ];
 
   if (!mounted) {
-    return <div className="h-32 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />
+    return (
+      <div className="h-32 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />
+    );
   }
 
   return (
-    <div className={`quill-container ${error ? "border border-destructive dark:border-red-500 rounded-md" : ""}`}>
+    <div
+      className={`quill-container ${
+        error ? "border border-destructive dark:border-red-500 rounded-md" : ""
+      }`}
+    >
       <ReactQuill
         theme="snow"
         value={value}
@@ -175,7 +189,9 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
         modules={modules}
         formats={formats}
         placeholder={placeholder || "Nhập nội dung..."}
-        className={`quill-editor rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${error ? "quill-error" : ""}`}
+        className={`quill-editor rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+          error ? "quill-error" : ""
+        }`}
       />
       <style jsx global>{`
         /* Light mode styles */
@@ -185,7 +201,7 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
           border-top-right-radius: 0.375rem;
           background-color: #ffffff;
         }
-        
+
         .ql-container.ql-snow {
           border: 1px solid #e2e8f0;
           border-bottom-left-radius: 0.375rem;
@@ -193,7 +209,7 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
           background-color: #ffffff;
           color: #1e293b;
         }
-        
+
         .ql-editor {
           min-height: 100px;
           max-height: 300px;
@@ -207,13 +223,13 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
           border-color: #4b5563;
           background-color: #1f2937;
         }
-        
+
         .dark .ql-container.ql-snow {
           border-color: #4b5563;
           background-color: #1f2937;
           color: #d1d5db;
         }
-        
+
         .dark .ql-editor {
           background-color: #1f2937;
           color: #d1d5db;
@@ -242,5 +258,5 @@ export default function SimpleQuillEditor({ value, onChange, error, placeholder 
         }
       `}</style>
     </div>
-  )
+  );
 }
