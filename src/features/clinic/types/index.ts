@@ -1,75 +1,76 @@
 import { Service } from "@/features/clinic-service/types";
 
 export interface Clinic {
-  id: string
-  name: string
-  email: string
-  phoneNumber: string
-  city: string
-  address: string | null
-  district: string | null
-  ward: string | null
-  fullAddress: string
-  taxCode: string
-  businessLicenseUrl: string
-  operatingLicenseUrl: string
-  operatingLicenseExpiryDate: string 
-  profilePictureUrl: string | null
-  totalBranches: number
-  isActivated: boolean
-  bankName: string
-  bankAccountNumber: string
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  city: string;
+  address: string | null;
+  district: string | null;
+  ward: string | null;
+  fullAddress: string;
+  taxCode: string;
+  limitBranch: number;
+  businessLicenseUrl: string;
+  operatingLicenseUrl: string;
+  operatingLicenseExpiryDate: string;
+  profilePictureUrl: string | null;
+  totalBranches: number;
+  isActivated: boolean;
+  bankName: string;
+  bankAccountNumber: string;
   branches: {
-    items: Branch[]
-    pageIndex: number
-    pageSize: number
-    totalCount: number
-    hasNextPage: boolean
-    hasPreviousPage: boolean
-  }
+    items: Branch[];
+    pageIndex: number;
+    pageSize: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
   currentSubscription: {
-    id: string,
-    name: string
-    description: string,
-    price: number,
-    duration: number,
-    isActivated: boolean,
-    limitBranch: number,
-    limitLiveStream: number
-    dateBought: string
-    dateExpired: string
-    daysLeft: number
-},
-  services: Service[]
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    duration: number;
+    isActivated: boolean;
+    limitBranch: number;
+    limitLiveStream: number;
+    dateBought: string;
+    dateExpired: string;
+    daysLeft: number;
+  };
+  services: Service[];
 }
 export interface ProfileClinic {
-  id: string
-  name: string
-  email: string
-  phoneNumber: string
-  city: string
-  address: string | null
-  district: string | null
-  ward: string | null
-  fullAddress: string
-  taxCode: string
-  businessLicenseUrl: string
-  operatingLicenseUrl: string
-  operatingLicenseExpiryDate: string | null
-  profilePictureUrl: string | null
-  totalBranches: number
-  isActivated: boolean
-  bankName: string
-  bankAccountNumber: string
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  city: string;
+  address: string | null;
+  district: string | null;
+  ward: string | null;
+  fullAddress: string;
+  taxCode: string;
+  businessLicenseUrl: string;
+  operatingLicenseUrl: string;
+  operatingLicenseExpiryDate: string | null;
+  profilePictureUrl: string | null;
+  totalBranches: number;
+  isActivated: boolean;
+  bankName: string;
+  bankAccountNumber: string;
   branches: {
-    items: Branch[]
-    pageIndex: number
-    pageSize: number
-    totalCount: number
-    hasNextPage: boolean
-    hasPreviousPage: boolean
-  }
-  services: Service[]
+    items: Branch[];
+    pageIndex: number;
+    pageSize: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  services: Service[];
 }
 
 export interface ClinicsResponse {
@@ -114,18 +115,18 @@ export interface Branch {
   bankName?: string;
   bankAccountNumber?: string;
   currentSubscription: {
-    id: string,
-    name: string
-    description: string,
-    price: number,
-    duration: number,
-    isActivated: boolean,
-    limitBranch: number,
-    limitLiveStream: number
-    dateBought: string
-    dateExpired: string
-    daysLeft: number
-},
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    duration: number;
+    isActivated: boolean;
+    limitBranch: number;
+    limitLiveStream: number;
+    dateBought: string;
+    dateExpired: string;
+    daysLeft: number;
+  };
   branches: {
     items: Branch[] | null;
     pageIndex: number;
@@ -247,7 +248,6 @@ export interface ClinicBranchData {
   bankAccountNumber: string;
   isMainClinic: boolean;
 }
-
 
 // Định nghĩa type cho toàn bộ response
 export interface ClinicBranchesResponse {

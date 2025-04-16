@@ -1,9 +1,16 @@
-"use client"
+"use client";
 
-import React from "react"
-import { useState, useEffect, useMemo } from "react"
-import { MoreVertical, ChevronDown, ChevronUp, UserIcon, Edit, AlertCircle } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import React from "react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  MoreVertical,
+  ChevronDown,
+  ChevronUp,
+  UserIcon,
+  Edit,
+  AlertCircle,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetBranchesQuery,
   useLazyGetBranchByIdQuery,
@@ -11,97 +18,107 @@ import {
   useGetStaffQuery,
   useLazyGetStaffByIdQuery,
   useGetClinicByIdQuery,
-} from "@/features/clinic/api"
-import { useTranslations } from "next-intl"
-import * as XLSX from "xlsx"
-import { toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import BranchForm from "@/components/clinicManager/BranchForm"
-import EditBranchForm from "@/components/clinicManager/EditBranchForm"
-import EditStaffForm from "@/components/clinicManager/staff/EditStaffForm"
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import type { Branch, Staff } from "@/features/clinic/types"
-import ViewBranchModal from "@/components/clinicManager/branch/view-branch-modal"
-import Pagination from "@/components/common/Pagination/Pagination"
-import { MenuPortal } from "@/components/ui/menu-portal"
-import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
-import { useDebounce } from "@/hooks/use-debounce"
-import UpgradePackagePopup from "@/components/clinicManager/branch/upgrade-package-popup"
+} from "@/features/clinic/api";
+import { useTranslations } from "next-intl";
+import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import BranchForm from "@/components/clinicManager/BranchForm";
+import EditBranchForm from "@/components/clinicManager/EditBranchForm";
+import EditStaffForm from "@/components/clinicManager/staff/EditStaffForm";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import type { Branch, Staff } from "@/features/clinic/types";
+import ViewBranchModal from "@/components/clinicManager/branch/view-branch-modal";
+import Pagination from "@/components/common/Pagination/Pagination";
+import { MenuPortal } from "@/components/ui/menu-portal";
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch";
+import { useDebounce } from "@/hooks/use-debounce";
+import UpgradePackagePopup from "@/components/clinicManager/branch/upgrade-package-popup";
 
 const BranchesList: React.FC = () => {
-  const t = useTranslations("branch")
+  const t = useTranslations("branch");
 
-  const [pageIndex, setPageIndex] = useState(1)
-  const pageSize = 5
-  const [searchTerm, setSearchTerm] = useState("")
-  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
-  const [viewBranch, setViewBranch] = useState<Branch | null>(null)
-  const [editBranch, setEditBranch] = useState<Branch | null>(null)
-  const [menuOpen, setMenuOpen] = useState<string | null>(null)
-  const [showEditForm, setShowEditForm] = useState(false)
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const token = getAccessToken()
+  const [pageIndex, setPageIndex] = useState(1);
+  const pageSize = 5;
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
+  const [viewBranch, setViewBranch] = useState<Branch | null>(null);
+  const [editBranch, setEditBranch] = useState<Branch | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const token = getAccessToken();
   // Add null check for token
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const clinicId = tokenData?.clinicId || ""
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
 
   // Staff related states
-  const [expandedBranch, setExpandedBranch] = useState<string | null>(null)
-  const [editStaff, setEditStaff] = useState<Staff | null>(null)
-  const [showEditStaffForm, setShowEditStaffForm] = useState(false)
-  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+  const [expandedBranch, setExpandedBranch] = useState<string | null>(null);
+  const [editStaff, setEditStaff] = useState<Staff | null>(null);
+  const [showEditStaffForm, setShowEditStaffForm] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
   // Add state for upgrade package popup
-  const [showUpgradePopup, setShowUpgradePopup] = useState(false)
+  const [showUpgradePopup, setShowUpgradePopup] = useState(false);
 
-  const { data, isLoading, error, refetch } = useGetBranchesQuery(clinicId || "")
-  const { data: clinicData } = useGetClinicByIdQuery(clinicId || "")
-  const delayedRefetch = useDelayedRefetch(refetch)
+  const { data, isLoading, error, refetch } = useGetBranchesQuery(
+    clinicId || ""
+  );
+  const { data: clinicData } = useGetClinicByIdQuery(clinicId || "");
+  const delayedRefetch = useDelayedRefetch(refetch);
 
-  const [changeStatusBranch] = useChangeStatusBranchMutation()
-  const [fetchBranchById] = useLazyGetBranchByIdQuery()
-  const [fetchStaffById] = useLazyGetStaffByIdQuery()
+  const [changeStatusBranch] = useChangeStatusBranchMutation();
+  const [fetchBranchById] = useLazyGetBranchByIdQuery();
+  const [fetchStaffById] = useLazyGetStaffByIdQuery();
 
   // Get all branches from the API response
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allBranches = Array.isArray(data?.value?.branches?.items) ? data?.value?.branches?.items : []
+  const allBranches = Array.isArray(data?.value?.branches?.items)
+    ? data?.value?.branches?.items
+    : [];
 
   // Get subscription data
-  const currentSubscription = clinicData?.value?.currentSubscription
-  const branchLimit = currentSubscription?.limitBranch || 0
-  const currentBranchCount = allBranches.length
+  // const currentSubscription = clinicData?.value?.currentSubscription
+  const branchLimit = clinicData?.value?.limitBranch || 0;
+  const currentBranchCount = allBranches.length;
 
   // Check if branch limit is reached
-  const isBranchLimitReached = currentBranchCount >= branchLimit
+  const isBranchLimitReached = currentBranchCount >= branchLimit;
 
   // Filter branches based on search term
   const filteredBranches = useMemo(() => {
-    if (!debouncedSearchTerm) return allBranches
+    if (!debouncedSearchTerm) return allBranches;
 
     return allBranches.filter(
       (branch: Branch) =>
-        branch.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        branch.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        branch.address?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
-    )
-  }, [allBranches, debouncedSearchTerm])
+        branch.name
+          ?.toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase()) ||
+        branch.email
+          ?.toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase()) ||
+        branch.address
+          ?.toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [allBranches, debouncedSearchTerm]);
 
   // Calculate pagination values
-  const totalCount = filteredBranches.length
-  const totalPages = Math.ceil(totalCount / pageSize)
-  const hasNextPage = pageIndex < totalPages
-  const hasPreviousPage = pageIndex > 1
+  const totalCount = filteredBranches.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const hasNextPage = pageIndex < totalPages;
+  const hasPreviousPage = pageIndex > 1;
 
   // Get the current page of branches
   const paginatedBranches = useMemo(() => {
-    const startIndex = (pageIndex - 1) * pageSize
-    const endIndex = startIndex + pageSize
-    return filteredBranches.slice(startIndex, endIndex)
-  }, [filteredBranches, pageIndex, pageSize])
+    const startIndex = (pageIndex - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredBranches.slice(startIndex, endIndex);
+  }, [filteredBranches, pageIndex, pageSize]);
 
   // Reset page index when search term changes
   useEffect(() => {
-    setPageIndex(1)
-  }, [debouncedSearchTerm])
+    setPageIndex(1);
+  }, [debouncedSearchTerm]);
 
   // Function to fetch staff for a specific branch
   const { data: staffData } = useGetStaffQuery(
@@ -114,125 +131,138 @@ const BranchesList: React.FC = () => {
     },
     {
       skip: !expandedBranch,
-    },
-  )
+    }
+  );
 
-  const allStaff = staffData?.value?.items || []
+  const allStaff = staffData?.value?.items || [];
 
   // Filter staff by branch
   const getStaffForBranch = (branchId: string) => {
-    return allStaff.filter((staff) => staff.branchs && staff.branchs.some((branch) => branch.id === branchId))
-  }
+    return allStaff.filter(
+      (staff) =>
+        staff.branchs && staff.branchs.some((branch) => branch.id === branchId)
+    );
+  };
 
   const handleToggleMenu = (branchId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.nativeEvent.stopImmediatePropagation()
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     // Store the position of the button
-    setTriggerRect(e.currentTarget.getBoundingClientRect())
-    setMenuOpen(menuOpen === branchId ? null : branchId)
-  }
+    setTriggerRect(e.currentTarget.getBoundingClientRect());
+    setMenuOpen(menuOpen === branchId ? null : branchId);
+  };
 
   const handleMenuAction = async (action: string, branchId: string) => {
     if (action === "view") {
       try {
-        const result = await fetchBranchById(branchId).unwrap()
-        setViewBranch(result.value)
+        const result = await fetchBranchById(branchId).unwrap();
+        setViewBranch(result.value);
       } catch (error) {
-        toast.error(t("fetchBranchError"))
-        setViewBranch(null)
+        toast.error(t("fetchBranchError"));
+        setViewBranch(null);
       }
     }
 
     if (action === "edit") {
       try {
-        const result = await fetchBranchById(branchId).unwrap()
-        setEditBranch(result.value)
-        setShowEditForm(true)
+        const result = await fetchBranchById(branchId).unwrap();
+        setEditBranch(result.value);
+        setShowEditForm(true);
       } catch (error) {
-        toast.error(t("fetchBranchError"))
-        setEditBranch(null)
+        toast.error(t("fetchBranchError"));
+        setEditBranch(null);
       }
     }
 
-    setMenuOpen(null)
-  }
+    setMenuOpen(null);
+  };
 
   const handleEditStaff = async (staffId: string) => {
     try {
       const result = await fetchStaffById({
         clinicId,
         staffId,
-      }).unwrap()
-      setEditStaff(result.value)
-      setShowEditStaffForm(true)
+      }).unwrap();
+      setEditStaff(result.value);
+      setShowEditStaffForm(true);
     } catch (error) {
-      console.error(error)
-      toast.error("Failed to fetch staff details")
-      setEditStaff(null)
+      console.error(error);
+      toast.error("Failed to fetch staff details");
+      setEditStaff(null);
     }
     // setStaffMenuOpen(null)
-  }
+  };
 
   const handleDeleteBranch = async (branchId: string) => {
     if (window.confirm(t("confirmDelete"))) {
       try {
         // await deleteBranch(branchId).unwrap();
-        toast.success(t("deleteSuccess"))
-        delayedRefetch()
+        toast.success(t("deleteSuccess"));
+        delayedRefetch();
       } catch (error) {
-        console.error(error)
-        toast.error(t("deleteFailed"))
+        console.error(error);
+        toast.error(t("deleteFailed"));
       }
     }
-  }
+  };
 
   const handleCloseForm = () => {
-    setViewBranch(null)
-    setShowEditForm(false)
-    setEditBranch(null)
-    setShowCreateForm(false)
-    setShowEditStaffForm(false)
-    setEditStaff(null)
-  }
+    setViewBranch(null);
+    setShowEditForm(false);
+    setEditBranch(null);
+    setShowCreateForm(false);
+    setShowEditStaffForm(false);
+    setEditStaff(null);
+  };
 
   const handleToggleStatus = async (id: string) => {
-    const branch = allBranches.find((branch: Branch) => branch.id === id)
-    if (!branch) return
+    const branch = allBranches.find((branch: Branch) => branch.id === id);
+    if (!branch) return;
 
     try {
       // Simply call the API with the branch ID - no body needed
-      await changeStatusBranch({ id: branch.id }).unwrap()
-      toast.success(t("statusUpdated"))
-      delayedRefetch()
+      await changeStatusBranch({ id: branch.id }).unwrap();
+      toast.success(t("statusUpdated"));
+      delayedRefetch();
     } catch (error) {
-      console.error("Failed to update status", error)
-      toast.error(t("statusUpdateFailed"))
+      console.error("Failed to update status", error);
+      toast.error(t("statusUpdateFailed"));
     }
-  }
+  };
 
   const handleToggleExpandBranch = (branchId: string) => {
-    setExpandedBranch(expandedBranch === branchId ? null : branchId)
-  }
+    setExpandedBranch(expandedBranch === branchId ? null : branchId);
+  };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(allBranches)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Branches")
-    XLSX.writeFile(workbook, "Branches.xlsx")
-  }
+    const worksheet = XLSX.utils.json_to_sheet(allBranches);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Branches");
+    XLSX.writeFile(workbook, "Branches.xlsx");
+  };
 
   // Handle create branch button click
   const handleCreateBranchClick = () => {
     if (isBranchLimitReached) {
-      toast.error(t("maxBranchesReached"))
-      setShowUpgradePopup(true)
+      toast.error(t("maxBranchesReached"));
+      setShowUpgradePopup(true);
     } else {
-      setShowCreateForm(true)
+      setShowCreateForm(true);
     }
-  }
+  };
 
-  if (isLoading) return <div className="text-center text-gray-600 dark:text-gray-400">{t("loading")}</div>
-  if (error) return <div className="text-center text-red-600 dark:text-red-400">{t("errorFetching")}</div>
+  if (isLoading)
+    return (
+      <div className="text-center text-gray-600 dark:text-gray-400">
+        {t("loading")}
+      </div>
+    );
+  if (error)
+    return (
+      <div className="text-center text-red-600 dark:text-red-400">
+        {t("errorFetching")}
+      </div>
+    );
 
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-white via-gray-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-pink-950 shadow-xl rounded-xl">
@@ -244,9 +274,15 @@ const BranchesList: React.FC = () => {
       {/* Branch Limit Info */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-        <span className="text-gray-700 dark:text-gray-300 font-medium">{t("branchLimit")}</span>
+          <span className="text-gray-700 dark:text-gray-300 font-medium">
+            {t("branchLimit")}
+          </span>
           <span
-            className={`font-bold ${isBranchLimitReached ? "text-red-500 dark:text-red-400" : "text-green-500 dark:text-green-400"}`}
+            className={`font-bold ${
+              isBranchLimitReached
+                ? "text-red-500 dark:text-red-400"
+                : "text-green-500 dark:text-green-400"
+            }`}
           >
             {currentBranchCount} / {branchLimit}
           </span>
@@ -254,7 +290,9 @@ const BranchesList: React.FC = () => {
         {isBranchLimitReached && (
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">{t("branchLimitReached")}</span>
+            <span className="text-sm font-medium">
+              {t("branchLimitReached")}
+            </span>
           </div>
         )}
       </div>
@@ -329,7 +367,9 @@ const BranchesList: React.FC = () => {
               <motion.tr
                 whileHover={{ scale: 1.005 }}
                 className={`transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-800/70 ${
-                  index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-purple-50 dark:bg-purple-900/10"
+                  index % 2 === 0
+                    ? "bg-white dark:bg-gray-900"
+                    : "bg-purple-50 dark:bg-purple-900/10"
                 } border-b border-gray-200 dark:border-gray-700 last:border-b-0`}
               >
                 <td className="p-4 text-gray-800 dark:text-gray-200 font-serif border-r border-gray-200 dark:border-gray-700 last:border-r-0">
@@ -344,24 +384,35 @@ const BranchesList: React.FC = () => {
                         <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       )}
                     </button>
-                    <div className="max-w-[180px] truncate" title={branch.name || ""}>
+                    <div
+                      className="max-w-[180px] truncate"
+                      title={branch.name || ""}
+                    >
                       {branch.name}
                     </div>
                   </div>
                 </td>
                 <td className="p-4 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
-                  <div className="max-w-[180px] truncate" title={branch.email || ""}>
+                  <div
+                    className="max-w-[180px] truncate"
+                    title={branch.email || ""}
+                  >
                     {branch.email}
                   </div>
                 </td>
                 <td className="p-4 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
-                  <div className="max-w-[200px] truncate" title={branch.address || ""}>
+                  <div
+                    className="max-w-[200px] truncate"
+                    title={branch.address || ""}
+                  >
                     {branch.address}
                   </div>
                 </td>
                 <td className="p-4 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
                   {branch.operatingLicenseExpiryDate
-                    ? new Date(branch.operatingLicenseExpiryDate).toLocaleDateString("en-US", {
+                    ? new Date(
+                        branch.operatingLicenseExpiryDate
+                      ).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "2-digit",
                         day: "2-digit",
@@ -377,7 +428,11 @@ const BranchesList: React.FC = () => {
                       className="w-4 h-4 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 dark:focus:ring-purple-400"
                     />
                     <span
-                      className={`text-sm font-medium ${branch.isActivated ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                      className={`text-sm font-medium ${
+                        branch.isActivated
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
                     >
                       {branch.isActivated ? t("active") : t("inactive")}
                     </span>
@@ -403,8 +458,8 @@ const BranchesList: React.FC = () => {
                           <li
                             className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                             onClick={(e) => {
-                              e.stopPropagation()
-                              handleMenuAction("view", branch.id)
+                              e.stopPropagation();
+                              handleMenuAction("view", branch.id);
                             }}
                           >
                             <span className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
@@ -415,8 +470,8 @@ const BranchesList: React.FC = () => {
                           <li
                             className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                             onClick={(e) => {
-                              e.stopPropagation()
-                              handleMenuAction("edit", branch.id)
+                              e.stopPropagation();
+                              handleMenuAction("edit", branch.id);
                             }}
                           >
                             <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
@@ -451,7 +506,7 @@ const BranchesList: React.FC = () => {
                       <div className="flex items-center mb-3">
                         <div className="w-1 h-6 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
                         <h3 className="text-lg font-medium text-purple-700 dark:text-purple-300">
-                        {t("staffIn")} {branch.name}
+                          {t("staffIn")} {branch.name}
                         </h3>
                       </div>
 
@@ -460,69 +515,86 @@ const BranchesList: React.FC = () => {
                           <table className="w-full border-collapse border border-purple-200 dark:border-purple-800 rounded-lg overflow-hidden">
                             <thead className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
                               <tr>
-                              <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                              {t("staffName")}
-                            </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                {t("staffEmail")}
+                                  {t("staffName")}
                                 </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                {t("staffPhone")}
+                                  {t("staffEmail")}
                                 </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                {t("role")}
+                                  {t("staffPhone")}
                                 </th>
                                 <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
-                                {t("staffActions")}
-
+                                  {t("role")}
+                                </th>
+                                <th className="p-3 text-left text-sm font-medium text-purple-800 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">
+                                  {t("staffActions")}
                                 </th>
                               </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-900">
-                              {getStaffForBranch(branch.id).map((staff: Staff, index: number) => (
-                                <tr
-                                  key={staff.employeeId}
-                                  className={`hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors ${
-                                    index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-purple-50 dark:bg-purple-900/10"
-                                  } ${
-                                    index !== getStaffForBranch(branch.id).length - 1
-                                      ? "border-b border-purple-100 dark:border-purple-800"
-                                      : ""
-                                  }`}
-                                >
-                                  <td className="p-3 font-medium dark:text-gray-200">
-                                    <div className="max-w-[150px] truncate" title={staff.fullName || ""}>
-                                      {staff.fullName}
-                                    </div>
-                                  </td>
-                                  <td className="p-3 text-purple-600 dark:text-purple-400">
-                                    <div className="max-w-[180px] truncate" title={staff.email || ""}>
-                                      {staff.email}
-                                    </div>
-                                  </td>
-                                  <td className="p-3 dark:text-gray-300">
-                                    <div className="max-w-[120px] truncate" title={staff.phoneNumber || "-"}>
-                                      {staff.phoneNumber || "-"}
-                                    </div>
-                                  </td>
-                                  <td className="p-3">
-                                    <span className="px-2 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs">
-                                      {staff.role}
-                                    </span>
-                                  </td>
-                                  <td className="p-3 relative">
-                                    {/* Replace the staff actions column with a direct edit button: */}
-                                    <motion.button
-                                      whileHover={{ scale: 1.1 }}
-                                      className="p-1 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center gap-1 text-purple-600 dark:text-purple-400"
-                                      onClick={() => handleEditStaff(staff.employeeId)}
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                      <span className="text-xs">{t("editStaff")}</span>
-                                    </motion.button>
-                                  </td>
-                                </tr>
-                              ))}
+                              {getStaffForBranch(branch.id).map(
+                                (staff: Staff, index: number) => (
+                                  <tr
+                                    key={staff.employeeId}
+                                    className={`hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors ${
+                                      index % 2 === 0
+                                        ? "bg-white dark:bg-gray-900"
+                                        : "bg-purple-50 dark:bg-purple-900/10"
+                                    } ${
+                                      index !==
+                                      getStaffForBranch(branch.id).length - 1
+                                        ? "border-b border-purple-100 dark:border-purple-800"
+                                        : ""
+                                    }`}
+                                  >
+                                    <td className="p-3 font-medium dark:text-gray-200">
+                                      <div
+                                        className="max-w-[150px] truncate"
+                                        title={staff.fullName || ""}
+                                      >
+                                        {staff.fullName}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-purple-600 dark:text-purple-400">
+                                      <div
+                                        className="max-w-[180px] truncate"
+                                        title={staff.email || ""}
+                                      >
+                                        {staff.email}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 dark:text-gray-300">
+                                      <div
+                                        className="max-w-[120px] truncate"
+                                        title={staff.phoneNumber || "-"}
+                                      >
+                                        {staff.phoneNumber || "-"}
+                                      </div>
+                                    </td>
+                                    <td className="p-3">
+                                      <span className="px-2 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs">
+                                        {staff.role}
+                                      </span>
+                                    </td>
+                                    <td className="p-3 relative">
+                                      {/* Replace the staff actions column with a direct edit button: */}
+                                      <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        className="p-1 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center gap-1 text-purple-600 dark:text-purple-400"
+                                        onClick={() =>
+                                          handleEditStaff(staff.employeeId)
+                                        }
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                        <span className="text-xs">
+                                          {t("editStaff")}
+                                        </span>
+                                      </motion.button>
+                                    </td>
+                                  </tr>
+                                )
+                              )}
                             </tbody>
                           </table>
                         </div>
@@ -531,7 +603,9 @@ const BranchesList: React.FC = () => {
                           <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
                             <UserIcon className="w-6 h-6 text-purple-300 dark:text-purple-400" />
                           </div>
-                          <p className="text-gray-500 dark:text-gray-400">{t("noStaffAssigned")}</p>
+                          <p className="text-gray-500 dark:text-gray-400">
+                            {t("noStaffAssigned")}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -551,14 +625,19 @@ const BranchesList: React.FC = () => {
         hasNextPage={hasNextPage}
         hasPreviousPage={hasPreviousPage}
         onPageChange={(newPageIndex) => {
-          setPageIndex(newPageIndex)
+          setPageIndex(newPageIndex);
           // Optional: scroll to top when changing pages
-          window.scrollTo(0, 0)
+          window.scrollTo(0, 0);
         }}
       />
 
       {/* View Branch Modal */}
-      {viewBranch && <ViewBranchModal viewBranch={viewBranch} onClose={() => setViewBranch(null)} />}
+      {viewBranch && (
+        <ViewBranchModal
+          viewBranch={viewBranch}
+          onClose={() => setViewBranch(null)}
+        />
+      )}
 
       {/* Edit Branch Form */}
       {showEditForm && editBranch && (
@@ -585,9 +664,11 @@ const BranchesList: React.FC = () => {
               initialData={editBranch}
               onClose={handleCloseForm}
               onSaveSuccess={() => {
-                toast.success(t("branchUpdatedSuccess") || "Branch updated successfully!")
-                handleCloseForm()
-                delayedRefetch()
+                toast.success(
+                  t("branchUpdatedSuccess") || "Branch updated successfully!"
+                );
+                handleCloseForm();
+                delayedRefetch();
               }}
             />
           </motion.div>
@@ -618,8 +699,8 @@ const BranchesList: React.FC = () => {
             <BranchForm
               onClose={handleCloseForm}
               onSaveSuccess={() => {
-                handleCloseForm()
-                delayedRefetch()
+                handleCloseForm();
+                delayedRefetch();
               }}
             />
           </motion.div>
@@ -651,8 +732,8 @@ const BranchesList: React.FC = () => {
               initialData={editStaff}
               onClose={handleCloseForm}
               onSaveSuccess={() => {
-                handleCloseForm()
-                delayedRefetch()
+                handleCloseForm();
+                delayedRefetch();
               }}
             />
           </motion.div>
@@ -660,9 +741,12 @@ const BranchesList: React.FC = () => {
       )}
 
       {/* Upgrade Package Popup */}
-      <UpgradePackagePopup isOpen={showUpgradePopup} onClose={() => setShowUpgradePopup(false)} />
+      <UpgradePackagePopup
+        isOpen={showUpgradePopup}
+        onClose={() => setShowUpgradePopup(false)}
+      />
     </div>
-  )
-}
+  );
+};
 
-export default BranchesList
+export default BranchesList;
