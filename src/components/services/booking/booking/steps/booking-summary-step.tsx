@@ -154,6 +154,7 @@ export function BookingSummaryStep({
                     </div>
                   )}
                 </div>
+                <div>Bạn sẽ cần phải đặt cọc trước 1 khoản tiền là 10%</div>
               </div>
             </CardContent>
           </Card>

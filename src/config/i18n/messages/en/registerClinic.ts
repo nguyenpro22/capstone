@@ -68,7 +68,8 @@ export const registerClinic: Messages["registerClinic"] = {
       phoneNumberExists: "This phone number already exists in the system",
       profilePictureRequired: "Profile picture is required",
       businessLicenseRequired: "Business license document is required",
-      operatingLicenseRequired: "Operating license document is required"
+      phoneInvalid: "Phone number is invalid",
+      operatingLicenseRequired: "Operating license document is required",
     },
     toast: {
       missingFiles: {

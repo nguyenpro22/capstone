@@ -14,6 +14,7 @@ import {
 import { vi } from "date-fns/locale";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogTitle,
   DialogTrigger,
@@ -49,7 +50,7 @@ import {
 } from "@/features/booking/api";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { Progress } from "@/components/ui/progress";
-import type { Booking } from "@/features/booking/types";
+import type { AppointmentDetail, Booking } from "@/features/booking/types";
 import {
   startOfMonth,
   endOfMonth,
@@ -409,7 +410,7 @@ export function BookingDetailDialog({
   };
 
   // Check if the reschedule button should be disabled
-  const isRescheduleButtonDisabled = () => {
+  const isRescheduleSubmitButtonDisabled = () => {
     // Disable if no date or time is selected
     if (!selectedDate || !selectedTime) return true;
 
@@ -434,6 +435,21 @@ export function BookingDetailDialog({
     }
 
     return false;
+  };
+
+  // Check if the reschedule button should be disabled
+  const isRescheduleButtonDisabled = (displayBooking: AppointmentDetail) => {
+    // Disable if no date or time is selected
+
+    // Disable if rescheduling is in progress
+    if (isRescheduling) return true;
+    const current = Date.now();
+    const schedule = displayBooking.date;
+    const time = displayBooking.endTime;
+
+    return current > new Date(`${schedule}T${time}`).getTime();
+
+    // Disable if selected date is before the original date
   };
 
   // Handle date selection
@@ -521,18 +537,6 @@ export function BookingDetailDialog({
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-[1000px] md:max-w-[1200px] lg:max-w-[1300px] p-0 border-0 shadow-xl rounded-lg dark:bg-indigo-950 dark:border dark:border-indigo-800/30 max-h-[90vh] overflow-y-auto">
           <div className="relative">
-            <div className="absolute top-3 right-3 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full bg-black/10 hover:bg-black/20"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="h-4 w-4 text-white" />
-                <span className="sr-only">Đóng</span>
-              </Button>
-            </div>
-
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700 h-24 flex items-center p-6">
               <div className="w-full relative z-10">
                 <DialogTitle className="text-xl font-bold text-white flex items-center gap-2 mb-2">
@@ -932,6 +936,7 @@ export function BookingDetailDialog({
                     <Button
                       className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-600/90 hover:to-indigo-600/90 text-white font-medium shadow-sm h-12 text-base rounded-xl transition-all duration-200"
                       onClick={handleRescheduleClick}
+                      disabled={isRescheduleButtonDisabled(displayBooking)}
                     >
                       <CalendarClock className="h-5 w-5 mr-2" />
                       Đặt lại lịch
@@ -1188,17 +1193,19 @@ export function BookingDetailDialog({
       >
         <DialogContent className="sm:max-w-[1200px] md:max-w-[1350px] lg:max-w-[1500px] p-0 border-0 shadow-xl rounded-xl dark:bg-indigo-950/95 dark:border dark:border-indigo-800/30 max-h-[90vh] overflow-y-auto">
           <div className="relative">
-            <div className="absolute top-3 right-3 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full bg-black/10 hover:bg-black/20"
-                onClick={() => setIsRescheduleDialogOpen(false)}
-              >
-                <X className="h-4 w-4 text-white" />
-                <span className="sr-only">Đóng</span>
-              </Button>
-            </div>
+            <DialogClose>
+              <div className="absolute top-3 right-3 z-10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full bg-black/10 hover:bg-black/20"
+                  onClick={() => setIsRescheduleDialogOpen(false)}
+                >
+                  <X className="h-4 w-4 text-white" />
+                  <span className="sr-only">Đóng</span>
+                </Button>
+              </div>
+            </DialogClose>
 
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700/90 dark:to-indigo-700/90 p-7 rounded-t-xl">
               <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
@@ -1435,7 +1442,7 @@ export function BookingDetailDialog({
                   <Button
                     className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-600/90 hover:to-indigo-600/90 text-white font-medium shadow-md h-14 text-lg rounded-xl transition-all duration-200"
                     onClick={handleReschedule}
-                    disabled={isRescheduleButtonDisabled()}
+                    disabled={isRescheduleSubmitButtonDisabled()}
                   >
                     {isRescheduling ? (
                       <>

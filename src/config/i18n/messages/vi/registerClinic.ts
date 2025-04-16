@@ -41,8 +41,7 @@ export const registerClinic: Messages["registerClinic"] = {
       bankName: "Nhập tên ngân hàng",
       bankAccountNumber: "Nhập số tài khoản ngân hàng",
       selectCityFirst: "Vui lòng chọn thành phố trước",
-    selectDistrictFirst: "Vui lòng chọn quận/huyện trước",
-
+      selectDistrictFirst: "Vui lòng chọn quận/huyện trước",
     },
     fileUpload: {
       clickToUpload: "Nhấp để tải lên",
@@ -60,6 +59,7 @@ export const registerClinic: Messages["registerClinic"] = {
       addressRequired: "Địa chỉ là bắt buộc",
       cityRequired: "Thành phố là bắt buộc",
       districtRequired: "Quận/huyện là bắt buộc",
+      phoneInvalid: "Số điện thoại không hợp lệ",
       wardRequired: "Phường/xã là bắt buộc",
       bankNameRequired: "Tên ngân hàng là bắt buộc",
       bankAccountRequired: "Số tài khoản ngân hàng là bắt buộc",
@@ -69,7 +69,7 @@ export const registerClinic: Messages["registerClinic"] = {
       phoneNumberExists: "Số điện thoại đã tồn tại trong hệ thống",
       profilePictureRequired: "Ảnh đại diện là bắt buộc",
       businessLicenseRequired: "Giấy phép kinh doanh là bắt buộc",
-      operatingLicenseRequired: "Giấy phép hoạt động là bắt buộc"
+      operatingLicenseRequired: "Giấy phép hoạt động là bắt buộc",
     },
     toast: {
       missingFiles: {
