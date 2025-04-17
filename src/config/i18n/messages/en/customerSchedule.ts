@@ -65,14 +65,14 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   failedToCompleteAppointment: "Failed to complete appointment",
   viewingNextAppointment: "Viewing next appointment for",
   error: "Error",
-    // New translations for early check-in
-    earlyCheckInTitle: "Early Check-In",
-    earlyCheckInDescription: "This customer is arriving earlier than scheduled",
-    earlyCheckInWarning: "This check-in is {minutes} minutes earlier than the scheduled time",
-    scheduledTime: "Scheduled time",
-    proceedWithEarlyCheckIn: "Proceed with early check-in",
-    processing: "Processing...",
-     // Follow-up modal translations
+  // New translations for early check-in
+  earlyCheckInTitle: "Early Check-In",
+  earlyCheckInDescription: "This customer is arriving earlier than scheduled",
+  earlyCheckInWarning: "This check-in is {minutes} minutes earlier than the scheduled time",
+  scheduledTime: "Scheduled time",
+  proceedWithEarlyCheckIn: "Proceed with early check-in",
+  processing: "Processing...",
+  // Follow-up modal translations
   selectDateTimeForNextAppointment: "Select a date and time for the next appointment for",
   loadingAppointmentDetails: "Loading appointment details...",
   selectDate: "Select date",
@@ -113,19 +113,33 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   tryAgain: "Try Again",
   processingPayment: "Processing Payment",
   pleaseWaitWhileProcessing: "Please wait while we process your payment...",
-   // Schedule details modal translations
-   scheduleDetails: "Schedule Details",
-   viewScheduleDetails: "View the details of this scheduled appointment",
-   appointmentInformation: "Appointment Information",
-   phone: "Phone",
-   price: "Price",
-   notes: "Notes",
-   proceedToCheckout: "Proceed to Checkout",
-   // Next schedule notification translations
+  // Schedule details modal translations
+  scheduleDetails: "Schedule Details",
+  viewScheduleDetails: "View the details of this scheduled appointment",
+  appointmentInformation: "Appointment Information",
+  phone: "Phone",
+  price: "Price",
+  notes: "Notes",
+  proceedToCheckout: "Proceed to Checkout",
+  // Next schedule notification translations
   followUpRequired: "Follow-up Required",
   multipleFollowUpsNeeded: "{count} patients need to schedule their next appointment.",
   singleFollowUpNeeded: "{name} needs to schedule their next appointment.",
   // Follow-up selection modal translations
   selectAppointmentForFollowUp: "Select Appointment for Follow-up",
-  multipleAppointmentsNeedFollowUps: "Multiple appointments need follow-ups. Please select which one you had like to schedule next.",
+  multipleAppointmentsNeedFollowUps:
+    "Multiple appointments need follow-ups. Please select which one you had like to schedule next.",
+  // Additional fields for schedule details modal
+  customerInformation: "Customer Information",
+  email: "Email",
+  bookingId: "Booking ID",
+  serviceType: "Service Type",
+  step: "Step",
+  priceInformation: "Price Information",
+  servicePrice: "Service Price",
+  discount: "Discount",
+  deposit: "Deposit",
+  remainingAmount: "Remaining Amount",
+  doctorInformation: "Doctor Information",
+  atThisClinic: "at this clinic",
 }

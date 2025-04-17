@@ -31,6 +31,8 @@ import {
   ExternalLink,
   CheckCircle2,
   ChevronDown,
+  ArrowUpDown,
+  Clock,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -127,6 +129,8 @@ export default function SchedulesPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(8);
+  const [sortColumn, setSortColumn] = useState("bookingDate");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   // Modal states
   const [selectedSchedule, setSelectedSchedule] =
@@ -176,7 +180,7 @@ export default function SchedulesPage() {
   };
 
   const formatTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`;
+    return `${startTime.substring(0, 5)} - ${endTime.substring(0, 5)}`;
   };
 
   const getDefaultDateRange = () => {
@@ -346,7 +350,6 @@ export default function SchedulesPage() {
   // Data fetching functions
   const fetchClinicSchedules = async () => {
     let searchTerm;
-    const sortOrder = activeTab === "past" ? "desc" : "asc";
 
     if (!fromDate && !toDate) {
       const today = new Date();
@@ -386,8 +389,8 @@ export default function SchedulesPage() {
         pageIndex: currentPage,
         pageSize,
         searchTerm,
-        sortColumn: "bookingDate",
-        sortOrder: "desc",
+        sortColumn,
+        sortOrder,
       });
 
       if (result.data?.value?.items) {
@@ -403,7 +406,6 @@ export default function SchedulesPage() {
 
   const fetchClinicSchedulesWithTab = async (tabValue: string) => {
     let searchTerm;
-    const sortOrder = tabValue === "past" ? "desc" : "asc";
 
     if (!fromDate && !toDate) {
       const today = new Date();
@@ -443,8 +445,8 @@ export default function SchedulesPage() {
         pageIndex: currentPage,
         pageSize,
         searchTerm,
-        sortColumn: "bookingDate",
-        sortOrder: "desc",
+        sortColumn,
+        sortOrder,
       });
 
       if (result.data?.value?.items) {
@@ -878,6 +880,24 @@ export default function SchedulesPage() {
     fetchClinicSchedulesWithTab(activeTab);
   };
 
+  const handleSort = () => {
+    const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newSortOrder);
+
+    if (searchPerformed) {
+      // If in search mode, we need to handle sorting differently
+      // This depends on your API implementation
+    } else {
+      delayedGetClinicSchedules({
+        pageIndex: currentPage,
+        pageSize,
+        searchTerm: createDateRangeSearchTerm(fromDate, toDate),
+        sortColumn: "bookingDate",
+        sortOrder: newSortOrder,
+      });
+    }
+  };
+
   // Effects
   useEffect(() => {
     if (searchPerformed) {
@@ -1203,13 +1223,24 @@ export default function SchedulesPage() {
                         {t("customer")}
                       </TableHead>
                       <TableHead className="text-center">
+                        {t("customerPhone")}
+                      </TableHead>
+                      <TableHead className="text-center">
                         {t("service")}
                       </TableHead>
                       <TableHead className="text-center">
                         {t("doctor")}
                       </TableHead>
-                      <TableHead className="text-center">{t("date")}</TableHead>
-                      <TableHead className="text-center">{t("time")}</TableHead>
+                      <TableHead className="text-center">
+                        <Button
+                          variant="ghost"
+                          onClick={handleSort}
+                          className="flex items-center justify-center"
+                        >
+                          {t("dateAndTime")}
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
                       <TableHead className="text-center">
                         {t("status")}
                       </TableHead>
@@ -1226,8 +1257,8 @@ export default function SchedulesPage() {
                           getScheduleWithStatus(schedule);
                         return (
                           <TableRow key={schedule.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center gap-2">
                                 <Avatar className="h-8 w-8 flex-shrink-0">
                                   <AvatarFallback>
                                     {schedule.customerName.charAt(0)}
@@ -1238,30 +1269,36 @@ export default function SchedulesPage() {
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-[150px]">
+                            <TableCell className="text-center">
+                              {schedule.customerPhoneNumber}
+                            </TableCell>
+                            <TableCell className="text-center max-w-[150px]">
                               <div className="truncate">
                                 {schedule.serviceName}
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-[150px]">
+                            <TableCell className="text-center max-w-[150px]">
                               <div className="truncate">
                                 {schedule.doctorName}
                               </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {schedule.bookingDate}
+                            <TableCell className="text-center whitespace-nowrap">
+                              <div className="font-bold">
+                                {schedule.bookingDate}
+                              </div>
+                              <div className="flex items-center justify-center text-muted-foreground">
+                                <Clock className="mr-1 h-3 w-3" />
+                                {formatTimeRange(
+                                  schedule.startTime,
+                                  schedule.endTime
+                                )}
+                              </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {formatTimeRange(
-                                schedule.startTime,
-                                schedule.endTime
-                              )}
-                            </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               {getStatusBadge(schedule.status)}
                             </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
+                            <TableCell className="text-center">
+                              <div className="flex gap-2 justify-center">
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -1434,8 +1471,8 @@ export default function SchedulesPage() {
                           getScheduleWithStatus(schedule);
                         return (
                           <TableRow key={schedule.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center gap-2">
                                 <Avatar className="h-8 w-8 flex-shrink-0">
                                   <AvatarFallback>
                                     {schedule.customerName.charAt(0)}
@@ -1446,30 +1483,36 @@ export default function SchedulesPage() {
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-[150px]">
+                            <TableCell className="text-center">
+                              {schedule.customerPhoneNumber}
+                            </TableCell>
+                            <TableCell className="text-center max-w-[150px]">
                               <div className="truncate">
                                 {schedule.serviceName}
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-[150px]">
+                            <TableCell className="text-center max-w-[150px]">
                               <div className="truncate">
                                 {schedule.doctorName}
                               </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {schedule.bookingDate}
+                            <TableCell className="text-center whitespace-nowrap">
+                              <div className="font-bold">
+                                {schedule.bookingDate}
+                              </div>
+                              <div className="flex items-center justify-center text-muted-foreground">
+                                <Clock className="mr-1 h-3 w-3" />
+                                {formatTimeRange(
+                                  schedule.startTime,
+                                  schedule.endTime
+                                )}
+                              </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {formatTimeRange(
-                                schedule.startTime,
-                                schedule.endTime
-                              )}
-                            </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               {getStatusBadge(schedule.status)}
                             </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
+                            <TableCell className="text-center">
+                              <div className="flex gap-2 justify-center">
                                 <Button
                                   variant="outline"
                                   size="sm"
