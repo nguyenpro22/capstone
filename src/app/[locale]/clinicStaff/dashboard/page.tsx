@@ -23,12 +23,16 @@ import {
 import { useGetAppointmentsByDateQuery } from "@/features/booking/api";
 import { useGetDoctorsQuery } from "@/features/clinic/api";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 
 export default function DashboardPage() {
   // Get translations for dashboard.clinicStaff namespace
   const t = useTranslations("dashboard.clinicStaff");
-
+  // Get the token and extract clinicId
+  const token = getAccessToken();
+  // Add null check for token
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "in progress":
@@ -68,8 +72,8 @@ export default function DashboardPage() {
   const yesterday = subDays(today, 1);
   const yesterdayFormatted = format(yesterday, "yyyy-MM-dd");
 
-  // State to store the clinic ID
-  const [clinicId, setClinicId] = useState<string>("");
+  // // State to store the clinic ID
+  // const [clinicId, setClinicId] = useState<string>("");
 
   // Fetch today's appointments
   const { data: todayData, isLoading: isLoadingToday } =
@@ -79,15 +83,15 @@ export default function DashboardPage() {
   const { data: yesterdayData, isLoading: isLoadingYesterday } =
     useGetAppointmentsByDateQuery(yesterdayFormatted);
 
-  // Extract clinic ID from the first appointment (if available)
-  useEffect(() => {
-    if (
-      todayData?.value?.appointments &&
-      todayData.value.appointments.length > 0
-    ) {
-      setClinicId(todayData.value.appointments[0].clinic.id);
-    }
-  }, [todayData]);
+  // // Extract clinic ID from the first appointment (if available)
+  // useEffect(() => {
+  //   if (
+  //     todayData?.value?.appointments &&
+  //     todayData.value.appointments.length > 0
+  //   ) {
+  //     setClinicId(todayData.value.appointments[0].clinic.id);
+  //   }
+  // }, [todayData]);
 
   // Fetch doctors for the clinic
   const { data: doctorsData, isLoading: isLoadingDoctors } = useGetDoctorsQuery(
@@ -118,9 +122,11 @@ export default function DashboardPage() {
         )
       : 0;
 
-  // Count confirmed appointments (status "In Progress")
+  // Count confirmed appointments (status "In Progress" or "Completed")
   const confirmedAppointments = todayAppointments.filter(
-    (app: any) => app.status.toLowerCase() === "in progress"
+    (app: any) =>
+      app.status.toLowerCase() === "in progress" ||
+      app.status.toLowerCase() === "completed"
   ).length;
 
   // Calculate confirmation rate
@@ -131,7 +137,7 @@ export default function DashboardPage() {
 
   // Get total doctors count from the API
   const totalDoctors = doctorsData?.value?.totalCount || 0;
-
+  console.log("data doctor", doctorsData);
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("dashboardTitle")}</h1>

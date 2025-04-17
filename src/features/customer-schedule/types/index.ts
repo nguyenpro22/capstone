@@ -1,21 +1,29 @@
 export interface CustomerSchedule {
-  id: string
-  orderId: string
-  amount: number
-  userId: string
-  customerName: string
-  customerPhoneNumber: string
-  serviceName: string
-  doctorName:string 
-  doctorId: string
-  bookingDate: string
-  startTime: string
-  endTime: string
-  status: string
-  procedurePriceTypeName?: string
-  note: string
-  isFirstCheckIn: boolean
+  id: string;
+  orderId: string;
+  userId: string;
+  customerName: string;
+  customerPhoneNumber: string;
+  customerEmail: string;
+  serviceName: string;
+  doctorId: string;
+  doctorName: string;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  procedurePriceTypeName: string;
+  procedureName: string; // Added procedureName field
+  stepIndex: string;
+  isFirstCheckIn: boolean;
+   // Updated pricing fields
+   servicePrice: number;
+   discountAmount: number;
+   depositAmount: number;
+   amount: number;
+   note?: string;
 }
+
 export interface CustomerScheduleForClinic {
   id: string
   customerName?: string
