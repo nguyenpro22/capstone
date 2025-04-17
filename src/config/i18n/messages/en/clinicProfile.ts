@@ -15,7 +15,8 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   bankName: "Bank Name",
   accountNumber: "Account Number",
   paymentInformation: "Payment Information",
-  paymentDescription: "This bank account is used for receiving payments from patients and insurance providers. Make sure to keep your banking information up to date.",
+  paymentDescription:
+    "This bank account is used for receiving payments from patients and insurance providers. Make sure to keep your banking information up to date.",
   noBranchesAvailable: "No branches available",
   noBranchesDescription: "Branches will appear here once they are added to your clinic.",
   editProfile: "Edit Profile",
@@ -29,5 +30,22 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   price: "Price",
   purchaseDate: "Purchase Date",
   expiryDate: "Expiry Date",
-  daysRemaining: "Days Remaining"
-};
+  daysRemaining: "Days Remaining",
+  // New password change translations
+  changePassword: "Change Password",
+  currentPassword: "Current Password",
+  newPassword: "New Password",
+  confirmNewPassword: "Confirm New Password",
+  passwordChangedSuccessfully: "Password changed successfully",
+  passwordChangeError: "Failed to change password",
+  changing: "Changing...",
+  // Specific error messages
+  passwordsDoNotMatch: "New passwords do not match",
+  passwordTooShort: "Password must be at least 6 characters",
+  failedToChangePassword: "Failed to change password. Please check your current password and try again.",
+   // Redirect message
+   redirectingToLogin: "Redirecting to login in {seconds} seconds...",
+   pleaseLoginAgain: "Your password has been changed successfully. Please log in again with your new password.",
+   loginNow: "Login Now",
+   workingHours: "Working Hours",
+}

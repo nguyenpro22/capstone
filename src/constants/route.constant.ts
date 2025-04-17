@@ -17,7 +17,7 @@ export const systemAdminRoutes = {
   CATEGORIES: `${privateSystemAdminPath}/category-service`,
   SETTINGS: `${privateSystemAdminPath}/settings`,
   VOUCHER: `${privateSystemAdminPath}/voucher`,
-  USERS: `${privateSystemAdminPath}/users`, // Sửa lỗi đường dẫn
+  USERS: `${privateSystemAdminPath}/user`, // Sửa lỗi đường dẫn
   WITHDRAWS: `${privateSystemAdminPath}/withdrawal-approval`, // Sửa lỗi đường dẫn
 };
 
@@ -81,7 +81,6 @@ export const systemStaffRoutes = {
   DEFAULT: `${privateSystemStaffPath}/clinic`,
   PARTNERSHIP: `${privateSystemStaffPath}/partnership`,
   SETTINGS: `${privateSystemStaffPath}/setting`,
-  USERS: `${privateSystemStaffPath}/user`,
   CLINICS: `${privateSystemStaffPath}/clinic`,
   PROFILES: `${privateSystemStaffPath}/profile`,
 };

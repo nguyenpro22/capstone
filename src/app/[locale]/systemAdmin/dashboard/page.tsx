@@ -58,9 +58,9 @@ import { useTranslations, useLocale } from "next-intl";
 
 // Format currency function
 const formatCurrency = (value: number, locale: string): string => {
-  return new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US", {
+  return new Intl.NumberFormat("vi-VN", {
     style: "currency",
-    currency: locale === "vi" ? "VND" : "USD",
+    currency: "VND",
     minimumFractionDigits: 0,
   }).format(value);
 };

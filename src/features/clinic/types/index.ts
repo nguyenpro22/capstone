@@ -10,6 +10,8 @@ export interface Clinic {
   district: string | null;
   ward: string | null;
   fullAddress: string;
+  workingTimeStart: string;
+  workingTimeEnd: string;
   taxCode: string;
   branchLimit: number;
   businessLicenseUrl: string;
@@ -106,6 +108,8 @@ export interface Branch {
   address: string | null;
   fullAddress: string | null;
   taxCode: string;
+  workingTimeStart: string;
+  workingTimeEnd: string ;
   businessLicenseUrl: string;
   operatingLicenseUrl: string;
   operatingLicenseExpiryDate: string | null;

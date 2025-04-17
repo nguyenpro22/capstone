@@ -35,3 +35,9 @@ export interface IVerifyRequest {
   code: string;
   type: number;
 }
+export interface IChangePasswordStaffRequest {
+  newPassword: string;
+  oldPassword: string;
+  workingTimeStart?: string;
+  workingTimeEnd?: string;
+}
