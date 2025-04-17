@@ -27,4 +27,18 @@ export type LoginTranslations = {
   logout: string;
   providerLoginError: string;
   providerLoginSuccess: string;
+  
+  // Add the following types for staff login
+  loginAsPartner: string;
+  partnerLogin: string;
+  enterPartnerDetails: string;
+  partnerSignIn: string;
+  backToRegularLogin: string;
+  regularLogin: string;
+  staffLoginSuccess: string;
+  verifying: string;
+  verificationSuccessful: string;
+  verificationFailed: string;
+  pleaseEnterVerificationCode: string;
+  logoutError: string;
 };

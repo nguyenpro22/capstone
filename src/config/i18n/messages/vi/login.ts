@@ -24,10 +24,23 @@ export const loginMessage: Messages["login"] = {
   verificationCodePlaceholder: "Nhập mã xác thực",
   checkEmail: "Xác Thực Email",
   timeRemaining: "Thời gian còn lại",
-  confirm:"Xác thực",
+  confirm: "Xác thực",
   logout: "Đăng xuất", 
   providerLoginError: "Đăng nhập với Google thất bại",
   providerLoginSuccess: "Đăng nhập với Google thành công",
-  wrongPassword:"Sai mật khẩu"
-
+  wrongPassword: "Sai mật khẩu",
+  
+  // Add the following translations for staff login
+  loginAsPartner: "Đăng nhập với tư cách đối tác",
+  partnerLogin: "Đăng nhập đối tác",
+  enterPartnerDetails: "Vui lòng nhập thông tin tài khoản đối tác của bạn.",
+  partnerSignIn: "Đăng nhập đối tác",
+  backToRegularLogin: "Quay lại đăng nhập thông thường?",
+  regularLogin: "Đăng nhập thông thường",
+  staffLoginSuccess: "Đăng nhập đối tác thành công!",
+  verifying: "Đang xác thực...",
+  verificationSuccessful: "Xác thực thành công!",
+  verificationFailed: "Xác thực thất bại. Vui lòng thử lại.",
+  pleaseEnterVerificationCode: "Vui lòng nhập mã xác thực",
+  logoutError: "Đăng xuất thất bại"
 };

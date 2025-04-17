@@ -102,6 +102,7 @@ export const publicRoutes = {
 export const authRoutes = {
   REGISTER: "/register",
   LOGIN: "/login",
+  PARTNER_LOGIN: "/login-partner",
   FORGOT_PASSWORD: "/forgot-password",
   POPUP_CALLBACK: "/popup-callback",
 };
