@@ -23,10 +23,24 @@ export const loginMessage: Messages["login"] = {
   enterVerificationCode: "Enter verification code",
   verificationCodePlaceholder: "Input verification code",
   checkEmail: "Verify email",
-   timeRemaining: "Time remaining",
-  confirm:"Confirm",
+  timeRemaining: "Time remaining",
+  confirm: "Confirm",
   logout: "Logout", 
   providerLoginError: "Failed to login with Google",
   providerLoginSuccess: "Login Google Success",
-  wrongPassword: "Wrong Password"
+  wrongPassword: "Wrong Password",
+  
+  // Add the following translations for staff login
+  loginAsPartner: "Login as Partner",
+  partnerLogin: "Partner Login",
+  enterPartnerDetails: "Please enter your partner account details.",
+  partnerSignIn: "Partner Sign In",
+  backToRegularLogin: "Back to regular login?",
+  regularLogin: "Regular Login",
+  staffLoginSuccess: "Partner login successful",
+  verifying: "Verifying...",
+  verificationSuccessful: "Verification successful!",
+  verificationFailed: "Verification failed. Please try again.",
+  pleaseEnterVerificationCode: "Please enter the verification code",
+  logoutError: "Logout failed"
 };
