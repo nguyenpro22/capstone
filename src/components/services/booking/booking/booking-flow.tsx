@@ -19,6 +19,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useTranslations } from "next-intl"; // Import useTranslations
 import { SelectProceduresStep } from "./steps/select-procedures-step";
 import { cn } from "@/lib/utils";
+import { InsufficientBalanceModal } from "./insufficient-balance-modal";
 
 interface BookingFlowProps {
   service: ServiceDetail;
@@ -39,6 +40,9 @@ export function BookingFlow({
 }: BookingFlowProps) {
   const [submitBooking] = useCreateBookingMutation();
   const [currentStep, setCurrentStep] = useState(0);
+  const [showInsufficientBalanceModal, setShowInsufficientBalanceModal] =
+    useState(false);
+  const [amountNeeded, setAmountNeeded] = useState(0);
   const [bookingData, setBookingData] = useState<BookingData>({
     service,
     doctor: doctor || null,
@@ -48,7 +52,7 @@ export function BookingFlow({
     selectedProcedures: [],
     customerInfo: {
       name: userData?.name || "",
-      phone: "",
+      phone: userData?.phone || "",
       email: userData?.email || "",
       notes: "",
     },
@@ -152,11 +156,13 @@ export function BookingFlow({
     setIsSubmitting(true);
     try {
       // Create booking request from booking data
+      // Assuming createBookingRequest is defined elsewhere
+
       let bookingRequest = createBookingRequest(bookingData);
       if (liveStreamRoomId) {
         bookingRequest = { ...bookingRequest, liveStreamRoomId };
       }
-      // Call API to submit booking
+
       const result = await submitBooking(bookingRequest).unwrap();
 
       setBookingId(result.bookingId);
@@ -166,32 +172,155 @@ export function BookingFlow({
       setCurrentStep(steps.length - 1);
     } catch (error: any) {
       console.error("Error submitting booking:", error);
+      if (
+        error.data?.error &&
+        error.data.error.code === "400" &&
+        error.data.error.message.includes("Insufficient balance")
+      ) {
+        // Extract the amount needed from the error message if available
 
-      // Handle validation errors from the API
-      if (error.data && !error.data.isSuccess) {
-        // Check if there are specific validation errors
-        if (error.data.errors && error.data.errors.length > 0) {
-          // Display each validation error as a toast
-          error.data.errors.forEach(
-            (err: { code: string; message: string }) => {
-              toast.error(err.message);
-            }
-          );
-        } else if (error.data.error) {
-          // Display the general error message
-          toast.error(error.data.error.message || t("errorOccurred"));
-        } else {
-          // Fallback error message
-          toast.error(t("generalError"));
+        let extractedAmount = 0;
+        try {
+          // Try to extract the amount from error message if it's in format "Need X VND more"
+          const match = error.data.error.message.match(/Need\s+(\d+)\s+VND/i);
+          if (match && match[1]) {
+            extractedAmount = Number.parseInt(match[1], 10);
+          } else {
+            // If we can't extract the exact amount, estimate it based on the booking data
+            // This is a fallback calculation - adjust based on your business logic
+            // const totalPrice = calculateTotalPrice(bookingData);
+            // extractedAmount = Math.ceil(totalPrice * 0.1);
+            extractedAmount = 100000; // Placeholder
+          }
+        } catch (e) {
+          console.error("Could not parse amount needed:", e);
         }
+
+        // Set the amount needed and show the modal
+        setAmountNeeded(extractedAmount);
+        setShowInsufficientBalanceModal(true);
+
+        // Display the insufficient balance error
+        toast.error(
+          error.data.error.message ||
+            t("insufficientBalance") ||
+            "Số dư không đủ"
+        );
       } else {
-        // Handle network or other errors
-        toast.error(t("connectionError"));
+        // Handle validation errors from the API
+        if (error.data && !error.data.isSuccess) {
+          // Check if there are specific validation errors
+          if (error.data.errors && error.data.errors.length > 0) {
+            // Display each validation error as a toast
+            error.data.errors.forEach(
+              (err: { code: string; message: string }) => {
+                toast.error(err.message);
+              }
+            );
+          } else if (error.data.error) {
+            // Display the general error message
+            toast.error(
+              error.data.error.message || t("errorOccurred") || "Có lỗi xảy ra"
+            );
+          } else {
+            // Fallback error message
+            toast.error(t("generalError") || "Lỗi chung");
+          }
+        } else {
+          // Handle network or other errors
+          toast.error(t("connectionError") || "Lỗi kết nối");
+        }
       }
     } finally {
-      setIsSubmitting(false);
+      // Only reset submitting state if we're not showing the insufficient balance modal
+      if (!showInsufficientBalanceModal) {
+        setIsSubmitting(false);
+      }
     }
-  }, [bookingData, steps.length, submitBooking, liveStreamRoomId, t]);
+  }, [
+    bookingData,
+    steps.length,
+    submitBooking,
+    liveStreamRoomId,
+    t,
+    showInsufficientBalanceModal,
+  ]);
+
+  const handleDepositAction = useCallback(() => {
+    // Close the modal
+    setShowInsufficientBalanceModal(false);
+
+    // Keep the submitting state true to show loading
+    setIsSubmitting(true);
+
+    // Open deposit page in new tab with amount parameter if available
+    const depositUrl =
+      amountNeeded > 0
+        ? `/profile?tab=deposit&amount=${amountNeeded}`
+        : "/profile?tab=deposit";
+    const depositWindow = window.open(depositUrl, "_blank");
+
+    // Set up a listener for messages from the deposit window
+    const messageListener = (event: MessageEvent) => {
+      // Verify the message is from our application
+      if (event.data && event.data.type === "DEPOSIT_SUCCESS") {
+        // Remove the listener to avoid memory leaks
+        window.removeEventListener("message", messageListener);
+
+        // Retry the booking submission
+        handleSubmit();
+      }
+    };
+
+    window.addEventListener("message", messageListener);
+
+    // Set up a polling mechanism as a fallback
+    let checkCount = 0;
+    const maxChecks = 60; // Maximum number of checks (5 minutes at 5-second intervals)
+
+    const checkBalanceInterval = setInterval(async () => {
+      try {
+        checkCount++;
+        if (checkCount > maxChecks) {
+          clearInterval(checkBalanceInterval);
+          setIsSubmitting(false);
+          toast.info(
+            t("depositTimeoutMessage") ||
+              "Thời gian chờ nạp tiền đã hết. Vui lòng thử lại sau khi nạp tiền thành công."
+          );
+          return;
+        }
+
+        // Fetch the latest user profile to check balance
+        // Replace this with your actual API call to get user profile/balance
+        const response = await fetch("/api/user/profile");
+        const data = await response.json();
+
+        if (data.value && data.value.balance > 0) {
+          // If balance is updated, clear interval and retry booking
+          clearInterval(checkBalanceInterval);
+
+          // Retry booking submission
+          handleSubmit();
+        }
+      } catch (err) {
+        console.error("Error checking balance:", err);
+      }
+    }, 5000); // Check every 5 seconds
+
+    // Clean up interval if user closes deposit window
+    const checkWindowClosed = setInterval(() => {
+      if (depositWindow && depositWindow.closed) {
+        clearInterval(checkBalanceInterval);
+        clearInterval(checkWindowClosed);
+        window.removeEventListener("message", messageListener);
+        setIsSubmitting(false);
+        toast.info(
+          t("depositCancelledMessage") || "Quá trình nạp tiền đã bị hủy."
+        );
+      }
+    }, 1000);
+  }, [amountNeeded, handleSubmit, t]);
 
   // Check if current step is valid and can proceed
   const canProceed = useCallback(() => {
@@ -400,22 +529,34 @@ export function BookingFlow({
               )}
 
               {currentStep < steps.length - 1 ? (
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed() || isSubmitting}
-                  className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
-                >
-                  {currentStep < steps.length - 2 ? (
-                    <>
-                      {t("next")}
-                      <ChevronRight className="h-4 w-4" />
-                    </>
-                  ) : isSubmitting ? (
-                    t("loading")
-                  ) : (
-                    t("complete")
-                  )}
-                </Button>
+                <div>
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed() || isSubmitting}
+                    className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
+                  >
+                    {currentStep < steps.length - 2 ? (
+                      <>
+                        {t("next")}
+                        <ChevronRight className="h-4 w-4" />
+                      </>
+                    ) : isSubmitting ? (
+                      t("loading")
+                    ) : (
+                      t("complete")
+                    )}
+                  </Button>
+                  <InsufficientBalanceModal
+                    isOpen={showInsufficientBalanceModal}
+                    onClose={() => {
+                      setShowInsufficientBalanceModal(false);
+                      setIsSubmitting(false);
+                      toast.info(t("bookingCancelledMessage"));
+                    }}
+                    onDeposit={handleDepositAction}
+                    amountNeeded={amountNeeded}
+                  />
+                </div>
               ) : (
                 <Button
                   onClick={onClose}

@@ -18,8 +18,14 @@ import {
 import { handleRedirectByRole } from "./auth-redirect";
 import type { TokenData } from "@/utils";
 import { setUser } from "../slice";
-import type { ValidationErrorResponse } from "@/lib/api";
+import type { IResCommon, ValidationErrorResponse } from "@/lib/api";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { ILoginRequest, ILoginResponse } from "../types";
+
+type LoginFunctionType = (credentials: ILoginRequest) => Promise<{
+  unwrap: () => Promise<any>;
+  data: IResCommon<ILoginResponse>;
+}>;
 
 // Constants
 const LOGIN_SUCCESS_SHOWN_KEY = "login_success_shown";

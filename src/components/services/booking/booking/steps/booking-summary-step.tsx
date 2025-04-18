@@ -3,14 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Clock } from "lucide-react";
+import { AlertCircle, CalendarIcon, Clock, InfoIcon } from "lucide-react";
 import { CustomerInfoForm } from "../customer-info-form";
 import { PriceSummary } from "../price-summary";
 import { DoctorItem } from "../doctor-item";
 import { ClinicItem } from "../clinic-item";
 import type { BookingData } from "../../types/booking";
-import { formatDate } from "../../utils/booking-utils";
-import { useTranslations } from "next-intl"; // Import useTranslations
+import { useTranslations } from "next-intl";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface BookingSummaryStepProps {
   bookingData: BookingData;
@@ -31,7 +31,7 @@ export function BookingSummaryStep({
     customerInfo,
     isDefault,
   } = bookingData;
-  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
+  const t = useTranslations("bookingFlow");
 
   // Handle customer info changes
   const handleCustomerInfoChange = (
@@ -46,24 +46,46 @@ export function BookingSummaryStep({
     });
   };
 
+  // Calculate total price for deposit message
+  const totalPrice = selectedProcedures.reduce((sum, procedure) => {
+    // If there's a selected price type ID
+    if (procedure.priceTypeId) {
+      const selectedPriceType = procedure.procedure.procedurePriceTypes.find(
+        (type) => type.id === procedure.priceTypeId
+      );
+      return sum + (selectedPriceType?.price || 0);
+    }
+    // If no specific price type is selected, use the default one
+    else {
+      const defaultPriceType = procedure.procedure.procedurePriceTypes.find(
+        (type) => type.price
+      );
+      return sum + (defaultPriceType?.price || 0);
+    }
+  }, 0);
+  const depositAmount = totalPrice * 0.1;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">
           {t("bookingInfo")}
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-gray-500 dark:text-gray-400 mb-5">
           {t("pleaseReviewBooking")}
         </p>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="border-purple-100 dark:border-purple-800/20">
-            <CardContent className="p-4">
-              <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-3">
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="border-purple-100 dark:border-purple-800/20 shadow-sm">
+            <CardContent className="p-5">
+              <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-4 flex items-center">
+                <span className="bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-full mr-2">
+                  <InfoIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </span>
                 {t("serviceInfo")}
               </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500 dark:text-gray-400">
                     {t("service")}:
                   </span>
@@ -71,24 +93,24 @@ export function BookingSummaryStep({
                     {service.name}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500 dark:text-gray-400">
                     {t("category")}:
                   </span>
                   <Badge
                     variant="outline"
-                    className="border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300"
+                    className="border-purple-200 dark:border-purple-800/30 text-purple-700 dark:text-purple-300 font-normal"
                   >
                     {service.category.name}
                   </Badge>
                 </div>
-                <Separator className="my-2 bg-purple-100 dark:bg-purple-800/30" />
+                <Separator className="my-3 bg-purple-100 dark:bg-purple-800/30" />
                 {isDefault ? (
-                  <div className="text-center p-2 bg-purple-50/50 dark:bg-purple-900/10 rounded-md">
-                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                  <div className="text-center p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-md">
+                    <p className="text-sm text-purple-700 dark:text-purple-300 font-medium mb-2">
                       {t("defaultPackage")}
                     </p>
-                    <div className="mt-2">
+                    <div>
                       <PriceSummary selectedProcedures={selectedProcedures} />
                     </div>
                   </div>
@@ -104,12 +126,15 @@ export function BookingSummaryStep({
             </CardContent>
           </Card>
 
-          <Card className="border-purple-100 dark:border-purple-800/20">
-            <CardContent className="p-4">
-              <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-3">
+          <Card className="border-purple-100 dark:border-purple-800/20 shadow-sm">
+            <CardContent className="p-5">
+              <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-4 flex items-center">
+                <span className="bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-full mr-2">
+                  <CalendarIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </span>
                 {t("appointmentInfo")}
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {doctor && (
                   <div className="mb-3">
                     <DoctorItem
@@ -131,7 +156,7 @@ export function BookingSummaryStep({
                   </div>
                 )}
 
-                <div className="flex flex-col gap-2 bg-purple-50/50 dark:bg-purple-900/10 p-3 rounded-md">
+                <div className="flex flex-col gap-3 bg-purple-50/50 dark:bg-purple-900/10 p-4 rounded-md">
                   {date && (
                     <div className="flex items-center gap-2">
                       <CalendarIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -154,7 +179,20 @@ export function BookingSummaryStep({
                     </div>
                   )}
                 </div>
-                <div>Bạn sẽ cần phải đặt cọc trước 1 khoản tiền là 10%</div>
+                <Alert className="bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800/30">
+                  <AlertCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <AlertTitle className="text-purple-700 dark:text-purple-300 font-medium">
+                    {t("depositRequired")}
+                  </AlertTitle>
+                  <AlertDescription className="text-purple-600/80 dark:text-purple-400/80">
+                    {t("depositInfo", { percent: "10%" })} (
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(depositAmount)}
+                    )
+                  </AlertDescription>
+                </Alert>
               </div>
             </CardContent>
           </Card>
@@ -162,17 +200,21 @@ export function BookingSummaryStep({
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">
           {t("customerInfo")}
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-gray-500 dark:text-gray-400 mb-5">
           {t("pleaseUpdateInfo")}
         </p>
 
-        <CustomerInfoForm
-          customerInfo={customerInfo}
-          onChange={handleCustomerInfoChange}
-        />
+        <Card className="border-purple-100 dark:border-purple-800/20 shadow-sm">
+          <CardContent className="p-5">
+            <CustomerInfoForm
+              customerInfo={customerInfo}
+              onChange={handleCustomerInfoChange}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

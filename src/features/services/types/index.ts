@@ -89,6 +89,28 @@ export type ServiceItem = {
   clinics: Clinic[];
   category: Category;
   doctorServices: DoctorService[];
+  feedbacks: Feedback[];
+};
+export type Feedback = {
+  feedbackId: string;
+  serviceId: string;
+  images: string[];
+  content: string;
+  rating: number;
+  user: User;
+  isView: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
+export type User = {
+  id: string;
+  avatar: string;
+  phoneNumber: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  address: string;
 };
 
 // Type dùng cho chi tiết 1 service
