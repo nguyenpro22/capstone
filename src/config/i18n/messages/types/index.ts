@@ -37,6 +37,8 @@ import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
+import { order } from "./order";
+import { orderDetail } from "./order-detail";
 
 export type Messages = {
   home: homeMessages;
@@ -79,4 +81,6 @@ export type Messages = {
   wallet: walletMessages;
   chat: chatMessages;
   withdrawal: withdrawalMessages;
+  userOrder: order;
+  orderDetail: orderDetail;
 };

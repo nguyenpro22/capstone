@@ -6,13 +6,14 @@ export type OrderItem = {
   serviceName: string;
   totalAmount: number;
   discount: number;
+  depositAmount: number;
   finalAmount: number;
-  orderDate: string;
+  orderDate: string; // ISO format "YYYY-MM-DD"
   status: OrderStatus;
   customerPhone: string;
   customerEmail: string;
   isFromLivestream: boolean;
-  livestreamName: string;
+  livestreamName: string | null;
 };
 
 export type ServiceBooking = {
