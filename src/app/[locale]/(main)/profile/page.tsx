@@ -53,6 +53,7 @@ import { RecentTransactions } from "@/components/home/profile/transaction/recent
 import { DepositFlow } from "@/components/home/profile/deposit/deposit-flow";
 import { WithdrawFlow } from "@/components/home/profile/withdraw/withdraw-flow";
 import TransactionHistory from "@/components/home/profile/transaction/transaction-history";
+import { useSearchParams } from "next/navigation";
 
 // Types
 type TabType = "profile" | "wallet" | "deposit" | "withdraw" | "history";
@@ -78,6 +79,8 @@ export default function ProfilePage() {
   // API Hooks
   const { data: profileData, refetch } = useGetUserProfileQuery();
   const [updateUserProfile] = useUpdateUserProfileMutation();
+  const searchParams = useSearchParams();
+  console.log(searchParams);
 
   // Profile state
   const [profile, setProfile] = useState<IUser>(initialProfile);
@@ -91,6 +94,7 @@ export default function ProfilePage() {
   const [profileImageError, setProfileImageError] = useState<string | null>(
     null
   );
+  const [depositAmount, setDepositAmount] = useState(0);
 
   // Address state
   const [addressDetail, setAddressDetail] = useState({
@@ -114,6 +118,22 @@ export default function ProfilePage() {
   const { data: wards } = useGetWardsQuery(addressDetail.districtId, {
     skip: !addressDetail.districtId,
   });
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const amountParam = searchParams.get("amount");
+
+    if (
+      tabParam &&
+      ["profile", "wallet", "deposit", "withdraw", "history"].includes(tabParam)
+    ) {
+      setActiveTab(tabParam as TabType);
+    }
+
+    if (tabParam === "deposit" && amountParam && !isNaN(Number(amountParam))) {
+      setDepositAmount(Number(amountParam));
+    }
+  }, []);
 
   // Initialize profile data
   useEffect(() => {
@@ -957,6 +977,7 @@ export default function ProfilePage() {
                 currentBalance={profile.balance || 0}
                 onBalanceUpdate={handleBalanceUpdate}
                 onComplete={() => setActiveTab("wallet")}
+                defaultAmount={searchParams.get("amount") || ""}
               />
             )}
 
