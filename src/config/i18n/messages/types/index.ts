@@ -36,6 +36,7 @@ import { DoctorProfile } from "./doctor-profile";
 import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
+import { withdrawalMessages } from "./withdrawal";
 
 export type Messages = {
   home: homeMessages;
@@ -77,4 +78,5 @@ export type Messages = {
   category: categoryMessages;
   wallet: walletMessages;
   chat: chatMessages;
+  withdrawal: withdrawalMessages;
 };
