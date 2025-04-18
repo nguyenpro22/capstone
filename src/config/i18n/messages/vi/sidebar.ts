@@ -52,4 +52,7 @@ export const sidebarMessages: Messages["sidebar"] = {
 
   // Clinic Staff items
   walletAttachment: "Đính Kèm Ví",
+  // New translations for mobile sidebar
+  lightMode: "Chế độ sáng",
+  darkMode: "Chế độ tối",
 }

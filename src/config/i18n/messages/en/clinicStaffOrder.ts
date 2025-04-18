@@ -9,6 +9,7 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     searchPlaceholder: "Search orders...",
     filter: "Filter",
     addOrder: "Add Order",
+    resetFilters: "Reset Filters",
     
     // Loading states
     loading: "Loading orders...",
@@ -32,6 +33,7 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     service: "Service",
     customerInformation: "Customer Information",
     customerName: "Customer Name",
+    customerPhone: "Customer Phone",
     email: "Email",
     phone: "Phone",
     livestream: "Livestream",
@@ -43,9 +45,21 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     discount: "Discount",
     finalAmount: "Final Amount",
     
+    // Table information
+    rowsPerPage: "Rows per page",
+    showingResults: "Showing {start} to {end} of {total} results",
+    
     // Actions
     close: "Close",
     printInvoice: "Print Invoice",
+    updateStatus: "Update Status",
+    cancelOrder: "Cancel Order",
+    viewDetails: "View Details",
+    
+    // Sort information
+    sort: "Sort",
+    ascending: "ascending",
+    descending: "descending",
     
     // Print related
     invoice: "Invoice",
@@ -56,7 +70,11 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     allowPopups: "Please allow pop-ups to print the invoice",
     
     // Status
+    status: "Status",
     statusCompleted: "Completed",
     statusPending: "Pending",
-    statusCancelled: "Cancelled"
-  }
+    statusCancelled: "Cancelled",
+    depositAmount: "Deposit Amount",
+    remainingAmount: "Remaining Amount",
+    actions: "Actions"
+}

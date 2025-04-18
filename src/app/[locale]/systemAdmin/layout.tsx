@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Provider } from "react-redux";
-import store from "@/store"; // Đảm bảo đường dẫn đúng
+import { useState, useEffect } from "react";
+import type React from "react";
 import Sidebar from "@/components/common/Admin/Sidebar";
 import Navbar from "@/components/common/Admin/Navbar";
 import { ChevronRight } from "lucide-react";
@@ -11,19 +10,48 @@ export default function SystemAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true)
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen)
-  }
+    setSidebarOpen(!isSidebarOpen);
+  };
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+
+      // Auto-close sidebar on mobile when first loading
+      if (window.innerWidth < 768 && isSidebarOpen) {
+        setSidebarOpen(false);
+      }
+
+      // Auto-open sidebar on desktop when resizing from mobile
+      if (window.innerWidth >= 768 && !isSidebarOpen) {
+        setSidebarOpen(true);
+      }
+    };
+
+    // Check on mount
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [isSidebarOpen]);
 
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
-      {/* Sidebar */}
+      {/* Sidebar - Only use fixed positioning on desktop */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-950 shadow-md dark:shadow-gray-900 transform transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`${
+          isMobile
+            ? "hidden"
+            : "fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-950 shadow-md dark:shadow-gray-900 transform transition-transform duration-300"
+        } ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <Sidebar
           role="systemAdmin"
@@ -33,11 +61,25 @@ export default function SystemAdminLayout({
         />
       </div>
 
-      {/* Main Content */}
-      <div className={`flex flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-        {/* Navbar with toggle button when sidebar is closed */}
+      {/* Mobile Sidebar - Rendered separately but not positioned */}
+      {isMobile && (
+        <Sidebar
+          role="systemAdmin"
+          onClose={() => setSidebarOpen(false)}
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
+      )}
+
+      {/* Main Content - Adjust margin only on desktop */}
+      <div
+        className={`flex flex-1 flex-col transition-all duration-300 ${
+          isSidebarOpen && !isMobile ? "ml-64" : "ml-0"
+        }`}
+      >
+        {/* Navbar with toggle button when sidebar is closed on desktop */}
         <div className="relative">
-          {!isSidebarOpen && (
+          {!isSidebarOpen && !isMobile && (
             <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
               <button
                 onClick={toggleSidebar}
@@ -52,8 +94,10 @@ export default function SystemAdminLayout({
         </div>
 
         {/* Content */}
-        <main className="p-6 dark:bg-gray-950 dark:text-white">{children}</main>
+        <main className="p-4 md:p-6 dark:bg-gray-950 dark:text-white">
+          {children}
+        </main>
       </div>
     </div>
-  )
+  );
 }

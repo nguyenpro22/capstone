@@ -30,4 +30,9 @@ export const navbarAdminMessages: Messages["navbarAdmin"] = {
     hourAgo: "1 giờ trước",
     hoursAgo: "{count} giờ trước",
   },
+  search: "Tìm kiếm",
+language: "Ngôn ngữ",
+recentSearches: "Tìm kiếm gần đây",
+exampleSearch1: "Cuộc hẹn với bệnh nhân",
+exampleSearch2: "Lịch trình điều trị",
 }

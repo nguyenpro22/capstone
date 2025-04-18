@@ -47,6 +47,9 @@ export type sidebarMessages = {
     logoutConfirmTitle: string
     logoutConfirmDescription: string
     cancel: string
+    // New translations for mobile sidebar
+  lightMode: string
+  darkMode: string
 
   }
   
