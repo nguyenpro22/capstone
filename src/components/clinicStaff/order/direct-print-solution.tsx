@@ -1,39 +1,56 @@
-"use client"
-import { Button } from "@/components/ui/button"
-import { Printer } from "lucide-react"
-import type { OrderItem } from "@/features/order/types"
-import { formatCurrency } from "@/utils"
-import { useTranslations } from "next-intl"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
+import type { OrderItem } from "@/features/order/types";
+import { formatCurrency } from "@/utils";
+import { useTranslations } from "next-intl";
 
 interface DirectPrintProps {
-  order: OrderItem
-  onPrint: () => void
+  order: OrderItem;
+  onPrint: () => void;
 }
 
 // Format date function
 const formatDate = (dateString: string) => {
-  if (!dateString) return "N/A"
-  const date = new Date(dateString)
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
   return date.toLocaleDateString("vi-VN", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  })
-}
+  });
+};
 
 // Giải pháp in trực tiếp không sử dụng thư viện
 export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
-  const t = useTranslations("clinicStaffOrder")
-  const discountPercentage = order.totalAmount > 0 ? (order.discount / order.totalAmount) * 100 : 0
+  const t = useTranslations("clinicStaffOrder");
+  const discountPercentage =
+    order.totalAmount > 0 ? (order.discount / order.totalAmount) * 100 : 0;
+  const remainingAmount = order.finalAmount - (order.depositAmount || 0);
 
   const handlePrint = () => {
     // Tạo một cửa sổ mới để in
-    const printWindow = window.open("", "_blank", "width=800,height=600")
+    const printWindow = window.open("", "_blank", "width=800,height=600");
 
     if (!printWindow) {
-      alert(t("allowPopups"))
-      return
+      alert(t("allowPopups"));
+      return;
     }
+
+    // Map status to translated value
+    const getTranslatedStatus = (status: string) => {
+      switch (status.toLowerCase()) {
+        case "completed":
+          return t("statusCompleted");
+        case "pending":
+          return t("statusPending");
+        case "cancelled":
+        case "canceled":
+          return t("statusCancelled");
+        default:
+          return status;
+      }
+    };
 
     // Tạo nội dung HTML cho hóa đơn
     const printContent = `
@@ -54,6 +71,8 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
             margin: 0 auto;
             padding: 20px;
             border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
           }
           .header {
             text-align: center;
@@ -62,12 +81,18 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
           .header h1 {
             font-size: 24px;
             margin-bottom: 10px;
+            color: #333;
+          }
+          .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
           }
           .section {
             margin-bottom: 20px;
             padding: 15px;
             border: 1px solid #eee;
-            border-radius: 5px;
+            border-radius: 8px;
+            background-color: #fafafa;
           }
           .section h2 {
             font-size: 18px;
@@ -75,6 +100,7 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
             margin-bottom: 15px;
             padding-bottom: 5px;
             border-bottom: 1px solid #eee;
+            color: #333;
           }
           .row {
             display: flex;
@@ -87,23 +113,32 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
           }
           .value {
             font-weight: normal;
+            text-align: right;
+          }
+          .subtotal {
+            font-weight: 600;
           }
           .total {
             font-size: 18px;
             font-weight: bold;
+            color: #000;
           }
           .footer {
             text-align: center;
             margin-top: 30px;
             color: #666;
             font-size: 14px;
+            padding-top: 20px;
+            border-top: 1px dashed #ccc;
           }
           .status {
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 15px;
+            padding: 5px 15px;
+            border-radius: 25px;
             font-size: 14px;
             color: white;
+            font-weight: bold;
+            text-transform: uppercase;
           }
           .status-completed {
             background-color: #22c55e;
@@ -114,10 +149,21 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
           .status-cancelled {
             background-color: #ef4444;
           }
+          .divider {
+            margin: 15px 0;
+            border-top: 1px solid #eee;
+          }
           @media print {
             body {
               print-color-adjust: exact;
               -webkit-print-color-adjust: exact;
+            }
+            .invoice-container {
+              box-shadow: none;
+              border: none;
+            }
+            .no-print {
+              display: none;
             }
           }
         </style>
@@ -126,10 +172,12 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
         <div class="invoice-container">
           <div class="header">
             <h1>${t("invoice").toUpperCase()}</h1>
-            <p>${t("orderId")}: ${order.id}</p>
-            <p>${t("date")}: ${formatDate(order.orderDate)}</p>
+            <p>${t("orderId")}: <strong>${order.id}</strong></p>
+            <p>${t("date")}: <strong>${formatDate(order.orderDate)}</strong></p>
             <div>
-              <span class="status status-${order.status.toLowerCase()}">${order.status}</span>
+              <span class="status status-${order.status.toLowerCase()}">${getTranslatedStatus(
+      order.status
+    )}</span>
             </div>
           </div>
           
@@ -141,7 +189,9 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
             </div>
             <div class="row">
               <span class="label">${t("service")}:</span>
-              <span class="value">${order.serviceName || t("notAvailable")}</span>
+              <span class="value">${
+                order.serviceName || t("notAvailable")
+              }</span>
             </div>
           </div>
           
@@ -149,15 +199,21 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
             <h2>${t("customerInformation")}</h2>
             <div class="row">
               <span class="label">${t("customerName")}:</span>
-              <span class="value">${order.customerName || t("notAvailable")}</span>
+              <span class="value">${
+                order.customerName || t("notAvailable")
+              }</span>
             </div>
             <div class="row">
               <span class="label">${t("email")}:</span>
-              <span class="value">${order.customerEmail || t("notAvailable")}</span>
+              <span class="value">${
+                order.customerEmail || t("notAvailable")
+              }</span>
             </div>
             <div class="row">
               <span class="label">${t("phone")}:</span>
-              <span class="value">${order.customerPhone || t("notAvailable")}</span>
+              <span class="value">${
+                order.customerPhone || t("notAvailable")
+              }</span>
             </div>
             ${
               order.isFromLivestream
@@ -181,12 +237,36 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
               <span class="label">${t("discount")}:</span>
               <span class="value">
                 ${formatCurrency(order.discount)} đ
-                ${discountPercentage > 0 ? `(${discountPercentage.toFixed(1)}%)` : ""}
+                ${
+                  discountPercentage > 0
+                    ? `(${discountPercentage.toFixed(1)}%)`
+                    : ""
+                }
               </span>
             </div>
-            <div class="row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            
+            <div class="divider"></div>
+            
+            <div class="row">
+              <span class="label">${t("depositAmount")}:</span>
+              <span class="value">${formatCurrency(
+                order.depositAmount || 0
+              )} đ</span>
+            </div>
+            <div class="row">
+              <span class="label">${t("remainingAmount")}:</span>
+              <span class="value subtotal">${formatCurrency(
+                remainingAmount
+              )} đ</span>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="row">
               <span class="label total">${t("finalAmount")}:</span>
-              <span class="value total">${formatCurrency(order.finalAmount)} đ</span>
+              <span class="value total">${formatCurrency(
+                order.finalAmount
+              )} đ</span>
             </div>
           </div>
           
@@ -194,6 +274,11 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
             <p>${t("thankYouMessage")}</p>
             <p>${t("legalNotice")}</p>
           </div>
+        </div>
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()" style="padding: 10px 20px; background-color: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Print Invoice
+          </button>
         </div>
         <script>
           // Tự động in khi trang đã tải xong
@@ -205,23 +290,23 @@ export function DirectPrintSolution({ order, onPrint }: DirectPrintProps) {
         </script>
       </body>
       </html>
-    `
+    `;
 
     // Ghi nội dung vào cửa sổ mới
-    printWindow.document.open()
-    printWindow.document.write(printContent)
-    printWindow.document.close()
+    printWindow.document.open();
+    printWindow.document.write(printContent);
+    printWindow.document.close();
 
     // Thông báo đã in xong
     if (onPrint) {
-      onPrint()
+      onPrint();
     }
-  }
+  };
 
   return (
     <Button onClick={handlePrint} className="gap-2">
       <Printer className="h-4 w-4" />
       {t("printInvoice")}
     </Button>
-  )
+  );
 }

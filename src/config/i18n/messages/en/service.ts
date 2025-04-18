@@ -104,6 +104,7 @@ export const serviceMessages: Messages["serviceMessage"] = {
       fetchServiceFailed: "Failed to fetch service information!",
       deleteServiceFailed: "Failed to delete service!",
       refreshServiceFailed: "Failed to update service information!",
+      updateServiceFailed: "Failed to update service!"
     },
   // Modal tabs
   overview: "Overview",
@@ -223,6 +224,34 @@ export const serviceMessages: Messages["serviceMessage"] = {
       generalError: "Failed to add, please try again.",
     },
   },
+   // Add new service form
+   addService: {
+    title: "Add New Service",
+    subtitle: "Enter information and upload service images",
+    serviceName: "Service Name",
+    serviceNamePlaceholder: "Enter service name",
+    description: "Description",
+    descriptionPlaceholder: "Enter service description",
+    category: "Category",
+    categoryPlaceholder: "Select category",
+    branches: "Branches",
+    branchesPlaceholder: "Select branches",
+    branchesRequired: "At least one branch must be selected",
+    noBranches: "No branches available. Please create a branch first.",
+    branchesSelected: "{count} branch selected",
+    branchesSelectedPlural: "{count} branches selected",
+    coverImages: "Cover Images",
+    noCoverImages: "Please upload at least one cover image",
+    selectCoverImages: "Select cover images",
+    filesSelected: "{count} file(s) selected - Click to change",
+    saving: "Saving...",
+    save: "Save",
+    depositPercent: "Deposit Percentage (%)",
+    depositPercentInfo: "Amount customers must deposit when booking (0-100%)",
+    isRefundable: "Allow Refunds",
+    isRefundableInfo: "Whether customers can get a refund for this service",
+    requiredFields: "Please fill in all required fields, including at least one branch and one image"
+  },
   // Update service form
   updateService: {
     title: "Update Service",
@@ -247,6 +276,10 @@ export const serviceMessages: Messages["serviceMessage"] = {
     filesSelected: "{count} files selected - Click to change",
     saving: "Saving...",
     saveChanges: "Save Changes",
+    depositPercent: "Deposit Percentage (%)",
+    depositPercentInfo: "Amount customers must deposit when booking (0-100%)",
+    isRefundable: "Allow Refunds",
+    isRefundableInfo: "Whether customers can get a refund for this service",
   },
   
 }

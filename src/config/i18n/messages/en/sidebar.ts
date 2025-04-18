@@ -52,4 +52,7 @@ export const sidebarMessages: Messages["sidebar"] = {
 
   // Clinic Staff items
   walletAttachment: "Wallet Attachment",
+  // New translations for mobile sidebar
+  lightMode: "Light Mode",
+  darkMode: "Dark Mode",
 }

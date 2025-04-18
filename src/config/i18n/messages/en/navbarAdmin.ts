@@ -30,4 +30,10 @@ export const navbarAdminMessages: Messages["navbarAdmin"] = {
     hourAgo: "1 hour ago",
     hoursAgo: "{count} hours ago",
   },
+   // New translations for mobile
+   search: "Search",
+   language: "Language",
+   recentSearches: "Recent Searches",
+   exampleSearch1: "Patient appointments",
+   exampleSearch2: "Treatment schedules",
 }

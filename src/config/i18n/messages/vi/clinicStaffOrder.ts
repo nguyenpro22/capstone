@@ -9,6 +9,7 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     searchPlaceholder: "Tìm kiếm đơn hàng...",
     filter: "Lọc",
     addOrder: "Thêm đơn hàng",
+    resetFilters: "Bỏ bộ lọc",
     
     // Loading states
     loading: "Đang tải đơn hàng...",
@@ -32,6 +33,7 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     service: "Dịch vụ",
     customerInformation: "Thông tin khách hàng",
     customerName: "Tên khách hàng",
+    customerPhone: "SĐT khách hàng",
     email: "Email",
     phone: "Số điện thoại",
     livestream: "Livestream",
@@ -43,9 +45,21 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     discount: "Giảm giá",
     finalAmount: "Thành tiền",
     
+    // Table information
+    rowsPerPage: "Số dòng mỗi trang",
+    showingResults: "Hiển thị {start} đến {end} của {total} kết quả",
+    
     // Actions
     close: "Đóng",
     printInvoice: "In hóa đơn",
+    updateStatus: "Cập nhật trạng thái",
+    cancelOrder: "Hủy đơn hàng",
+    viewDetails: "Xem chi tiết",
+    
+    // Sort information
+    sort: "Sắp xếp",
+    ascending: "tăng dần",
+    descending: "giảm dần",
     
     // Print related
     invoice: "Hóa đơn",
@@ -56,7 +70,12 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     allowPopups: "Vui lòng cho phép cửa sổ pop-up để in hóa đơn",
     
     // Status
+    status: "Trạng thái",
     statusCompleted: "Hoàn thành",
     statusPending: "Đang xử lý",
-    statusCancelled: "Đã hủy"
-  }
+    statusCancelled: "Đã hủy",
+    depositAmount: "Tiền đặt cọc",
+    remainingAmount: "Số tiền còn lại",
+    actions:"Hành Động"
+
+}
