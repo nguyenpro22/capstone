@@ -16,6 +16,7 @@ import {
 import { Mutex } from "async-mutex";
 import { IResCommon } from "./type";
 import { ILoginResponse } from "@/features/auth/types";
+import { openAuthExpiryDialog } from "../authDialogService";
 
 const mutex = new Mutex();
 
@@ -46,6 +47,8 @@ export const reAuthQuery = (
 
         if (!refreshToken || !accessToken) {
           clearCookieStorage();
+          // Hiển thị dialog phiên đăng nhập hết hạn
+          openAuthExpiryDialog();
           return { error: { status: 401, data: "No tokens available" } };
         }
 
@@ -67,13 +70,16 @@ export const reAuthQuery = (
 
           result = await baseQuery(args, api, extraOptions);
         } else {
-          showError("Session expired. Please log in again.");
+          // Hiển thị dialog phiên đăng nhập hết hạn thay vì chỉ show error
           clearToken();
+          openAuthExpiryDialog();
           return { error: { status: 401, data: "Session expired" } };
         }
       } catch (error) {
         console.error(error);
-        showError("An unexpected error occurred during re-authentication.");
+        // Hiển thị dialog phiên đăng nhập hết hạn trong trường hợp lỗi
+        clearToken();
+        openAuthExpiryDialog();
         return { error: { status: 500, data: "Re-authentication failed" } };
       } finally {
         release();

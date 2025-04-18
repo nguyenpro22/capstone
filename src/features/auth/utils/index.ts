@@ -44,7 +44,7 @@ export const handleLogin = async ({
   rememberMe,
   setRememberMeCookie,
   getCookie,
-  CookieStorageKey
+  CookieStorageKey,
 }: {
   email: string;
   password: string;
@@ -70,11 +70,12 @@ export const handleLogin = async ({
     try {
       const response = await login({ email, password });
       const loginData = response.data;
-        const { isFirstLogin } = GetDataByToken(loginData.value.accessToken) as TokenData;
-        console.log("log ne", isFirstLogin)
-      
+      const { isFirstLogin } = GetDataByToken(
+        loginData.value.accessToken
+      ) as TokenData;
+      console.log("log ne", isFirstLogin);
+
       if (loginData.isSuccess) {
-        
         // Nếu backend thành công, đồng bộ với Firebase
         try {
           // Kiểm tra xem đã đăng nhập Firebase chưa
@@ -90,13 +91,13 @@ export const handleLogin = async ({
           );
         }
 
-          // Xử lý đăng nhập thành công
+        // Xử lý đăng nhập thành công
         await processAuthSuccess({
           loginResponse: loginData.value,
           t,
           dispatch,
           router,
-          isFirstLogin
+          isFirstLogin,
         });
 
         // Xử lý "Remember Me"
@@ -369,7 +370,7 @@ export const processAuthSuccess = async ({
   router,
   provider,
   userName,
-  isFirstLogin
+  isFirstLogin,
 }: {
   loginResponse: any;
   t: any;
@@ -420,8 +421,8 @@ export const processAuthSuccess = async ({
     localStorage.removeItem("redirect");
     router.back();
   }
-  if(isFirstLogin=="True") {
-    return ;
+  if (isFirstLogin == "True") {
+    return;
   }
   // Chuyển hướng dựa trên vai trò
   else handleRedirectByRole(userData.roleName, router);
