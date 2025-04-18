@@ -1,4 +1,4 @@
-import { customerScheduleTranslations } from "./../types/customerSchedule";
+
 import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
@@ -39,6 +39,7 @@ import { doctorCertificate } from "./doctor-certificate";
 import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
+import { withdrawalMessages } from "./withdrawal";
 
 const vi = {
   home: homeMessages,
@@ -79,7 +80,8 @@ const vi = {
   doctorCertificate,
   category: categoryMessages,
   wallet: walletMessages,
-  chat: chatMessages
+  chat: chatMessages,
+  withdrawal: withdrawalMessages,
 };
 
 export default vi;
