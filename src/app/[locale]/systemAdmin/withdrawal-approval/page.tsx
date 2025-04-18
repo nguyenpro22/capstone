@@ -1,7 +1,6 @@
 "use client";
 
 import { TableHead } from "@/components/ui/table";
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -75,8 +74,12 @@ import { getAccessToken, getRefreshToken } from "@/utils";
 import { useRefreshTokenMutation } from "@/features/auth/api";
 import { setAccessToken, setRefreshToken } from "@/utils";
 import * as signalR from "@microsoft/signalr";
+import { useTranslations } from "next-intl"; // Import useTranslations hook
 
 export default function WithdrawalApprovalPage() {
+  // Initialize translations
+  const t = useTranslations("withdrawal");
+
   const router = useRouter();
 
   // State for pagination and filtering
@@ -206,7 +209,7 @@ export default function WithdrawalApprovalPage() {
 
             // If payment is successful
             if (status) {
-              toast.success("Payment successful");
+              toast.success(t("paymentSuccessful"));
               // Close the QR dialog and show payment result
               setShowQR(false);
               setShowPaymentResult(true);
@@ -241,9 +244,7 @@ export default function WithdrawalApprovalPage() {
                 refetch();
               }, 2000);
             } else {
-              toast.error(
-                details?.message || "Payment failed. Please try again."
-              );
+              toast.error(details?.message || t("paymentFailedTryAgain"));
               // Show payment result with failure details
               setShowQR(false);
               setShowPaymentResult(true);
@@ -252,7 +253,7 @@ export default function WithdrawalApprovalPage() {
         );
       } catch (error) {
         console.error("Failed to set up SignalR connection:", error);
-        toast.error("Failed to connect to payment service");
+        // toast.error(t("failedToConnectPayment"));
       }
     };
 
@@ -264,7 +265,7 @@ export default function WithdrawalApprovalPage() {
         PaymentService.leavePaymentSession(transactionId);
       }
     };
-  }, [transactionId, refetch, refreshToken]);
+  }, [transactionId, refetch, refreshToken, t]);
 
   // Get transactions from API data
   const transactions = transactionsData?.value?.items || [];
@@ -290,7 +291,7 @@ export default function WithdrawalApprovalPage() {
             variant="outline"
             className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 min-w-[100px] justify-center"
           >
-            Withdrawal
+            {t("withdrawal")}
           </Badge>
         );
       case "deposit":
@@ -299,7 +300,7 @@ export default function WithdrawalApprovalPage() {
             variant="outline"
             className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 min-w-[100px] justify-center"
           >
-            Deposit
+            {t("deposit")}
           </Badge>
         );
       case "payment":
@@ -308,7 +309,7 @@ export default function WithdrawalApprovalPage() {
             variant="outline"
             className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 min-w-[100px] justify-center"
           >
-            Payment
+            {t("payment")}
           </Badge>
         );
       default:
@@ -326,31 +327,31 @@ export default function WithdrawalApprovalPage() {
       case "completed":
         return (
           <Badge className="bg-green-500 hover:bg-green-600 min-w-[120px] justify-center">
-            Completed
+            {t("completed")}
           </Badge>
         );
       case "pending":
         return (
           <Badge className="bg-yellow-500 hover:bg-yellow-600 min-w-[120px] justify-center">
-            Pending
+            {t("pending")}
           </Badge>
         );
       case "rejected":
         return (
           <Badge className="bg-red-500 hover:bg-red-600 min-w-[120px] justify-center">
-            Rejected
+            {t("rejected")}
           </Badge>
         );
       case "waiting for payment":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600 min-w-[120px] justify-center">
-            Waiting For Payment
+            {t("waitingForPayment")}
           </Badge>
         );
       case "waiting approval":
         return (
           <Badge className="bg-pink-500 hover:bg-pink-600 min-w-[120px] justify-center">
-            Waiting Approval
+            {t("waitingApproval")}
           </Badge>
         );
       default:
@@ -374,7 +375,7 @@ export default function WithdrawalApprovalPage() {
 
     try {
       // Show loading state
-      toast.info("Processing approval...", { autoClose: 2000 });
+      toast.info(t("processingApproval"), { autoClose: 2000 });
 
       const response = await updateWithdrawalStatus({
         withdrawalId: selectedTransaction.id,
@@ -406,13 +407,13 @@ export default function WithdrawalApprovalPage() {
         setIsDetailsModalOpen(false);
         setShowQR(true);
 
-        toast.success("Withdrawal approved. Please complete the payment.");
+        toast.success(t("withdrawalApprovedCompletePayment"));
 
         // Refresh the data to show the updated status
         refetch();
       } else {
         // No QR URL, just show success message
-        toast.success("Withdrawal request approved successfully");
+        toast.success(t("withdrawalRequestApproved"));
         setIsDetailsModalOpen(false);
         refetch(); // Refresh data after approval
       }
@@ -422,7 +423,7 @@ export default function WithdrawalApprovalPage() {
       // Extract error message from the error response with fallbacks
       const errorDetail =
         error.data?.detail || error.data?.message || error.message;
-      toast.error(`Failed to approve withdrawal: ${errorDetail}`);
+      toast.error(`${t("failedToApproveWithdrawal")}: ${errorDetail}`);
     }
   };
 
@@ -437,7 +438,7 @@ export default function WithdrawalApprovalPage() {
 
     try {
       // Show loading state
-      toast.info("Processing rejection...", { autoClose: 2000 });
+      toast.info(t("processingRejection"), { autoClose: 2000 });
 
       const response = await updateWithdrawalStatus({
         withdrawalId: selectedTransaction.id,
@@ -448,7 +449,7 @@ export default function WithdrawalApprovalPage() {
       console.log("Rejection response:", response);
 
       // Always consider it a success if we reach here without throwing an exception
-      toast.success("Withdrawal request rejected successfully");
+      toast.success(t("withdrawalRequestRejected"));
       setIsDetailsModalOpen(false);
       refetch(); // Refresh data after rejection
     } catch (error: any) {
@@ -457,7 +458,7 @@ export default function WithdrawalApprovalPage() {
       // Extract error message from the error response with fallbacks
       const errorDetail =
         error.data?.detail || error.data?.message || error.message;
-      toast.error(`Failed to reject withdrawal: ${errorDetail}`);
+      toast.error(`${t("failedToRejectWithdrawal")}: ${errorDetail}`);
     }
   };
 
@@ -465,7 +466,7 @@ export default function WithdrawalApprovalPage() {
   const handleQuickApprove = async (transaction: any) => {
     try {
       // Show loading state
-      toast.info("Processing approval...", { autoClose: 2000 });
+      toast.info(t("processingApproval"), { autoClose: 2000 });
 
       const response = await updateWithdrawalStatus({
         withdrawalId: transaction.id,
@@ -494,13 +495,13 @@ export default function WithdrawalApprovalPage() {
         // Show QR code
         setShowQR(true);
 
-        toast.success("Withdrawal approved. Please complete the payment.");
+        toast.success(t("withdrawalApprovedCompletePayment"));
 
         // Refresh the data to show the updated status
         refetch();
       } else {
         // No QR URL, just show success message
-        toast.success("Withdrawal request approved successfully");
+        toast.success(t("withdrawalRequestApproved"));
         refetch(); // Refresh data after approval
       }
     } catch (error: any) {
@@ -509,7 +510,7 @@ export default function WithdrawalApprovalPage() {
       // Extract error message from the error response with fallbacks
       const errorDetail =
         error.data?.detail || error.data?.message || error.message;
-      toast.error(`Failed to approve withdrawal: ${errorDetail}`);
+      toast.error(`${t("failedToApproveWithdrawal")}: ${errorDetail}`);
     }
   };
 
@@ -528,7 +529,7 @@ export default function WithdrawalApprovalPage() {
   // Handle export data
   const handleExport = () => {
     // Implementation for exporting data
-    alert("Export functionality would be implemented here");
+    alert(t("exportFunctionalityMessage"));
   };
 
   // Clear all filters
@@ -614,7 +615,7 @@ export default function WithdrawalApprovalPage() {
       PaymentService.startConnection()
         .then(() => {
           // Add a small delay to ensure the connection is fully established
-          return new Promise((resolve) => setTimeout(resolve, 500));
+          return new Promise((resolve) => setTimeout(resolve, 1000));
         })
         .then(() => {
           // Check if the connection is actually connected before joining
@@ -629,12 +630,10 @@ export default function WithdrawalApprovalPage() {
         })
         .catch((error) => {
           console.error("Failed to set up payment session:", error);
-          toast.error(
-            "Failed to connect to payment service. Please try again."
-          );
+          toast.error(t("failedToConnectPaymentTryAgain"));
         });
     } else {
-      toast.error("QR code not available for this transaction");
+      toast.error(t("qrCodeNotAvailable"));
     }
   };
 
@@ -642,7 +641,7 @@ export default function WithdrawalApprovalPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">
-          Wallet Transactions
+          {t("walletTransactions")}
         </h1>
         <div className="flex items-center gap-2">
           <Button
@@ -656,11 +655,11 @@ export default function WithdrawalApprovalPage() {
             ) : (
               <RefreshCw className="h-4 w-4 mr-1" />
             )}
-            Refresh
+            {t("refresh")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-1" />
-            Export
+            {t("export")}
           </Button>
         </div>
       </div>
@@ -668,11 +667,9 @@ export default function WithdrawalApprovalPage() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold">
-            Transaction History
+            {t("transactionHistory")}
           </CardTitle>
-          <CardDescription>
-            View and manage all clinic wallet transactions
-          </CardDescription>
+          <CardDescription>{t("viewAndManageTransactions")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all">
@@ -681,25 +678,25 @@ export default function WithdrawalApprovalPage() {
                 value="all"
                 onClick={() => setTransactionType("all")}
               >
-                All Transactions
+                {t("allTransactions")}
               </TabsTrigger>
               <TabsTrigger
                 value="withdrawal"
                 onClick={() => setTransactionType("withdrawal")}
               >
-                Withdrawals
+                {t("withdrawals")}
               </TabsTrigger>
               <TabsTrigger
                 value="deposit"
                 onClick={() => setTransactionType("deposit")}
               >
-                Deposits
+                {t("deposits")}
               </TabsTrigger>
               <TabsTrigger
                 value="payment"
                 onClick={() => setTransactionType("payment")}
               >
-                Payments
+                {t("payments")}
               </TabsTrigger>
             </TabsList>
 
@@ -721,7 +718,7 @@ export default function WithdrawalApprovalPage() {
                             format(dateRange.from, "LLL dd, y")
                           )
                         ) : (
-                          "Date Range"
+                          t("dateRange")
                         )}
                         <ChevronDown className="h-4 w-4 ml-2" />
                       </Button>
@@ -757,7 +754,7 @@ export default function WithdrawalApprovalPage() {
                       onClick={clearFilters}
                       className="h-9"
                     >
-                      Clear Filters
+                      {t("clearFilters")}
                     </Button>
                   )}
                 </div>
@@ -767,7 +764,7 @@ export default function WithdrawalApprovalPage() {
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search by clinic name or description..."
+                    placeholder={t("searchPlaceholder")}
                     className="pl-8 w-full md:w-[300px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -786,7 +783,7 @@ export default function WithdrawalApprovalPage() {
                           onClick={() => handleSort("transactionDate")}
                           className="flex items-center justify-center gap-1 font-semibold w-full"
                         >
-                          Date
+                          {t("date")}
                           <ArrowUpDown className="h-4 w-4" />
                         </Button>
                       </TableHead>
@@ -796,7 +793,7 @@ export default function WithdrawalApprovalPage() {
                           onClick={() => handleSort("clinicName")}
                           className="flex items-center gap-1 font-semibold"
                         >
-                          Clinic
+                          {t("clinic")}
                           <ArrowUpDown className="h-4 w-4" />
                         </Button>
                       </TableHead>
@@ -806,19 +803,19 @@ export default function WithdrawalApprovalPage() {
                           onClick={() => handleSort("amount")}
                           className="flex items-center justify-center gap-1 font-semibold w-full"
                         >
-                          Amount
+                          {t("amount")}
                           <ArrowUpDown className="h-4 w-4" />
                         </Button>
                       </TableHead>
                       <TableHead className="w-[120px] text-center">
-                        Type
+                        {t("type")}
                       </TableHead>
                       <TableHead className="w-[150px] text-center">
-                        Status
+                        {t("status")}
                       </TableHead>
-                      <TableHead>Description</TableHead>
+                      <TableHead>{t("description")}</TableHead>
                       <TableHead className="w-[150px] text-right">
-                        Actions
+                        {t("actions")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -828,7 +825,7 @@ export default function WithdrawalApprovalPage() {
                         <TableCell colSpan={7} className="h-24 text-center">
                           <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                           <p className="mt-2 text-sm text-muted-foreground">
-                            Loading transactions...
+                            {t("loadingTransactions")}
                           </p>
                         </TableCell>
                       </TableRow>
@@ -916,7 +913,7 @@ export default function WithdrawalApprovalPage() {
                                       disabled={isUpdatingStatus}
                                     >
                                       <XCircle className="h-4 w-4 mr-1" />
-                                      Reject
+                                      {t("reject")}
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -928,7 +925,7 @@ export default function WithdrawalApprovalPage() {
                                       disabled={isUpdatingStatus}
                                     >
                                       <CheckCircle className="h-4 w-4 mr-1" />
-                                      Approve
+                                      {t("approve")}
                                     </Button>
                                   </>
                                 )}
@@ -945,7 +942,7 @@ export default function WithdrawalApprovalPage() {
                                     }
                                   >
                                     <CreditCard className="h-4 w-4 mr-1" />
-                                    View QR
+                                    {t("viewQR")}
                                   </Button>
                                 )}
                             </div>
@@ -958,12 +955,12 @@ export default function WithdrawalApprovalPage() {
                           <div className="flex flex-col items-center justify-center">
                             <CreditCard className="h-10 w-10 text-muted-foreground mb-2" />
                             <p className="text-lg font-medium">
-                              No transactions found
+                              {t("noTransactionsFound")}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {searchTerm
-                                ? "Try adjusting your search or filters"
-                                : "Transactions will appear here when they are created."}
+                                ? t("adjustSearchOrFilters")
+                                : t("transactionsWillAppearHere")}
                             </p>
                           </div>
                         </TableCell>
@@ -1003,10 +1000,11 @@ export default function WithdrawalApprovalPage() {
         >
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Transaction Details</DialogTitle>
+              <DialogTitle>{t("transactionDetails")}</DialogTitle>
               <DialogDescription>
-                Details for {selectedTransaction.transactionType.toLowerCase()}{" "}
-                transaction
+                {t("detailsFor")}{" "}
+                {selectedTransaction.transactionType.toLowerCase()}{" "}
+                {t("transaction")}
               </DialogDescription>
             </DialogHeader>
 
@@ -1023,7 +1021,8 @@ export default function WithdrawalApprovalPage() {
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Transaction ID: {selectedTransaction.id.substring(0, 8)}
+                      {t("transactionID")}:{" "}
+                      {selectedTransaction.id.substring(0, 8)}
                       ...
                     </p>
                   </div>
@@ -1036,7 +1035,7 @@ export default function WithdrawalApprovalPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Amount
+                    {t("amount")}
                   </p>
                   <p
                     className={`text-lg font-semibold ${
@@ -1055,7 +1054,7 @@ export default function WithdrawalApprovalPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Date & Time
+                    {t("dateAndTime")}
                   </p>
                   <div className="flex flex-col">
                     <p className="font-medium">
@@ -1077,7 +1076,7 @@ export default function WithdrawalApprovalPage() {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Clinic
+                  {t("clinic")}
                 </p>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
@@ -1092,7 +1091,7 @@ export default function WithdrawalApprovalPage() {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Description
+                  {t("description")}
                 </p>
                 <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-start gap-2">
@@ -1106,20 +1105,20 @@ export default function WithdrawalApprovalPage() {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Created By
+                  {t("createdBy")}
                 </p>
                 <p className="text-sm">
-                  {selectedTransaction.isMakeBySystem ? "System" : "User"}
+                  {selectedTransaction.isMakeBySystem ? t("system") : t("user")}
                 </p>
               </div>
 
               {showRejectionInput && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Rejection Reason
+                    {t("rejectionReason")}
                   </p>
                   <Textarea
-                    placeholder="Please provide a reason for rejection"
+                    placeholder={t("provideRejectionReason")}
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
                     className="resize-none"
@@ -1134,7 +1133,7 @@ export default function WithdrawalApprovalPage() {
                 variant="outline"
                 onClick={() => setIsDetailsModalOpen(false)}
               >
-                Close
+                {t("close")}
               </Button>
 
               {/* Show approval options only if status is pending and type is withdrawal */}
@@ -1152,12 +1151,12 @@ export default function WithdrawalApprovalPage() {
                         {isUpdatingStatus ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Rejecting...
+                            {t("rejecting")}
                           </>
                         ) : (
                           <>
                             <XCircle className="mr-2 h-4 w-4" />
-                            Confirm Rejection
+                            {t("confirmRejection")}
                           </>
                         )}
                       </Button>
@@ -1167,7 +1166,7 @@ export default function WithdrawalApprovalPage() {
                         onClick={() => setShowRejectionInput(true)}
                       >
                         <XCircle className="mr-2 h-4 w-4" />
-                        Reject
+                        {t("reject")}
                       </Button>
                     )}
 
@@ -1180,12 +1179,12 @@ export default function WithdrawalApprovalPage() {
                       {isUpdatingStatus ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Approving...
+                          {t("approving")}
                         </>
                       ) : (
                         <>
                           <CheckCircle className="mr-2 h-4 w-4" />
-                          Approve
+                          {t("approve")}
                         </>
                       )}
                     </Button>
@@ -1222,10 +1221,10 @@ export default function WithdrawalApprovalPage() {
         <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="text-center font-serif dark:text-gray-100">
-              Payment QR Code
+              {t("paymentQRCode")}
             </DialogTitle>
             <DialogDescription className="text-center dark:text-gray-300">
-              Scan this QR code to complete the withdrawal payment
+              {t("scanQRToCompleteWithdrawal")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center p-6">
@@ -1233,7 +1232,7 @@ export default function WithdrawalApprovalPage() {
               <div className="relative w-64 h-64 mb-4">
                 <Image
                   src={qrUrl || "/placeholder.svg"}
-                  alt="Payment QR Code"
+                  alt={t("paymentQRCode")}
                   fill
                   className="object-contain rounded-lg"
                 />
@@ -1241,7 +1240,7 @@ export default function WithdrawalApprovalPage() {
             ) : (
               <div className="w-64 h-64 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg mb-4 flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-600">
                 <p className="text-gray-500 dark:text-gray-300 text-center px-4">
-                  Loading QR Code...
+                  {t("loadingQRCode")}
                 </p>
               </div>
             )}
@@ -1251,30 +1250,30 @@ export default function WithdrawalApprovalPage() {
                   formatCurrency(selectedTransaction.amount)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Scan with your banking app
+                {t("scanWithBankingApp")}
               </p>
               <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-4">
                 <Clock className="h-4 w-4" />
-                <span>QR code expires in 15 minutes</span>
+                <span>{t("qrCodeExpires")}</span>
               </div>
               {/* Payment Status Indicator */}
               <div className="mt-4">
                 {paymentStatus === "pending" && (
                   <div className="flex items-center justify-center gap-2 text-amber-500 dark:text-amber-400">
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Waiting for payment...</span>
+                    <span>{t("waitingForPayment")}</span>
                   </div>
                 )}
                 {paymentStatus === "success" && (
                   <div className="flex items-center justify-center gap-2 text-green-500 dark:text-green-400">
                     <Check className="h-4 w-4" />
-                    <span>Payment successful</span>
+                    <span>{t("paymentSuccessful")}</span>
                   </div>
                 )}
                 {paymentStatus === "failed" && (
                   <div className="flex items-center justify-center gap-2 text-red-500 dark:text-red-400">
                     <X className="h-4 w-4" />
-                    <span>Payment failed</span>
+                    <span>{t("paymentFailed")}</span>
                   </div>
                 )}
               </div>
@@ -1298,8 +1297,8 @@ export default function WithdrawalApprovalPage() {
           <DialogHeader>
             <DialogTitle className="text-center font-serif dark:text-gray-100">
               {paymentStatus === "success"
-                ? "Payment Successful"
-                : "Payment Failed"}
+                ? t("paymentSuccessful")
+                : t("paymentFailed")}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center p-6">
@@ -1309,19 +1308,19 @@ export default function WithdrawalApprovalPage() {
                   <div className="flex flex-col items-center text-center">
                     <CheckCircle className="h-16 w-16 text-green-500 dark:text-green-400 mb-4" />
                     <h3 className="text-xl font-semibold text-green-700 dark:text-green-300 mb-2">
-                      Payment Successful
+                      {t("paymentSuccessful")}
                     </h3>
                     <p className="text-green-600 dark:text-green-300 mb-4">
-                      The withdrawal payment of{" "}
-                      {paymentDetails.amount
-                        ? formatCurrency(paymentDetails.amount)
-                        : selectedTransaction &&
-                          formatCurrency(selectedTransaction.amount)}{" "}
-                      has been processed successfully.
+                      {t("withdrawalPaymentProcessed", {
+                        amount: paymentDetails.amount
+                          ? formatCurrency(paymentDetails.amount)
+                          : selectedTransaction &&
+                            formatCurrency(selectedTransaction.amount),
+                      })}
                     </p>
                     {paymentDetails.timestamp && (
                       <p className="text-sm text-green-600 dark:text-green-400 mb-4">
-                        Transaction time:{" "}
+                        {t("transactionTime")}:{" "}
                         {new Date(paymentDetails.timestamp).toLocaleString()}
                       </p>
                     )}
@@ -1331,7 +1330,7 @@ export default function WithdrawalApprovalPage() {
                         variant="outline"
                         className="flex-1 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30"
                       >
-                        Close
+                        {t("close")}
                       </Button>
                       <Button
                         onClick={() => {
@@ -1340,7 +1339,7 @@ export default function WithdrawalApprovalPage() {
                         }}
                         className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 dark:from-green-600 dark:to-emerald-600 dark:hover:from-green-500 dark:hover:to-emerald-500"
                       >
-                        View Transactions{" "}
+                        {t("viewTransactions")}{" "}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
@@ -1353,11 +1352,10 @@ export default function WithdrawalApprovalPage() {
                   <div className="flex flex-col items-center text-center">
                     <AlertCircle className="h-16 w-16 text-red-500 dark:text-red-400 mb-4" />
                     <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">
-                      Payment Failed
+                      {t("paymentFailed")}
                     </h3>
                     <p className="text-red-600 dark:text-red-300 mb-4">
-                      {paymentDetails.message ||
-                        "There was an issue processing the payment. Please try again."}
+                      {paymentDetails.message || t("paymentProcessingIssue")}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
                       <Button
@@ -1365,7 +1363,7 @@ export default function WithdrawalApprovalPage() {
                         variant="outline"
                         className="flex-1 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30"
                       >
-                        Close
+                        {t("close")}
                       </Button>
                       <Button
                         onClick={() => {
@@ -1374,7 +1372,7 @@ export default function WithdrawalApprovalPage() {
                         }}
                         className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-pink-600 dark:to-purple-600 dark:hover:from-pink-500 dark:hover:to-purple-500"
                       >
-                        Try Again <RefreshCw className="ml-2 h-4 w-4" />
+                        {t("tryAgain")} <RefreshCw className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
                   </div>

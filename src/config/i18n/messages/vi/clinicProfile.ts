@@ -1,5 +1,6 @@
 import { Messages } from "../types";
 
+
 export const clinicProfileMessages: Messages["clinicProfile"] = {
   clinicDetails: "Thông Tin Phòng Khám",
   clinicStaffDetails: "Thông Tin Chi Nhánh",
@@ -15,7 +16,8 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   bankName: "Tên Ngân Hàng",
   accountNumber: "Số Tài Khoản",
   paymentInformation: "Thông Tin Thanh Toán",
-  paymentDescription: "Tài khoản ngân hàng này được sử dụng để nhận thanh toán từ bệnh nhân và nhà cung cấp bảo hiểm. Hãy đảm bảo cập nhật thông tin ngân hàng của bạn.",
+  paymentDescription:
+    "Tài khoản ngân hàng này được sử dụng để nhận thanh toán từ bệnh nhân và nhà cung cấp bảo hiểm. Hãy đảm bảo cập nhật thông tin ngân hàng của bạn.",
   noBranchesAvailable: "Không có chi nhánh nào",
   noBranchesDescription: "Chi nhánh sẽ xuất hiện ở đây sau khi được thêm vào phòng khám của bạn.",
   editProfile: "Chỉnh Sửa Hồ Sơ",
@@ -30,4 +32,21 @@ export const clinicProfileMessages: Messages["clinicProfile"] = {
   purchaseDate: "Ngày mua",
   expiryDate: "Ngày hết hạn",
   daysRemaining: "Số ngày còn lại",
-};
+  // New password change translations
+  changePassword: "Đổi Mật Khẩu",
+  currentPassword: "Mật Khẩu Hiện Tại",
+  newPassword: "Mật Khẩu Mới",
+  confirmNewPassword: "Xác Nhận Mật Khẩu Mới",
+  passwordChangedSuccessfully: "Đổi mật khẩu thành công",
+  passwordChangeError: "Không thể đổi mật khẩu",
+  changing: "Đang đổi...",
+  // Specific error messages
+  passwordsDoNotMatch: "Mật khẩu mới không khớp",
+  passwordTooShort: "Mật khẩu phải có ít nhất 6 ký tự",
+  failedToChangePassword: "Không thể thay đổi mật khẩu. Vui lòng kiểm tra mật khẩu hiện tại của bạn và thử lại.",
+    // Redirect message
+    redirectingToLogin: "Chuyển hướng đến trang đăng nhập trong {seconds} giây...",
+    pleaseLoginAgain: "Mật khẩu của bạn đã được thay đổi thành công. Vui lòng đăng nhập lại với mật khẩu mới.",
+    loginNow: "Đăng Nhập Ngay",
+    workingHours: "Thời Gian Hoạt Động",
+}

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { format, isToday } from "date-fns";
-import { CalendarIcon, Check, Loader2, Clock, AlertCircle } from "lucide-react";
+import { CalendarIcon, Loader2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 
 import {
@@ -62,14 +62,14 @@ function TimeSlotGroup({
   return (
     <div>
       <h5 className="text-sm font-medium mb-2">{title}</h5>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {timeSlots.map((time) => (
           <Button
             key={time}
             variant={selectedTime === time ? "default" : "outline"}
             size="sm"
             className={cn(
-              "h-9",
+              "h-9 text-xs sm:text-sm",
               selectedTime === time
                 ? "bg-primary text-primary-foreground"
                 : "hover:bg-primary/10"
@@ -124,6 +124,19 @@ const allTimeSlots = [
   "15:30:00",
   "16:00:00",
   "16:30:00",
+  "17:00:00",
+  "17:30:00",
+  "18:00:00",
+  "18:30:00",
+  "19:00:00",
+  "19:30:00",
+  "20:00:00",
+  "20:30:00",
+  "21:00:00",
+  "21:30:00",
+  "22:00:00",
+  "22:30:00",
+  "23:00:00",
 ];
 
 export default function ScheduleFollowUpModal({
@@ -138,7 +151,6 @@ export default function ScheduleFollowUpModal({
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
   const clinicId = tokenData?.clinicId || "";
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [showCalendar, setShowCalendar] = useState(false);
   const [startTime, setStartTime] = useState<string>("");
   const [busyTimeSlots, setBusyTimeSlots] = useState<BusyTimeSlot[]>([]);
   const [updateCustomerSchedule, { isLoading }] =
@@ -150,10 +162,10 @@ export default function ScheduleFollowUpModal({
   const [scheduleDetail, setScheduleDetail] = useState<CustomerSchedule | null>(
     null
   );
-  const [calendarRef, setCalendarRef] = useState<HTMLDivElement | null>(null);
-  const [viewMode, setViewMode] = useState<"calendar" | "timeSlots">(
+  const [viewMode, setViewMode] = useState<"calendar" | "timeSlots" | "date">(
     "calendar"
   );
+  const selectedAppointmentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && schedule) {
@@ -183,25 +195,10 @@ export default function ScheduleFollowUpModal({
   useEffect(() => {
     if (isOpen) {
       setStartTime("");
-      setShowCalendar(false);
       setBusyTimeSlots([]);
       setViewMode("calendar");
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        calendarRef &&
-        !calendarRef.contains(event.target as Node) &&
-        showCalendar
-      ) {
-        setShowCalendar(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showCalendar, calendarRef]);
 
   const fetchBusyTimes = async (
     selectedDate: Date,
@@ -258,7 +255,7 @@ export default function ScheduleFollowUpModal({
     console.log("Date selected:", newDate);
     setDate(newDate);
     setStartTime("");
-    setShowCalendar(false);
+    setViewMode("calendar");
 
     if (newDate && scheduleDetail && scheduleDetail.doctorId && clinicId) {
       console.log("Calling fetchBusyTimes with:", {
@@ -358,6 +355,16 @@ export default function ScheduleFollowUpModal({
 
   const handleTimeSelect = (time: string) => {
     setStartTime(time);
+
+    // Use setTimeout to ensure the selectedAppointment section is rendered before scrolling
+    setTimeout(() => {
+      if (selectedAppointmentRef.current) {
+        selectedAppointmentRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }, 100);
   };
 
   const handleSubmit = async () => {
@@ -385,8 +392,10 @@ export default function ScheduleFollowUpModal({
     }
   };
 
-  const toggleCalendar = () => setShowCalendar(!showCalendar);
-  const confirmDateSelection = () => setShowCalendar(false);
+  const showDatePicker = () => {
+    setViewMode("date");
+  };
+
   const goBackToCalendar = () => {
     setViewMode("calendar");
     setStartTime("");
@@ -412,7 +421,7 @@ export default function ScheduleFollowUpModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{t("scheduleFollowUp")}</DialogTitle>
           <DialogDescription>
@@ -420,11 +429,36 @@ export default function ScheduleFollowUpModal({
           </DialogDescription>
         </DialogHeader>
 
-        {viewMode === "calendar" ? (
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="date">{t("date")}</Label>
-              <div className="relative">
+        <div className="overflow-y-auto pr-1 max-h-[60vh]">
+          {viewMode === "date" ? (
+            <div className="py-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">{t("selectDate")}</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setViewMode("calendar")}
+                >
+                  {t("cancel")}
+                </Button>
+              </div>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleDateSelect}
+                initialFocus
+                disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return date < today;
+                }}
+                className="mx-auto"
+              />
+            </div>
+          ) : viewMode === "calendar" ? (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="date">{t("date")}</Label>
                 <Button
                   id="date"
                   type="button"
@@ -433,115 +467,92 @@ export default function ScheduleFollowUpModal({
                     "w-full justify-start text-left font-normal",
                     !date && "text-muted-foreground"
                   )}
-                  onClick={toggleCalendar}
+                  onClick={showDatePicker}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, "PPP") : <span>{t("selectDate")}</span>}
                 </Button>
-                {showCalendar && (
-                  <div
-                    ref={setCalendarRef}
-                    className="absolute z-50 mt-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg"
-                  >
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={handleDateSelect}
-                      initialFocus
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return date < today;
-                      }}
-                    />
-                    <div className="flex justify-end p-2 border-t dark:border-gray-700">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={confirmDateSelection}
-                        className="flex items-center"
-                      >
-                        <Check className="mr-1 h-4 w-4" />
-                        {t("confirm")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="grid gap-4 py-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-medium">{t("selectTime")}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {date ? formatDateForDisplay(date) : t("pleaseSelectDate")}
-                </p>
-              </div>
-              <Button variant="outline" size="sm" onClick={goBackToCalendar}>
-                {t("changeDate")}
-              </Button>
-            </div>
-
-            {isLoadingBusyTimes ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-pink-500 dark:text-pink-400 mr-2" />
-                <span>{t("loadingAvailableTimes")}</span>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <TimeSlotGroup
-                  title={t("morning")}
-                  timeSlots={timeSlotGroups.morning}
-                  selectedTime={startTime}
-                  onTimeSelect={handleTimeSelect}
-                />
-
-                <TimeSlotGroup
-                  title={t("afternoon")}
-                  timeSlots={timeSlotGroups.afternoon}
-                  selectedTime={startTime}
-                  onTimeSelect={handleTimeSelect}
-                />
-
-                <TimeSlotGroup
-                  title={t("evening")}
-                  timeSlots={timeSlotGroups.evening}
-                  selectedTime={startTime}
-                  onTimeSelect={handleTimeSelect}
-                />
-
-                {availableTimeSlots.length === 0 && (
-                  <Alert variant="default" className="mt-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>{t("noAvailableTimes")}</AlertTitle>
-                    <AlertDescription>
-                      {t("doctorFullyBooked")}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            )}
-
-            {startTime && (
-              <div className="mt-4 p-4 bg-primary/5 rounded-lg">
-                <p className="font-medium">{t("selectedAppointment")}:</p>
-                <div className="flex items-center mt-2">
-                  <Badge variant="outline" className="mr-2">
-                    {date ? formatDateForDisplay(date) : ""}
-                  </Badge>
-                  <Badge>
-                    <Clock className="h-3 w-3 mr-1" />
-                    {startTime.substring(0, 5)}
-                  </Badge>
+          ) : (
+            <div className="grid gap-4 py-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-medium">{t("selectTime")}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {date ? formatDateForDisplay(date) : t("pleaseSelectDate")}
+                  </p>
                 </div>
+                <Button variant="outline" size="sm" onClick={showDatePicker}>
+                  {t("changeDate")}
+                </Button>
               </div>
-            )}
-          </div>
-        )}
 
-        <DialogFooter>
+              {isLoadingBusyTimes ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-pink-500 dark:text-pink-400 mr-2" />
+                  <span>{t("loadingAvailableTimes")}</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <TimeSlotGroup
+                    title={t("morning")}
+                    timeSlots={timeSlotGroups.morning}
+                    selectedTime={startTime}
+                    onTimeSelect={handleTimeSelect}
+                  />
+
+                  <TimeSlotGroup
+                    title={t("afternoon")}
+                    timeSlots={timeSlotGroups.afternoon}
+                    selectedTime={startTime}
+                    onTimeSelect={handleTimeSelect}
+                  />
+
+                  <TimeSlotGroup
+                    title={t("evening")}
+                    timeSlots={timeSlotGroups.evening}
+                    selectedTime={startTime}
+                    onTimeSelect={handleTimeSelect}
+                  />
+
+                  {availableTimeSlots.length === 0 && (
+                    <Alert
+                      variant="default"
+                      className="mt-4 text-xs sm:text-sm"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>{t("noAvailableTimes")}</AlertTitle>
+                      <AlertDescription>
+                        {t("doctorFullyBooked")}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
+
+              {startTime && (
+                <div
+                  ref={selectedAppointmentRef}
+                  className="mt-4 p-4 bg-primary/5 rounded-lg"
+                >
+                  <p className="font-medium">{t("selectedAppointment")}:</p>
+                  <div className="flex items-center mt-2">
+                    <Badge variant="outline" className="mr-2">
+                      {date ? formatDateForDisplay(date) : ""}
+                    </Badge>
+                    <Badge>
+                      <Clock className="h-3 w-3 mr-1" />
+                      {startTime.substring(0, 5)}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="mt-4 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>

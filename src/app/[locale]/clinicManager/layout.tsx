@@ -6,6 +6,9 @@ import { useEffect, useState, useLayoutEffect } from "react";
 import Sidebar from "@/components/common/Admin/Sidebar";
 import Navbar from "@/components/common/Admin/Navbar";
 import { ChevronRight } from "lucide-react";
+import FirstLoginFlow from "@/components/login/first-login-flow";
+import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+import { useRouter } from "next/navigation";
 
 export default function ClinicManagerLayout({
   children,
@@ -16,6 +19,10 @@ export default function ClinicManagerLayout({
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   // Add a state to track if we've completed the initial size check
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
+  // First login flow state
+  const [showFirstLoginFlow, setShowFirstLoginFlow] = useState(false);
+
+  const router = useRouter();
 
   // Function to check if we're on a real mobile device vs just a narrow viewport
   const isRealMobileDevice = () => {
@@ -33,6 +40,20 @@ export default function ClinicManagerLayout({
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
+
+  // Check for first login when the layout mounts
+  useEffect(() => {
+    // Check if it's a first login scenario
+    const token = getAccessToken();
+    if (token) {
+      const tokenData = GetDataByToken(token) as TokenData;
+      const isFirstLogin = tokenData?.isFirstLogin === "True";
+
+      if (isFirstLogin) {
+        setShowFirstLoginFlow(true);
+      }
+    }
+  }, []);
 
   // Use useLayoutEffect to run before the browser paints
   // This helps prevent the flash of incorrect sidebar state
@@ -73,6 +94,16 @@ export default function ClinicManagerLayout({
 
     return () => window.removeEventListener("resize", handleResize);
   }, [isSidebarOpen]);
+
+  // Handle completion of first login flow
+  const handleFirstLoginComplete = () => {
+    setShowFirstLoginFlow(false);
+  };
+
+  // Show the first login flow if needed
+  if (showFirstLoginFlow) {
+    return <FirstLoginFlow onComplete={handleFirstLoginComplete} />;
+  }
 
   // Don't render until we've completed the initial check
   if (!initialCheckComplete) {

@@ -71,6 +71,8 @@ const menuItems = {
       path: "/systemAdmin/dashboard",
       icon: LayoutDashboard,
     },
+    { label: "user", path: "/systemAdmin/user", icon: User },
+
     { label: "voucher", path: "/systemAdmin/voucher", icon: Ticket },
     { label: "package", path: "/systemAdmin/package", icon: Archive },
     {
@@ -87,7 +89,6 @@ const menuItems = {
     { label: "logout", path: "/logout", icon: LogOut },
   ],
   systemStaff: [
-    { label: "user", path: "/systemStaff/user", icon: User },
     { label: "clinic", path: "/systemStaff/clinic", icon: Building2 },
     { label: "partnership", path: "/systemStaff/partnership", icon: Layers },
     { label: "settings", path: "/systemStaff/setting", icon: Settings },

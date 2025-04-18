@@ -83,4 +83,8 @@ export type branchMessages = {
   upgradePopupQuestion: string
   upgradePopupNotNow: string
   upgradePopupUpgradePackage: string
+
+  operatingHours: string
+  workingTimeStart: string
+  workingTimeEnd: string
 }

@@ -1,4 +1,4 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
 
 export const loginMessage: Messages["login"] = {
   welcomeBack: "Chào mừng trở lại",
@@ -25,12 +25,12 @@ export const loginMessage: Messages["login"] = {
   checkEmail: "Xác Thực Email",
   timeRemaining: "Thời gian còn lại",
   confirm: "Xác thực",
-  logout: "Đăng xuất", 
+  logout: "Đăng xuất",
   providerLoginError: "Đăng nhập với Google thất bại",
   providerLoginSuccess: "Đăng nhập với Google thành công",
   wrongPassword: "Sai mật khẩu",
-  
-  // Add the following translations for staff login
+
+  // Staff login translations
   loginAsPartner: "Đăng nhập với tư cách đối tác",
   partnerLogin: "Đăng nhập đối tác",
   enterPartnerDetails: "Vui lòng nhập thông tin tài khoản đối tác của bạn.",
@@ -42,5 +42,30 @@ export const loginMessage: Messages["login"] = {
   verificationSuccessful: "Xác thực thành công!",
   verificationFailed: "Xác thực thất bại. Vui lòng thử lại.",
   pleaseEnterVerificationCode: "Vui lòng nhập mã xác thực",
-  logoutError: "Đăng xuất thất bại"
-};
+  logoutError: "Đăng xuất thất bại",
+
+  // First login flow translations
+  firstLoginTitle: "Thiết lập tài khoản",
+  firstLoginDescription: "Vui lòng hoàn thành các bước sau để thiết lập tài khoản của bạn",
+  workingTimeStart: "Giờ bắt đầu làm việc",
+  workingTimeEnd: "Giờ kết thúc làm việc",
+  oldPassword: "Mật khẩu hiện tại",
+  newPassword: "Mật khẩu mới",
+  confirmPassword: "Xác nhận mật khẩu mới",
+  back: "Quay lại",
+  next: "Tiếp theo",
+  update: "Cập nhật",
+  processing: "Đang xử lý...",
+  updateSuccess: "Cập nhật thông tin thành công!",
+  updateError: "Đã xảy ra lỗi khi cập nhật thông tin",
+
+  // Validation error messages
+  requiredField: "Trường này là bắt buộc",
+  enterWorkingTimeStart: "Vui lòng nhập giờ bắt đầu",
+  enterWorkingTimeEnd: "Vui lòng nhập giờ kết thúc",
+  enterOldPassword: "Vui lòng nhập mật khẩu hiện tại",
+  enterNewPassword: "Vui lòng nhập mật khẩu mới",
+  enterConfirmPassword: "Vui lòng xác nhận mật khẩu mới",
+  passwordMinLength: "Mật khẩu mới phải có ít nhất 6 ký tự",
+  passwordsDoNotMatch: "Mật khẩu xác nhận không khớp",
+}
