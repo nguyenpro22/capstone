@@ -6,6 +6,7 @@ export type OrderItem = {
   serviceName: string;
   totalAmount: number;
   discount: number;
+  depositAmount: number;
   finalAmount: number;
   orderDate: string;
   status: OrderStatus;

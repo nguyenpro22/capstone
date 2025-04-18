@@ -28,5 +28,11 @@ export type navbarAdminMessages = {
       hourAgo: string;
       hoursAgo: string;
     };
+     // New translations for mobile
+    search: string
+    language: string
+    recentSearches: string
+    exampleSearch1: string
+    exampleSearch2: string
   }
   

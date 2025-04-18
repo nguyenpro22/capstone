@@ -27,6 +27,7 @@ import {
   Loader2,
   ArrowUp,
   ArrowDown,
+  Phone,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,19 +44,27 @@ import { formatCurrency } from "@/utils";
 import { OrderDetailDialog } from "@/components/clinicStaff/order/order-detail-dialog";
 import { useTranslations } from "next-intl";
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status: string, t: any) => {
   switch (status.toLowerCase()) {
     case "completed":
       return (
-        <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+        <Badge className="bg-green-500 hover:bg-green-600">
+          {t("statusCompleted")}
+        </Badge>
       );
     case "pending":
       return (
-        <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+        <Badge className="bg-yellow-500 hover:bg-yellow-600">
+          {t("statusPending")}
+        </Badge>
       );
     case "cancelled":
     case "canceled":
-      return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
+      return (
+        <Badge className="bg-red-500 hover:bg-red-600">
+          {t("statusCancelled")}
+        </Badge>
+      );
     default:
       return <Badge>{status}</Badge>;
   }
@@ -204,7 +213,7 @@ export default function OrderPage() {
           </Button>
           {hasActiveFilters && (
             <Button variant="ghost" onClick={resetFilters} size="sm">
-              Reset Filters
+              {t("resetFilters")}
             </Button>
           )}
         </div>
@@ -214,7 +223,7 @@ export default function OrderPage() {
           <div className="flex flex-wrap gap-2">
             {searchTerm && (
               <Badge variant="outline" className="px-2 py-1">
-                Search: {searchTerm}
+                {t("searchPlaceholder")}: {searchTerm}
                 <button
                   onClick={() => setSearchTerm("")}
                   className="ml-2 hover:bg-muted rounded-full p-0.5"
@@ -225,8 +234,8 @@ export default function OrderPage() {
             )}
             {sortColumn && (
               <Badge variant="outline" className="px-2 py-1">
-                Sort: {sortColumn} (
-                {sortOrder === "asc" ? "ascending" : "descending"})
+                {t("sort")}: {sortColumn} (
+                {sortOrder === "asc" ? t("ascending") : t("descending")})
                 <button
                   onClick={() => {
                     setSortColumn("");
@@ -259,118 +268,143 @@ export default function OrderPage() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <SortableTableHead
-                      column="id"
-                      currentSortColumn={sortColumn}
-                      currentSortOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      {t("orderId")}
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="customerName"
-                      currentSortColumn={sortColumn}
-                      currentSortOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      {t("customerName")}
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="serviceName"
-                      currentSortColumn={sortColumn}
-                      currentSortOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      {t("service")}
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="orderDate"
-                      currentSortColumn={sortColumn}
-                      currentSortOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      {t("date")}
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="finalAmount"
-                      currentSortColumn={sortColumn}
-                      currentSortOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      {t("finalAmount")}
-                    </SortableTableHead>
-                    <SortableTableHead
-                      column="status"
-                      currentSortColumn={sortColumn}
-                      currentSortOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      Status
-                    </SortableTableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.length === 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="text-center py-8 text-muted-foreground"
+                      <SortableTableHead
+                        column="id"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
                       >
-                        {t("noOrdersFound")}
-                      </TableCell>
+                        {t("orderId")}
+                      </SortableTableHead>
+                      <SortableTableHead
+                        column="customerName"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        {t("customerName")}
+                      </SortableTableHead>
+                      <SortableTableHead
+                        column="customerPhone"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-4 w-4" />
+                          {t("customerPhone")}
+                        </div>
+                      </SortableTableHead>
+                      <SortableTableHead
+                        column="serviceName"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        {t("service")}
+                      </SortableTableHead>
+                      <SortableTableHead
+                        column="orderDate"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        {t("orderDate")}
+                      </SortableTableHead>
+                      <SortableTableHead
+                        column="finalAmount"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        {t("finalAmount")}
+                      </SortableTableHead>
+                      <SortableTableHead
+                        column="status"
+                        currentSortColumn={sortColumn}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        {t("status")}
+                      </SortableTableHead>
+                      <TableHead>{t("actions") || "Actions"}</TableHead>
                     </TableRow>
-                  ) : (
-                    orders.map((order: OrderItem) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">
-                          {order.id}
-                        </TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>{order.serviceName}</TableCell>
-                        <TableCell>{formatDate(order.orderDate)}</TableCell>
-                        <TableCell>
-                          {formatCurrency(order.finalAmount)} đ
-                        </TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewOrderDetails(order)}
-                            >
-                              View
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  {t("printInvoice")}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Update Status
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
-                                  Cancel Order
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          {t("noOrdersFound")}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      orders.map((order: OrderItem) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">
+                            {order.id}
+                          </TableCell>
+                          <TableCell>{order.customerName}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <a
+                                href={`tel:${order.customerPhone}`}
+                                className="text-blue-500 hover:text-blue-600 hover:underline flex items-center gap-1"
+                              >
+                                {order.customerPhone}
+                              </a>
+                            </div>
+                          </TableCell>
+                          <TableCell>{order.serviceName}</TableCell>
+                          <TableCell>{formatDate(order.orderDate)}</TableCell>
+                          <TableCell>
+                            {formatCurrency(order.finalAmount)} đ
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(order.status, t)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewOrderDetails(order)}
+                              >
+                                {t("viewDetails")}
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    {t("printInvoice")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    {t("updateStatus")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    {t("cancelOrder")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Pagination and page size selector */}
               {orders.length > 0 && (
@@ -392,9 +426,11 @@ export default function OrderPage() {
                       <option value={50}>50</option>
                     </select>
                     <span className="text-sm text-muted-foreground ml-4">
-                      Showing {(pageIndex - 1) * pageSize + 1} to{" "}
-                      {Math.min(pageIndex * pageSize, totalCount)} of{" "}
-                      {totalCount} results
+                      {t.rich("showingResults", {
+                        start: (pageIndex - 1) * pageSize + 1,
+                        end: Math.min(pageIndex * pageSize, totalCount),
+                        total: totalCount,
+                      })}
                     </span>
                   </div>
 

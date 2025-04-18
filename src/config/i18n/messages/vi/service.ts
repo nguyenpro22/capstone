@@ -37,6 +37,7 @@ errors: {
   fetchServiceFailed: "Không thể lấy thông tin dịch vụ!",
   deleteServiceFailed: "Xóa dịch vụ thất bại!",
   refreshServiceFailed: "Không thể cập nhật thông tin dịch vụ!",
+  updateServiceFailed:"Cập nhật dịch vụ thất bại!"
 },
   // Modal tabs
   overview: "Tổng quan",
@@ -157,6 +158,34 @@ errors: {
       generalError: "Thêm thất bại, vui lòng thử lại.",
     },
   },
+  // Add new service form
+  addService: {
+    title: "Thêm dịch vụ mới",
+    subtitle: "Nhập thông tin và tải lên hình ảnh dịch vụ",
+    serviceName: "Tên Dịch vụ",
+    serviceNamePlaceholder: "Nhập tên dịch vụ",
+    description: "Mô tả",
+    descriptionPlaceholder: "Nhập mô tả dịch vụ",
+    category: "Danh mục",
+    categoryPlaceholder: "Chọn danh mục",
+    branches: "Chi nhánh",
+    branchesPlaceholder: "Chọn chi nhánh",
+    branchesRequired: "Phải chọn ít nhất một chi nhánh",
+    noBranches: "Không có chi nhánh nào. Vui lòng tạo chi nhánh trước.",
+    branchesSelected: "{count} chi nhánh được chọn",
+    branchesSelectedPlural: "{count} chi nhánh được chọn",
+    coverImages: "Hình ảnh bìa",
+    noCoverImages: "Vui lòng tải lên ít nhất một hình ảnh bìa",
+    selectCoverImages: "Chọn hình ảnh bìa",
+    filesSelected: "{count} tệp đã chọn - Nhấp để thay đổi",
+    saving: "Đang lưu...",
+    save: "Lưu",
+    depositPercent: "Phần trăm đặt cọc (%)",
+    depositPercentInfo: "Số tiền khách hàng phải đặt cọc khi đặt dịch vụ (0-100%)",
+    isRefundable: "Cho phép hoàn tiền",
+    isRefundableInfo: "Khách hàng có thể được hoàn tiền cho dịch vụ này",
+    requiredFields: "Vui lòng điền vào tất cả các trường bắt buộc, bao gồm ít nhất một chi nhánh và một hình ảnh"
+  },
   // Update service form
   updateService: {
     title: "Cập nhật Dịch vụ",
@@ -181,6 +210,11 @@ errors: {
     filesSelected: "{count} tệp đã chọn - Nhấp để thay đổi",
     saving: "Đang lưu...",
     saveChanges: "Lưu thay đổi",
+    depositPercent: "Phần trăm đặt cọc (%)",
+    depositPercentInfo: "Số tiền khách hàng phải đặt cọc khi đặt dịch vụ (0-100%)",
+    isRefundable: "Cho phép hoàn tiền",
+    isRefundableInfo: "Khách hàng có thể được hoàn tiền cho dịch vụ này",
+    
   },
 }
 

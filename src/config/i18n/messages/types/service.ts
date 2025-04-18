@@ -95,6 +95,7 @@ export type serviceMessages = {
     fetchServiceFailed: string
     deleteServiceFailed: string
     refreshServiceFailed: string
+    updateServiceFailed: string
   }
   // Modal tabs
   overview: string
@@ -217,6 +218,34 @@ export type serviceMessages = {
       generalError: string
     }
   }
+    // Add service form
+  addService: {
+    title: string
+    subtitle: string
+    serviceName: string
+    serviceNamePlaceholder: string
+    description: string
+    descriptionPlaceholder: string
+    category: string
+    categoryPlaceholder: string
+    branches: string
+    branchesPlaceholder: string
+    branchesRequired: string
+    noBranches: string
+    branchesSelected: string
+    branchesSelectedPlural: string
+    coverImages: string
+    noCoverImages: string
+    selectCoverImages: string
+    filesSelected: string
+    saving: string
+    save: string
+    depositPercent: string
+    depositPercentInfo: string
+    isRefundable: string
+    isRefundableInfo: string
+    requiredFields: string
+  }
    // Update service form
    updateService: {
     title: string
@@ -241,6 +270,10 @@ export type serviceMessages = {
     filesSelected: string
     saving: string
     saveChanges: string
+    depositPercent: string
+    depositPercentInfo: string
+    isRefundable: string
+    isRefundableInfo: string
   }
 }
 

@@ -1,96 +1,139 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useUpdateServiceMutation } from "@/features/clinic-service/api"
-import { useGetBranchesQuery } from "@/features/clinic/api"
-import type { Service, UpdateService } from "@/features/clinic-service/types"
-import Image from "next/image"
-import type { CategoryDetail } from "@/features/category-service/types"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ImagePlus, Loader2, Save, XCircle, Trash2, Edit, FileText, Building } from 'lucide-react'
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import { toast } from "react-toastify"
-import dynamic from "next/dynamic"
-import ReactSelect from "react-select"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useTheme } from "next-themes"
-import { useTranslations } from "next-intl"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useUpdateServiceMutation } from "@/features/clinic-service/api";
+import { useGetBranchesQuery } from "@/features/clinic/api";
+import type { Service, UpdateService } from "@/features/clinic-service/types";
+import Image from "next/image";
+import type { CategoryDetail } from "@/features/category-service/types";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ImagePlus,
+  Loader2,
+  Save,
+  XCircle,
+  Trash2,
+  Edit,
+  FileText,
+  Building,
+  Percent,
+  RefreshCw,
+} from "lucide-react";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import { toast } from "react-toastify";
+import dynamic from "next/dynamic";
+import ReactSelect from "react-select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
   ssr: false,
-  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />,
-})
+  loading: () => (
+    <div className="h-40 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />
+  ),
+});
 
 interface UpdateServiceFormProps {
-  initialData: Partial<Service>
-  categories: CategoryDetail[]
-  onClose: () => void
-  onSaveSuccess: () => void
+  initialData: Partial<Service>;
+  categories: CategoryDetail[];
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
-const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, categories, onClose, onSaveSuccess }) => {
-  const t = useTranslations("service") 
-  
+const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({
+  initialData,
+  categories,
+  onClose,
+  onSaveSuccess,
+}) => {
+  const t = useTranslations("service");
+
   const [formData, setFormData] = useState<UpdateService>({
     ...initialData,
     clinicId: "",
-  })
-  const token = getAccessToken()
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const clinicId = tokenData?.clinicId || ""
+  });
+  const token = getAccessToken();
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
 
-  const [selectedCoverFiles, setSelectedCoverFiles] = useState<File[]>([])
+  const [selectedCoverFiles, setSelectedCoverFiles] = useState<File[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<{
-    coverImages: number[]
+    coverImages: number[];
   }>({
     coverImages: [],
-  })
-  const [updateService, { isLoading }] = useUpdateServiceMutation()
-  const [editorLoaded, setEditorLoaded] = useState(false)
-  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string }[]>([])
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  });
+  const [updateService, { isLoading }] = useUpdateServiceMutation();
+  const [editorLoaded, setEditorLoaded] = useState(false);
+  const [selectedBranches, setSelectedBranches] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [depositPercent, setDepositPercent] = useState<number>(
+    initialData.depositPercent || 0
+  );
+  const [isRefundable, setIsRefundable] = useState<boolean>(
+    initialData.isRefundable !== false
+  );
 
-  const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery(clinicId || "")
-  const { theme } = useTheme()
-  const isDark = theme === "dark"
+  const { data: branchesData, isLoading: isLoadingBranches } =
+    useGetBranchesQuery(clinicId || "");
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
-    setEditorLoaded(true)
-  }, [])
+    setEditorLoaded(true);
+  }, []);
 
   useEffect(() => {
     if (initialData.clinics && initialData.clinics.length > 0) {
       const initialBranches = initialData.clinics.map((clinic) => ({
         value: clinic.id,
         label: clinic.name,
-      }))
-      setSelectedBranches(initialBranches)
+      }));
+      setSelectedBranches(initialBranches);
     }
-  }, [initialData.clinics])
+  }, [initialData.clinics]);
 
   // Force re-render when theme changes
-  const [, forceUpdate] = useState({})
+  const [, forceUpdate] = useState({});
   useEffect(() => {
-    forceUpdate({})
-  }, [theme])
+    forceUpdate({});
+  }, [theme]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleDescriptionChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, description: value }))
-  }
+    setFormData((prev) => ({ ...prev, description: value }));
+  };
 
   const handleCategoryChange = (value: string) => {
-    const category = categories.find((cat) => cat.id === value)
+    const category = categories.find((cat) => cat.id === value);
     if (category) {
       setFormData((prev) => ({
         ...prev,
@@ -100,103 +143,134 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           description: category.description || "",
         },
         categoryId: category.id,
-      }))
+      }));
     }
-  }
+  };
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFiles: React.Dispatch<React.SetStateAction<File[]>>,
+    setFiles: React.Dispatch<React.SetStateAction<File[]>>
   ) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files))
+      setFiles(Array.from(e.target.files));
     }
-  }
+  };
 
   const handleDeleteCoverImage = (index: number) => {
     setImagesToDelete((prev) => ({
       ...prev,
       coverImages: [...prev.coverImages, index],
-    }))
-  }
+    }));
+  };
 
   const getBranchesFromResponse = () => {
-    if (!branchesData) return []
-    if (branchesData.value?.branches?.items && Array.isArray(branchesData.value.branches.items)) {
-      return branchesData.value.branches.items
+    if (!branchesData) return [];
+    if (
+      branchesData.value?.branches?.items &&
+      Array.isArray(branchesData.value.branches.items)
+    ) {
+      return branchesData.value.branches.items;
     }
     if (branchesData.value?.id && branchesData.value?.branches?.items) {
-      return branchesData.value.branches.items
+      return branchesData.value.branches.items;
     }
-    return []
-  }
+    return [];
+  };
 
-  const branches = getBranchesFromResponse()
+  const branches = getBranchesFromResponse();
 
   const branchOptions = branches.map((branch) => ({
     value: branch.id,
     label: branch.name,
-  }))
+  }));
 
   const handleSaveChanges = async () => {
-    if (!formData.id) return
+    if (!formData.id) return;
 
-    setValidationErrors({})
+    setValidationErrors({});
 
     if (selectedBranches.length === 0) {
-      setValidationErrors((prev) => ({ ...prev, branches: t("updateService.branchesRequired") }))
-      toast.error(t("updateService.selectBranch"))
-      return
+      setValidationErrors((prev) => ({
+        ...prev,
+        branches: t("updateService.branchesRequired"),
+      }));
+      toast.error(t("updateService.selectBranch"));
+      return;
     }
 
-    const updatedFormData = new FormData()
-    updatedFormData.append("id", formData.id)
-    if (formData.name) updatedFormData.append("name", formData.name)
-    if (formData.description) updatedFormData.append("description", formData.description)
-    updatedFormData.append("categoryId", formData.category?.id || "")
-    const branchIds = selectedBranches.map((branch) => branch.value)
-    updatedFormData.append("clinicId", JSON.stringify(branchIds))
+    const updatedFormData = new FormData();
+    updatedFormData.append("id", formData.id);
+    if (formData.name) updatedFormData.append("name", formData.name);
+    if (formData.description)
+      updatedFormData.append("description", formData.description);
+    updatedFormData.append("categoryId", formData.category?.id || "");
+    const branchIds = selectedBranches.map((branch) => branch.value);
+    updatedFormData.append("clinicId", JSON.stringify(branchIds));
+    updatedFormData.append("depositPercent", depositPercent.toString());
+    updatedFormData.append("isRefundable", isRefundable.toString());
 
     if (imagesToDelete.coverImages.length > 0) {
-      updatedFormData.append("indexCoverImagesChange", JSON.stringify(imagesToDelete.coverImages))
+      updatedFormData.append(
+        "indexCoverImagesChange",
+        JSON.stringify(imagesToDelete.coverImages)
+      );
     }
 
     if (selectedCoverFiles.length > 0) {
-      selectedCoverFiles.forEach((file) => updatedFormData.append("coverImages", file))
+      selectedCoverFiles.forEach((file) =>
+        updatedFormData.append("coverImages", file)
+      );
     }
 
     try {
-      await updateService({ id: formData.id, data: updatedFormData }).unwrap()
-      toast.success(t("success.serviceUpdated"))
-      onSaveSuccess()
+      await updateService({ id: formData.id, data: updatedFormData }).unwrap();
+      toast.success(t("success.serviceUpdated"));
+      onSaveSuccess();
     } catch (error) {
-      console.error("Update failed:", error)
-      toast.error(t("errors.updateServiceFailed"))
+      console.error("Update failed:", error);
+      toast.error(t("errors.updateServiceFailed"));
     }
-  }
+  };
 
   const triggerFileInput = (id: string) => {
-    document.getElementById(id)?.click()
-  }
+    document.getElementById(id)?.click();
+  };
 
-  const displayCoverImages = formData.coverImage?.filter((img) => !imagesToDelete.coverImages.includes(img.index)) || []
+  const displayCoverImages =
+    formData.coverImage?.filter(
+      (img) => !imagesToDelete.coverImages.includes(img.index)
+    ) || [];
 
   // Define select styles based on current theme
   const selectStyles = {
     control: (base: any) => ({
       ...base,
-      border: validationErrors.branches ? "1px solid #ef4444" : isDark ? "1px solid #4b5563" : "1px solid #e2e8f0",
+      border: validationErrors.branches
+        ? "1px solid #ef4444"
+        : isDark
+        ? "1px solid #4b5563"
+        : "1px solid #e2e8f0",
       borderRadius: "0.5rem",
       padding: "0.25rem",
       boxShadow: validationErrors.branches ? "0 0 0 1px #ef4444" : "none",
       "&:hover": {
-        borderColor: validationErrors.branches ? "#ef4444" : isDark ? "#6b7280" : "#cbd5e1",
+        borderColor: validationErrors.branches
+          ? "#ef4444"
+          : isDark
+          ? "#6b7280"
+          : "#cbd5e1",
       },
       backgroundColor: isDark ? "#1f2937" : "white",
     }),
     option: (base: any, state: { isSelected: boolean }) => ({
       ...base,
-      backgroundColor: isDark ? (state.isSelected ? "#374151" : "#1f2937") : state.isSelected ? "#f8f9fa" : "white",
+      backgroundColor: isDark
+        ? state.isSelected
+          ? "#374151"
+          : "#1f2937"
+        : state.isSelected
+        ? "#f8f9fa"
+        : "white",
       color: isDark ? "#d1d5db" : "#1e293b",
       "&:hover": {
         backgroundColor: isDark ? "#4b5563" : "#f1f5f9",
@@ -236,13 +310,14 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
       ...base,
       color: isDark ? "#d1d5db" : "#1e293b",
     }),
-  }
+  };
 
   return (
     <Card className="w-[650px] max-h-[85vh] border-none shadow-lg dark:shadow-gray-900 flex flex-col">
-
       <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-t-lg">
-        <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t("updateService.title")}</CardTitle>
+        <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+          {t("updateService.title")}
+        </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-300">
           {t("updateService.subtitle")}
         </CardDescription>
@@ -250,7 +325,10 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
 
       <CardContent className="p-6 space-y-6 max-h-[60vh] overflow-y-auto pr-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label
+            htmlFor="name"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             {t("updateService.serviceName")}
           </Label>
           <Input
@@ -311,9 +389,14 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           >
             {t("updateService.category")}
           </Label>
-          <Select value={formData.category?.id} onValueChange={handleCategoryChange}>
+          <Select
+            value={formData.category?.id}
+            onValueChange={handleCategoryChange}
+          >
             <SelectTrigger className="border-gray-200 focus:border-pink-300 focus:ring-pink-200 dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-500 dark:bg-gray-700">
-              <SelectValue placeholder={t("updateService.categoryPlaceholder")} />
+              <SelectValue
+                placeholder={t("updateService.categoryPlaceholder")}
+              />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
               {categories.map((category) => (
@@ -328,19 +411,22 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         <div className="space-y-2 mt-6">
           <Label className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300">
             <Building className="h-4 w-4" />
-            {t("updateService.branches")} <span className="text-red-500">*</span>
+            {t("updateService.branches")}{" "}
+            <span className="text-red-500">*</span>
           </Label>
           <ReactSelect
             isMulti
             value={selectedBranches}
             onChange={(selected) => {
-              setSelectedBranches(selected as { value: string; label: string }[])
+              setSelectedBranches(
+                selected as { value: string; label: string }[]
+              );
               if (selected && selected.length > 0) {
                 setValidationErrors((prev) => {
-                  const newErrors = { ...prev }
-                  delete newErrors.branches
-                  return newErrors
-                })
+                  const newErrors = { ...prev };
+                  delete newErrors.branches;
+                  return newErrors;
+                });
               }
             }}
             options={branchOptions}
@@ -376,7 +462,12 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           />
           {validationErrors.branches && (
             <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1 mt-1">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
                 <path
                   fillRule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -393,15 +484,69 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           )}
           {selectedBranches.length > 0 && !validationErrors.branches && (
             <p className="text-sm text-green-600 dark:text-green-400">
-              {t("updateService.branchesSelected", { count: selectedBranches.length })}
+              {t("updateService.branchesSelected", {
+                count: selectedBranches.length,
+              })}
             </p>
           )}
+        </div>
+
+        {/* Deposit Percentage */}
+        <div className="space-y-2">
+          <Label
+            htmlFor="depositPercent"
+            className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300"
+          >
+            <Percent className="h-4 w-4" />
+            {t("updateService.depositPercent")}
+          </Label>
+          <div className="relative">
+            <Input
+              id="depositPercent"
+              type="number"
+              min="0"
+              max="100"
+              value={depositPercent}
+              onChange={(e) => setDepositPercent(Number(e.target.value))}
+              className="pr-8 border-gray-200 focus:border-pink-300 focus:ring-pink-200 dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-500 dark:bg-gray-700"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+              %
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {t("updateService.depositPercentInfo")}
+          </p>
+        </div>
+
+        {/* Is Refundable */}
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isRefundable"
+              checked={isRefundable}
+              onCheckedChange={(checked) => setIsRefundable(checked as boolean)}
+              className="data-[state=checked]:bg-pink-500 data-[state=checked]:border-pink-500"
+            />
+            <Label
+              htmlFor="isRefundable"
+              className="text-sm font-medium flex items-center gap-1 text-gray-700 dark:text-gray-300 cursor-pointer"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t("updateService.isRefundable")}
+            </Label>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+            {t("updateService.isRefundableInfo")}
+          </p>
         </div>
 
         <Separator className="my-4 dark:bg-gray-700" />
 
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("updateService.coverImages")}</Label>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("updateService.coverImages")}
+          </Label>
 
           {displayCoverImages.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 mb-3">
@@ -441,12 +586,16 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400 italic mb-3">{t("updateService.noCoverImages")}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 italic mb-3">
+              {t("updateService.noCoverImages")}
+            </div>
           )}
 
           {imagesToDelete.coverImages.length > 0 && (
             <div className="text-sm text-amber-600 dark:text-amber-400 mb-2">
-              {t("updateService.imagesMarkedForDeletion", { count: imagesToDelete.coverImages.length })}
+              {t("updateService.imagesMarkedForDeletion", {
+                count: imagesToDelete.coverImages.length,
+              })}
             </div>
           )}
 
@@ -460,7 +609,9 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
                   <div key={index} className="relative group">
                     <div className="overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 flex items-center justify-center">
                       <div className="text-sm text-center p-2 text-gray-600 dark:text-gray-300">
-                        {file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name}
+                        {file.name.length > 15
+                          ? file.name.substring(0, 15) + "..."
+                          : file.name}
                       </div>
                     </div>
                   </div>
@@ -486,7 +637,9 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
             >
               <ImagePlus className="mr-2 h-4 w-4" />
               {selectedCoverFiles.length > 0
-                ? t("updateService.filesSelected", { count: selectedCoverFiles.length })
+                ? t("updateService.filesSelected", {
+                    count: selectedCoverFiles.length,
+                  })
                 : t("updateService.selectCoverImages")}
             </Button>
           </div>
@@ -527,14 +680,14 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
           z-index: 10;
           margin-bottom: 60px;
         }
-        
+
         .ql-toolbar.ql-snow,
         .ql-container.ql-snow {
           position: relative;
           z-index: 10;
           background-color: white;
         }
-        
+
         .ql-editor {
           max-height: 150px;
           overflow-y: auto;
@@ -543,38 +696,38 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         }
 
         /* Dark mode styles for Quill */
-        [data-theme='dark'] .ql-toolbar.ql-snow,
-        [data-theme='dark'] .ql-container.ql-snow {
+        [data-theme="dark"] .ql-toolbar.ql-snow,
+        [data-theme="dark"] .ql-container.ql-snow {
           background-color: #1f2937;
           border-color: #4b5563;
         }
-        
-        [data-theme='dark'] .ql-editor {
+
+        [data-theme="dark"] .ql-editor {
           background-color: #1f2937;
           color: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-picker-label {
+
+        [data-theme="dark"] .ql-picker-label {
           color: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-stroke {
+
+        [data-theme="dark"] .ql-stroke {
           stroke: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-fill {
+
+        [data-theme="dark"] .ql-fill {
           fill: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-picker-options {
+
+        [data-theme="dark"] .ql-picker-options {
           background-color: #1f2937;
           border-color: #4b5563;
         }
-        
-        [data-theme='dark'] .ql-picker-item {
+
+        [data-theme="dark"] .ql-picker-item {
           color: #d1d5db;
         }
-        
+
         .clear-both {
           clear: both;
           display: block;
@@ -582,7 +735,7 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({ initialData, cate
         }
       `}</style>
     </Card>
-  )
-}
+  );
+};
 
-export default UpdateServiceForm
+export default UpdateServiceForm;

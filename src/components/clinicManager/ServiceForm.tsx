@@ -16,6 +16,7 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { toast } from "react-toastify";
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
@@ -45,6 +46,8 @@ export default function ServiceForm({
     { value: string; label: string }[]
   >([]);
   const [editorLoaded, setEditorLoaded] = useState(false);
+  const [depositPercent, setDepositPercent] = useState<number>(0);
+  const [isRefundable, setIsRefundable] = useState<boolean>(true);
 
   const [createService, { isLoading }] = useCreateServiceMutation();
   const { refetch: refetchServices } = useGetServicesQuery(undefined);
@@ -149,9 +152,8 @@ export default function ServiceForm({
       selectedBranches.length === 0 ||
       coverImages.length === 0
     ) {
-      setErrorMessages([
-        "Please fill in all required fields, including at least one branch and one image",
-      ]);
+      setErrorMessages([t("addService.requiredFields")]);
+      toast.error(t("addService.requiredFields"));
       return;
     }
 
@@ -168,6 +170,9 @@ export default function ServiceForm({
     coverImages.forEach((image) => {
       formData.append("coverImages", image);
     });
+
+    formData.append("depositPercent", depositPercent.toString());
+    formData.append("isRefundable", isRefundable.toString());
 
     try {
       const response = await createService({ data: formData }).unwrap();
@@ -235,26 +240,27 @@ export default function ServiceForm({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-2xl bg-white/95 backdrop-blur rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-2xl bg-white shadow-2xl rounded-[20px] flex flex-col overflow-hidden"
+        style={{ maxHeight: "90vh" }}
       >
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-b from-purple-100/20 to-transparent rounded-full translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-t from-pink-100/20 to-transparent rounded-full -translate-x-16 translate-y-16" />
+        {/* Gradient header inside the border radius */}
+        <div className="w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500" />
 
-        <div className="p-4 sm:p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-serif tracking-wide text-gray-800">
-              {t("addNewService")}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
+        {/* Fixed header */}
+        <div className="sticky top-0 z-10 bg-white px-6 py-4 flex justify-between items-center border-b">
+          <h2 className="text-2xl font-medium text-gray-800">
+            {t("addService.title")}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
 
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           <AnimatePresence>
             {errorMessages.length > 0 && (
               <motion.div
@@ -280,13 +286,14 @@ export default function ServiceForm({
             {/* Service Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
-                {t("serviceName")}
+                {t("addService.serviceName")}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                placeholder={t("addService.serviceNamePlaceholder")}
                 required
               />
             </div>
@@ -295,7 +302,7 @@ export default function ServiceForm({
             <div className="space-y-2">
               <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
                 <FileText className="h-4 w-4" />
-                {t("description")}
+                {t("addService.description")}
               </label>
               {editorLoaded && (
                 <div
@@ -309,7 +316,7 @@ export default function ServiceForm({
                   <QuillEditor
                     value={description}
                     onChange={handleDescriptionChange}
-                    placeholder="Enter service description"
+                    placeholder={t("addService.descriptionPlaceholder")}
                   />
                 </div>
               )}
@@ -333,7 +340,7 @@ export default function ServiceForm({
                   zIndex: 3, // Even higher z-index for the label
                 }}
               >
-                {t("category")}
+                {t("addService.category")}
               </label>
               <Select
                 value={categoryOptions.find(
@@ -343,7 +350,7 @@ export default function ServiceForm({
                 options={categoryOptions}
                 isDisabled={isCategoriesLoading}
                 isSearchable
-                placeholder="Select Category"
+                placeholder={t("addService.categoryPlaceholder")}
                 styles={{
                   ...selectStyles,
                   container: (base) => ({
@@ -360,7 +367,7 @@ export default function ServiceForm({
             {/* Branch Selection (Multiple) */}
             <div className="space-y-2 mt-6">
               <label className="text-sm font-medium text-gray-700 block mb-2">
-                {t("branches")}
+                {t("addService.branches")}
               </label>
               <Select
                 isMulti
@@ -373,20 +380,22 @@ export default function ServiceForm({
                 options={branchOptions}
                 isDisabled={isLoadingBranches}
                 isSearchable
-                placeholder="Select Branches"
+                placeholder={t("addService.branchesPlaceholder")}
                 styles={selectStyles}
                 className="react-select-container"
                 classNamePrefix="react-select"
               />
               {branchOptions.length === 0 && !isLoadingBranches && (
-                <p className="text-sm text-amber-600">{t("noAvailable")}</p>
+                <p className="text-sm text-amber-600">
+                  {t("addService.noBranches")}
+                </p>
               )}
             </div>
 
             {/* Multiple Images Upload */}
             <div className="space-y-2 mt-6">
               <label className="text-sm font-medium text-gray-700 block mb-2">
-                {t("image")}
+                {t("addService.coverImages")}
               </label>
               <div className="grid grid-cols-1 gap-4">
                 <div className="relative">
@@ -412,10 +421,10 @@ export default function ServiceForm({
                       <ImageIcon className="w-6 h-6" />
                       <span className="text-sm">
                         {coverImages.length > 0
-                          ? `${coverImages.length} image${
-                              coverImages.length > 1 ? "s" : ""
-                            } selected`
-                          : "Upload images (multiple allowed)"}
+                          ? t("addService.filesSelected", {
+                              count: coverImages.length,
+                            })
+                          : t("addService.selectCoverImages")}
                       </span>
                     </div>
                   </label>
@@ -450,33 +459,80 @@ export default function ServiceForm({
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-6 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white
-                         hover:from-pink-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50
-                         disabled:cursor-not-allowed shadow-lg shadow-purple-200"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>{t("save")}</span>
-                  </div>
-                ) : (
-                  "Save Service"
-                )}
-              </button>
+            {/* Deposit Percentage */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                {t("addService.depositPercent") || "Phần trăm đặt cọc (%)"}
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={depositPercent}
+                  onChange={(e) => setDepositPercent(Number(e.target.value))}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  %
+                </span>
+              </div>
+              <p className="text-xs text-gray-500">
+                {t("addService.depositPercentInfo") ||
+                  "Số tiền khách hàng phải đặt cọc khi đặt dịch vụ (0-100%)"}
+              </p>
             </div>
+
+            {/* Is Refundable */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isRefundable}
+                  onChange={(e) => setIsRefundable(e.target.checked)}
+                  className="rounded border-gray-300 text-purple-500 focus:ring-purple-200"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  {t("addService.isRefundable") || "Cho phép hoàn tiền"}
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 ml-6">
+                {t("addService.isRefundableInfo") ||
+                  "Khách hàng có thể được hoàn tiền cho dịch vụ này"}
+              </p>
+            </div>
+
+            {/* Add extra space at the bottom to account for fixed footer */}
+            <div className="h-20"></div>
           </form>
+        </div>
+
+        {/* Fixed footer with buttons */}
+        <div className="sticky bottom-0 z-10 bg-white px-6 py-4 border-t flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+          >
+            {t("cancel")}
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="px-6 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white
+                     hover:from-pink-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50
+                     disabled:cursor-not-allowed shadow-lg shadow-purple-200"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <span>{t("addService.saving")}</span>
+              </div>
+            ) : (
+              t("addService.save")
+            )}
+          </button>
         </div>
       </motion.div>
     </motion.div>
