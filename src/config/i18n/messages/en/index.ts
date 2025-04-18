@@ -1,4 +1,3 @@
-
 import { packageMessages } from "./package";
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
@@ -39,9 +38,8 @@ import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
-
-
-
+import { orderMessages } from "./order";
+import { orderDetail } from "./order-detail";
 
 const en = {
   home: homeMessages,
@@ -83,7 +81,9 @@ const en = {
   category: categoryMessages,
   wallet: walletMessages,
   chat: chatMessages,
-  withdrawal: withdrawalMessages
+  withdrawal: withdrawalMessages,
+  orderMessages,
+  orderDetail,
 };
 
 export default en;

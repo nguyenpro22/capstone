@@ -242,6 +242,7 @@ function ServiceDetailSkeleton() {
 export default function ServiceDetail() {
   const searchParams = useSearchParams();
   const livestreamId = searchParams.get("livestreamId");
+  const booking = searchParams.get("booking");
   const t = useTranslations("serviceDetail");
   const { id } = useParams() as { id: string };
   const { data: serviceData, error, isLoading } = useGetServiceByIdQuery(id);
@@ -262,10 +263,10 @@ export default function ServiceDetail() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [postLoginAction, setPostLoginAction] = useState<() => void>(() => {});
   useEffect(() => {
-    if (livestreamId) {
+    if (livestreamId || booking) {
       setShowBookingFlow(true);
     }
-  }, [livestreamId]);
+  }, [livestreamId, booking]);
   // Handler functions
   const handleBookNow = () => {
     handleProtectedAction(
