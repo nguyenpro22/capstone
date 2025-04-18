@@ -18,9 +18,9 @@ import {
 import { handleRedirectByRole } from "./auth-redirect";
 import type { TokenData } from "@/utils";
 import { setUser } from "../slice";
-import type { ValidationErrorResponse } from "@/lib/api";
+import type { IResCommon, ValidationErrorResponse } from "@/lib/api";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-
+import { ILoginRequest, ILoginResponse } from "../types";
 // Constants
 const LOGIN_SUCCESS_SHOWN_KEY = "login_success_shown";
 const AUTH_STATE_KEY = "auth_state";
@@ -28,7 +28,9 @@ const AUTH_STATE_KEY = "auth_state";
 // Initialize Firebase auth
 const auth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
-
+type LoginFunctionType = (credentials: ILoginRequest) => Promise<{
+  data: IResCommon<ILoginResponse>;
+}>;
 /**
  * Xử lý đăng nhập với email và mật khẩu
  */
@@ -42,7 +44,7 @@ export const handleLogin = async ({
   rememberMe,
   setRememberMeCookie,
   getCookie,
-  CookieStorageKey,
+  CookieStorageKey
 }: {
   email: string;
   password: string;
@@ -66,9 +68,13 @@ export const handleLogin = async ({
 
     // Thử đăng nhập với backend trước
     try {
-      const response = await login({ email, password }).unwrap();
-
-      if (response.isSuccess) {
+      const response = await login({ email, password });
+      const loginData = response.data;
+        const { isFirstLogin } = GetDataByToken(loginData.value.accessToken) as TokenData;
+        console.log("log ne", isFirstLogin)
+      
+      if (loginData.isSuccess) {
+        
         // Nếu backend thành công, đồng bộ với Firebase
         try {
           // Kiểm tra xem đã đăng nhập Firebase chưa
@@ -84,12 +90,13 @@ export const handleLogin = async ({
           );
         }
 
-        // Xử lý đăng nhập thành công
+          // Xử lý đăng nhập thành công
         await processAuthSuccess({
-          loginResponse: response.value,
+          loginResponse: loginData.value,
           t,
           dispatch,
           router,
+          isFirstLogin
         });
 
         // Xử lý "Remember Me"
@@ -355,13 +362,14 @@ export const checkAuthStatus = (): {
 /**
  * Hàm xử lý đăng nhập thành công (private)
  */
-const processAuthSuccess = async ({
+export const processAuthSuccess = async ({
   loginResponse,
   t,
   dispatch,
   router,
   provider,
   userName,
+  isFirstLogin
 }: {
   loginResponse: any;
   t: any;
@@ -369,6 +377,7 @@ const processAuthSuccess = async ({
   router: any;
   provider?: string;
   userName?: string;
+  isFirstLogin?: string;
 }): Promise<void> => {
   // Lưu token
   setAccessToken(loginResponse.accessToken);
@@ -411,7 +420,9 @@ const processAuthSuccess = async ({
     localStorage.removeItem("redirect");
     router.back();
   }
-
+  if(isFirstLogin=="True") {
+    return ;
+  }
   // Chuyển hướng dựa trên vai trò
   else handleRedirectByRole(userData.roleName, router);
 };

@@ -85,4 +85,9 @@ export const branchMessages: Messages["branch"] = {
   upgradePopupQuestion: "Would you like to upgrade your package to add more branches?",
   upgradePopupNotNow: "Not Now",
   upgradePopupUpgradePackage: "Upgrade Package",
+
+  // Fields cho thời gian hoạt động
+  operatingHours: "Operating Hours",
+  workingTimeStart: "Opening Time",
+  workingTimeEnd: "Closing Time",
 }

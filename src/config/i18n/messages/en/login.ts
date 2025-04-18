@@ -1,4 +1,4 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
 
 export const loginMessage: Messages["login"] = {
   welcomeBack: "Welcome back",
@@ -25,12 +25,12 @@ export const loginMessage: Messages["login"] = {
   checkEmail: "Verify email",
   timeRemaining: "Time remaining",
   confirm: "Confirm",
-  logout: "Logout", 
+  logout: "Logout",
   providerLoginError: "Failed to login with Google",
   providerLoginSuccess: "Login Google Success",
   wrongPassword: "Wrong Password",
-  
-  // Add the following translations for staff login
+
+  // Staff login translations
   loginAsPartner: "Login as Partner",
   partnerLogin: "Partner Login",
   enterPartnerDetails: "Please enter your partner account details.",
@@ -42,5 +42,30 @@ export const loginMessage: Messages["login"] = {
   verificationSuccessful: "Verification successful!",
   verificationFailed: "Verification failed. Please try again.",
   pleaseEnterVerificationCode: "Please enter the verification code",
-  logoutError: "Logout failed"
-};
+  logoutError: "Logout failed",
+
+  // First login flow translations
+  firstLoginTitle: "Account Setup",
+  firstLoginDescription: "Please complete the following steps to set up your account",
+  workingTimeStart: "Working hours start",
+  workingTimeEnd: "Working hours end",
+  oldPassword: "Current password",
+  newPassword: "New password",
+  confirmPassword: "Confirm new password",
+  back: "Back",
+  next: "Next",
+  update: "Update",
+  processing: "Processing...",
+  updateSuccess: "Information updated successfully!",
+  updateError: "An error occurred while updating information",
+  
+  // Validation error messages
+  requiredField: "This field is required",
+  enterWorkingTimeStart: "Please enter working start time",
+  enterWorkingTimeEnd: "Please enter working end time",
+  enterOldPassword: "Please enter your current password",
+  enterNewPassword: "Please enter your new password",
+  enterConfirmPassword: "Please confirm your new password",
+  passwordMinLength: "New password must be at least 6 characters",
+  passwordsDoNotMatch: "Passwords do not match",
+}

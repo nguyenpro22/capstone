@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 import { useCreateWalletWithdrawMutation } from "@/features/clinic-wallet/api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
 
 interface WithdrawalRequestModalProps {
   isOpen: boolean;
@@ -40,7 +41,9 @@ export default function WithdrawalRequestModal({
 }: WithdrawalRequestModalProps) {
   const [createWalletWithdraw, { isLoading }] =
     useCreateWalletWithdrawMutation();
-
+  const token = getAccessToken() as string;
+  const { roleName } = GetDataByToken(token) as TokenData;
+  console.log("log xem: ", roleName.toLowerCase.toString());
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [amountError, setAmountError] = useState("");
@@ -100,11 +103,19 @@ export default function WithdrawalRequestModal({
 
     try {
       // Call API to create withdrawal request
-      await createWalletWithdraw({
-        clinicId: clinic.id,
-        amount: Number(amount),
-        description,
-      }).unwrap();
+
+      if (roleName.toLowerCase() === "clinic admin") {
+        await createWalletWithdraw({
+          clinicId: clinic.id,
+          amount: Number(amount),
+          description,
+        }).unwrap();
+      } else {
+        await createWalletWithdraw({
+          amount: Number(amount),
+          description,
+        }).unwrap();
+      }
 
       // Show success message
       toast.success("Request withdraw success");

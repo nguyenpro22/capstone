@@ -76,7 +76,8 @@ export const GetDataByToken = (token: string): TokenData | null => {
   const name = decoded?.Name;
   const email = decoded?.Email;
   const subscriptionPackageId = decoded?.SubscriptionPackageId;
-  return { roleName, roleId, userId, clinicId, name, email,subscriptionPackageId  };
+  const isFirstLogin = decoded?.IsFirstLogin;
+  return { roleName, roleId, userId, clinicId, name, email,subscriptionPackageId, isFirstLogin  };
 };
 
 export type TokenData = {
@@ -87,6 +88,7 @@ export type TokenData = {
   name?: string;
   email?: string;
   subscriptionPackageId?: string;
+  isFirstLogin: string;
 };
 
 export const rememberMe = (token: string, refreshToken: string): void => {

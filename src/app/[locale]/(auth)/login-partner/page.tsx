@@ -19,10 +19,17 @@ import { useLoginStaffMutation } from "@/features/auth/api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { rememberMe as rememberMeCookie, getCookie } from "@/utils";
+import {
+  rememberMe as rememberMeCookie,
+  getCookie,
+  getAccessToken,
+  GetDataByToken,
+  TokenData,
+} from "@/utils";
 import { CookieStorageKey } from "@/constants";
 import { handleLogin } from "@/features/auth/utils";
 import type { ValidationErrorResponse } from "@/lib/api";
+import { handleRedirectByRole } from "@/features/auth/utils/auth-redirect";
 
 export default function StaffLoginPage() {
   const t = useTranslations("login");
@@ -88,7 +95,6 @@ export default function StaffLoginPage() {
     }
   };
 
-  // Replace the onSubmit function with this improved implementation
   // Xử lý đăng nhập đối tác
   const onSubmit = async (data: LoginFormValues) => {
     setIsAuthenticating(true);
@@ -109,8 +115,22 @@ export default function StaffLoginPage() {
       });
 
       if (result.success) {
-        // Form đã được reset và chuyển hướng trong hàm handleStaffLogin
-        reset();
+        // Lấy thông tin người dùng từ token
+        const accessToken = getAccessToken();
+        // Add a null check before using the token
+        if (accessToken) {
+          const userData = GetDataByToken(accessToken) as TokenData;
+
+          // Successful login, the redirection is already handled in handleLogin
+          handleRedirectByRole(userData.roleName, router);
+
+          // router.push("/clinicManager/dashboard");
+          reset();
+        } else {
+          // Handle the case when accessToken is null
+          console.error("Access token is null");
+          // You might want to show an error message or redirect to login page
+        }
       } else if (result.errorData) {
         // Xử lý lỗi dựa trên dữ liệu lỗi chi tiết
         handleErrorResponse(result.errorData);

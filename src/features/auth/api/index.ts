@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import type {
+  IChangePasswordStaffRequest,
   ILoginRequest,
   ILoginResponse,
   IRefreshToken,
@@ -78,6 +79,13 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    changePasswordStaff: builder.mutation<Response, IChangePasswordStaffRequest>({
+      query: (data) => ({
+        url: "/auth/change_password/staff",
+        method: "POST",
+        body: data,
+      }),
+    }),
     loginWithGoogle: builder.mutation<
       IResCommon<ILoginResponse>,
       { googleToken: string }
@@ -97,6 +105,7 @@ export const {
   useRegisterMutation,
   useVerifyMutation,
   useChangePasswordMutation,
+  useChangePasswordStaffMutation,
   useSendRequestMutation,
   useLoginWithGoogleMutation,
   useRefreshTokenMutation,

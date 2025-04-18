@@ -1,5 +1,5 @@
 export interface withdrawalRequest {
-    clinicId: string
+    clinicId?: string
     amount: number
     description: string
 }

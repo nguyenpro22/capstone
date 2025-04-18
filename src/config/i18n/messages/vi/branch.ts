@@ -84,5 +84,8 @@ export const branchMessages: Messages["branch"] = {
   upgradePopupMessage: "Bạn đã đạt đến số lượng chi nhánh tối đa được phép trong gói hiện tại.",
   upgradePopupQuestion: "Bạn có muốn nâng cấp gói dịch vụ để thêm nhiều chi nhánh hơn không?",
   upgradePopupNotNow: "Để Sau",
-  upgradePopupUpgradePackage: "Nâng Cấp Gói"
+  upgradePopupUpgradePackage: "Nâng Cấp Gói",
+  operatingHours: "Thời Gian Hoạt Động",
+  workingTimeStart: "Giờ Mở Cửa",
+  workingTimeEnd: "Giờ Đóng Cửa",
 }
