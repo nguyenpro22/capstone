@@ -13,10 +13,6 @@ export function HeroSection() {
   const t = useTranslations("home");
   const router = useRouter();
 
-  const handleBookConsultation = () => {
-    router.push("/booking/new");
-  };
-
   const handleExploreServices = () => {
     router.push("/services");
   };
@@ -43,15 +39,6 @@ export function HeroSection() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              <GradientButton
-                size="lg"
-                className="rounded-full px-6 shadow-md hover:shadow-lg transition-all flex flex-row items-center duration-300 hover:scale-105"
-                onClick={handleBookConsultation}
-              >
-                {t("hero.buttons.bookConsultation")}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </GradientButton>
-
               <Button
                 size="lg"
                 variant="outline"
