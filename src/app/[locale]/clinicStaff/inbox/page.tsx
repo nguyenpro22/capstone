@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { v4 as uuidv4 } from "uuid";
-import { Send, MessageSquare, Search, Clock, Bell, Globe } from "lucide-react";
+import { Send, MessageSquare, Search, Clock, Bell } from "lucide-react";
 import {
   useGetAllConversationQuery,
   useGetAllMessageConversationQuery,
@@ -15,7 +15,6 @@ import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import type { Conversation, Message } from "@/features/inbox/types";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations, useLocale } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
 
 interface ConversationNotification {
   conversationId: string;
@@ -48,6 +47,7 @@ export default function ChatScreen() {
     conversationId: selectedConversation?.conversationId ?? "",
   });
 
+  // Initialize the SignalR connection only once
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(
@@ -65,14 +65,9 @@ export default function ChatScreen() {
     signalRef.current = newConnection;
   }, [clinicId]);
 
+  // Start the connection only once when it's available
   useEffect(() => {
-    if (messageData && messageData.value) {
-      setMessages(messageData.value);
-    }
-  }, [messageData]);
-
-  useEffect(() => {
-    if (signalRef.current != null && selectedConversation == null) {
+    if (signalRef.current != null) {
       signalRef.current
         .start()
         .then(() => {
@@ -83,6 +78,15 @@ export default function ChatScreen() {
         });
     }
 
+    return () => {
+      if (signalRef.current != null) {
+        signalRef.current.stop();
+      }
+    };
+  }, []);
+
+  // Register message handler whenever selectedConversation changes
+  useEffect(() => {
     const handleReceiveMessage = (_sender: any, message: Message) => {
       const newMessage: Message = message;
 
@@ -93,7 +97,9 @@ export default function ChatScreen() {
       );
       console.log("Message conversation ID:", newMessage.conversationId);
 
-      if (selectedConversation?.conversationId !== newMessage.conversationId) {
+      if (selectedConversation?.conversationId === newMessage.conversationId) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      } else {
         const notification: ConversationNotification = {
           conversationId: newMessage.conversationId,
           newMessageCount: 1,
@@ -112,12 +118,11 @@ export default function ChatScreen() {
             return [...prevNotifications, notification];
           }
         });
-      } else {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     };
 
-    if (signalRef.current != null && selectedConversation != null) {
+    if (signalRef.current != null) {
+      // Clean up previous handler before registering a new one
       signalRef.current.off("ReceiveMessage");
       signalRef.current.on("ReceiveMessage", handleReceiveMessage);
     }
@@ -128,6 +133,12 @@ export default function ChatScreen() {
       }
     };
   }, [selectedConversation]);
+
+  useEffect(() => {
+    if (messageData && messageData.value) {
+      setMessages(messageData.value);
+    }
+  }, [messageData]);
 
   useEffect(() => {
     if (data && data.value && data.value.length > 0) {
@@ -295,7 +306,6 @@ export default function ChatScreen() {
                             <AvatarImage
                               src={
                                 conversation.friendImageUrl ||
-                                "/placeholder.svg" ||
                                 "/placeholder.svg"
                               }
                             />
@@ -360,7 +370,6 @@ export default function ChatScreen() {
                       <AvatarImage
                         src={
                           selectedConversation.friendImageUrl ||
-                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                       />

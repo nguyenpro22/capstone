@@ -27,6 +27,11 @@ import {
   Stethoscope,
   Building,
   Clock,
+  Phone,
+  Mail,
+  Percent,
+  Receipt,
+  Tag,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -34,13 +39,9 @@ import { useCreateOrderPaymentMutation } from "@/features/payment/api";
 import type { CustomerSchedule } from "@/features/customer-schedule/types";
 import PaymentService from "@/hooks/usePaymentStatus";
 import { useUpdateScheduleStatusMutation } from "@/features/customer-schedule/api";
-// Alternative implementation using the RTK Query mutation
-// You can use this approach instead of the PaymentService method
-
-// Add this import at the top of your file
 import { useGenerateSchedulesMutation } from "@/features/customer-schedule/api";
-// Add the useTranslations import at the top of the file
 import { useTranslations } from "next-intl";
+import { Separator } from "@/components/ui/separator";
 
 interface SchedulePaymentModalProps {
   schedule: CustomerSchedule | null;
@@ -78,11 +79,9 @@ export default function SchedulePaymentModal({
     useUpdateScheduleStatusMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number>(30);
-  const [isTimedOut, setIsTimedOut] = useState<boolean>(false);
-  // Add this inside your component, near the other hooks
+  const [isTimedOut, setIsTimedOut] = useState(false);
   const [generateSchedules, { isLoading: isGeneratingSchedules }] =
     useGenerateSchedulesMutation();
-  // Add this line inside the component function, near the top with other hooks
   const t = useTranslations("customerSchedule");
 
   useEffect(() => {
@@ -150,11 +149,6 @@ export default function SchedulePaymentModal({
                         });
                     }
 
-                    // Automatically close the modal after 2 seconds on successful payment
-                    // setTimeout(() => {
-                    //   onClose();
-                    //   router.push("/clinicStaff/customer-schedule");
-                    // }, 3000);
                     if (onSuccess) {
                       onSuccess();
                     }
@@ -212,6 +206,7 @@ export default function SchedulePaymentModal({
     onClose,
     router,
     generateSchedules,
+    onSuccess,
   ]);
 
   // Keep the countdown effect, but simplify it to use the existing method:
@@ -250,14 +245,35 @@ export default function SchedulePaymentModal({
   if (!schedule) return null;
 
   const formatPrice = (price: number) => {
+    // Nếu giá trị là 0, trả về "0 đ" thay vì "0 đ" hoặc "-0 đ"
+    if (price === 0) return "0 đ";
+
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
+      signDisplay: "auto",
     }).format(price);
   };
 
+  // Format time from hh:mm:ss to hh:mm
+  const formatTime = (time: string) => {
+    if (!time) return "";
+    // Check if time has seconds (hh:mm:ss format)
+    if (time.split(":").length === 3) {
+      // Return only hours and minutes
+      return time.split(":").slice(0, 2).join(":");
+    }
+    return time;
+  };
+
   const formatTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`;
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+  };
+
+  // Calculate discount percentage
+  const calculateDiscountPercentage = () => {
+    if (!schedule.servicePrice || !schedule.discountAmount) return 0;
+    return Math.round((schedule.discountAmount / schedule.servicePrice) * 100);
   };
 
   const handlePayment = async () => {
@@ -267,8 +283,8 @@ export default function SchedulePaymentModal({
       setPaymentStatus("processing");
       setErrorMessage(null);
 
-      // Assuming the schedule has a price field, or you can set a default amount
-      const amount = schedule.amount || 100000; // Default amount if price is not available
+      // Use the amount field which is the total amount to be paid
+      const amount = schedule.amount || 100000; // Default amount if not available
 
       const result = await createOrderPayment({
         id: schedule.orderId,
@@ -285,7 +301,7 @@ export default function SchedulePaymentModal({
         }
 
         setShowQR(true);
-        setCountdown(59); // Reset countdown to 30 seconds
+        setCountdown(59); // Reset countdown to 59 seconds
         setIsTimedOut(false);
       } else if (paymentMethod === "cash") {
         // For cash payments, show success immediately
@@ -365,6 +381,38 @@ export default function SchedulePaymentModal({
     setIsTimedOut(false);
   };
 
+  // Get status badge with updated colors
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">
+            {t("completed")}
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600">
+            {t("pending")}
+          </Badge>
+        );
+      case "in progress":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">
+            {t("inProgress")}
+          </Badge>
+        );
+      case "uncompleted":
+        return (
+          <Badge className="bg-red-500 hover:bg-red-600">
+            {t("uncompleted")}
+          </Badge>
+        );
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
   return (
     <Dialog
       open={isOpen}
@@ -378,8 +426,8 @@ export default function SchedulePaymentModal({
         onClose();
       }}
     >
-      <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl min-h-[500px] h-[calc(100vh-80px)] max-h-[800px] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl">
+        <DialogHeader className="pb-2">
           <DialogTitle className="text-xl font-serif">
             {t("schedulePayment")}
           </DialogTitle>
@@ -390,127 +438,213 @@ export default function SchedulePaymentModal({
 
         {paymentStatus === "idle" && !showQR && !showPaymentResult && (
           <>
-            <div className="space-y-4 overflow-y-auto pr-1">
-              {/* Schedule Details */}
-              <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-none">
-                <CardContent className="pt-6 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <User className="h-5 w-5 text-pink-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-gray-700">
-                        {t("customer")}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {schedule.customerName}
-                      </p>
-                    </div>
+            <div className="overflow-y-auto pr-1 max-h-[60vh]">
+              <div className="space-y-4">
+                {/* Booking ID */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {t("bookingId")}:
+                    </span>
+                    <span className="text-sm text-gray-600">{schedule.id}</span>
                   </div>
-
-                  <div className="flex items-start gap-3">
-                    <Stethoscope className="h-5 w-5 text-pink-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-gray-700">
-                        {t("service")}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {schedule.serviceName}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Building className="h-5 w-5 text-pink-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-gray-700">{t("doctor")}</p>
-                      <p className="text-sm text-gray-600">
-                        {schedule.doctorName}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-pink-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-gray-700">
-                        {t("dateAndTime")}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {schedule.bookingDate},{" "}
-                        {formatTimeRange(schedule.startTime, schedule.endTime)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Badge
-                      className={
-                        schedule.status.toLowerCase() === "confirmed"
-                          ? "bg-green-500"
-                          : schedule.status.toLowerCase() === "pending"
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
-                      }
-                    >
-                      {schedule.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment Amount */}
-              <div className="bg-white p-4 rounded-lg border">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">{t("totalAmount")}</span>
-                  <span className="text-xl font-bold text-pink-700">
-                    {formatPrice(schedule.amount || schedule.amount || 100000)}
-                  </span>
                 </div>
-              </div>
 
-              {/* Payment Method Selection */}
-              <div className="bg-white p-4 rounded-lg border">
-                <h3 className="font-medium text-gray-700 mb-3">
-                  {t("selectPaymentMethod")}
-                </h3>
-                <RadioGroup
-                  value={paymentMethod}
-                  onValueChange={setPaymentMethod}
-                  className="grid grid-cols-2 gap-4"
-                >
-                  <div>
-                    <RadioGroupItem
-                      value="qr"
-                      id="qr"
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor="qr"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
-                    >
-                      <CreditCard className="mb-3 h-6 w-6 text-pink-500" />
-                      QR
-                    </Label>
-                  </div>
+                {/* Schedule Details */}
+                <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-none">
+                  <CardContent className="pt-6 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <User className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("customer")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.customerName}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div>
-                    <RadioGroupItem
-                      value="cash"
-                      id="cash"
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor="cash"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
-                    >
-                      <Wallet className="mb-3 h-6 w-6 text-pink-500" />
-                      Cash
-                    </Label>
+                    <div className="flex items-start gap-3">
+                      <Phone className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("phone")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.customerPhoneNumber || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Mail className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("email")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.customerEmail || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Separator className="my-1" />
+
+                    <div className="flex items-start gap-3">
+                      <Stethoscope className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("service")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.serviceName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Tag className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("serviceType")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.procedureName || ""} -{" "}
+                          {schedule.procedurePriceTypeName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Building className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("doctor")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.doctorName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Calendar className="h-5 w-5 text-pink-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-700">
+                          {t("dateAndTime")}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {schedule.bookingDate},{" "}
+                          {formatTimeRange(
+                            schedule.startTime,
+                            schedule.endTime
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      {getStatusBadge(schedule.status)}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Payment Amount */}
+                <div className="bg-white p-4 rounded-lg border">
+                  <h3 className="font-medium text-gray-700 mb-3">
+                    {t("priceInformation")}
+                  </h3>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">{t("servicePrice")}</span>
+                      <span className="font-medium">
+                        {formatPrice(schedule.servicePrice || 0)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-600">{t("discount")}</span>
+                        <Percent className="h-3 w-3 text-gray-400" />
+                        <span className="text-xs text-gray-500">
+                          ({calculateDiscountPercentage()}%)
+                        </span>
+                      </div>
+                      <span className="font-medium text-red-500">
+                        {schedule.discountAmount > 0 ? "-" : ""}
+                        {formatPrice(schedule.discountAmount || 0)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">{t("deposit")}</span>
+                      <span className="font-medium text-blue-500">
+                        {schedule.depositAmount > 0 ? "-" : ""}
+                        {formatPrice(schedule.depositAmount || 0)}
+                      </span>
+                    </div>
+
+                    <Separator className="my-2" />
+
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-gray-700 font-medium">
+                        {t("totalAmount")}
+                      </span>
+                      <span className="text-xl font-bold text-pink-700">
+                        {formatPrice(schedule.amount || 0)}
+                      </span>
+                    </div>
                   </div>
-                </RadioGroup>
+                </div>
+
+                {/* Payment Method Selection */}
+                <div className="bg-white p-4 rounded-lg border">
+                  <h3 className="font-medium text-gray-700 mb-3">
+                    {t("selectPaymentMethod")}
+                  </h3>
+                  <RadioGroup
+                    value={paymentMethod}
+                    onValueChange={setPaymentMethod}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    <div>
+                      <RadioGroupItem
+                        value="qr"
+                        id="qr"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="qr"
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
+                      >
+                        <CreditCard className="mb-3 h-6 w-6 text-pink-500" />
+                        QR
+                      </Label>
+                    </div>
+
+                    <div>
+                      <RadioGroupItem
+                        value="cash"
+                        id="cash"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="cash"
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
+                      >
+                        <Wallet className="mb-3 h-6 w-6 text-pink-500" />
+                        Cash
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="mt-4 pt-2 border-t">
               <Button
                 variant="outline"
                 onClick={onClose}
@@ -541,15 +675,13 @@ export default function SchedulePaymentModal({
 
         {/* QR Code Display */}
         {showQR && (
-          <div className="flex flex-col items-center p-6">
-            <DialogHeader>
-              <DialogTitle className="text-center font-serif">
-                {t("paymentQRCode")}
-              </DialogTitle>
-              <DialogDescription className="text-center">
+          <div className="flex flex-col items-center p-4">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-medium">{t("paymentQRCode")}</h3>
+              <p className="text-sm text-gray-500">
                 {t("scanQRCodeToComplete")}
-              </DialogDescription>
-            </DialogHeader>
+              </p>
+            </div>
 
             {qrUrl ? (
               <div className="relative w-64 h-64 mb-4">
@@ -570,11 +702,10 @@ export default function SchedulePaymentModal({
 
             <div className="text-center space-y-2">
               <p className="font-semibold text-lg text-gray-900">
-                {formatPrice(schedule.amount || schedule.amount || 100000)}
+                {formatPrice(schedule.amount || 0)}
               </p>
               <p className="text-sm text-gray-500">{t("scanWithBankingApp")}</p>
-              {/* Replace the existing Clock section with this countdown display */}
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-4">
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-2">
                 <Clock className="h-4 w-4" />
                 <span
                   className={countdown <= 10 ? "text-red-500 font-bold" : ""}
@@ -584,7 +715,7 @@ export default function SchedulePaymentModal({
               </div>
 
               {/* Payment Status Indicator */}
-              <div className="mt-4">
+              <div className="mt-2">
                 <div className="flex items-center justify-center gap-2 text-amber-500">
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   <span>{t("waitingForPayment")}</span>
@@ -596,7 +727,7 @@ export default function SchedulePaymentModal({
 
         {/* Payment Result Display */}
         {showPaymentResult && (
-          <div className="flex flex-col items-center p-6">
+          <div className="flex flex-col items-center p-4">
             {paymentStatus === "success" ? (
               <Card className="w-full bg-green-50 border-green-100">
                 <CardContent className="pt-6">
@@ -609,9 +740,7 @@ export default function SchedulePaymentModal({
                       {t("yourPaymentOf")}{" "}
                       {paymentDetails.amount
                         ? formatPrice(paymentDetails.amount)
-                        : formatPrice(
-                            schedule.amount || schedule.amount || 100000
-                          )}{" "}
+                        : formatPrice(schedule.amount || 0)}{" "}
                       {t("hasBeenProcessedSuccessfully")}
                     </p>
                     {paymentDetails.timestamp && (
@@ -662,7 +791,7 @@ export default function SchedulePaymentModal({
         )}
 
         {paymentStatus === "processing" && !showQR && !showPaymentResult && (
-          <div className="flex flex-col items-center justify-center py-8">
+          <div className="flex flex-col items-center justify-center py-6">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

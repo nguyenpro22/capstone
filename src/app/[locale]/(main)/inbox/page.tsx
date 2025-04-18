@@ -33,6 +33,7 @@ export default function ChatScreen() {
   >([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
 
   const { data } = useGetAllConversationQuery({
     entityId: userId,
@@ -43,6 +44,7 @@ export default function ChatScreen() {
     conversationId: selectedConversation?.conversationId ?? "",
   });
 
+  // Initialize the SignalR connection only once
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(
@@ -60,24 +62,30 @@ export default function ChatScreen() {
     signalRef.current = newConnection;
   }, [userId]);
 
+  // Start the connection separate from initialization (like in staff version)
   useEffect(() => {
-    if (messageData && messageData.value) {
-      setMessages(messageData.value);
-    }
-  }, [messageData]);
-
-  useEffect(() => {
-    if (signalRef.current != null && selectedConversation == null) {
+    if (signalRef.current != null) {
       signalRef.current
         .start()
         .then(() => {
           console.log("SignalR connected");
+          setIsConnected(true);
         })
         .catch((err) => {
           console.error("SignalR connection failed:", err);
+          setIsConnected(false);
         });
     }
 
+    return () => {
+      if (signalRef.current != null) {
+        signalRef.current.stop();
+      }
+    };
+  }, []);
+
+  // Message handler with CORRECTED conversation check logic
+  useEffect(() => {
     const handleReceiveMessage = (_sender: any, message: Message) => {
       const newMessage: Message = message;
 
@@ -88,7 +96,10 @@ export default function ChatScreen() {
       );
       console.log("Message conversation ID:", newMessage.conversationId);
 
-      if (selectedConversation?.conversationId !== newMessage.conversationId) {
+      // FIXED LOGIC: Changed !== to === to match the working staff version
+      if (selectedConversation?.conversationId === newMessage.conversationId) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      } else {
         const notification: ConversationNotification = {
           conversationId: newMessage.conversationId,
           newMessageCount: 1,
@@ -107,12 +118,11 @@ export default function ChatScreen() {
             return [...prevNotifications, notification];
           }
         });
-      } else {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     };
 
-    if (signalRef.current != null && selectedConversation != null) {
+    if (signalRef.current != null) {
+      // Clean up previous handler before registering a new one
       signalRef.current.off("ReceiveMessage");
       signalRef.current.on("ReceiveMessage", handleReceiveMessage);
     }
@@ -124,6 +134,14 @@ export default function ChatScreen() {
     };
   }, [selectedConversation]);
 
+  // Set messages when message data changes
+  useEffect(() => {
+    if (messageData && messageData.value) {
+      setMessages(messageData.value);
+    }
+  }, [messageData]);
+
+  // Set initial conversation when data loads
   useEffect(() => {
     if (data && data.value && data.value.length > 0) {
       const initialConversation = data.value[0];
@@ -149,6 +167,7 @@ export default function ChatScreen() {
     });
   };
 
+  // Refetch messages when selected conversation changes
   useEffect(() => {
     if (selectedConversation?.conversationId) {
       refetch();
@@ -206,6 +225,7 @@ export default function ChatScreen() {
     [signalRef, selectedConversation, userId]
   );
 
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -361,8 +381,12 @@ export default function ChatScreen() {
                         {selectedConversation.friendName}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <span className="h-1.5 w-1.5 bg-green-500 rounded-full inline-block mr-1.5"></span>
-                        Đang hoạt động
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full inline-block mr-1.5 ${
+                            isConnected ? "bg-green-500" : "bg-yellow-500"
+                          }`}
+                        ></span>
+                        {isConnected ? "Đang hoạt động" : "Đang kết nối..."}
                       </p>
                     </div>
                   </div>
@@ -474,6 +498,7 @@ export default function ChatScreen() {
                           }
                         }}
                         className="pr-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-rose-500 focus:border-rose-500"
+                        disabled={!isConnected}
                       />
                     </div>
                     <Button
@@ -484,7 +509,7 @@ export default function ChatScreen() {
                         setInputMessage("");
                       }}
                       className="bg-rose-500 hover:bg-rose-600 transition-colors"
-                      disabled={!inputMessage.trim()}
+                      disabled={!inputMessage.trim() || !isConnected}
                     >
                       <Send className="h-4 w-4" />
                       <span className="sr-only">Gửi tin nhắn</span>

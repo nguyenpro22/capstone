@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import {
   Calendar,
   ChevronDown,
+  ChevronUp,
+  Clock,
   Download,
   Filter,
   Loader2,
@@ -147,6 +149,8 @@ export default function BranchWalletPage() {
           status: item.status.toLowerCase().includes("completed")
             ? "completed"
             : item.status.toLowerCase().includes("waiting")
+            ? "waiting"
+            : item.status.toLowerCase().includes("pending")
             ? "pending"
             : "rejected",
           date: item.transactionDate,
@@ -228,6 +232,12 @@ export default function BranchWalletPage() {
             {t("status.pending")}
           </Badge>
         );
+      case "waiting":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">
+            {t("status.waiting") || "Waiting for Payment"}
+          </Badge>
+        );
       case "rejected":
         return (
           <Badge className="bg-red-500 hover:bg-red-600">
@@ -297,6 +307,24 @@ export default function BranchWalletPage() {
     setTypeFilter("all");
     setSearchQuery("");
     setPageIndex(1);
+  };
+
+  // Handle sorting
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // If already sorting by this column, toggle the order
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      // If sorting by a new column, set it as the sort column with default desc order
+      setSortColumn(column);
+      setSortOrder("desc");
+    }
+
+    // Reset to first page when sort changes
+    setPageIndex(1);
+
+    // Refetch transactions with new sort parameters
+    refetchTransactions();
   };
 
   useEffect(() => {
@@ -602,14 +630,36 @@ export default function BranchWalletPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[100px]">
-                          {t("table.date")}
+                        <TableHead className="w-[100px] text-center">
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort("transactionDate")}
+                            className="flex items-center justify-center gap-1 p-0 h-auto font-semibold hover:bg-transparent mx-auto"
+                          >
+                            {t("table.date")}
+                            {sortColumn === "transactionDate" &&
+                              (sortOrder === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              ))}
+                          </Button>
                         </TableHead>
-                        <TableHead>{t("table.amount")}</TableHead>
-                        <TableHead>{t("table.type")}</TableHead>
-                        <TableHead>{t("table.description")}</TableHead>
-                        <TableHead>{t("table.customer")}</TableHead>
-                        <TableHead>{t("table.status")}</TableHead>
+                        <TableHead className="text-center">
+                          {t("table.amount")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.type")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.description")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.customer")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.status")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -623,18 +673,33 @@ export default function BranchWalletPage() {
                       ) : filteredTransactions.length > 0 ? (
                         filteredTransactions.map((transaction) => (
                           <TableRow key={transaction.id}>
-                            <TableCell className="font-medium">
-                              {format(new Date(transaction.date), "dd/MM/yyyy")}
+                            <TableCell className="font-medium text-center">
+                              <div className="flex flex-col items-center">
+                                <span>
+                                  {format(
+                                    new Date(transaction.date),
+                                    "dd/MM/yyyy"
+                                  )}
+                                </span>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {format(new Date(transaction.date), "HH:mm")}
+                                </span>
+                              </div>
                             </TableCell>
-                            <TableCell className="font-semibold">
+                            <TableCell className="font-semibold text-center">
                               {formatCurrency(transaction.amount)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               {getTypeBadge(transaction.type)}
                             </TableCell>
-                            <TableCell>{transaction.description}</TableCell>
-                            <TableCell>{transaction.customer}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
+                              {transaction.description}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {transaction.customer}
+                            </TableCell>
+                            <TableCell className="text-center">
                               {getStatusBadge(transaction.status)}
                             </TableCell>
                           </TableRow>
@@ -793,14 +858,22 @@ export default function BranchWalletPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[100px]">
+                        <TableHead className="w-[100px] text-center">
                           {t("table.date")}
                         </TableHead>
-                        <TableHead>{t("table.amount")}</TableHead>
-                        <TableHead>{t("table.bankAccount")}</TableHead>
-                        <TableHead>{t("table.transactionId")}</TableHead>
-                        <TableHead>{t("table.status")}</TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-center">
+                          {t("table.amount")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.bankAccount")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.transactionId")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("table.status")}
+                        </TableHead>
+                        <TableHead className="text-center">
                           {t("table.actions")}
                         </TableHead>
                       </TableRow>

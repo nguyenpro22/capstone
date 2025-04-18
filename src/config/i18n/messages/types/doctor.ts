@@ -60,4 +60,42 @@ export type doctor = {
     emptyDesc: string;
     addButton: string;
   };
+  clinicStaff: {
+    title: string
+    search: {
+      placeholder: string
+      filter: string
+    }
+    loading: string
+    error: string
+    noData: string
+    card: {
+      doctor: string
+      email: string
+      phone: string
+      branches: string
+      noBranches: string
+      viewSchedule: string
+      edit: string
+    }
+    table: {
+      title: string
+      description: string
+      columns: {
+        doctor: string
+        email: string
+        phone: string
+        branches: string
+        actions: string
+      }
+      actions: {
+        view: string
+        editProfile: string
+        editSchedule: string
+        assignToBranch: string
+        deactivate: string
+      }
+    }
+  
+  }
 };

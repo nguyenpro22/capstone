@@ -36,7 +36,7 @@ export const customerScheduleQueryApi = createApi({
         status?: string
       }
     >({
-      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "", sortColumn = "", sortOrder = "", status = "" }) => ({
+      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "", sortColumn = "", sortOrder = ""}) => ({
         url: `customer-schedules/clinic`,
         method: "GET",
         params: {
@@ -45,7 +45,6 @@ export const customerScheduleQueryApi = createApi({
           searchTerm,
           sortColumn,
           sortOrder,
-          status,
         },
       }),
     }),

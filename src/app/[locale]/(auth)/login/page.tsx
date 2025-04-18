@@ -24,6 +24,7 @@ import {
   useLoginMutation,
   useLoginWithGoogleMutation,
   useVerifyMutation,
+  useLoginStaffMutation,
 } from "@/features/auth/api";
 import { motion } from "framer-motion";
 import {
@@ -74,6 +75,7 @@ export default function LoginPage() {
   const [login, loginResult] = useLoginMutation();
   const [loginGoogle] = useLoginWithGoogleMutation();
   const [verify] = useVerifyMutation();
+  const [loginStaff] = useLoginStaffMutation();
 
   // Initialize form
   const {
@@ -343,6 +345,12 @@ export default function LoginPage() {
     }
   };
 
+  // Xử lý đăng nhập với tư cách đối tác
+  const onStaffLogin = () => {
+    // Chuyển hướng đến trang đăng nhập đối tác
+    router.push("/login-partner");
+  };
+
   // Xử lý đăng xuất
   const onLogout = async () => {
     setIsAuthenticating(true);
@@ -576,6 +584,20 @@ export default function LoginPage() {
                     {t("continueWithGoogle")}
                   </div>
                 )}
+              </Button>
+
+              {/* Staff Login Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="h-14 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 relative"
+                onClick={onStaffLogin}
+                disabled={isAuthenticating}
+              >
+                <div className="flex items-center justify-center">
+                  <Key className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+                  {t("loginAsPartner") || "Đăng nhập với tư cách đối tác"}
+                </div>
               </Button>
             </div>
           </>

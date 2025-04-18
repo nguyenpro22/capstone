@@ -96,34 +96,31 @@ export function SelectDoctorDateStep({
   );
 
   // Calculate available time slots when busy times data changes
-  useEffect(() => {
+    useEffect(() => {
     const calculateAvailableSlots = async () => {
       if (data?.value && selectedDate) {
         try {
           // Use the BookingService to calculate available time slots
           const slots = await BookingService.getAvailableTimeSlots(data.value);
 
-          // Filter out time slots that are less than 2 hours from now
+          // Filter out past time slots if the selected date is today
           const today = new Date();
           const isToday = selectedDate.toDateString() === today.toDateString();
 
-          // Calculate the threshold time (current time + 2 hours)
-          const thresholdTime = new Date(today);
-          thresholdTime.setHours(today.getHours() + 2);
-          const thresholdHour = thresholdTime.getHours();
-          const thresholdMinute = thresholdTime.getMinutes();
-
           if (isToday) {
-            // Filter out time slots that are within the next 2 hours
+            const currentHour = today.getHours();
+            const currentMinute = today.getMinutes();
+
+            // Filter out time slots that have already passed
             const filteredSlots = slots.filter((timeSlot) => {
               const [hourStr, minuteStr] = timeSlot.split(":");
               const hour = Number.parseInt(hourStr, 10);
               const minute = Number.parseInt(minuteStr, 10);
 
-              // Compare with the threshold time (current time + 2 hours)
+              // Compare with current time
               return (
-                hour > thresholdHour ||
-                (hour === thresholdHour && minute >= thresholdMinute)
+                hour > currentHour ||
+                (hour === currentHour && minute > currentMinute)
               );
             });
 
@@ -142,6 +139,7 @@ export function SelectDoctorDateStep({
 
     calculateAvailableSlots();
   }, [data, selectedDate]);
+
 
   const handleDoctorSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
