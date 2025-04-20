@@ -1,4 +1,3 @@
-
 import { packageMessages } from "./package";
 import { apiMessages } from "./api";
 import { clinicMessages } from "./clinic";
@@ -41,9 +40,8 @@ import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
-
-
-
+import { orderMessages } from "./order";
+import { orderDetail } from "./order-detail";
 
 const en = {
   home: homeMessages,
@@ -86,6 +84,8 @@ const en = {
   wallet: walletMessages,
   chat: chatMessages,
   withdrawal: withdrawalMessages,
+  orderMessages,
+  orderDetail,
   workingSchedule: workingScheduleMessages,
   pagination: paginationMessages,
 };

@@ -4,6 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 
 import {
   ArrowDownIcon,
@@ -30,6 +30,7 @@ import { useTopUpMutation } from "@/features/customer-wallet/api";
 import { numberToWords } from "@/utils/vietnamese-text";
 import PaymentService from "@/hooks/usePaymentStatus";
 import type { Transaction as TransactionResponse } from "@/features/customer-wallet/types";
+import { BOOKING_RETRY_URL_KEY } from "@/constants";
 
 type DepositStep = "amount" | "payment" | "result";
 type TransactionStatus = "pending" | "completed" | "failed" | "expired";
@@ -38,14 +39,15 @@ interface DepositFlowProps {
   currentBalance: number;
   onBalanceUpdate: (newBalance: number) => void;
   onComplete: () => void;
+  defaultAmount?: string;
 }
 
 export function DepositFlow({
   currentBalance,
   onBalanceUpdate,
   onComplete,
+  defaultAmount,
 }: DepositFlowProps) {
-  const { toast } = useToast();
   const [topUp] = useTopUpMutation();
 
   // Deposit flow state
@@ -58,6 +60,20 @@ export function DepositFlow({
   const [transactionStatus, setTransactionStatus] =
     useState<TransactionStatus>("pending");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [fromBooking, setFromBooking] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(BOOKING_RETRY_URL_KEY);
+    if (stored) {
+      setFromBooking(stored);
+    }
+  }, []);
+  useEffect(() => {
+    if (defaultAmount && !isNaN(Number(defaultAmount))) {
+      setDepositAmount(defaultAmount);
+      setVietnameseNumber(defaultAmount);
+    }
+  }, [defaultAmount]);
 
   // Initialize SignalR connection
   useEffect(() => {
@@ -75,26 +91,35 @@ export function DepositFlow({
         const newBalance = currentBalance + (transaction?.amount || 0);
         onBalanceUpdate(newBalance);
 
-        toast({
-          title: "Nạp tiền thành công",
-          description: `Số tiền ${new Intl.NumberFormat("vi-VN", {
+        toast.success(
+          `Số tiền ${new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",
             minimumFractionDigits: 0,
           }).format(transaction.amount)} đã được thêm vào ví của bạn`,
-          variant: "default",
-          className:
-            "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800/30",
-        });
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
       } else {
         setTransactionStatus("failed");
         setDepositStep("result");
-        toast({
-          title: "Nạp tiền thất bại",
-          description:
-            "Chúng tôi không nhận được thanh toán của bạn. Vui lòng thử lại.",
-          variant: "destructive",
-        });
+        toast.error(
+          "Chúng tôi không nhận được thanh toán của bạn. Vui lòng thử lại.",
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
       }
     });
 
@@ -103,7 +128,7 @@ export function DepositFlow({
         PaymentService.leavePaymentSession(transaction.transactionId);
       }
     };
-  }, [transaction, currentBalance, onBalanceUpdate, toast]);
+  }, [transaction, currentBalance, onBalanceUpdate]);
 
   // Join payment session when transaction is created
   useEffect(() => {
@@ -137,10 +162,13 @@ export function DepositFlow({
     try {
       const amount = Number.parseFloat(depositAmount.replace(/[^0-9.-]+/g, ""));
       if (isNaN(amount) || amount <= 0) {
-        toast({
-          title: "Lỗi",
-          description: "Vui lòng nhập số tiền hợp lệ.",
-          variant: "destructive",
+        toast.error("Vui lòng nhập số tiền hợp lệ.", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
         return;
       }
@@ -151,18 +179,23 @@ export function DepositFlow({
         setTransaction(response.value);
         setDepositStep("payment");
       } else {
-        toast({
-          title: "Lỗi",
-          description:
-            "Không thể tạo giao dịch nạp tiền. Vui lòng thử lại sau.",
-          variant: "destructive",
+        toast.error("Không thể tạo giao dịch nạp tiền. Vui lòng thử lại sau.", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
       }
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Đã xảy ra lỗi khi tạo giao dịch. Vui lòng thử lại sau.",
-        variant: "destructive",
+      toast.error("Đã xảy ra lỗi khi tạo giao dịch. Vui lòng thử lại sau.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
     } finally {
       setIsLoading(false);
@@ -172,9 +205,13 @@ export function DepositFlow({
   // Copy text to clipboard
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast({
-      title: "Đã sao chép",
-      description: `Đã sao chép ${label} vào clipboard`,
+    toast.info(`Đã sao chép ${label} vào clipboard`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
     });
   };
 
@@ -197,7 +234,13 @@ export function DepositFlow({
     }
 
     if (transactionStatus === "completed") {
-      onComplete();
+      console.log(fromBooking);
+
+      if (fromBooking) {
+        window.location.href = `${fromBooking}?booking=true`;
+      } else {
+        onComplete();
+      }
     } else {
       resetDepositFlow();
     }
@@ -523,19 +566,21 @@ export function DepositFlow({
   };
 
   return (
-    <Card className="h-full border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl dark:shadow-purple-900/20 rounded-xl overflow-hidden flex flex-col">
-      <CardHeader className="pb-2 px-6">
-        <CardTitle className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400">
-          Nạp tiền vào ví
-        </CardTitle>
-        <CardDescription className="text-gray-600 dark:text-gray-400">
-          Nạp tiền vào ví của bạn để sử dụng các dịch vụ
-        </CardDescription>
-      </CardHeader>
+    <>
+      <Card className="h-full border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl dark:shadow-purple-900/20 rounded-xl overflow-hidden flex flex-col">
+        <CardHeader className="pb-2 px-6">
+          <CardTitle className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400">
+            Nạp tiền vào ví
+          </CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
+            Nạp tiền vào ví của bạn để sử dụng các dịch vụ
+          </CardDescription>
+        </CardHeader>
 
-      <CardContent className="px-6 py-4 flex-1 overflow-y-auto">
-        {renderDepositStep()}
-      </CardContent>
-    </Card>
+        <CardContent className="px-6 py-4 flex-1 overflow-y-auto">
+          {renderDepositStep()}
+        </CardContent>
+      </Card>
+    </>
   );
 }

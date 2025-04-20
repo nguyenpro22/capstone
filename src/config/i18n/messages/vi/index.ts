@@ -1,4 +1,3 @@
-
 import { packageMessages } from "./package";
 import { staffMessages } from "./staff";
 import { service, serviceMessages } from "./service";
@@ -40,6 +39,8 @@ import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
+import { orderMessages } from "./order";
+import { orderDetail } from "./order-detail";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
 
@@ -84,6 +85,8 @@ const vi = {
   wallet: walletMessages,
   chat: chatMessages,
   withdrawal: withdrawalMessages,
+  orderMessages,
+  orderDetail,
   workingSchedule:workingScheduleMessages,
   pagination: paginationMessages,
 };

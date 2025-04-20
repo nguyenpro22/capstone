@@ -3,23 +3,30 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { SelectClinicStep } from "./steps/select-clinic-step";
 import { SelectDoctorDateStep } from "./steps/select-doctor-date-step";
 import { BookingSummaryStep } from "./steps/booking-summary-step";
 import { BookingSuccess } from "./steps/booking-success-step";
+import { SelectProceduresStep } from "./steps/select-procedures-step";
 import type { BookingData, Doctor } from "../types/booking";
 import { createBookingRequest } from "../utils/booking-utils";
 import { BookingService } from "../utils/booking-service";
 import { useCreateBookingMutation } from "@/features/booking/api";
 import type { Clinic, ServiceDetail } from "@/features/services/types";
 import type { TokenData } from "@/utils";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { useTranslations } from "next-intl"; // Import useTranslations
-import { SelectProceduresStep } from "./steps/select-procedures-step";
+import { toast } from "react-toastify";
+
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { InsufficientBalanceModal } from "./insufficient-balance-modal";
+import {
+  BOOKING_DATA_EXPIRY,
+  BOOKING_DATA_STORAGE_KEY,
+  BOOKING_DATA_TIMESTAMP_KEY,
+  BOOKING_RETRY_URL_KEY,
+} from "@/constants";
+import { usePathname } from "next/navigation";
 
 interface BookingFlowProps {
   service: ServiceDetail;
@@ -56,7 +63,7 @@ export function BookingFlow({
       email: userData?.email || "",
       notes: "",
     },
-    paymentMethod: "cash", // Default payment method
+    paymentMethod: "cash",
     isDefault: false,
     skipDoctorSelection: false,
   });
@@ -66,8 +73,12 @@ export function BookingFlow({
   const [highestRatedDoctor, setHighestRatedDoctor] = useState<Doctor | null>(
     null
   );
-  const t = useTranslations("bookingFlow"); // Use the hook with the namespace
+  const [isRestoringData, setIsRestoringData] = useState(false);
 
+  const path = usePathname();
+  const t = useTranslations("bookingFlow");
+
+  // Define steps based on whether clinic is provided
   const steps = [
     ...(clinic
       ? []
@@ -82,13 +93,9 @@ export function BookingFlow({
   useEffect(() => {
     const fetchHighestRatedDoctor = async () => {
       try {
-        // If doctorServices is available in the service, use it
         if (service.doctorServices && service.doctorServices.length > 0) {
-          // In a real app, you would sort by rating
-          // Here we'll just take the first one as an example
           setHighestRatedDoctor(service.doctorServices[0].doctor);
         } else {
-          // Fallback to fetching doctors
           const doctors = await BookingService.getDoctorsByService(service);
           if (doctors.length > 0) {
             setHighestRatedDoctor(doctors[0]);
@@ -102,11 +109,13 @@ export function BookingFlow({
     fetchHighestRatedDoctor();
   }, [service]);
 
+  // Update booking data when clinic changes
   useEffect(() => {
     if (clinic) {
       updateBookingData({ clinic });
     }
   }, [clinic]);
+
   // Auto-select highest rated doctor if skipDoctorSelection is true
   useEffect(() => {
     if (
@@ -116,22 +125,132 @@ export function BookingFlow({
     ) {
       updateBookingData({ doctor: highestRatedDoctor });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookingData.skipDoctorSelection, highestRatedDoctor]);
+  }, [bookingData.skipDoctorSelection, highestRatedDoctor, bookingData.doctor]);
 
+  // Check for saved booking data on component mount
+  useEffect(() => {
+    checkForSavedBookingData();
+  }, []);
+
+  // Helper functions for localStorage
+  const saveBookingDataToLocalStorage = useCallback(() => {
+    try {
+      const dataToSave = {
+        bookingData,
+        currentStep,
+      };
+
+      localStorage.setItem(
+        BOOKING_DATA_STORAGE_KEY,
+        JSON.stringify(dataToSave)
+      );
+      localStorage.setItem(
+        BOOKING_DATA_TIMESTAMP_KEY,
+        JSON.stringify(new Date().getTime())
+      );
+      localStorage.setItem(BOOKING_RETRY_URL_KEY, path);
+    } catch (error) {
+      console.error("Error saving booking data:", error);
+    }
+  }, [bookingData, currentStep, path]);
+
+  const clearSavedBookingData = useCallback(() => {
+    // Uncomment to actually clear data
+    // localStorage.removeItem(BOOKING_DATA_STORAGE_KEY);
+    // localStorage.removeItem(BOOKING_DATA_TIMESTAMP_KEY);
+    // localStorage.removeItem(BOOKING_RETRY_URL_KEY);
+  }, []);
+
+  const checkForSavedBookingData = useCallback(() => {
+    try {
+      const savedDataJson = localStorage.getItem(BOOKING_DATA_STORAGE_KEY);
+      const savedTimestampJson = localStorage.getItem(
+        BOOKING_DATA_TIMESTAMP_KEY
+      );
+
+      if (!savedDataJson || !savedTimestampJson) return;
+
+      const savedTimestamp = JSON.parse(savedTimestampJson);
+      const currentTime = new Date().getTime();
+
+      // Check if the saved data has expired
+      if (currentTime - savedTimestamp > BOOKING_DATA_EXPIRY) {
+        clearSavedBookingData();
+        return;
+      }
+
+      // Parse and restore the saved booking data
+      const savedData = JSON.parse(savedDataJson);
+
+      const booking = {
+        ...savedData,
+        bookingData: {
+          ...savedData.bookingData,
+          date: savedData.bookingData?.date
+            ? new Date(savedData.bookingData.date)
+            : null,
+        },
+      };
+
+      if (savedData) {
+        setIsRestoringData(true);
+
+        // Restore the booking data
+        setBookingData(booking.bookingData || {});
+
+        // Restore other state if needed
+        if (savedData.currentStep) {
+          setCurrentStep(savedData.currentStep);
+        }
+
+        // Show a toast notification
+        toast.info(
+          t("bookingDataRestored") ||
+            "Dữ liệu đặt dịch vụ của bạn đã được khôi phục"
+        );
+
+        // Clean up the URL parameter
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+
+        clearSavedBookingData();
+
+        // Automatically resubmit if the user returned from deposit
+      }
+    } catch (error) {
+      console.error("Error restoring booking data:", error);
+      clearSavedBookingData();
+    }
+  }, [clearSavedBookingData, t]);
+
+  useEffect(() => {
+    if (isRestoringData) {
+      handleSubmit();
+      setIsRestoringData(false);
+    }
+  }, [isRestoringData]);
+
+  // Update booking data
+  const updateBookingData = useCallback((data: Partial<BookingData>) => {
+    setBookingData((prev) => {
+      const newData = { ...prev, ...data };
+      // Only update if data has changed
+      return JSON.stringify(prev) === JSON.stringify(newData) ? prev : newData;
+    });
+  }, []);
+
+  // Navigation handlers
   const handleNext = useCallback(() => {
     if (currentStep < steps.length - 2) {
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
     } else if (currentStep === steps.length - 2) {
-      // This is the summary step
       // Submit booking on the summary step
       handleSubmit();
     } else {
       // On success step, just close
       onClose();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, steps.length, onClose]);
 
   const handleBack = useCallback(() => {
@@ -142,187 +261,115 @@ export function BookingFlow({
     }
   }, [currentStep, steps.length]);
 
-  const updateBookingData = useCallback((data: Partial<BookingData>) => {
-    setBookingData((prev) => {
-      const newData = { ...prev, ...data };
-      if (JSON.stringify(prev) === JSON.stringify(newData)) {
-        return prev; // Don't update state if data hasn't changed
-      }
-      return newData;
-    });
+  // Error handling helpers
+  const isInsufficientBalanceError = useCallback(
+    (error: any): boolean =>
+      error.data?.error?.code === "400" &&
+      error.data?.error?.message?.includes("Insufficient balance"),
+    []
+  );
+
+  const extractRequiredAmount = useCallback((message: string): number => {
+    const match = message.match(/tối thiểu\s([\d,.]+)/i);
+    const amount =
+      match && match[1] ? Number.parseInt(match[1].replace(/,/g, ""), 10) : 0;
+    return isNaN(amount) || amount < 3000 ? 3000 : amount;
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    setIsSubmitting(true);
-    try {
-      // Create booking request from booking data
-      // Assuming createBookingRequest is defined elsewhere
+  const handleInsufficientBalanceError = useCallback(
+    (error: any) => {
+      const message = error.data?.error?.message || "";
+      const amount = extractRequiredAmount(message);
+      saveBookingDataToLocalStorage();
+      setAmountNeeded(amount);
+      setShowInsufficientBalanceModal(true);
+      toast.error(message || t("insufficientBalance") || "Số dư không đủ");
+    },
+    [extractRequiredAmount, saveBookingDataToLocalStorage, t]
+  );
 
-      let bookingRequest = createBookingRequest(bookingData);
-      if (liveStreamRoomId) {
-        bookingRequest = { ...bookingRequest, liveStreamRoomId };
+  const handleGenericBookingError = useCallback(
+    (error: any) => {
+      if (error.data && !error.data.isSuccess) {
+        const messages = error.data.errors;
+
+        if (messages?.length > 0) {
+          messages.forEach((err: { code: string; message: string }) => {
+            toast.error(err.message);
+          });
+        } else if (error.data.error?.message) {
+          toast.error(
+            error.data.error.message || t("errorOccurred") || "Có lỗi xảy ra"
+          );
+        } else {
+          toast.error(t("generalError") || "Lỗi chung");
+        }
+      } else {
+        toast.error(t("connectionError") || "Lỗi kết nối");
       }
+    },
+    [t]
+  );
 
-      const result = await submitBooking(bookingRequest).unwrap();
+  // Submit booking
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
 
+    setIsSubmitting(true);
+
+    try {
+      const bookingRequest = createBookingRequest(bookingData);
+      const requestWithRoom = liveStreamRoomId
+        ? { ...bookingRequest, liveStreamRoomId }
+        : bookingRequest;
+
+      const result = await submitBooking(requestWithRoom).unwrap();
+
+      clearSavedBookingData();
       setBookingId(result.bookingId);
       setBookingComplete(true);
-
-      // Move to success step
       setCurrentStep(steps.length - 1);
     } catch (error: any) {
       console.error("Error submitting booking:", error);
-      if (
-        error.data?.error &&
-        error.data.error.code === "400" &&
-        error.data.error.message.includes("Insufficient balance")
-      ) {
-        // Extract the amount needed from the error message if available
 
-        let extractedAmount = 0;
-        try {
-          // Try to extract the amount from error message if it's in format "Need X VND more"
-          const match = error.data.error.message.match(/Need\s+(\d+)\s+VND/i);
-          if (match && match[1]) {
-            extractedAmount = Number.parseInt(match[1], 10);
-          } else {
-            // If we can't extract the exact amount, estimate it based on the booking data
-            // This is a fallback calculation - adjust based on your business logic
-            // const totalPrice = calculateTotalPrice(bookingData);
-            // extractedAmount = Math.ceil(totalPrice * 0.1);
-            extractedAmount = 100000; // Placeholder
-          }
-        } catch (e) {
-          console.error("Could not parse amount needed:", e);
-        }
-
-        // Set the amount needed and show the modal
-        setAmountNeeded(extractedAmount);
-        setShowInsufficientBalanceModal(true);
-
-        // Display the insufficient balance error
-        toast.error(
-          error.data.error.message ||
-            t("insufficientBalance") ||
-            "Số dư không đủ"
-        );
+      if (isInsufficientBalanceError(error)) {
+        handleInsufficientBalanceError(error);
       } else {
-        // Handle validation errors from the API
-        if (error.data && !error.data.isSuccess) {
-          // Check if there are specific validation errors
-          if (error.data.errors && error.data.errors.length > 0) {
-            // Display each validation error as a toast
-            error.data.errors.forEach(
-              (err: { code: string; message: string }) => {
-                toast.error(err.message);
-              }
-            );
-          } else if (error.data.error) {
-            // Display the general error message
-            toast.error(
-              error.data.error.message || t("errorOccurred") || "Có lỗi xảy ra"
-            );
-          } else {
-            // Fallback error message
-            toast.error(t("generalError") || "Lỗi chung");
-          }
-        } else {
-          // Handle network or other errors
-          toast.error(t("connectionError") || "Lỗi kết nối");
-        }
+        handleGenericBookingError(error);
       }
     } finally {
-      // Only reset submitting state if we're not showing the insufficient balance modal
       if (!showInsufficientBalanceModal) {
         setIsSubmitting(false);
       }
     }
   }, [
     bookingData,
+    clearSavedBookingData,
+    handleGenericBookingError,
+    handleInsufficientBalanceError,
+    isInsufficientBalanceError,
+    isSubmitting,
+    liveStreamRoomId,
+    showInsufficientBalanceModal,
     steps.length,
     submitBooking,
-    liveStreamRoomId,
-    t,
-    showInsufficientBalanceModal,
   ]);
 
+  // Handle deposit action
   const handleDepositAction = useCallback(() => {
+    // Save the current booking data to localStorage before redirecting
+    saveBookingDataToLocalStorage();
+
     // Close the modal
     setShowInsufficientBalanceModal(false);
-
-    // Keep the submitting state true to show loading
-    setIsSubmitting(true);
-
-    // Open deposit page in new tab with amount parameter if available
     const depositUrl =
       amountNeeded > 0
-        ? `/profile?tab=deposit&amount=${amountNeeded}`
-        : "/profile?tab=deposit";
-    const depositWindow = window.open(depositUrl, "_blank");
+        ? `/profile?tab=deposit&amount=${amountNeeded}&from_booking=true`
+        : "/profile?tab=deposit&from_booking=true";
+    window.location.href = depositUrl;
+  }, [amountNeeded, saveBookingDataToLocalStorage]);
 
-    // Set up a listener for messages from the deposit window
-    const messageListener = (event: MessageEvent) => {
-      // Verify the message is from our application
-      if (event.data && event.data.type === "DEPOSIT_SUCCESS") {
-        // Remove the listener to avoid memory leaks
-        window.removeEventListener("message", messageListener);
-
-        // Retry the booking submission
-        handleSubmit();
-      }
-    };
-
-    window.addEventListener("message", messageListener);
-
-    // Set up a polling mechanism as a fallback
-    let checkCount = 0;
-    const maxChecks = 60; // Maximum number of checks (5 minutes at 5-second intervals)
-
-    const checkBalanceInterval = setInterval(async () => {
-      try {
-        checkCount++;
-        if (checkCount > maxChecks) {
-          clearInterval(checkBalanceInterval);
-          setIsSubmitting(false);
-          toast.info(
-            t("depositTimeoutMessage") ||
-              "Thời gian chờ nạp tiền đã hết. Vui lòng thử lại sau khi nạp tiền thành công."
-          );
-          return;
-        }
-
-        // Fetch the latest user profile to check balance
-        // Replace this with your actual API call to get user profile/balance
-        const response = await fetch("/api/user/profile");
-        const data = await response.json();
-
-        if (data.value && data.value.balance > 0) {
-          // If balance is updated, clear interval and retry booking
-          clearInterval(checkBalanceInterval);
-
-          // Retry booking submission
-          handleSubmit();
-        }
-      } catch (err) {
-        console.error("Error checking balance:", err);
-      }
-    }, 5000); // Check every 5 seconds
-
-    // Clean up interval if user closes deposit window
-    const checkWindowClosed = setInterval(() => {
-      if (depositWindow && depositWindow.closed) {
-        clearInterval(checkBalanceInterval);
-        clearInterval(checkWindowClosed);
-        window.removeEventListener("message", messageListener);
-        setIsSubmitting(false);
-        toast.info(
-          t("depositCancelledMessage") || "Quá trình nạp tiền đã bị hủy."
-        );
-      }
-    }, 1000);
-  }, [amountNeeded, handleSubmit, t]);
-
-  // Check if current step is valid and can proceed
+  // Check if user can proceed to next step
   const canProceed = useCallback(() => {
     switch (currentStep) {
       case 0: // Clinic selection
@@ -350,7 +397,11 @@ export function BookingFlow({
   }, [currentStep, bookingData]);
 
   // Render the appropriate step component based on currentStep
-  const renderStepContent = () => {
+  const renderStepContent = useCallback(() => {
+    const StepComponent = steps[currentStep]?.component;
+
+    if (!StepComponent) return null;
+
     switch (currentStep) {
       case 0:
         return (
@@ -392,21 +443,18 @@ export function BookingFlow({
       default:
         return null;
     }
-  };
+  }, [
+    currentStep,
+    bookingData,
+    updateBookingData,
+    highestRatedDoctor,
+    bookingId,
+    onClose,
+    steps,
+  ]);
 
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
       <div className="w-full max-w-3xl my-8 max-h-[90vh]">
         <Card className="border-purple-200 dark:border-purple-800/30 shadow-lg">
           <CardContent className="p-0 flex flex-col max-h-[90vh]">
@@ -425,21 +473,7 @@ export function BookingFlow({
                   className="h-8 w-8 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-800/30"
                 >
                   <span className="sr-only">{t("close")}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-x"
-                  >
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
+                  <X className="h-5 w-5" />
                 </Button>
               </div>
 
@@ -478,22 +512,6 @@ export function BookingFlow({
                       >
                         {step.title}
                       </div>
-                      {index < steps.length - 2 && (
-                        <div
-                          className={cn(
-                            "h-0.5 absolute w-[calc(${100 / (steps.length - 1)}%-2rem)]",
-                            index < currentStep
-                              ? "bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-purple-400 dark:to-indigo-400"
-                              : "bg-gray-200 dark:bg-gray-700"
-                          )}
-                          style={{
-                            left: `calc(${
-                              (index * 100) / (steps.length - 1)
-                            }% + 1rem)`,
-                            top: "1.6rem",
-                          }}
-                        ></div>
-                      )}
                     </div>
                   ))}
                 </div>
