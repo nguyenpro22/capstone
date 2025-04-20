@@ -76,5 +76,8 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     statusCancelled: "Cancelled",
     depositAmount: "Deposit Amount",
     remainingAmount: "Remaining Amount",
-    actions: "Actions"
+    actions: "Actions",
+    columns: "Columns"
+
+
 }

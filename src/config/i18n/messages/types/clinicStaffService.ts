@@ -70,5 +70,9 @@ export type clinicStaffServicePageMessages = {
     phoneLabel: string
     certificatesLabel: string
     certificate: string
+    noServiceDetailsTitle: string
+    description: string
+    certificates: string
+
   }
   

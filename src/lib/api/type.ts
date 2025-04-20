@@ -46,6 +46,13 @@ export interface ValidationErrorResponse {
   detail: string;
   errors: ValidationErrorItem[];
 }
+// Interface cho lỗi 500 và các lỗi khác không có mảng errors
+export interface BasicErrorResponse {
+  type: string
+  title: string
+  status: number
+  detail: string
+}
 
 export type CustomBaseQuery = BaseQueryFn<
   string | FetchArgs,

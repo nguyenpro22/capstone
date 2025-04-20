@@ -51,6 +51,7 @@ export type walletMessages = {
       searchTransaction: string
     }
     table: {
+      id: string
       date: string
       amount: string
       clinic: string
@@ -140,6 +141,7 @@ export type walletMessages = {
       searchWithdrawal: string
     }
     table: {
+      id: string
       date: string
       amount: string
       type: string

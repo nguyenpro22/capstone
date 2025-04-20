@@ -41,6 +41,8 @@ import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
 import { orderMessages } from "./order";
 import { orderDetail } from "./order-detail";
+import { workingScheduleMessages } from "./working-schedule";
+import { paginationMessages } from "./pagination";
 
 const vi = {
   home: homeMessages,
@@ -85,6 +87,8 @@ const vi = {
   withdrawal: withdrawalMessages,
   orderMessages,
   orderDetail,
+  workingSchedule:workingScheduleMessages,
+  pagination: paginationMessages,
 };
 
 export default vi;

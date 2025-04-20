@@ -59,6 +59,7 @@ export const clinicStaffRoutes = {
   SERVICES: `${privateClinicStaffPath}/service`,
   INBOX: `${privateClinicStaffPath}/inbox`,
   WALLET: `${privateClinicStaffPath}/wallet`,
+  WORKING_SCHEDULE: `${privateClinicStaffPath}/working-schedule`,
 };
 
 // CUSTOMER ROUTES
@@ -89,6 +90,7 @@ export const publicRoutes = {
   DEFAULT: "/",
   HOME: "/home",
   SERVICES: "/services",
+  POLICY: "/policy",
   SERVICE_DETAIL: "/services/[id]",
   LIVESTREAM_VIEW: "/livestream-view",
   REGISTER_CLINIC: "/registerClinic",

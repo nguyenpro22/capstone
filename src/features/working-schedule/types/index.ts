@@ -15,3 +15,61 @@ export  interface BusyTimesResponse {
       message: string
     }
   }
+
+ export interface TimeSlot {
+  startTime: string
+  endTime: string
+  capacity: number
+}
+
+// WorkingSchedule interface that matches the API expectation
+export interface WorkingSchedule {
+  shiftGroupId: string
+  numberOfDoctors: string
+  numberOfCustomers:string
+  date: string
+  capacity: number
+  startTime?: string
+  endTime?: string
+}
+export interface WorkingScheduleDetail {
+  workingScheduleId: string;
+  doctorId: string | null;
+  doctorName: string | null;
+  clinicId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string | null;
+  stepIndex: number | null;
+  customerName: string | null;
+  customerId: string | null;
+  serviceId: string | null;
+  serviceName: string | null;
+  customerScheduleId: string | null;
+  currentProcedureName: string | null;
+}
+// Extended WorkingSchedule for UI with timeSlots
+export interface ExtendedWorkingSchedule {
+  date: string
+  capacity: number
+  timeSlots?: TimeSlot[]
+}
+
+export interface WorkingScheduleResponse {
+  workingScheduleId: string;
+  doctorId: number;
+  doctorName?: string;
+  clinicId: string;
+  date: string;
+  startTime: number;
+  endTime?: string;
+  status?: string;
+  stepIndex: string;
+  customerName: number;
+  customerId?: string;
+  serviceId?: string;
+  serviceName: string;
+  customerScheduleId: string;
+  currentProcedureName: string;
+}

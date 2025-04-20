@@ -74,4 +74,32 @@ export type clinicMessages = {
   noBanksFound: string
   bankingInfoHelp: string
   copyToClipboard:string
+   // New fields for partnership request component
+   partnershipRequests: string
+   totalRequests: string
+   searchByNameOrEmail: string
+   loadingPartnershipRequests: string
+   errorLoadingData: string
+   retry: string
+   noPartnershipRequestsFound: string
+   stt: string
+   totalApply: string
+   viewDetail: string
+   actions: string
+   accept: string
+   reject: string
+   ban: string
+   processing: string
+   rejectRequest: string
+   banRequest: string
+   provideRejectReason: string
+   provideBanReason: string
+   enterRejectReason: string
+   enterBanReason: string
+   rejectRequestButton: string
+   banRequestButton: string
+   partnershipRequestAccepted: string
+   partnershipRequestRejected: string
+   partnershipRequestBanned: string
+   failedToUpdateRequest: string
 }

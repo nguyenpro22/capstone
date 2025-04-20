@@ -39,6 +39,8 @@ import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
 import { order } from "./order";
 import { orderDetail } from "./order-detail";
+import { workingScheduleMessages } from "./working-schedule";
+import { paginationMessages } from "./pagination";
 
 export type Messages = {
   home: homeMessages;
@@ -83,4 +85,6 @@ export type Messages = {
   withdrawal: withdrawalMessages;
   userOrder: order;
   orderDetail: orderDetail;
+  workingSchedule: workingScheduleMessages;
+  pagination: paginationMessages;
 };

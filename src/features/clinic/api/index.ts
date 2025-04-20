@@ -45,13 +45,15 @@ export const clinicsQueryApi = createApi({
       query: (clinicId) => `clinics/sub-clinics/${clinicId}`,
       providesTags: ["Clinic"],
     }),
+
+   
   }),
 });
 
 export const clinicsCommandApi = createApi({
   reducerPath: "clinicsCommandApi",
   baseQuery: reAuthQuery("command"), // 👉 Dùng port 4000
-  tagTypes: ["Clinic"],
+  tagTypes: ["Clinic","Schedule"],
   endpoints: (builder) => ({
     updateClinic: builder.mutation<
       Clinic,
@@ -82,14 +84,6 @@ export const clinicsCommandApi = createApi({
       }),
       invalidatesTags: [{ type: "Clinic", id: "LIST" }],
     }),
-    // changeStatusBranch: builder.mutation({
-    //   query: ({ branchId }) => ({
-    //     url: `/clinics/update-branch`, // Truyền ID vào URL
-    //     method: "PUT",
-    //     params: { branchId: branchId }, // ID trong parameters
-    //     // body: { packageId, isActivated },
-    //   }),
-    // }),
     changeStatusBranch: builder.mutation({
       query: ({ id }) => ({
         url: `clinics/${id}/status`,
@@ -97,6 +91,7 @@ export const clinicsCommandApi = createApi({
       
       }),
     }),
+    
   }),
 });
 
@@ -292,6 +287,7 @@ export const {
   useGetClinicByIdV2Query,
   useGetAllBranchesQuery, // Thêm hook mới này
   useGetBranchDetailByIdQuery,
+
 } = clinicsQueryApi;
 
 export const {

@@ -50,6 +50,6 @@ export type sidebarMessages = {
     // New translations for mobile sidebar
   lightMode: string
   darkMode: string
-
+  workingSchedule: string
   }
   

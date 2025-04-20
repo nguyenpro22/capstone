@@ -53,6 +53,7 @@ export const walletMessages: Messages["wallet"] = {
       searchTransaction: "Tìm kiếm theo tên phòng khám hoặc mô tả...",
     },
     table: {
+      id: "Id",
       date: "Ngày",
       amount: "Số tiền",
       clinic: "Phòng khám",
@@ -142,6 +143,7 @@ export const walletMessages: Messages["wallet"] = {
       searchWithdrawal: "Tìm kiếm theo ID giao dịch hoặc ghi chú...",
     },
     table: {
+      id: "Id",
       date: "Ngày",
       amount: "Số tiền",
       type: "Loại",

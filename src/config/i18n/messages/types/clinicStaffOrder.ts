@@ -75,4 +75,5 @@ export type clinicStaffOrderMessages = {
   depositAmount: string
   remainingAmount: string
   actions: string
+  columns: string
 }

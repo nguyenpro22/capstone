@@ -1,37 +1,44 @@
-"use client"
-import { useState, useRef, useEffect } from "react"
-import type React from "react"
-import { Stethoscope, Building2 } from "lucide-react"
-import { motion } from "framer-motion"
-import { useGetDoctorsQuery, useLazyGetDoctorByIdQuery, useDeleteDoctorMutation } from "@/features/clinic/api"
-import { useTranslations } from "next-intl"
-import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
-import { useDebounce } from "@/hooks/use-debounce"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { Stethoscope, Building2 } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  useGetDoctorsQuery,
+  useLazyGetDoctorByIdQuery,
+  useDeleteDoctorMutation,
+} from "@/features/clinic/api";
+import { useTranslations } from "next-intl";
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch";
+import { useDebounce } from "@/hooks/use-debounce";
 
-import Pagination from "@/components/common/Pagination/Pagination"
-import DoctorForm from "@/components/clinicManager/doctor/DoctorForm"
-import EditDoctorForm from "@/components/clinicManager/doctor/EditDoctorForm"
-import ViewDoctorModal from "@/components/clinicManager/doctor/view-doctor-modal"
-import ChangeDoctorBranchForm from "@/components/clinicManager/doctor/ChangeDoctorBranchForm"
+import Pagination from "@/components/common/Pagination/Pagination";
+import DoctorForm from "@/components/clinicManager/doctor/DoctorForm";
+import EditDoctorForm from "@/components/clinicManager/doctor/EditDoctorForm";
+import ViewDoctorModal from "@/components/clinicManager/doctor/view-doctor-modal";
+import ChangeDoctorBranchForm from "@/components/clinicManager/doctor/ChangeDoctorBranchForm";
 
-import { toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import { MoreVertical } from "lucide-react"
-import { MenuPortal } from "@/components/ui/menu-portal"
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { MoreVertical } from "lucide-react";
+import { MenuPortal } from "@/components/ui/menu-portal";
 
 // Add the import for getAccessToken and GetDataByToken
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import type { Doctor } from "@/features/clinic/types"
-import ConfirmationDialog from "@/components/ui/confirmation-dialog"
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import type { Doctor } from "@/features/clinic/types";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 
 interface BranchViewModalProps {
-  branches: Array<{ id: string; name: string; fullAddress?: string }>
-  onClose: () => void
+  branches: Array<{ id: string; name: string; fullAddress?: string }>;
+  onClose: () => void;
 }
 
 const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -45,14 +52,21 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
 
         <div className="max-h-60 overflow-y-auto">
           {branches.map((branch, index) => (
-            <div key={branch.id} className="p-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+            <div
+              key={branch.id}
+              className="p-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+            >
               <div className="flex flex-col">
                 <div className="flex items-center">
                   <Building2 className="w-4 h-4 text-purple-500 dark:text-purple-400 mr-2" />
-                  <span className="font-medium dark:text-gray-200">{branch.name}</span>
+                  <span className="font-medium dark:text-gray-200">
+                    {branch.name}
+                  </span>
                 </div>
                 {branch.fullAddress && (
-                  <div className="mt-1 ml-6 text-xs text-gray-500 dark:text-gray-400">{branch.fullAddress}</div>
+                  <div className="mt-1 ml-6 text-xs text-gray-500 dark:text-gray-400">
+                    {branch.fullAddress}
+                  </div>
                 )}
               </div>
             </div>
@@ -69,44 +83,50 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
 export default function DoctorPage() {
-  const t = useTranslations("staffDoctor") // Using namespace "doctor"
+  const t = useTranslations("staffDoctor"); // Using namespace "doctor"
 
   // Get the token and extract clinicId
-  const token = getAccessToken()
+  const token = getAccessToken();
   // Add null check for token
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const clinicId = tokenData?.clinicId || ""
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
 
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-  const [doctorToDelete, setDoctorToDelete] = useState<string | null>(null)
-  const [viewDoctor, setViewDoctor] = useState<Doctor | null>(null)
-  const [editDoctor, setEditDoctor] = useState<Doctor | null>(null)
-  const [changeBranchDoctor, setChangeBranchDoctor] = useState<Doctor | null>(null)
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [doctorToDelete, setDoctorToDelete] = useState<string | null>(null);
+  const [viewDoctor, setViewDoctor] = useState<Doctor | null>(null);
+  const [editDoctor, setEditDoctor] = useState<Doctor | null>(null);
+  const [changeBranchDoctor, setChangeBranchDoctor] = useState<Doctor | null>(
+    null
+  );
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
   const [viewingBranches, setViewingBranches] = useState<Array<{
-    id: string
-    name: string
-    fullAddress?: string
-  }> | null>(null)
+    id: string;
+    name: string;
+    fullAddress?: string;
+  }> | null>(null);
 
   // State to track which branch is being hovered
-  const [hoveredBranchId, setHoveredBranchId] = useState<string | null>(null)
+  const [hoveredBranchId, setHoveredBranchId] = useState<string | null>(null);
   // Ref to store tooltip position
-  const tooltipPositionRef = useRef<{ x: number; y: number; targetElement?: HTMLElement } | null>(null)
+  const tooltipPositionRef = useRef<{
+    x: number;
+    y: number;
+    targetElement?: HTMLElement;
+  } | null>(null);
 
-  const [showForm, setShowForm] = useState(false)
-  const [showEditForm, setShowEditForm] = useState(false)
-  const [showChangeBranchForm, setShowChangeBranchForm] = useState(false)
+  const [showForm, setShowForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showChangeBranchForm, setShowChangeBranchForm] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("")
-  const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms delay
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
 
-  const [pageIndex, setPageIndex] = useState(1)
-  const pageSize = 5
+  const [pageIndex, setPageIndex] = useState(1);
+  const pageSize = 5;
 
   const { data, refetch } = useGetDoctorsQuery({
     clinicId,
@@ -114,38 +134,39 @@ export default function DoctorPage() {
     pageSize,
     searchTerm: debouncedSearchTerm,
     role: 1, // Use role=1 for doctors
-  })
+  });
 
   // Reset page index when search term changes
   useEffect(() => {
-    setPageIndex(1)
-  }, [debouncedSearchTerm])
+    setPageIndex(1);
+  }, [debouncedSearchTerm]);
 
   // Use the delayed refetch hook
-  const delayedRefetch = useDelayedRefetch(refetch)
+  const delayedRefetch = useDelayedRefetch(refetch);
 
-  const [fetchDoctorById] = useLazyGetDoctorByIdQuery()
-  const [deleteDoctor, { isLoading: isDeleting }] = useDeleteDoctorMutation()
+  const [fetchDoctorById] = useLazyGetDoctorByIdQuery();
+  const [deleteDoctor, { isLoading: isDeleting }] = useDeleteDoctorMutation();
 
   // Update to match the actual response structure with nested items
-  const doctorList: Doctor[] = data?.value?.items || []
+  const doctorList: Doctor[] = data?.value?.items || [];
 
   // Get pagination info from the response
-  const totalCount = data?.value?.totalCount || 0
-  const hasNextPage = !!data?.value?.hasNextPage
-  const hasPreviousPage = !!data?.value?.hasPreviousPage
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = !!data?.value?.hasNextPage;
+  const hasPreviousPage = !!data?.value?.hasPreviousPage;
 
-
-  const [menuOpen, setMenuOpen] = useState<string | null>(null)
-  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
 
   const handleCloseMenu = () => {
-    setMenuOpen(null)
-  }
+    setMenuOpen(null);
+  };
 
-  const handleViewAllBranches = (branches: Array<{ id: string; name: string; fullAddress?: string }> = []) => {
-    setViewingBranches(branches)
-  }
+  const handleViewAllBranches = (
+    branches: Array<{ id: string; name: string; fullAddress?: string }> = []
+  ) => {
+    setViewingBranches(branches);
+  };
 
   // Handle mouse enter on branch with position capture
   const handleBranchMouseEnter = (branchId: string, e: React.MouseEvent) => {
@@ -154,9 +175,9 @@ export default function DoctorPage() {
       x: e.clientX,
       y: e.clientY,
       targetElement: e.currentTarget as HTMLElement,
-    }
-    setHoveredBranchId(branchId)
-  }
+    };
+    setHoveredBranchId(branchId);
+  };
 
   const handleMenuAction = async (action: string, doctorId: string) => {
     if (action === "view") {
@@ -164,11 +185,11 @@ export default function DoctorPage() {
         const result = await fetchDoctorById({
           clinicId,
           employeeId: doctorId,
-        }).unwrap()
-        setViewDoctor(result.value)
+        }).unwrap();
+        setViewDoctor(result.value);
       } catch (error) {
-        console.error(error)
-        toast.error("Không thể lấy thông tin bác sĩ!")
+        console.error(error);
+        toast.error("Không thể lấy thông tin bác sĩ!");
         setViewDoctor({
           id: "",
           clinicId: "",
@@ -187,7 +208,7 @@ export default function DoctorPage() {
           role: "",
           doctorCertificates: null,
           branchs: [],
-        })
+        });
       }
     }
 
@@ -196,11 +217,11 @@ export default function DoctorPage() {
         const result = await fetchDoctorById({
           clinicId,
           employeeId: doctorId,
-        }).unwrap()
-        setEditDoctor(result.value)
+        }).unwrap();
+        setEditDoctor(result.value);
       } catch (error) {
-        console.error(error)
-        toast.error("Không thể lấy thông tin bác sĩ!")
+        console.error(error);
+        toast.error("Không thể lấy thông tin bác sĩ!");
         setEditDoctor({
           id: "",
           clinicId: "",
@@ -219,9 +240,9 @@ export default function DoctorPage() {
           role: "",
           doctorCertificates: null,
           branchs: [],
-        })
+        });
       }
-      setShowEditForm(true)
+      setShowEditForm(true);
     }
 
     if (action === "changeBranch") {
@@ -229,11 +250,11 @@ export default function DoctorPage() {
         const result = await fetchDoctorById({
           clinicId,
           employeeId: doctorId,
-        }).unwrap()
-        setChangeBranchDoctor(result.value)
+        }).unwrap();
+        setChangeBranchDoctor(result.value);
       } catch (error) {
-        console.error(error)
-        toast.error("Không thể lấy thông tin bác sĩ!")
+        console.error(error);
+        toast.error("Không thể lấy thông tin bác sĩ!");
         setChangeBranchDoctor({
           id: "",
           clinicId: "",
@@ -252,48 +273,54 @@ export default function DoctorPage() {
           role: "",
           doctorCertificates: null,
           branchs: [],
-        })
+        });
       }
-      setShowChangeBranchForm(true)
+      setShowChangeBranchForm(true);
     }
     if (action === "delete") {
-      setDoctorToDelete(doctorId)
-      setConfirmDialogOpen(true)
+      setDoctorToDelete(doctorId);
+      setConfirmDialogOpen(true);
     }
 
-    setMenuOpen(null)
-  }
+    setMenuOpen(null);
+  };
 
   // Update the handleDeleteDoctor function to use the correct API structure
   const handleDeleteDoctor = async (doctorId: string, branchId?: string) => {
     try {
       // Find the doctor to get their branch ID if not provided
-      const doctorToDelete = doctorList.find((doc) => doc.employeeId === doctorId)
+      const doctorToDelete = doctorList.find(
+        (doc) => doc.employeeId === doctorId
+      );
       const branchIdToUse =
-        branchId || (doctorToDelete?.branchs && doctorToDelete.branchs.length > 0 ? doctorToDelete.branchs[0].id : null)
+        branchId ||
+        (doctorToDelete?.branchs && doctorToDelete.branchs.length > 0
+          ? doctorToDelete.branchs[0].id
+          : null);
 
       // Check if we have a valid branch ID
       if (!branchIdToUse) {
-        toast.error("Branch ID not found. Please try again or contact support.")
-        return
+        toast.error(
+          "Branch ID not found. Please try again or contact support."
+        );
+        return;
       }
 
       await deleteDoctor({
         id: branchIdToUse,
         accountId: doctorId,
-      }).unwrap()
+      }).unwrap();
 
-      toast.success("Bác sĩ đã được xóa thành công!")
-      delayedRefetch()
-    } catch (error) {
-      console.error(error)
-      toast.error("Xóa bác sĩ thất bại!")
+      toast.success("Bác sĩ đã được xóa thành công!");
+      delayedRefetch();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.data.detail);
     }
-  }
+  };
 
   return (
     <div className="p-6 dark:bg-gray-950" onClick={handleCloseMenu}>
-    
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
           {t("doctorList") || "Doctor List"}
@@ -307,7 +334,7 @@ export default function DoctorPage() {
               className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-500 focus:ring focus:ring-purple-200 dark:focus:ring-purple-500 focus:ring-opacity-50 transition-all dark:bg-gray-800 dark:text-white"
               value={searchTerm}
               onChange={(e) => {
-                setSearchTerm(e.target.value)
+                setSearchTerm(e.target.value);
               }}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
@@ -341,9 +368,16 @@ export default function DoctorPage() {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
-            <span className="font-medium tracking-wide">{t("addNewDoctor") || "Add New Doctor"}</span>
+            <span className="font-medium tracking-wide">
+              {t("addNewDoctor") || "Add New Doctor"}
+            </span>
           </motion.button>
         </div>
       </div>
@@ -410,7 +444,9 @@ export default function DoctorPage() {
                               <div key={idx} className="relative">
                                 <span
                                   className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors max-w-[100px] inline-block truncate align-bottom"
-                                  onMouseEnter={(e) => handleBranchMouseEnter(branch.id, e)}
+                                  onMouseEnter={(e) =>
+                                    handleBranchMouseEnter(branch.id, e)
+                                  }
                                   onMouseLeave={() => setHoveredBranchId(null)}
                                 >
                                   {branch.name}
@@ -420,20 +456,26 @@ export default function DoctorPage() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-gray-400 dark:text-gray-500 text-sm">No branches</span>
+                        <span className="text-gray-400 dark:text-gray-500 text-sm">
+                          No branches
+                        </span>
                       )}
                     </td>
                     <td className="p-3 border border-gray-200 dark:border-gray-700 relative">
                       <button
                         className="p-2 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          e.nativeEvent.stopImmediatePropagation()
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
                           // Get the button's position for the menu
-                          const rect = e.currentTarget.getBoundingClientRect()
-                          setTriggerRect(rect)
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setTriggerRect(rect);
                           // Toggle the menu
-                          setMenuOpen(menuOpen === doctor.employeeId ? null : doctor.employeeId)
+                          setMenuOpen(
+                            menuOpen === doctor.employeeId
+                              ? null
+                              : doctor.employeeId
+                          );
                         }}
                       >
                         <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -449,7 +491,9 @@ export default function DoctorPage() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
               <Stethoscope className="w-8 h-8 text-purple-300 dark:text-purple-400" />
             </div>
-            <p className="text-gray-500 dark:text-gray-400">{t("noDoctorsAvailable") || "No Doctors available."}</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              {t("noDoctorsAvailable") || "No Doctors available."}
+            </p>
             <button
               onClick={() => setShowForm(true)}
               className="mt-4 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
@@ -463,13 +507,21 @@ export default function DoctorPage() {
       {/* Tooltip for branch addresses - positioned below each branch with arrow */}
       {hoveredBranchId &&
         doctorList.some((doctor) =>
-          doctor.branchs?.some((branch) => branch.id === hoveredBranchId && branch.fullAddress),
+          doctor.branchs?.some(
+            (branch) => branch.id === hoveredBranchId && branch.fullAddress
+          )
         ) && (
           <div
             className="fixed z-[9999] p-2 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded shadow-lg"
             style={{
-              top: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().bottom || 0) + 5 + "px",
-              left: (tooltipPositionRef.current?.targetElement?.getBoundingClientRect().left || 0) + "px",
+              top:
+                (tooltipPositionRef.current?.targetElement?.getBoundingClientRect()
+                  .bottom || 0) +
+                5 +
+                "px",
+              left:
+                (tooltipPositionRef.current?.targetElement?.getBoundingClientRect()
+                  .left || 0) + "px",
               maxWidth: "250px",
               pointerEvents: "none", // Prevents the tooltip from interfering with mouse events
             }}
@@ -479,8 +531,9 @@ export default function DoctorPage() {
 
             {/* Only show the address */}
             {
-              doctorList.flatMap((doctor) => doctor.branchs || []).find((branch) => branch.id === hoveredBranchId)
-                ?.fullAddress
+              doctorList
+                .flatMap((doctor) => doctor.branchs || [])
+                .find((branch) => branch.id === hoveredBranchId)?.fullAddress
             }
           </div>
         )}
@@ -499,8 +552,8 @@ export default function DoctorPage() {
                 <li
                   className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleMenuAction("view", doctor.employeeId)
+                    e.stopPropagation();
+                    handleMenuAction("view", doctor.employeeId);
                   }}
                 >
                   <span className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
@@ -511,8 +564,8 @@ export default function DoctorPage() {
                 <li
                   className="px-4 py-2 hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleMenuAction("edit", doctor.employeeId)
+                    e.stopPropagation();
+                    handleMenuAction("edit", doctor.employeeId);
                   }}
                 >
                   <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
@@ -523,8 +576,8 @@ export default function DoctorPage() {
                 <li
                   className="px-4 py-2 hover:bg-green-50 dark:hover:bg-green-900/30 cursor-pointer flex items-center gap-2 transition-colors dark:text-gray-200"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleMenuAction("changeBranch", doctor.employeeId)
+                    e.stopPropagation();
+                    handleMenuAction("changeBranch", doctor.employeeId);
                   }}
                 >
                   <span className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
@@ -535,8 +588,8 @@ export default function DoctorPage() {
                 <li
                   className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300 cursor-pointer flex items-center gap-2 transition-colors"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleMenuAction("delete", doctor.employeeId)
+                    e.stopPropagation();
+                    handleMenuAction("delete", doctor.employeeId);
                   }}
                 >
                   {/* <li
@@ -553,7 +606,7 @@ export default function DoctorPage() {
                 </li>
               </ul>
             </MenuPortal>
-          ),
+          )
       )}
 
       {/* Add Doctor Form */}
@@ -575,9 +628,9 @@ export default function DoctorPage() {
           <DoctorForm
             onClose={() => setShowForm(false)}
             onSaveSuccess={() => {
-              setShowForm(false)
-              delayedRefetch() // Use delayed refetch instead of immediate refetch
-              toast.success("Doctor added successfully!")
+              setShowForm(false);
+              delayedRefetch(); // Use delayed refetch instead of immediate refetch
+              toast.success("Doctor added successfully!");
             }}
           />
         </div>
@@ -589,13 +642,13 @@ export default function DoctorPage() {
           <EditDoctorForm
             initialData={editDoctor}
             onClose={() => {
-              setShowEditForm(false)
-              setEditDoctor(null)
+              setShowEditForm(false);
+              setEditDoctor(null);
             }}
             onSaveSuccess={() => {
-              setShowEditForm(false)
-              setEditDoctor(null)
-              delayedRefetch() // Use delayed refetch instead of immediate refetch
+              setShowEditForm(false);
+              setEditDoctor(null);
+              delayedRefetch(); // Use delayed refetch instead of immediate refetch
             }}
           />
         </div>
@@ -607,20 +660,25 @@ export default function DoctorPage() {
           <ChangeDoctorBranchForm
             doctor={changeBranchDoctor}
             onClose={() => {
-              setShowChangeBranchForm(false)
-              setChangeBranchDoctor(null)
+              setShowChangeBranchForm(false);
+              setChangeBranchDoctor(null);
             }}
             onSaveSuccess={() => {
-              setShowChangeBranchForm(false)
-              setChangeBranchDoctor(null)
-              delayedRefetch() // Use delayed refetch instead of immediate refetch
+              setShowChangeBranchForm(false);
+              setChangeBranchDoctor(null);
+              delayedRefetch(); // Use delayed refetch instead of immediate refetch
             }}
           />
         </div>
       )}
 
       {/* View All Branches Modal */}
-      {viewingBranches && <BranchViewModal branches={viewingBranches} onClose={() => setViewingBranches(null)} />}
+      {viewingBranches && (
+        <BranchViewModal
+          branches={viewingBranches}
+          onClose={() => setViewingBranches(null)}
+        />
+      )}
 
       <div className="mt-6">
         <Pagination
@@ -633,20 +691,26 @@ export default function DoctorPage() {
         />
       </div>
 
-      {viewDoctor && <ViewDoctorModal viewDoctor={viewDoctor} onClose={() => setViewDoctor(null)} />}
+      {viewDoctor && (
+        <ViewDoctorModal
+          viewDoctor={viewDoctor}
+          onClose={() => setViewDoctor(null)}
+        />
+      )}
 
       <ConfirmationDialog
         isOpen={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
         onConfirm={() => {
           if (doctorToDelete) {
-            handleDeleteDoctor(doctorToDelete)
-            setConfirmDialogOpen(false)
+            handleDeleteDoctor(doctorToDelete);
+            setConfirmDialogOpen(false);
           }
         }}
         title={t("confirmDelete")}
         message={
-          t("deleteDoctorConfirmation") || "Bạn có chắc chắn muốn xóa bác sĩ này? Hành động này không thể hoàn tác."
+          t("deleteDoctorConfirmation") ||
+          "Bạn có chắc chắn muốn xóa bác sĩ này? Hành động này không thể hoàn tác."
         }
         confirmButtonText={t("deleteDoctor")}
         cancelButtonText={t("cancel")}
@@ -654,5 +718,5 @@ export default function DoctorPage() {
         type="delete"
       />
     </div>
-  )
+  );
 }

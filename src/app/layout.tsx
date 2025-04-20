@@ -28,8 +28,8 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body>      
-          <ClientProvider>{children}</ClientProvider>    
+      <body>
+        <ClientProvider>{children}</ClientProvider>
       </body>
     </html>
   );

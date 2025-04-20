@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import type React from "react";
+import { useTranslations } from "next-intl"; // Assuming you're using next-intl
 
 interface PaginationProps {
   pageIndex: number;
@@ -17,6 +20,7 @@ const Pagination: React.FC<PaginationProps> = ({
   hasPreviousPage,
   onPageChange,
 }) => {
+  const t = useTranslations("pagination");
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
@@ -26,11 +30,11 @@ const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(pageIndex - 1)}
         className="px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900 disabled:opacity-50"
       >
-      ← Previous
+        {t("previous")}
       </button>
 
       <span className="text-sm text-gray-500">
-        Page {pageIndex} of {totalPages}
+        {t("pageOf", { page: pageIndex, total: totalPages })}
       </span>
 
       <button
@@ -38,10 +42,9 @@ const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(pageIndex + 1)}
         className="px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900 disabled:opacity-50"
       >
-        Next →
+        {t("next")}
       </button>
     </div>
-   
   );
 };
 

@@ -1,0 +1,119 @@
+import type { Messages } from "../types"
+
+export const workingScheduleMessages: Messages["workingSchedule"] = {
+  // Page title and descriptions
+  pageTitle: "Lịch làm việc phòng khám",
+  setupTabTitle: "Thiết lập lịch làm việc",
+  viewTabTitle: "Xem lịch làm việc",
+  setupDescription: "Thiết lập số lượng bác sĩ có thể đăng ký và khung giờ làm việc",
+  viewDescription: "Danh sách lịch làm việc của bác sĩ tại phòng khám",
+  
+  // Calendar section
+  selectDates: "Chọn ngày làm việc",
+  selectDatesDescription: "Chọn các ngày phòng khám sẽ hoạt động",
+  totalSelectedDates: "Đã chọn {count} ngày",
+  rangeMode: "Chế độ chọn khoảng",
+  selectStartDate: "Chọn ngày bắt đầu",
+  selectEndDate: "Chọn ngày kết thúc để hoàn thành chọn khoảng",
+  selectAllInMonth: "Chọn tất cả trong tháng",
+  clearAllDates: "Xóa tất cả",
+  searchDate: "Tìm kiếm ngày",
+  searchDatePlaceholder: "yyyy-MM-dd",
+  searchDateFormat: "Nhập ngày theo định dạng yyyy-MM-dd để tìm kiếm",
+  dateFound: "Đã tìm thấy ngày {date}",
+  dateNotFound: "Không tìm thấy ngày {date} trong lịch làm việc",
+  
+  // Configuration section
+  configTitle: "Cấu hình lịch làm việc",
+  configDescription: "Thiết lập số lượng bác sĩ có thể đăng ký và khung giờ làm việc",
+  totalDoctorsPerDay: "Tổng số lượng bác sĩ trong ngày",
+  doctorsTooltip: "Đây là tổng số lượng bác sĩ có thể đăng ký trong tất cả các khung giờ của ngày này",
+  workingHours: "Khung giờ làm việc",
+  addTimeSlot: "Thêm khung giờ",
+  startTime: "Giờ bắt đầu",
+  endTime: "Giờ kết thúc",
+  doctorsCount: "Số lượng bác sĩ",
+  noTimeSlots: "Chưa có khung giờ nào được thiết lập",
+  
+  // Warnings and errors
+  serverError: "Lỗi từ máy chủ",
+  validationError: "Lỗi validation",
+  validationErrorDescription: "Có lỗi trong dữ liệu lịch làm việc. Vui lòng kiểm tra các trường được đánh dấu đỏ.",
+  unusualTimeWarning: "Cảnh báo giờ làm việc không thông thường",
+  earlyStartWarning: "Giờ bắt đầu {time} là khá sớm. Xác nhận nếu đây là ý định của bạn.",
+  lateEndWarning: "Giờ kết thúc {time} là khá muộn. Xác nhận nếu đây là ý định của bạn.",
+  longHoursWarning: "Thời gian làm việc có vẻ kéo dài hơn 12 giờ. Xác nhận nếu đây là ý định của bạn.",
+  confirm: "Xác nhận",
+  
+  // Actions
+  saveSchedule: "Lưu lịch làm việc",
+  saving: "Đang lưu...",
+  scheduleUpdated: "Đã cập nhật lịch làm việc cho phòng khám",
+  selectAtLeastOneDay: "Vui lòng chọn ít nhất một ngày làm việc",
+  clinicIdNotFound: "Không tìm thấy ID phòng khám. Vui lòng đăng nhập lại.",
+  
+  // View schedules tab
+  search: "Tìm kiếm",
+  display: "Hiển thị:",
+  loading: "Đang tải dữ liệu lịch làm việc...",
+  errorLoading: "Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.",
+  noSchedulesFound: "Không có lịch làm việc nào được tìm thấy.",
+  showing: "Hiển thị {shown} trong tổng số {total} kết quả",
+  previous: "Trước",
+  next: "Sau",
+  page: "Trang {current} / {total}",
+  
+  // Table headers
+  dateHeader: "Ngày",
+  timeHeader: "Thời gian",
+  shiftGroupIdHeader: "Mã nhóm ca",
+  doctorsCountHeader: "Số lượng bác sĩ",
+  customersCountHeader: "Số lượng khách hàng",
+  capacityHeader: "Capacity",
+  statusHeader: "Trạng thái",
+  
+  // API limitations
+  apiLimitWarning: "API chỉ hỗ trợ một khung giờ cho mỗi ngày. Chỉ khung giờ đầu tiên sẽ được lưu.",
+  
+  // Time slot validation
+  missingStartTime: "Ngày {date}: Khung giờ {index} thiếu thời gian bắt đầu",
+  missingEndTime: "Ngày {date}: Khung giờ {index} thiếu thời gian kết thúc",
+  
+  // Status
+  undetermined: "Chưa xác định",
+  // Detail modal
+  detailTitle: "Chi tiết lịch làm việc",
+  detailDescription: "Thông tin chi tiết về lịch làm việc ngày {date} từ {startTime} đến {endTime}",
+  error: "Lỗi",
+  detailLoadError: "Không thể tải thông tin chi tiết. Vui lòng thử lại sau.",
+  date: "Ngày",
+  time: "Thời gian",
+  capacity: "Sức chứa",
+  doctorsRegistered: "{registered}/{total} bác sĩ đã đăng ký",
+  list: "Danh sách",
+  doctors: "Bác sĩ ({count})",
+  emptySlots: "Slot trống ({count})",
+  doctor: "Bác sĩ",
+  customer: "Khách hàng",
+  service: "Dịch vụ",
+  status: "Trạng thái",
+  noName: "Chưa có tên",
+  notRegistered: "Chưa đăng ký",
+  noDetailData: "Không có dữ liệu chi tiết cho lịch làm việc này",
+  doctorNoName: "Bác sĩ chưa có tên",
+  customersBooked: "Khách hàng đã đặt lịch",
+  customerNoName: "Khách hàng chưa có tên",
+  noCustomersBooked: "Chưa có khách hàng đặt lịch",
+  noDoctorsRegistered: "Chưa có bác sĩ nào đăng ký lịch làm việc này",
+  emptySlot: "Slot trống",
+  canRegister: "Có thể đăng ký",
+  noEmptySlotsLeft: "Không còn slot trống nào trong lịch làm việc này",
+
+  // Status badges
+  statusUndetermined: "Chưa xác định",
+  statusCompleted: "Hoàn thành",
+  statusInProgress: "Đang thực hiện",
+  statusScheduled: "Đã lên lịch",
+  statusCancelled: "Đã hủy",
+  statusPending: "Chờ xác nhận",
+}

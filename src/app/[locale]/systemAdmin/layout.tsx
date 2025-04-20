@@ -77,20 +77,22 @@ export default function SystemAdminLayout({
           isSidebarOpen && !isMobile ? "ml-64" : "ml-0"
         }`}
       >
-        {/* Navbar with toggle button when sidebar is closed on desktop */}
-        <div className="relative">
-          {!isSidebarOpen && !isMobile && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
-              <button
-                onClick={toggleSidebar}
-                className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Open sidebar"
-              >
-                <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-              </button>
-            </div>
-          )}
-          <Navbar sidebarClosed={!isSidebarOpen} />
+        {/* Sticky Navbar */}
+        <div className="sticky top-0 left-0 right-0 z-30 bg-white dark:bg-gray-950 shadow-sm">
+          <div className="relative">
+            {!isSidebarOpen && !isMobile && (
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
+                <button
+                  onClick={toggleSidebar}
+                  className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Open sidebar"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                </button>
+              </div>
+            )}
+            <Navbar sidebarClosed={!isSidebarOpen} />
+          </div>
         </div>
 
         {/* Content */}
