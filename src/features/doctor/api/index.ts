@@ -1,7 +1,12 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { ErrorResponse, IListResponse, IResCommon } from "@/lib/api";
-import { Certificate, DoctorWorkingSchedule } from "../types";
+import {
+  Certificate,
+  ClinicShiftSchedule,
+  DoctorScheduleRequest,
+  DoctorWorkingSchedule,
+} from "../types";
 
 export const doctorQueryApi = createApi({
   reducerPath: "doctorQueryApi",
@@ -45,6 +50,36 @@ export const doctorQueryApi = createApi({
         return response;
       },
     }),
+
+    getClinicShiftSchedules: builder.query<
+      IResCommon<IListResponse<ClinicShiftSchedule>>,
+      {
+        clinicId: string;
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+        pageIndex?: number;
+        pageSize?: number;
+      }
+    >({
+      query: ({
+        clinicId,
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+        pageIndex = 1,
+        pageSize = 10,
+      }) => ({
+        url: `/working-schedules/${clinicId}/unregistered`,
+        params: {
+          searchTerm,
+          sortColumn,
+          sortOrder,
+          pageIndex,
+          pageSize,
+        },
+      }),
+    }),
   }),
 });
 
@@ -62,6 +97,20 @@ export const doctorCommandApi = createApi({
         body: note.toString(),
       }),
     }),
+    registerSchedule: builder.mutation<IResCommon<null>, DoctorScheduleRequest>(
+      {
+        query: (body) => ({
+          url: `/working-schedules/doctor/schedules`,
+          body,
+        }),
+        transformErrorResponse: (response: {
+          status: number;
+          data: ErrorResponse;
+        }) => {
+          return response;
+        },
+      }
+    ),
   }),
 });
 
@@ -69,5 +118,7 @@ export const {
   useGetDoctorSchedulesQuery,
   useGetDoctorCertificatesQuery,
   useLazyGetDoctorCertificatesQuery,
+  useGetClinicShiftSchedulesQuery,
 } = doctorQueryApi;
-export const { useAddAppointmentNoteMutation } = doctorCommandApi;
+export const { useAddAppointmentNoteMutation, useRegisterScheduleMutation } =
+  doctorCommandApi;

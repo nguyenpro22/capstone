@@ -36,3 +36,14 @@ export type Certificate = {
   expiryDate: string;
   note: string | null;
 };
+
+export type ClinicShiftSchedule = {
+  workingScheduleId: string;
+  date: string; // Format: YYYY-MM-DD
+  startTime: string; // Format: HH:mm:ss
+  endTime: string; // Format: HH:mm:ss
+};
+export type DoctorScheduleRequest = {
+  clinicId: string;
+  workingScheduleIds: string[];
+};

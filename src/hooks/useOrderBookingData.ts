@@ -10,7 +10,7 @@ import {
 } from "date-fns";
 import { useGetBookingsQuery, useGetOrdersQuery } from "@/features/booking/api";
 import type { Booking } from "@/features/booking/types";
-import type { OrderItem } from "@/features/order/types";
+import type { CreateFeedbackPayload, OrderItem } from "@/features/order/types";
 
 export function useOrderBookingData(t: any) {
   const [activeTab, setActiveTab] = useState("orders");
@@ -137,3 +137,28 @@ export function useOrderBookingData(t: any) {
     handleDayClick,
   };
 }
+export const createFeedbackFormData = (
+  payload: CreateFeedbackPayload
+): FormData => {
+  const formData = new FormData();
+
+  // Add basic fields
+  formData.append("orderId", payload.orderId);
+  formData.append("content", payload.content);
+  formData.append("rating", payload.rating.toString());
+
+  // Add scheduleFeedbacks as JSON string
+  formData.append(
+    "scheduleFeedbacks",
+    JSON.stringify(payload.scheduleFeedbacks)
+  );
+
+  // Add images (if any)
+  if (payload.images && payload.images.length > 0) {
+    payload.images.forEach((image) => {
+      formData.append("images", image);
+    });
+  }
+
+  return formData;
+};

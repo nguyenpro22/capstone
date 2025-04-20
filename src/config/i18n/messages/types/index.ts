@@ -41,6 +41,7 @@ import { order } from "./order";
 import { orderDetail } from "./order-detail";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
+import { registerSchedule } from "./register-schedule";
 
 export type Messages = {
   home: homeMessages;
@@ -87,4 +88,5 @@ export type Messages = {
   orderDetail: orderDetail;
   workingSchedule: workingScheduleMessages;
   pagination: paginationMessages;
+  registerSchedule: registerSchedule;
 };
