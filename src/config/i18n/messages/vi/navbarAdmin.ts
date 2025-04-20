@@ -35,4 +35,8 @@ language: "Ngôn ngữ",
 recentSearches: "Tìm kiếm gần đây",
 exampleSearch1: "Cuộc hẹn với bệnh nhân",
 exampleSearch2: "Lịch trình điều trị",
+// Logout dialog
+logoutConfirmTitle: "Bạn có chắc chắn muốn đăng xuất?",
+logoutConfirmDescription: "Điều này sẽ kết thúc phiên của bạn và đăng xuất bạn khỏi hệ thống.",
+cancel: "Hủy",
 }

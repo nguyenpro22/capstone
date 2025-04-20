@@ -45,4 +45,52 @@ export type clinicProfileMessages = {
     pleaseLoginAgain: string
     loginNow: string
     workingHours: string
+
+  updateProfile :{
+    editClinic: string
+    updateClinicInfo: string
+    close: string
+    fixErrors: string
+    basicInfo: string
+    clinicName: string
+    enterClinicName: string
+    email: string
+    enterEmail: string
+    phoneNumber: string
+    enterPhoneNumber: string
+    validPhoneNumber: string
+    bankingInfo: string
+    bankName: string
+    loadingBanks: string
+    searchBank: string
+    noBanksFound: string
+    bankAccountNumber: string
+    enterAccountNumber: string
+    workingHours: string
+    openingTime: string
+    closingTime: string
+    addressDetails: string
+    provinceCity: string
+    loadingProvinces: string
+    selectProvinceCity: string
+    current: string
+    district: string
+    selectProvinceFirst: string
+    loadingDistricts: string
+    selectDistrict: string
+    ward: string
+    selectDistrictFirst: string
+    loadingWards: string
+    selectWard: string
+    streetAddress: string
+    enterStreetAddress: string
+    fullAddress: string
+    profilePicture: string
+    optional: string
+    acceptedFormats: string
+    currentImage: string
+    cancel: string
+    saving: string
+    saveChanges: string
+  }
 }

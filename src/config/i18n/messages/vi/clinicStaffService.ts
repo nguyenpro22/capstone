@@ -73,4 +73,8 @@ export const clinicStaffServicePageMessages: Messages["clinicStaffService"] = {
   phoneLabel: "Điện thoại:",
   certificatesLabel: "Chứng chỉ:",
   certificate: "Chứng chỉ",
+  noServiceDetailsTitle:"không có Chi tiết dịch vụ",
+  description: "Mô tả",
+  certificates: "Chứng chỉ"
+  
 }

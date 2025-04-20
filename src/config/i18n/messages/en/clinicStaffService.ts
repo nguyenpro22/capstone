@@ -71,4 +71,7 @@ export const clinicStaffServicePageMessages: Messages["clinicStaffService"] = {
   phoneLabel: "Phone:",
   certificatesLabel: "Certificates:",
   certificate: "Certificate",
+  noServiceDetailsTitle: "No Service Details Title",
+  description:"Description",
+  certificates: "Certificates"
 }

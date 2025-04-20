@@ -630,6 +630,21 @@ export default function BranchWalletPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="text-center">
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort("id")}
+                            className="flex items-center justify-center gap-1 p-0 h-auto font-semibold hover:bg-transparent mx-auto"
+                          >
+                            {t("table.id") || "ID"}
+                            {sortColumn === "id" &&
+                              (sortOrder === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              ))}
+                          </Button>
+                        </TableHead>
                         <TableHead className="w-[100px] text-center">
                           <Button
                             variant="ghost"
@@ -665,7 +680,7 @@ export default function BranchWalletPage() {
                     <TableBody>
                       {isLoadingTransactions ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="h-24 text-center">
+                          <TableCell colSpan={7} className="h-24 text-center">
                             <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                             <p className="mt-2">{t("loading.transactions")}</p>
                           </TableCell>
@@ -673,6 +688,21 @@ export default function BranchWalletPage() {
                       ) : filteredTransactions.length > 0 ? (
                         filteredTransactions.map((transaction) => (
                           <TableRow key={transaction.id}>
+                            <TableCell className="text-center text-sm font-mono">
+                              <div className="flex flex-col items-center">
+                                <span>
+                                  {transaction.id.substring(
+                                    0,
+                                    Math.ceil(transaction.id.length / 2)
+                                  )}
+                                </span>
+                                <span>
+                                  {transaction.id.substring(
+                                    Math.ceil(transaction.id.length / 2)
+                                  )}
+                                </span>
+                              </div>
+                            </TableCell>
                             <TableCell className="font-medium text-center">
                               <div className="flex flex-col items-center">
                                 <span>
@@ -706,7 +736,7 @@ export default function BranchWalletPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="h-24 text-center">
+                          <TableCell colSpan={7} className="h-24 text-center">
                             {t("table.noTransactions")}
                           </TableCell>
                         </TableRow>

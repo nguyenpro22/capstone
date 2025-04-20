@@ -1,38 +1,49 @@
-"use client"
-import { motion } from "framer-motion"
-import type React from "react"
-import { useState } from "react"
+"use client";
+import { motion } from "framer-motion";
+import type React from "react";
+import { useState } from "react";
 
-import { Clock, CreditCard, CheckCircle2, XCircle, FileText, Layers, Copy } from "lucide-react"
-import Modal from "@/components/systemStaff/Modal"
-import type { Clinic } from "@/features/clinic/types"
-import { CopyNotification } from "@/components/systemStaff/copy-notification"
+import {
+  Clock,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Layers,
+  Copy,
+} from "lucide-react";
+import Modal from "@/components/systemStaff/Modal";
+import type { Clinic } from "@/features/clinic/types";
+import { CopyNotification } from "@/components/systemStaff/copy-notification";
 
 // Add the useTranslations import at the top
-import { useTranslations } from "next-intl"
+import { useTranslations } from "next-intl";
 
 interface ClinicDetailModalProps {
-  clinic: Clinic | null
-  onClose: () => void
+  clinic: Clinic | null;
+  onClose: () => void;
 }
 
-const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }) => {
+const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
+  clinic,
+  onClose,
+}) => {
   // Add the t constant inside the component
-  const t = useTranslations("clinic")
-  const [showCopyNotification, setShowCopyNotification] = useState(false)
+  const t = useTranslations("clinic");
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
 
-  if (!clinic) return null
+  if (!clinic) return null;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        setShowCopyNotification(true)
+        setShowCopyNotification(true);
       })
       .catch((err) => {
-        console.error("Failed to copy: ", err)
-      })
-  }
+        console.error("Failed to copy: ", err);
+      });
+  };
 
   return (
     <>
@@ -40,7 +51,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
         <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 max-h-[80vh] overflow-y-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300">{t("clinicDetails")}</h2>
+            <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300">
+              {t("clinicDetails")}
+            </h2>
             <div className="w-16 h-1 mx-auto bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full mt-2" />
           </div>
 
@@ -55,7 +68,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("clinicName")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("clinicName")}
+                    </div>
                     <div className="flex items-center gap-2">
                       <div
                         className="truncate text-base font-medium text-slate-800 dark:text-slate-200"
@@ -82,9 +97,14 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("email")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("email")}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <div className="truncate text-slate-700 dark:text-slate-300" title={clinic.email}>
+                      <div
+                        className="truncate text-slate-700 dark:text-slate-300"
+                        title={clinic.email}
+                      >
                         {clinic.email}
                       </div>
                       <button
@@ -106,9 +126,14 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("phoneNumber")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("phoneNumber")}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <div className="truncate text-slate-700 dark:text-slate-300" title={clinic.phoneNumber}>
+                      <div
+                        className="truncate text-slate-700 dark:text-slate-300"
+                        title={clinic.phoneNumber}
+                      >
                         {clinic.phoneNumber}
                       </div>
                       <button
@@ -130,9 +155,14 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("address")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("address")}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <div className="truncate text-slate-700 dark:text-slate-300" title={(clinic.address||"")}>
+                      <div
+                        className="truncate text-slate-700 dark:text-slate-300"
+                        title={clinic.address || ""}
+                      >
                         {clinic.address}
                       </div>
                       <button
@@ -154,9 +184,14 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("taxCode")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("taxCode")}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <div className="truncate text-slate-700 dark:text-slate-300" title={clinic.taxCode}>
+                      <div
+                        className="truncate text-slate-700 dark:text-slate-300"
+                        title={clinic.taxCode}
+                      >
                         {clinic.taxCode}
                       </div>
                       <button
@@ -181,7 +216,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("businessLicense")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("businessLicense")}
+                    </div>
                     <div className="flex items-center gap-2">
                       <a
                         href={clinic.businessLicenseUrl}
@@ -192,7 +229,6 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                       >
                         {t("viewBusinessLicense")}
                       </a>
-                      
                     </div>
                   </div>
                 </div>
@@ -205,7 +241,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("operatingLicense")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("operatingLicense")}
+                    </div>
                     <div className="flex items-center gap-2">
                       <a
                         href={clinic.operatingLicenseUrl}
@@ -216,7 +254,6 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                       >
                         {t("viewOperatingLicense")}
                       </a>
-                      
                     </div>
                   </div>
                 </div>
@@ -235,14 +272,20 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <div className="flex items-center gap-2">
                       <div
                         className="truncate text-slate-700 dark:text-slate-300"
-                        title={new Intl.DateTimeFormat("vi-VN").format(new Date(clinic.operatingLicenseExpiryDate))}
+                        title={new Intl.DateTimeFormat("vi-VN").format(
+                          new Date(clinic.operatingLicenseExpiryDate)
+                        )}
                       >
-                        {new Intl.DateTimeFormat("vi-VN").format(new Date(clinic.operatingLicenseExpiryDate))}
+                        {new Intl.DateTimeFormat("vi-VN").format(
+                          new Date(clinic.operatingLicenseExpiryDate)
+                        )}
                       </div>
                       <button
                         onClick={() =>
                           copyToClipboard(
-                            new Intl.DateTimeFormat("vi-VN").format(new Date(clinic.operatingLicenseExpiryDate)),
+                            new Intl.DateTimeFormat("vi-VN").format(
+                              new Date(clinic.operatingLicenseExpiryDate)
+                            )
                           )
                         }
                         className="p-1 hover:bg-indigo-100 dark:hover:bg-indigo-800/50 rounded-full transition-colors"
@@ -263,7 +306,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                       <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("profilePicture")}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        {t("profilePicture")}
+                      </div>
                       <div className="flex items-center gap-2">
                         <a
                           href={clinic.profilePictureUrl}
@@ -274,7 +319,6 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                         >
                           {t("viewProfilePicture")}
                         </a>
-                       
                       </div>
                     </div>
                   </div>
@@ -288,7 +332,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("totalBranches")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("totalBranches")}
+                    </div>
                     <div className="flex items-center gap-2">
                       <div
                         className="truncate text-slate-700 dark:text-slate-300"
@@ -297,7 +343,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                         {clinic.totalBranches}
                       </div>
                       <button
-                        onClick={() => copyToClipboard(clinic.totalBranches.toString())}
+                        onClick={() =>
+                          copyToClipboard(clinic.totalBranches.toString())
+                        }
                         className="p-1 hover:bg-indigo-100 dark:hover:bg-indigo-800/50 rounded-full transition-colors"
                         title={t("copyToClipboard")}
                       >
@@ -312,7 +360,11 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
               <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow duration-300">
                 <div className="flex items-start gap-3">
                   <div
-                    className={`p-2 rounded-lg ${clinic.isActivated ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30"}`}
+                    className={`p-2 rounded-lg ${
+                      clinic.isActivated
+                        ? "bg-emerald-100 dark:bg-emerald-900/30"
+                        : "bg-red-100 dark:bg-red-900/30"
+                    }`}
                   >
                     {clinic.isActivated ? (
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -321,7 +373,9 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("status")}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {t("status")}
+                    </div>
                     <div
                       className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${
                         clinic.isActivated
@@ -343,7 +397,7 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onClose}
-              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md hover:shadow-lg dark:shadow-indigo-900/30 font-medium"
             >
               {t("close")}
             </motion.button>
@@ -351,9 +405,12 @@ const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({ clinic, onClose }
         </div>
       </Modal>
 
-      <CopyNotification show={showCopyNotification} onClose={() => setShowCopyNotification(false)} />
+      <CopyNotification
+        show={showCopyNotification}
+        onClose={() => setShowCopyNotification(false)}
+      />
     </>
-  )
-}
+  );
+};
 
-export default ClinicDetailModal
+export default ClinicDetailModal;

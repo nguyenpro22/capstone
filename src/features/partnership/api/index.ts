@@ -1,5 +1,6 @@
-import { reAuthQuery } from "@/lib/api"
+import { IResCommon, reAuthQuery } from "@/lib/api"
 import { createApi } from "@reduxjs/toolkit/query/react"
+import { ClinicApplication } from "../types"
 
 // API GET running on port 3000
 export const partnershipRequestApi = createApi({
@@ -14,6 +15,13 @@ export const partnershipRequestApi = createApi({
     getPartnershipRequestById: builder.query({
       query: (id) => `clinics/application/${id}`,
     }),
+     // Get schedule by ID
+     getApplication: builder.query<IResCommon<ClinicApplication>, string>({
+          query: () => ({
+            url: `clinics/application/me`,
+            method: "GET",
+          }),
+     }),
   }),
 })
 
@@ -32,6 +40,8 @@ export const partnershipRequestCommandApi = createApi({
   }),
 })
 
-export const { useGetPartnershipRequestsQuery, useGetPartnershipRequestByIdQuery } = partnershipRequestApi
+export const { useGetPartnershipRequestsQuery, useGetPartnershipRequestByIdQuery,
+  useGetApplicationQuery
+ } = partnershipRequestApi
 
 export const { useUpdatePartnershipRequestMutation } = partnershipRequestCommandApi

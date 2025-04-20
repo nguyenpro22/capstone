@@ -40,6 +40,8 @@ import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
+import { workingScheduleMessages } from "./working-schedule";
+import { paginationMessages } from "./pagination";
 
 const vi = {
   home: homeMessages,
@@ -82,6 +84,8 @@ const vi = {
   wallet: walletMessages,
   chat: chatMessages,
   withdrawal: withdrawalMessages,
+  workingSchedule:workingScheduleMessages,
+  pagination: paginationMessages,
 };
 
 export default vi;

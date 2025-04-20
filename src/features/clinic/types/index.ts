@@ -263,3 +263,4 @@ export interface ClinicBranchesResponse {
     message: string;
   };
 }
+
