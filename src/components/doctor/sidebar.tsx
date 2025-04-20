@@ -44,6 +44,11 @@ export function Sidebar() {
       href: `/${locale}/doctor/profile`,
       icon: User2Icon,
     },
+    {
+      label: t("calendar"),
+      href: `/${locale}/doctor/register-schedule`,
+      icon: Calendar,
+    },
   ];
 
   const onLogout = async () => {

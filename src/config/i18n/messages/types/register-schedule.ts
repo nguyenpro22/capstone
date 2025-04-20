@@ -6,6 +6,7 @@ export type registerSchedule = {
   // Calendar page
   doctorCalendar: string;
   calendarDescription: string;
+  registerNewSchedule: string;
 
   // Main sections
   availableShifts: string;
@@ -14,6 +15,12 @@ export type registerSchedule = {
   // View modes
   calendarView: string;
   listView: string;
+  monthView: string;
+  filter: string;
+  timeOfDay: string;
+  selectTime: string;
+  more: string;
+  noShifts: string;
 
   // Calendar navigation
   today: string;
@@ -40,9 +47,12 @@ export type registerSchedule = {
   morning: string;
   afternoon: string;
   evening: string;
+  upcomingShifts: string;
+  allShifts: string;
 
   // List view labels
   shifts: string;
+  shift: string;
   noShiftsFound: string;
   tryAdjustingFilters: string;
 
@@ -54,6 +64,14 @@ export type registerSchedule = {
   registrationFailed: string;
   shiftAdded: string;
   shiftRemoved: string;
+  noteSaved: string;
+  errorSavingNote: string;
+  endDateBeforeStart: string;
+  dateRangeLimited: string;
+  shiftOverlapsWithRegistered: string;
+  shiftOverlapsWithSelected: string;
+  shiftsAddedCount: string;
+  someShiftsOverlap: string;
 
   // Confirmation dialog
   confirmRegistration: string;
@@ -80,10 +98,12 @@ export type registerSchedule = {
   clinic: string;
   status: string;
   available: string;
+  unavailable: string;
   close: string;
   details: string;
   selectShift: string;
   removeShift: string;
+  shiftOverlapsWarning: string;
 
   // Appointment details
   appointmentDetails: string;
@@ -93,8 +113,34 @@ export type registerSchedule = {
   edit: string;
   saveNotes: string;
   saving: string;
-  noteSaved: string;
-  errorSavingNote: string;
   enterNotes: string;
   currentProcedure: string;
+
+  // Date range picker
+  selectDateRange: string;
+  selectEndDate: string;
+  selectBothDates: string;
+  apply: string;
+  customDateRange: string;
+
+  // Week view
+  selected: string;
+  select: string;
+  viewShifts: string;
+  shiftsForDate: string;
+  noShiftsAvailable: string;
+  shiftsAvailable: string;
+  selectAll: string;
+  remove: string;
+
+  // Overlap validation
+  overlapsWithRegistered: string;
+  overlapsWithSelected: string;
+  overlapsWithRegisteredTooltip: string;
+  overlapsWithSelectedTooltip: string;
+
+  // Extra
+  selectDateFilter: string;
+  selectTimeFilter: string;
+  maxDateRangeInfo: string;
 };
