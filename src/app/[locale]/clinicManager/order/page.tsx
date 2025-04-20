@@ -43,6 +43,8 @@ import type { OrderItem } from "@/features/order/types";
 import { formatCurrency } from "@/utils";
 import { OrderDetailDialog } from "@/components/clinicStaff/order/order-detail-dialog";
 import { useTranslations } from "next-intl";
+// Add a new import for the Checkbox component
+import { Checkbox } from "@/components/ui/checkbox";
 
 const getStatusBadge = (status: string, t: any) => {
   switch (status.toLowerCase()) {
@@ -109,6 +111,18 @@ function SortableTableHead({
   );
 }
 
+// Add this new interface after the SortableTableHead component
+interface ColumnVisibility {
+  id: boolean;
+  customerName: boolean;
+  customerPhone: boolean;
+  serviceName: boolean;
+  orderDate: boolean;
+  finalAmount: boolean;
+  status: boolean;
+  actions: boolean;
+}
+
 export default function OrderPage() {
   const t = useTranslations("clinicStaffOrder");
 
@@ -122,6 +136,18 @@ export default function OrderPage() {
   // State for order detail dialog
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+  // Add this state for column visibility after the other state declarations in the OrderPage component
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
+    id: true,
+    customerName: true,
+    customerPhone: true,
+    serviceName: true,
+    orderDate: true,
+    finalAmount: true,
+    status: true,
+    actions: true,
+  });
 
   // Debounce search term to avoid too many API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -189,16 +215,35 @@ export default function OrderPage() {
     setSortColumn("");
     setSortOrder("");
     setPageIndex(1);
+    setColumnVisibility({
+      id: true,
+      customerName: true,
+      customerPhone: true,
+      serviceName: true,
+      orderDate: true,
+      finalAmount: true,
+      status: true,
+      actions: true,
+    });
   };
 
   // Active filters display
   const hasActiveFilters = searchTerm || sortColumn;
+
+  // Add this function to toggle column visibility
+  const toggleColumnVisibility = (column: keyof ColumnVisibility) => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }));
+  };
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
 
       <div className="flex flex-col gap-4">
+        {/* Replace the existing filter button with this dropdown that includes column selection */}
         <div className="flex flex-wrap gap-4 items-center">
           <Input
             className="w-64"
@@ -206,11 +251,129 @@ export default function OrderPage() {
             value={searchTerm}
             onChange={handleSearchChange}
           />
-          <Button variant="outline" className="gap-2">
-            <Filter size={16} />
-            {t("filter")}
-            <ChevronDown size={16} />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter size={16} />
+                {t("filter")}
+                <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <div className="p-2">
+                <h4 className="mb-2 font-medium">
+                  {t("columns") || "Columns"}
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-id"
+                      checked={columnVisibility.id}
+                      onCheckedChange={() => toggleColumnVisibility("id")}
+                    />
+                    <label
+                      htmlFor="column-id"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("orderId")}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-customerName"
+                      checked={columnVisibility.customerName}
+                      onCheckedChange={() =>
+                        toggleColumnVisibility("customerName")
+                      }
+                    />
+                    <label
+                      htmlFor="column-customerName"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("customerName")}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-customerPhone"
+                      checked={columnVisibility.customerPhone}
+                      onCheckedChange={() =>
+                        toggleColumnVisibility("customerPhone")
+                      }
+                    />
+                    <label
+                      htmlFor="column-customerPhone"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("customerPhone")}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-serviceName"
+                      checked={columnVisibility.serviceName}
+                      onCheckedChange={() =>
+                        toggleColumnVisibility("serviceName")
+                      }
+                    />
+                    <label
+                      htmlFor="column-serviceName"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("service")}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-orderDate"
+                      checked={columnVisibility.orderDate}
+                      onCheckedChange={() =>
+                        toggleColumnVisibility("orderDate")
+                      }
+                    />
+                    <label
+                      htmlFor="column-orderDate"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("orderDate")}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-finalAmount"
+                      checked={columnVisibility.finalAmount}
+                      onCheckedChange={() =>
+                        toggleColumnVisibility("finalAmount")
+                      }
+                    />
+                    <label
+                      htmlFor="column-finalAmount"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("finalAmount")}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-status"
+                      checked={columnVisibility.status}
+                      onCheckedChange={() => toggleColumnVisibility("status")}
+                    />
+                    <label
+                      htmlFor="column-status"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("status")}
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={resetFilters}>
+                {t("resetFilters")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {hasActiveFilters && (
             <Button variant="ghost" onClick={resetFilters} size="sm">
               {t("resetFilters")}
@@ -270,75 +433,96 @@ export default function OrderPage() {
             <>
               <div className="overflow-x-auto">
                 <Table>
+                  {/* Modify the TableHeader section to respect column visibility */}
                   <TableHeader>
                     <TableRow>
-                      <SortableTableHead
-                        column="id"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        {t("orderId")}
-                      </SortableTableHead>
-                      <SortableTableHead
-                        column="customerName"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        {t("customerName")}
-                      </SortableTableHead>
-                      <SortableTableHead
-                        column="customerPhone"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-4 w-4" />
-                          {t("customerPhone")}
-                        </div>
-                      </SortableTableHead>
-                      <SortableTableHead
-                        column="serviceName"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        {t("service")}
-                      </SortableTableHead>
-                      <SortableTableHead
-                        column="orderDate"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        {t("orderDate")}
-                      </SortableTableHead>
-                      <SortableTableHead
-                        column="finalAmount"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        {t("finalAmount")}
-                      </SortableTableHead>
-                      <SortableTableHead
-                        column="status"
-                        currentSortColumn={sortColumn}
-                        currentSortOrder={sortOrder}
-                        onSort={handleSort}
-                      >
-                        {t("status")}
-                      </SortableTableHead>
-                      <TableHead>{t("actions") || "Actions"}</TableHead>
+                      {columnVisibility.id && (
+                        <SortableTableHead
+                          column="id"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          {t("orderId")}
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.customerName && (
+                        <SortableTableHead
+                          column="customerName"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          {t("customerName")}
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.customerPhone && (
+                        <SortableTableHead
+                          column="customerPhone"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-4 w-4" />
+                            {t("customerPhone")}
+                          </div>
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.serviceName && (
+                        <SortableTableHead
+                          column="serviceName"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          {t("service")}
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.orderDate && (
+                        <SortableTableHead
+                          column="orderDate"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          {t("orderDate")}
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.finalAmount && (
+                        <SortableTableHead
+                          column="finalAmount"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          {t("finalAmount")}
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.status && (
+                        <SortableTableHead
+                          column="status"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          {t("status")}
+                        </SortableTableHead>
+                      )}
+                      {columnVisibility.actions && (
+                        <TableHead>{t("actions") || "Actions"}</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
+                  {/* Modify the TableBody to respect column visibility */}
                   <TableBody>
                     {orders.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={8}
+                          colSpan={
+                            Object.values(columnVisibility).filter(Boolean)
+                              .length
+                          }
                           className="text-center py-8 text-muted-foreground"
                         >
                           {t("noOrdersFound")}
@@ -347,58 +531,74 @@ export default function OrderPage() {
                     ) : (
                       orders.map((order: OrderItem) => (
                         <TableRow key={order.id}>
-                          <TableCell className="font-medium">
-                            {order.id}
-                          </TableCell>
-                          <TableCell>{order.customerName}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <a
-                                href={`tel:${order.customerPhone}`}
-                                className="text-blue-500 hover:text-blue-600 hover:underline flex items-center gap-1"
-                              >
-                                {order.customerPhone}
-                              </a>
-                            </div>
-                          </TableCell>
-                          <TableCell>{order.serviceName}</TableCell>
-                          <TableCell>{formatDate(order.orderDate)}</TableCell>
-                          <TableCell>
-                            {formatCurrency(order.finalAmount)} đ
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(order.status, t)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewOrderDetails(order)}
-                              >
-                                {t("viewDetails")}
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    {t("printInvoice")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    {t("updateStatus")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-red-600">
-                                    {t("cancelOrder")}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
+                          {columnVisibility.id && (
+                            <TableCell className="font-medium">
+                              {order.id}
+                            </TableCell>
+                          )}
+                          {columnVisibility.customerName && (
+                            <TableCell>{order.customerName}</TableCell>
+                          )}
+                          {columnVisibility.customerPhone && (
+                            <TableCell>
+                              <div className="flex items-center">
+                                <a
+                                  href={`tel:${order.customerPhone}`}
+                                  className="text-blue-500 hover:text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                  {order.customerPhone}
+                                </a>
+                              </div>
+                            </TableCell>
+                          )}
+                          {columnVisibility.serviceName && (
+                            <TableCell>{order.serviceName}</TableCell>
+                          )}
+                          {columnVisibility.orderDate && (
+                            <TableCell>{formatDate(order.orderDate)}</TableCell>
+                          )}
+                          {columnVisibility.finalAmount && (
+                            <TableCell>
+                              {formatCurrency(order.finalAmount)} đ
+                            </TableCell>
+                          )}
+                          {columnVisibility.status && (
+                            <TableCell>
+                              {getStatusBadge(order.status, t)}
+                            </TableCell>
+                          )}
+                          {columnVisibility.actions && (
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewOrderDetails(order)}
+                                >
+                                  {t("viewDetails")}
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>
+                                      {t("printInvoice")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      {t("updateStatus")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-red-600">
+                                      {t("cancelOrder")}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))
                     )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type React from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -46,6 +46,89 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createPortal } from "react-dom";
+
+// Define types for the LogoutConfirmationDialog props
+interface LogoutConfirmationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  t: (key: string, options?: any) => string;
+}
+
+// Create a custom logout confirmation dialog instead of using AlertDialog
+const LogoutConfirmationDialog = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  t,
+}: LogoutConfirmationDialogProps) => {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  // Use a portal to render the dialog at the root level of the document
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+
+    if (open) {
+      // Prevent background scrolling when dialog is open
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      // Re-enable scrolling when component unmounts
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  if (!open || !mounted) return null;
+
+  // Use createPortal to render the dialog at the document body level
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      <div
+        className="fixed inset-0 bg-black/50"
+        onClick={() => onOpenChange(false)}
+        aria-hidden="true"
+      />
+      <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 dark:border dark:border-gray-800 z-[10000]">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold dark:text-white">
+            {t("logoutConfirmTitle") || "Confirm Logout"}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {t("logoutConfirmDescription") ||
+              "Are you sure you want to log out of your account?"}
+          </p>
+        </div>
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            ref={cancelRef}
+            onClick={() => onOpenChange(false)}
+            className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors"
+          >
+            {t("cancel") || "Cancel"}
+          </button>
+          <button
+            ref={confirmRef}
+            onClick={() => {
+              onOpenChange(false);
+              setTimeout(() => {
+                onConfirm();
+              }, 100);
+            }}
+            className="px-4 py-2 rounded-md bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white transition-colors"
+          >
+            {t("logout") || "Logout"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const LangToggle = dynamic(() => import("@/components/common/LangToggle"), {
   ssr: false,
@@ -64,6 +147,8 @@ export default function Navbar({
   const t = useTranslations("navbarAdmin");
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Check if we're on mobile
   useEffect(() => {
@@ -124,13 +209,44 @@ export default function Navbar({
     }
   };
 
+  const handleLogoutClick = () => {
+    // Close any open sheets first
+    if (isSheetOpen) {
+      setIsSheetOpen(false);
+      // Add a small delay before opening the logout dialog
+      setTimeout(() => {
+        setOpenLogoutDialog(true);
+      }, 100);
+    } else {
+      setOpenLogoutDialog(true);
+    }
+  };
+
   // Mobile menu items
   const mobileMenuItems = [
     { label: t("profile"), icon: User, onClick: navigateToProfile },
     { label: t("settings"), icon: Settings, onClick: () => {} },
     { label: t("support"), icon: HelpCircle, onClick: () => {} },
-    { label: t("logout"), icon: LogOut, onClick: onLogout, danger: true },
+    {
+      label: t("logout"),
+      icon: LogOut,
+      onClick: handleLogoutClick,
+      danger: true,
+    },
   ];
+
+  // Clean up any lingering overlay elements when component unmounts
+  useEffect(() => {
+    return () => {
+      // Remove any lingering overlay elements
+      const overlays = document.querySelectorAll('[role="dialog"]');
+      overlays.forEach((overlay) => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      });
+    };
+  }, []);
 
   return (
     <motion.header
@@ -308,7 +424,7 @@ export default function Navbar({
 
           {/* User Profile - Dropdown on desktop, Sheet on mobile */}
           {isMobile ? (
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" className="p-1">
                   <Avatar className="h-8 w-8 border-2 border-pink-200 dark:border-pink-600">
@@ -362,7 +478,12 @@ export default function Navbar({
                       <Button
                         key={item.label}
                         variant="ghost"
-                        onClick={item.onClick}
+                        onClick={() => {
+                          setIsSheetOpen(false);
+                          setTimeout(() => {
+                            item.onClick();
+                          }, 100);
+                        }}
                         className={`w-full justify-start text-left ${
                           item.danger
                             ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -425,7 +546,7 @@ export default function Navbar({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="dark:border-gray-800" />
                 <DropdownMenuItem
-                  onClick={onLogout}
+                  onClick={handleLogoutClick}
                   className="text-red-600 dark:text-red-400 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
                 >
                   {t("logout")}
@@ -464,6 +585,14 @@ export default function Navbar({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Custom Logout Confirmation Dialog */}
+      <LogoutConfirmationDialog
+        open={openLogoutDialog}
+        onOpenChange={setOpenLogoutDialog}
+        onConfirm={onLogout}
+        t={t}
+      />
     </motion.header>
   );
 }

@@ -1,58 +1,83 @@
-"use client"
-import { useState } from "react"
-import type React from "react"
+"use client";
+import { useState } from "react";
+import type React from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Filter, ChevronDown, MoreHorizontal, Loader2 } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Filter, ChevronDown, MoreHorizontal, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useGetOrdersQuery } from "@/features/order/api" // Adjust the import path as needed
-import { useDebounce } from "@/hooks/use-debounce" // Assuming you have this hook
-import Pagination from "@/components/common/Pagination/Pagination" // Adjust the import path as needed
-import type { OrderItem } from "@/features/order/types"
-import { formatCurrency } from "@/utils"
-import { OrderDetailDialog } from "@/components/clinicStaff/order/order-detail-dialog"
-import { useTranslations } from "next-intl"
+} from "@/components/ui/dropdown-menu";
+import { useGetOrdersQuery } from "@/features/order/api"; // Adjust the import path as needed
+import { useDebounce } from "@/hooks/use-debounce"; // Assuming you have this hook
+import Pagination from "@/components/common/Pagination/Pagination"; // Adjust the import path as needed
+import type { OrderItem } from "@/features/order/types";
+import { formatCurrency } from "@/utils";
+import { OrderDetailDialog } from "@/components/clinicStaff/order/order-detail-dialog";
+import { useTranslations } from "next-intl";
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status: string, t: any) => {
   switch (status.toLowerCase()) {
     case "completed":
-      return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+      return (
+        <Badge className="bg-green-500 hover:bg-green-600">
+          {t("statusCompleted")}
+        </Badge>
+      );
     case "pending":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-600">
+          {t("statusPending")}
+        </Badge>
+      );
     case "cancelled":
     case "canceled":
-      return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>
+      return (
+        <Badge className="bg-red-500 hover:bg-red-600">
+          {t("statusCancelled")}
+        </Badge>
+      );
     default:
-      return <Badge>{status}</Badge>
+      return <Badge>{status}</Badge>;
   }
-}
+};
 
 export default function OrderPage() {
-  const t = useTranslations("clinicStaffOrder")
+  const t = useTranslations("clinicStaffOrder");
 
   // State for pagination, search, and sorting
-  const [pageIndex, setPageIndex] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortColumn, setSortColumn] = useState("")
-  const [sortOrder, setSortOrder] = useState("")
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortColumn, setSortColumn] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
 
   // State for order detail dialog
-  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null)
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   // Debounce search term to avoid too many API calls
-  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Fetch orders using RTK Query
   const { data, isLoading, error } = useGetOrdersQuery({
@@ -61,35 +86,35 @@ export default function OrderPage() {
     searchTerm: debouncedSearchTerm,
     sortColumn,
     sortOrder,
-  })
+  });
 
   // Extract orders and pagination info from the response
-  const orders = data?.value?.items || []
-  const totalCount = data?.value?.totalCount || 0
-  const hasNextPage = data?.value?.hasNextPage || false
-  const hasPreviousPage = data?.value?.hasPreviousPage || false
+  const orders = data?.value?.items || [];
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = data?.value?.hasNextPage || false;
+  const hasPreviousPage = data?.value?.hasPreviousPage || false;
 
   // Format date function
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-    setPageIndex(1) // Reset to first page when search changes
-  }
+    setSearchTerm(e.target.value);
+    setPageIndex(1); // Reset to first page when search changes
+  };
 
   // Handle view order details
   const handleViewOrderDetails = (order: OrderItem) => {
-    setSelectedOrder(order)
-    setIsDetailDialogOpen(true)
-  }
+    setSelectedOrder(order);
+    setIsDetailDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -136,30 +161,41 @@ export default function OrderPage() {
                     <TableHead>{t("service")}</TableHead>
                     <TableHead>{t("date")}</TableHead>
                     <TableHead>{t("finalAmount")}</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("status")}</TableHead>
+                    <TableHead>{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {orders.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={7}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         {t("noOrdersFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
                     orders.map((order: OrderItem) => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.id}</TableCell>
+                        <TableCell className="font-medium">
+                          {order.id}
+                        </TableCell>
                         <TableCell>{order.customerName}</TableCell>
                         <TableCell>{order.serviceName}</TableCell>
                         <TableCell>{formatDate(order.orderDate)}</TableCell>
-                        <TableCell>{formatCurrency(order.finalAmount)} đ</TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          {formatCurrency(order.finalAmount)} đ
+                        </TableCell>
+                        <TableCell>{getStatusBadge(order.status, t)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleViewOrderDetails(order)}>
-                              View
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewOrderDetails(order)}
+                            >
+                              {t("viewDetails")}
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -168,10 +204,16 @@ export default function OrderPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>{t("printInvoice")}</DropdownMenuItem>
-                                <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  {t("printInvoice")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  {t("updateStatus")}
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  {t("cancelOrder")}
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -201,7 +243,11 @@ export default function OrderPage() {
       </Card>
 
       {/* Order Detail Dialog */}
-      <OrderDetailDialog order={selectedOrder} open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen} />
+      <OrderDetailDialog
+        order={selectedOrder}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
     </div>
-  )
+  );
 }

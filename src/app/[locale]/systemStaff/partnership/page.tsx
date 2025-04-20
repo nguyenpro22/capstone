@@ -1,143 +1,178 @@
-"use client"
-import type React from "react"
-import { useState } from "react"
-import { useGetPartnershipRequestsQuery, useUpdatePartnershipRequestMutation } from "@/features/partnership/api"
-import { ToastContainer, toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import Pagination from "@/components/common/Pagination/Pagination"
-import type { RequestItem } from "@/features/partnership/types"
-import { Search, CheckCircle, XCircle, Ban, X, AlertCircle, Loader2, Eye, ChevronDown } from "lucide-react"
-import { useDelayedRefetch } from "@/hooks/use-delayed-refetch"
-import { useDebounce } from "@/hooks/use-debounce"
-import { useTheme } from "next-themes"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import PartnershipRequestDetail from "@/components/systemStaff/partnership-request-detail"
+"use client";
+import type React from "react";
+import { useState } from "react";
+import {
+  useGetPartnershipRequestsQuery,
+  useUpdatePartnershipRequestMutation,
+} from "@/features/partnership/api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Pagination from "@/components/common/Pagination/Pagination";
+import type { RequestItem } from "@/features/partnership/types";
+import {
+  Search,
+  CheckCircle,
+  XCircle,
+  Ban,
+  X,
+  AlertCircle,
+  Loader2,
+  Eye,
+  ChevronDown,
+} from "lucide-react";
+import { useDelayedRefetch } from "@/hooks/use-delayed-refetch";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useTheme } from "next-themes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import PartnershipRequestDetail from "@/components/systemStaff/partnership-request-detail";
+import { useTranslations } from "next-intl";
 
 const PartnershipRequest: React.FC = () => {
-  const { theme } = useTheme()
-  const [pageIndex, setPageIndex] = useState(1)
-  const pageSize = 5
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
-  const [rejectReason, setRejectReason] = useState<string>("")
-  const [searchInput, setSearchInput] = useState<string>("")
-  const searchTerm = useDebounce(searchInput, 500) // Debounce search input with 500ms delay
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [actionType, setActionType] = useState<"reject" | "ban" | null>(null)
+  const t = useTranslations("clinic");
+  const { theme } = useTheme();
+  const [pageIndex, setPageIndex] = useState(1);
+  const pageSize = 5;
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null
+  );
+  const [rejectReason, setRejectReason] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>("");
+  const searchTerm = useDebounce(searchInput, 500); // Debounce search input with 500ms delay
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionType, setActionType] = useState<"reject" | "ban" | null>(null);
   const [processingAction, setProcessingAction] = useState<{
-    id: string
-    action: "accept" | "reject" | "ban" | null
-  } | null>(null)
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-  const [detailRequestId, setDetailRequestId] = useState<string | null>(null)
+    id: string;
+    action: "accept" | "reject" | "ban" | null;
+  } | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [detailRequestId, setDetailRequestId] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useGetPartnershipRequestsQuery({
     pageIndex,
     pageSize,
     searchTerm,
-  })
+  });
 
   // Use the delayed refetch hook
-  const delayedRefetch = useDelayedRefetch(refetch)
+  const delayedRefetch = useDelayedRefetch(refetch);
 
-  const [updatePartnershipRequest, { isLoading: isUpdating }] = useUpdatePartnershipRequestMutation()
+  const [updatePartnershipRequest, { isLoading: isUpdating }] =
+    useUpdatePartnershipRequestMutation();
 
-  const handleAction = async (id: string, action: "accept" | "reject" | "ban") => {
+  const handleAction = async (
+    id: string,
+    action: "accept" | "reject" | "ban"
+  ) => {
     try {
       if (action === "accept") {
-        setProcessingAction({ id, action })
+        setProcessingAction({ id, action });
 
         const result = await updatePartnershipRequest({
           requestId: id,
           action: 0,
-        })
+        });
 
         // Check if the response has the expected structure
         if ("data" in result && result.data && result.data.isSuccess) {
-          toast.success(`Partnership request accepted successfully`)
-          delayedRefetch()
+          toast.success(t("partnershipRequestAccepted"));
+          delayedRefetch();
         } else {
           // If we can't find isSuccess or it's false, show error
-          toast.error("Failed to update the request")
+          toast.error(t("failedToUpdateRequest"));
         }
 
-        setProcessingAction(null)
+        setProcessingAction(null);
       } else {
-        setSelectedRequestId(id)
-        setActionType(action)
+        setSelectedRequestId(id);
+        setActionType(action);
       }
     } catch (error) {
-      console.error("Error in handleAction:", error)
-      toast.error("Failed to update the request")
-      setProcessingAction(null)
+      console.error("Error in handleAction:", error);
+      toast.error(t("failedToUpdateRequest"));
+      setProcessingAction(null);
     }
-  }
+  };
 
   const handleConfirmReject = async () => {
-    if (!selectedRequestId || !actionType) return
+    if (!selectedRequestId || !actionType) return;
 
-    const actionNumber = actionType === "reject" ? 1 : 2
+    const actionNumber = actionType === "reject" ? 1 : 2;
     const reason =
       rejectReason.trim() ||
-      (actionType === "reject" ? "Your request has been rejected" : "Your request has been banned")
+      (actionType === "reject"
+        ? "Your request has been rejected"
+        : "Your request has been banned");
 
-    setIsSubmitting(true)
-    setProcessingAction({ id: selectedRequestId, action: actionType })
+    setIsSubmitting(true);
+    setProcessingAction({ id: selectedRequestId, action: actionType });
 
     try {
       const result = await updatePartnershipRequest({
         requestId: selectedRequestId,
         action: actionNumber,
         rejectReason: reason,
-      })
+      });
 
       // Check if the response has the expected structure
       if ("data" in result && result.data && result.data.isSuccess) {
-        toast.success(`Partnership request ${actionType === "reject" ? "rejected" : "banned"} successfully`)
-        delayedRefetch()
+        toast.success(
+          actionType === "reject"
+            ? t("partnershipRequestRejected")
+            : t("partnershipRequestBanned")
+        );
+        delayedRefetch();
       } else {
         // If we can't find isSuccess or it's false, show error
         const errorMessage =
-          "data" in result && result.data && result.data.error && result.data.error.message
+          "data" in result &&
+          result.data &&
+          result.data.error &&
+          result.data.error.message
             ? result.data.error.message
-            : "Failed to update the request"
-        toast.error(errorMessage)
+            : t("failedToUpdateRequest");
+        toast.error(errorMessage);
       }
     } catch (error) {
-      console.error("Error in handleConfirmReject:", error)
-      toast.error("Failed to update the request")
+      console.error("Error in handleConfirmReject:", error);
+      toast.error(t("failedToUpdateRequest"));
     } finally {
-      setSelectedRequestId(null)
-      setRejectReason("")
-      setActionType(null)
-      setIsSubmitting(false)
-      setProcessingAction(null)
+      setSelectedRequestId(null);
+      setRejectReason("");
+      setActionType(null);
+      setIsSubmitting(false);
+      setProcessingAction(null);
     }
-  }
+  };
 
   const handleViewDetail = (id: string) => {
-    setDetailRequestId(id)
-    setIsDetailModalOpen(true)
-  }
+    setDetailRequestId(id);
+    setIsDetailModalOpen(true);
+  };
 
   const handleCloseDetailModal = () => {
-    setIsDetailModalOpen(false)
-    setDetailRequestId(null)
-  }
+    setIsDetailModalOpen(false);
+    setDetailRequestId(null);
+  };
 
   const requests: RequestItem[] =
     data?.value?.items?.filter(
       (request: RequestItem) =>
         request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.email.toLowerCase().includes(searchTerm.toLowerCase()),
-    ) || []
+        request.email.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
-  const totalCount = data?.value?.totalCount || 0
-  const hasNextPage = data?.value?.hasNextPage || false
-  const hasPreviousPage = data?.value?.hasPreviousPage || false
+  const totalCount = data?.value?.totalCount || 0;
+  const hasNextPage = data?.value?.hasNextPage || false;
+  const hasPreviousPage = data?.value?.hasPreviousPage || false;
 
   // Calculate the starting index for the current page
-  const startIndex = (pageIndex - 1) * pageSize
+  const startIndex = (pageIndex - 1) * pageSize;
 
   return (
     <div className="container mx-auto p-6 bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
@@ -146,9 +181,9 @@ const PartnershipRequest: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 md:mb-0">
-          Partnership Requests
+          {t("partnershipRequests")}
           <span className="ml-2 text-sm font-medium px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
-            {totalCount} Total
+            {totalCount} {t("totalRequests")}
           </span>
         </h1>
 
@@ -156,7 +191,7 @@ const PartnershipRequest: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder={t("searchByNameOrEmail")}
             className="pl-10 pr-4 py-2.5 w-full md:w-64 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring focus:ring-blue-200 dark:focus:ring-blue-700 focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -169,7 +204,9 @@ const PartnershipRequest: React.FC = () => {
         <div className="flex justify-center items-center py-20">
           <div className="flex flex-col items-center">
             <Loader2 className="h-8 w-8 text-blue-500 dark:text-blue-400 animate-spin mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">Loading partnership requests...</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              {t("loadingPartnershipRequests")}
+            </p>
           </div>
         </div>
       )}
@@ -179,12 +216,12 @@ const PartnershipRequest: React.FC = () => {
         <div className="flex justify-center items-center py-20">
           <div className="flex flex-col items-center text-red-500 dark:text-red-400">
             <AlertCircle className="h-8 w-8 mb-4" />
-            <p>Error loading data. Please try again later.</p>
+            <p>{t("errorLoadingData")}</p>
             <button
               onClick={() => delayedRefetch()} // Use delayed refetch instead of immediate refetch
               className="mt-4 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors duration-200"
             >
-              Retry
+              {t("retry")}
             </button>
           </div>
         </div>
@@ -197,19 +234,26 @@ const PartnershipRequest: React.FC = () => {
             <table className="w-full border-collapse table-auto text-left">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm">
-                  <th className="px-6 py-4 font-medium w-16">STT</th>
-                  <th className="px-6 py-4 font-medium">Clinic Name</th>
-                  <th className="px-6 py-4 font-medium">Email</th>
-                  <th className="px-6 py-4 font-medium">Address</th>
-                  <th className="px-6 py-4 font-medium w-24 text-center">Total Apply</th>
-                  <th className="px-6 py-4 font-medium w-48 text-center">Action</th>
+                  <th className="px-6 py-4 font-medium w-16">{t("stt")}</th>
+                  <th className="px-6 py-4 font-medium">{t("clinicName")}</th>
+                  <th className="px-6 py-4 font-medium">{t("email")}</th>
+                  <th className="px-6 py-4 font-medium">{t("address")}</th>
+                  <th className="px-6 py-4 font-medium w-24 text-center">
+                    {t("totalApply")}
+                  </th>
+                  <th className="px-6 py-4 font-medium w-48 text-center">
+                    {t("action")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {requests.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                      No partnership requests found
+                    <td
+                      colSpan={6}
+                      className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                    >
+                      {t("noPartnershipRequestsFound")}
                     </td>
                   </tr>
                 ) : (
@@ -230,7 +274,10 @@ const PartnershipRequest: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]" title={request.email}>
+                        <div
+                          className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]"
+                          title={request.email}
+                        >
                           {request.email}
                         </div>
                       </td>
@@ -257,43 +304,57 @@ const PartnershipRequest: React.FC = () => {
                             onClick={() => handleViewDetail(request.id)}
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            View Detail
+                            {t("viewDetail")}
                           </Button>
 
                           {/* Action Dropdown Menu */}
                           {processingAction?.id === request.id ? (
-                            <Button disabled className="h-9 px-3 py-2 bg-gray-400 text-white rounded-lg">
+                            <Button
+                              disabled
+                              className="h-9 px-3 py-2 bg-gray-400 text-white rounded-lg"
+                            >
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
+                              {t("processing")}
                             </Button>
                           ) : (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9 px-3">
-                                  Actions <ChevronDown className="ml-2 h-4 w-4" />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-9 px-3"
+                                >
+                                  {t("actions")}{" "}
+                                  <ChevronDown className="ml-2 h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-40">
                                 <DropdownMenuItem
                                   className="flex items-center text-emerald-600 dark:text-emerald-400 focus:text-emerald-700 dark:focus:text-emerald-300 focus:bg-emerald-50 dark:focus:bg-emerald-900/20"
-                                  onClick={() => handleAction(request.id, "accept")}
+                                  onClick={() =>
+                                    handleAction(request.id, "accept")
+                                  }
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
-                                  Accept
+                                  {t("accept")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="flex items-center text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300 focus:bg-red-50 dark:focus:bg-red-900/20"
-                                  onClick={() => handleAction(request.id, "reject")}
+                                  onClick={() =>
+                                    handleAction(request.id, "reject")
+                                  }
                                 >
                                   <XCircle className="mr-2 h-4 w-4" />
-                                  Reject
+                                  {t("reject")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="flex items-center text-amber-600 dark:text-amber-400 focus:text-amber-700 dark:focus:text-amber-300 focus:bg-amber-50 dark:focus:bg-amber-900/20"
-                                  onClick={() => handleAction(request.id, "ban")}
+                                  onClick={() =>
+                                    handleAction(request.id, "ban")
+                                  }
                                 >
                                   <Ban className="mr-2 h-4 w-4" />
-                                  Ban
+                                  {t("ban")}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -327,11 +388,15 @@ const PartnershipRequest: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl dark:shadow-gray-900/50 w-full max-w-md mx-4 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">{actionType === "reject" ? "Reject Request" : "Ban Request"}</h2>
+                <h2 className="text-xl font-semibold">
+                  {actionType === "reject"
+                    ? t("rejectRequest")
+                    : t("banRequest")}
+                </h2>
                 <button
                   onClick={() => {
-                    setSelectedRequestId(null)
-                    setActionType(null)
+                    setSelectedRequestId(null);
+                    setActionType(null);
                   }}
                   className="p-1 rounded-full hover:bg-white/20 transition-colors duration-200"
                   disabled={isSubmitting}
@@ -343,14 +408,19 @@ const PartnershipRequest: React.FC = () => {
 
             <div className="p-6">
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Please provide a reason for {actionType === "reject" ? "rejecting" : "banning"} this partnership
-                request:
+                {actionType === "reject"
+                  ? t("provideRejectReason")
+                  : t("provideBanReason")}
               </p>
 
               <textarea
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring focus:ring-blue-200 dark:focus:ring-blue-700 focus:ring-opacity-50 transition-all duration-200 dark:bg-gray-700 dark:text-gray-100"
                 rows={4}
-                placeholder={`Enter reason for ${actionType}...`}
+                placeholder={
+                  actionType === "reject"
+                    ? t("enterRejectReason")
+                    : t("enterBanReason")
+                }
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 disabled={isSubmitting}
@@ -360,12 +430,12 @@ const PartnershipRequest: React.FC = () => {
                 <button
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
                   onClick={() => {
-                    setSelectedRequestId(null)
-                    setActionType(null)
+                    setSelectedRequestId(null);
+                    setActionType(null);
                   }}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className={`px-4 py-2 rounded-lg text-white flex items-center ${
@@ -379,10 +449,14 @@ const PartnershipRequest: React.FC = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                      Processing...
+                      {t("processing")}
                     </>
                   ) : (
-                    <>{actionType === "reject" ? "Reject" : "Ban"} Request</>
+                    <>
+                      {actionType === "reject"
+                        ? t("rejectRequestButton")
+                        : t("banRequestButton")}
+                    </>
                   )}
                 </button>
               </div>
@@ -398,7 +472,7 @@ const PartnershipRequest: React.FC = () => {
         onClose={handleCloseDetailModal}
       />
     </div>
-  )
-}
+  );
+};
 
-export default PartnershipRequest
+export default PartnershipRequest;

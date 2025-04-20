@@ -53,6 +53,7 @@ export const walletMessages: Messages["wallet"] = {
     searchTransaction: "Search by clinic name or description...",
   },
   table: {
+    id: "Id",
     date: "Date",
     amount: "Amount",
     clinic: "Clinic",
@@ -142,6 +143,7 @@ export const walletMessages: Messages["wallet"] = {
       searchWithdrawal: "Search by transaction ID or notes...",
     },
     table: {
+      id: "Id",
       date: "Date",
       amount: "Amount",
       type: "Type",

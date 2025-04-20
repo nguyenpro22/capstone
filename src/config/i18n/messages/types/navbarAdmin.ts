@@ -34,5 +34,10 @@ export type navbarAdminMessages = {
     recentSearches: string
     exampleSearch1: string
     exampleSearch2: string
+    
+    // Logout dialog
+    logoutConfirmTitle: string
+    logoutConfirmDescription: string
+    cancel: string
   }
   

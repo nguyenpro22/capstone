@@ -76,6 +76,6 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     statusCancelled: "Đã hủy",
     depositAmount: "Tiền đặt cọc",
     remainingAmount: "Số tiền còn lại",
-    actions:"Hành Động"
-
+    actions:"Hành Động",
+    columns: "Cột"
 }

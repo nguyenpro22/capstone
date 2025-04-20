@@ -27,6 +27,7 @@ import {
   CreditCard,
   X,
   Menu,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -89,13 +90,11 @@ const menuItems = {
       icon: Layers,
     },
     { label: "settings", path: "/systemAdmin/settings", icon: Settings },
-    { label: "logout", path: "/logout", icon: LogOut },
   ],
   systemStaff: [
     { label: "clinic", path: "/systemStaff/clinic", icon: Building2 },
     { label: "partnership", path: "/systemStaff/partnership", icon: Layers },
     { label: "settings", path: "/systemStaff/setting", icon: Settings },
-    { label: "logout", path: "/logout", icon: LogOut },
   ],
   clinicManager: [
     {
@@ -103,6 +102,7 @@ const menuItems = {
       path: "/clinicManager/dashboard",
       icon: LayoutDashboard,
     },
+
     {
       label: "branchManagement",
       path: "/clinicManager/branch",
@@ -126,13 +126,17 @@ const menuItems = {
     { label: "profile", path: "/clinicManager/profile", icon: UserCircle },
     { label: "wallet", path: "/clinicManager/wallet", icon: CreditCard },
     { label: "settings", path: "/clinicManager/settings", icon: Settings },
-    { label: "logout", path: "/logout", icon: LogOut },
   ],
   clinicStaff: [
     {
       label: "dashboard",
       path: "/clinicStaff/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      label: "workingSchedule",
+      path: "/clinicStaff/working-schedule",
+      icon: CalendarDays, // hoặc Clock hoặc CalendarClock
     },
     {
       label: "scheduleApproval",
@@ -155,14 +159,13 @@ const menuItems = {
       icon: CreditCard,
     },
     { label: "profile", path: "/clinicStaff/profile", icon: UserCircle },
-    { label: "logout", path: "/logout", icon: LogOut },
   ],
   user: [
     { label: "home", path: "/user/home", icon: Home },
     { label: "profile", path: "/user/profile", icon: User },
     { label: "package", path: "/user/package", icon: Archive },
     { label: "settings", path: "/user/settings", icon: Settings },
-    { label: "logout", path: "/logout", icon: LogOut },
+    // { label: "logout", path: "/logout", icon: LogOut },
   ],
 };
 
@@ -257,9 +260,9 @@ export default function AppSidebar({
     }
   }, [pathname]);
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+  // const toggleTheme = () => {
+  //   setTheme(theme === "dark" ? "light" : "dark");
+  // };
 
   const handleMenuItemClick = (path: string) => {
     if (path === "/logout") {
@@ -404,13 +407,15 @@ export default function AppSidebar({
                 </div>
               </div>
 
+              {/* Logout button in desktop sidebar */}
               <div className="border-t dark:border-gray-800 p-4">
                 <Button
                   variant="outline"
-                  onClick={toggleTheme}
-                  className="w-full justify-center"
+                  onClick={() => setOpenLogoutDialog(true)}
+                  className="w-full justify-center text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300"
                 >
-                  {theme === "dark" ? t("lightMode") : t("darkMode")}
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t("logout")}
                 </Button>
               </div>
             </div>
@@ -561,15 +566,16 @@ export default function AppSidebar({
           </SidebarMenu>
         </SidebarContent>
 
-        {/* Theme toggle button in desktop sidebar */}
+        {/* Logout button in desktop sidebar */}
         <div className="border-t dark:border-gray-800 p-3">
           <Button
             variant="outline"
-            onClick={toggleTheme}
-            className="w-full justify-center"
+            onClick={() => setOpenLogoutDialog(true)}
+            className="w-full justify-center text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300"
             size="sm"
           >
-            {theme === "dark" ? t("lightMode") : t("darkMode")}
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("logout")}
           </Button>
         </div>
       </Sidebar>

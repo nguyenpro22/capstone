@@ -7,20 +7,26 @@ import Sidebar from "@/components/common/Admin/Sidebar";
 import Navbar from "@/components/common/Admin/Navbar";
 import { ChevronRight } from "lucide-react";
 import FirstLoginFlow from "@/components/login/first-login-flow";
-import { getAccessToken, GetDataByToken, TokenData } from "@/utils";
+import { ReRegisterClinicForm } from "@/components/clinicManager/re-register-clinic-form";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function ClinicManagerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("registerClinic");
+
   // Initialize with true, but we'll check the actual size before rendering
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   // Add a state to track if we've completed the initial size check
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
   // First login flow state
   const [showFirstLoginFlow, setShowFirstLoginFlow] = useState(false);
+  // Add state for rejected clinic
+  const [isRejected, setIsRejected] = useState(false);
 
   const router = useRouter();
 
@@ -47,11 +53,15 @@ export default function ClinicManagerLayout({
     const token = getAccessToken();
     if (token) {
       const tokenData = GetDataByToken(token) as TokenData;
-      const isFirstLogin = tokenData?.isFirstLogin === "True";
+      const isFirstLogin = tokenData?.isFirstLogin == "True";
+      const IsRejected = tokenData?.isRejected == "true";
 
       if (isFirstLogin) {
         setShowFirstLoginFlow(true);
       }
+
+      // Set the rejected state based on token data
+      setIsRejected(IsRejected);
     }
   }, []);
 
@@ -100,9 +110,33 @@ export default function ClinicManagerLayout({
     setShowFirstLoginFlow(false);
   };
 
+  // Handle completion of re-registration
+  const handleReRegistrationComplete = () => {
+    setIsRejected(false);
+  };
+
   // Show the first login flow if needed
   if (showFirstLoginFlow) {
     return <FirstLoginFlow onComplete={handleFirstLoginComplete} />;
+  }
+
+  // Show the re-register form if the clinic is rejected
+  if (isRejected) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-950 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              {t("reRegister.rejectedInformation")}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              {t("reRegister.updateInformation")}
+            </p>
+          </div>
+          <ReRegisterClinicForm />
+        </div>
+      </div>
+    );
   }
 
   // Don't render until we've completed the initial check
@@ -132,20 +166,22 @@ export default function ClinicManagerLayout({
           isSidebarOpen ? "md:ml-64" : "ml-0"
         }`}
       >
-        {/* Navbar with toggle button when sidebar is closed */}
-        <div className="relative">
-          {!isSidebarOpen && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
-              <button
-                onClick={toggleSidebar}
-                className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Open sidebar"
-              >
-                <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-              </button>
-            </div>
-          )}
-          <Navbar sidebarClosed={!isSidebarOpen} />
+        {/* Sticky Navbar */}
+        <div className="sticky top-0 left-0 right-0 z-30 bg-white dark:bg-gray-950 shadow-sm">
+          <div className="relative">
+            {!isSidebarOpen && (
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
+                <button
+                  onClick={toggleSidebar}
+                  className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Open sidebar"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                </button>
+              </div>
+            )}
+            <Navbar sidebarClosed={!isSidebarOpen} />
+          </div>
         </div>
 
         {/* Content */}

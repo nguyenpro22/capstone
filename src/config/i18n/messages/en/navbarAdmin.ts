@@ -36,4 +36,8 @@ export const navbarAdminMessages: Messages["navbarAdmin"] = {
    recentSearches: "Recent Searches",
    exampleSearch1: "Patient appointments",
    exampleSearch2: "Treatment schedules",
+    // Logout dialog
+  logoutConfirmTitle: "Are you sure you want to logout?",
+  logoutConfirmDescription: "This will end your session and log you out of the system.",
+  cancel: "Cancel",
 }

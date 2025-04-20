@@ -38,6 +38,8 @@ import { categoryMessages } from "./category";
 import { walletMessages } from "./wallet";
 import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
+import { workingScheduleMessages } from "./working-schedule";
+import { paginationMessages } from "./pagination";
 import { orderMessages } from "./order";
 import { orderDetail } from "./order-detail";
 import { registerSchedule } from "./register-schedule";
@@ -85,6 +87,8 @@ const en = {
   withdrawal: withdrawalMessages,
   orderMessages,
   orderDetail,
+  workingSchedule: workingScheduleMessages,
+  pagination: paginationMessages,
   registerSchedule,
 };
 
