@@ -40,6 +40,7 @@ import { chatMessages } from "./chat";
 import { withdrawalMessages } from "./withdrawal";
 import { orderMessages } from "./order";
 import { orderDetail } from "./order-detail";
+import { registerSchedule } from "./register-schedule";
 
 const en = {
   home: homeMessages,
@@ -84,6 +85,7 @@ const en = {
   withdrawal: withdrawalMessages,
   orderMessages,
   orderDetail,
+  registerSchedule,
 };
 
 export default en;

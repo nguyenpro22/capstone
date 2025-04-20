@@ -10,7 +10,10 @@ export const BookingService = {
 
   // Get clinics by service ID
   getClinicsByService: async (service: ServiceDetail): Promise<Clinic[]> => {
-    return service.clinics;
+    return service.clinics.map((clinic) => ({
+      ...clinic,
+      address: clinic.address ?? "",
+    }));
   },
 
   // Get procedures by service ID

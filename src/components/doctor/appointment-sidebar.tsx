@@ -14,8 +14,9 @@ import { cn } from "@/lib/utils";
 
 // Helper function to get initials from a name
 const getInitials = (name: string) => {
+  if (!name) return "";
   return name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase();

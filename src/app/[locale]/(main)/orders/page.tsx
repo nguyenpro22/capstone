@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import { useOrderBookingData } from "@/hooks/useOrderBookingData";
 import { SearchAndFilterPanel } from "@/components/services/user/SearchAndFilterPanel";
-import { OrderTable } from "@/components/services/user/order-table";
+// import { OrderTable } from "@/components/services/user/order-table";
 import { PaginationControl } from "@/components/services/user/PaginationControl";
 import { BookingCalendar } from "@/components/services/user/BookingCalendar";
 import { BookingDetailDialog } from "@/components/services/user/booking-detail-dialog";
@@ -154,19 +154,9 @@ export default function UserOrdersPage() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <OrderTable
-                      t={t}
-                      loading={loading}
-                      orders={filteredOrders}
-                      columnVisibility={columnVisibility}
-                      getStatusBadge={getStatusBadge}
-                      getStatusColor={getStatusColor}
-                      getStatusIcon={getStatusIcon}
-                      getFeedbackStars={getFeedbackStars}
-                      formatCurrency={formatCurrency}
-                      formatTime={formatTime}
-                      setCurrentPage={setCurrentPage}
-                    />
+                    {/* <OrderTable
+                    columns={columnVisibility}
+                    /> */}
                     <PaginationControl
                       t={t}
                       currentPage={currentPage}

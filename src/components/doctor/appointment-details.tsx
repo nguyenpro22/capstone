@@ -108,7 +108,7 @@ export function AppointmentDetails({
   // Get patient initials for avatar
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      ?.split(" ")
       .map((part) => part[0])
       .join("")
       .toUpperCase()

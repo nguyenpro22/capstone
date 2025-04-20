@@ -10,6 +10,7 @@ import { QuizProvider } from "@/components/home/quiz/context";
 import { PersistGate } from "redux-persist/integration/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "@/components/common/customToast/style.css";
 import AuthDialogProvider from "@/lib/AuthDialogProvider";
 import { setAuthRedirectHandler } from "@/lib/authDialogService";
 

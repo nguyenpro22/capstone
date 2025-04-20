@@ -10,8 +10,10 @@ export type Clinic = {
   id: string;
   name: string;
   email: string;
-  address: string;
+  address: string | null;
   phoneNumber: string;
+  workingTimeStart: string;
+  workingTimeEnd: string;
   profilePictureUrl: string | null;
   isParent: boolean;
   isActivated: boolean;
@@ -69,9 +71,11 @@ type Branding = {
   email: string;
   address: string | null;
   phoneNumber: string;
-  profilePictureUrl: string | null;
-  isActivated: boolean;
+  workingTimeStart: string;
+  workingTimeEnd: string;
+  profilePictureUrl: string;
   isParent: boolean;
+  isActivated: boolean;
   parentId: string | null;
 };
 
@@ -124,23 +128,26 @@ export type ServiceDetailResponse = {
   };
 };
 
-export type ServiceDetail = {
+export interface ServiceDetail {
   id: string;
   name: string;
   description: string;
+  branding: Branding;
   maxPrice: number;
   minPrice: number;
-  branding: Clinic;
   discountPercent: string;
   discountMaxPrice: number;
   discountMinPrice: number;
+  depositPercent: number;
+  isRefundable: boolean;
   coverImage: CoverImage[];
   clinics: Clinic[];
   category: Category;
   procedures: Procedure[];
-  promotions: any[]; // Nếu có schema rõ ràng thì thay `any`
+  promotions: any; // hoặc thay bằng interface nếu có
   doctorServices: DoctorService[];
-};
+  feedbacks: Feedback[];
+}
 
 export interface RecentlyViewedService extends ServiceItem {
   viewedAt: number; // timestamp when the service was viewed
