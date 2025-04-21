@@ -11,6 +11,7 @@ import {
   Bell,
   User2Icon,
   RefreshCw,
+  CalendarPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,9 +46,9 @@ export function Sidebar() {
       icon: User2Icon,
     },
     {
-      label: t("calendar"),
+      label: t("registerSchedule"),
       href: `/${locale}/doctor/register-schedule`,
-      icon: Calendar,
+      icon: CalendarPlus,
     },
   ];
 
