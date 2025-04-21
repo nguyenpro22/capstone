@@ -2,54 +2,111 @@ import { BookingRequest } from "@/features/booking/types";
 import { BookingData, Procedure } from "../types/booking";
 
 // Format date for display
-export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat("vi-VN", {
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-  }).format(date);
-};
+  });
+}
 
-// Get initials for avatar fallback
-export const getInitials = (name: string): string => {
-  if (!name) {
-    return ""; // Return an empty string if the name is undefined or empty
-  }
-
+// Get initials from a name
+export function getInitials(name: string): string {
   return name
-    .split(" ") // Split the name by spaces
-    .map((part) => part[0]) // Get the first character of each part
-    .join("") // Join the initials into a string
-    .toUpperCase(); // Convert the result to uppercase
-};
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+}
 
-// Calculate total price
-export const calculateTotalPrice = (
-  selectedProcedures: {
-    procedure: Procedure;
-    priceTypeId: string;
-  }[]
-): number => {
-  return selectedProcedures.reduce((total, item) => {
-    const priceType = item.procedure.procedurePriceTypes.find(
-      (pt) => pt.id === item.priceTypeId
-    );
-    return total + (priceType?.price || 0);
-  }, 0);
-};
+// Parse time string to minutes since midnight
+export function timeToMinutes(timeString: string): number {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return hours * 60 + (minutes || 0);
+}
 
-// Calculate total price with VAT
-export const calculateTotalPriceWithVAT = (
-  selectedProcedures: {
-    procedure: Procedure;
-    priceTypeId: string;
-  }[]
-): number => {
-  const subtotal = calculateTotalPrice(selectedProcedures);
-  return Math.round(subtotal * 1.1); // Including 10% VAT
-};
+// Convert minutes since midnight to time string (HH:MM)
+export function minutesToTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, "0")}:${mins
+    .toString()
+    .padStart(2, "0")}`;
+}
 
+// Generate 30-minute time slots from time ranges
+export function generateTimeSlots(
+  timeRanges: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>
+): string[] {
+  const slots: string[] = [];
+  const INTERVAL_MINUTES = 30;
+
+  timeRanges.forEach((range) => {
+    // Extract hours and minutes from the time strings
+    // Handle both "HH:MM:SS" and "HH:MM" formats
+    const startTimeParts = range.startTime.split(":");
+    const endTimeParts = range.endTime.split(":");
+
+    const startHour = Number.parseInt(startTimeParts[0], 10);
+    const startMinute = Number.parseInt(startTimeParts[1], 10);
+
+    const endHour = Number.parseInt(endTimeParts[0], 10);
+    const endMinute = Number.parseInt(endTimeParts[1], 10);
+
+    // Convert to minutes since midnight
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    // Generate slots at 30-minute intervals
+    for (let time = startMinutes; time < endMinutes; time += INTERVAL_MINUTES) {
+      slots.push(minutesToTime(time));
+    }
+  });
+
+  // Sort and remove duplicates
+  return [...new Set(slots)].sort();
+}
+
+// Group time slots by period (morning, afternoon, evening)
+export function groupTimeSlots(timeSlots: string[]): {
+  morning: string[];
+  afternoon: string[];
+  evening: string[];
+} {
+  const groups: { morning: string[]; afternoon: string[]; evening: string[] } =
+    { morning: [], afternoon: [], evening: [] };
+
+  timeSlots.forEach((time) => {
+    const hour = Number.parseInt(time.split(":")[0], 10);
+
+    if (hour < 12) {
+      groups.morning.push(time);
+    } else if (hour < 17) {
+      groups.afternoon.push(time);
+    } else {
+      groups.evening.push(time);
+    }
+  });
+
+  return groups;
+}
+
+// Format time for display (e.g., "08:30" -> "8:30 AM")
+export function formatTimeDisplay(time: string): string {
+  const [hourStr, minuteStr] = time.split(":");
+  const hour = Number.parseInt(hourStr, 10);
+  const minute = minuteStr;
+
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${minute} ${period}`;
+}
 // Convert BookingData to BookingRequest
 export const createBookingRequest = (
   bookingData: BookingData
@@ -82,23 +139,28 @@ export const createBookingRequest = (
     isDefault: bookingData.isDefault,
   };
 };
+// Calculate total price
+export const calculateTotalPrice = (
+  selectedProcedures: {
+    procedure: Procedure;
+    priceTypeId: string;
+  }[]
+): number => {
+  return selectedProcedures.reduce((total, item) => {
+    const priceType = item.procedure.procedurePriceTypes.find(
+      (pt) => pt.id === item.priceTypeId
+    );
+    return total + (priceType?.price || 0);
+  }, 0);
+};
 
-// Group time slots by period (morning, afternoon, evening)
-export const groupTimeSlots = (availableTimeSlots: string[]) => {
-  const morning = availableTimeSlots.filter((time) => {
-    const hour = Number.parseInt(time.split(":")[0]);
-    return hour >= 8 && hour < 12;
-  });
-
-  const afternoon = availableTimeSlots.filter((time) => {
-    const hour = Number.parseInt(time.split(":")[0]);
-    return hour >= 12 && hour < 17;
-  });
-
-  const evening = availableTimeSlots.filter((time) => {
-    const hour = Number.parseInt(time.split(":")[0]);
-    return hour >= 17 && hour <= 20;
-  });
-
-  return { morning, afternoon, evening };
+// Calculate total price with VAT
+export const calculateTotalPriceWithVAT = (
+  selectedProcedures: {
+    procedure: Procedure;
+    priceTypeId: string;
+  }[]
+): number => {
+  const subtotal = calculateTotalPrice(selectedProcedures);
+  return Math.round(subtotal * 1.1); // Including 10% VAT
 };

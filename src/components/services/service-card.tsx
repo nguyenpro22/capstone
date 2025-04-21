@@ -729,7 +729,7 @@ export default function ServiceCard({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <Button
+            {/* <Button
               size="sm"
               variant="outline"
               onClick={() => setShowDetails(!showDetails)}
@@ -737,7 +737,7 @@ export default function ServiceCard({
             >
               <Eye className="h-4 w-4 mr-1" />
               Chi tiết
-            </Button>
+            </Button> */}
             <Button
               size="sm"
               onClick={() => onBookService(service)}

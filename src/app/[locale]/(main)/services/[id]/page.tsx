@@ -304,7 +304,7 @@ const getUniqueDoctors = (doctorServices: any[]) => {
 
 // Calculate average rating from feedback
 const calculateAverageRating = (feedbacks: any[] = []) => {
-  if (!feedbacks || feedbacks.length === 0) return 4.8; // Default rating if no feedback
+  if (!feedbacks || feedbacks.length === 0) return 0;
   const sum = feedbacks.reduce((acc, feedback) => acc + feedback.rating, 0);
   return (sum / feedbacks.length).toFixed(1);
 };
@@ -314,11 +314,11 @@ const getRatingDistribution = (feedbacks: any[] = []) => {
   if (!feedbacks || feedbacks.length === 0) {
     // Default distribution if no feedback
     return {
-      5: 85,
-      4: 10,
-      3: 3,
-      2: 1,
-      1: 1,
+      5: 0,
+      4: 0,
+      3: 0,
+      2: 0,
+      1: 0,
     };
   }
 
@@ -1018,12 +1018,12 @@ export default function ServiceDetail() {
                       >
                         {t("clinics")}
                       </TabsTrigger>
-                      <TabsTrigger
+                      {/* <TabsTrigger
                         value="faq"
                         className="text-sm py-4 px-6 data-[state=active]:bg-white dark:text-gray-200 dark:data-[state=active]:text-white dark:data-[state=active]:bg-gray-800 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-purple-600 data-[state=active]:shadow-none"
                       >
                         {t("faq")}
-                      </TabsTrigger>
+                      </TabsTrigger> */}
                       <TabsTrigger
                         value="reviews"
                         className="text-sm py-4 px-6 data-[state=active]:bg-white dark:text-gray-200 dark:data-[state=active]:text-white dark:data-[state=active]:bg-gray-800 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-purple-600 data-[state=active]:shadow-none"
@@ -1469,13 +1469,13 @@ export default function ServiceDetail() {
                                         </div>
                                       </div>
                                       <div className="flex items-center justify-between mt-4">
-                                        <Button
+                                        {/* <Button
                                           variant="ghost"
                                           className="p-0 h-auto text-purple-700 hover:text-purple-700 hover:bg-transparent dark:text-purple-500 dark:hover:text-indigo-300"
                                         >
                                           {t("getDirections")}{" "}
                                           <ArrowRight className="h-4 w-4 ml-1" />
-                                        </Button>
+                                        </Button> */}
                                         {clinic.isActivated !== false ? (
                                           <Button
                                             variant="secondary"
@@ -1512,7 +1512,7 @@ export default function ServiceDetail() {
                   </TabsContent>
 
                   {/* FAQ Tab */}
-                  <TabsContent value="faq" className="m-0">
+                  {/* <TabsContent value="faq" className="m-0">
                     <CardContent className="p-6">
                       <div className="prose dark:prose-invert max-w-none">
                         <h3 className="text-2xl font-serif font-semibold mb-6 text-gray-900 dark:text-white">
@@ -1588,7 +1588,7 @@ export default function ServiceDetail() {
                         </Accordion>
                       </div>
                     </CardContent>
-                  </TabsContent>
+                  </TabsContent> */}
 
                   {/* Reviews Tab */}
                   <TabsContent value="reviews" className="m-0">
@@ -1598,9 +1598,9 @@ export default function ServiceDetail() {
                           <h3 className="text-2xl font-serif font-semibold text-gray-900 dark:text-white">
                             {t("customerReviews")}
                           </h3>
-                          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                          {/* <Button className="bg-purple-600 hover:bg-purple-700 text-white">
                             {t("writeReview")}
-                          </Button>
+                          </Button> */}
                         </div>
 
                         <div className="space-y-6">
@@ -1707,9 +1707,9 @@ export default function ServiceDetail() {
                               <p className="text-muted-foreground dark:text-gray-300 mb-6">
                                 {t("beFirstToReview")}
                               </p>
-                              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {/* <Button className="bg-purple-600 hover:bg-purple-700 text-white">
                                 {t("writeReview")}
-                              </Button>
+                              </Button> */}
                             </div>
                           )}
                         </div>
@@ -1732,7 +1732,7 @@ export default function ServiceDetail() {
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 mb-8">
               <div className="lg:sticky lg:top-8 space-y-6">
                 {/* Price Card */}
                 <Card className="border-none overflow-hidden shadow-xl bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
@@ -1927,7 +1927,7 @@ export default function ServiceDetail() {
 
                 {/* Category Info */}
                 {service.category && (
-                  <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
+                  <Card className="border-none overflow-hidden shadow-xl bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                     <CardHeader className="bg-gradient-to-r from-green-100 to-teal-100 dark:from-green-800/50 dark:to-teal-800/50 p-4 dark:border-b dark:border-gray-700">
                       <h3 className="font-serif text-lg font-semibold flex items-center">
                         <Zap className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
@@ -1946,7 +1946,7 @@ export default function ServiceDetail() {
                           }}
                         />
                       )}
-                      <Button
+                      {/* <Button
                         variant="outline"
                         className="w-full dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
                         asChild
@@ -1957,12 +1957,12 @@ export default function ServiceDetail() {
                           {t("viewAllInCategory")}
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </Link>
-                      </Button>
+                      </Button> */}
                     </CardContent>
                   </Card>
                 )}
 
-                {/* Related Services Card */}
+                {/* Related Services Card
                 <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                   <CardHeader className="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-800/50 dark:to-yellow-800/50 p-4 dark:border-b dark:border-gray-700">
                     <h3 className="font-serif text-lg font-semibold flex items-center">
@@ -2007,7 +2007,7 @@ export default function ServiceDetail() {
                       ))}
                     </div>
                   </CardContent>
-                </Card>
+                </Card> */}
               </div>
             </div>
           </div>

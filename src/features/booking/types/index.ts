@@ -61,10 +61,10 @@ export interface BookingRequest {
   isDefault: boolean;
   liveStreamRoomId?: string | null;
 }
-export interface TimeSlot {
-  start: string; // Định dạng HH:mm:ss
-  end: string; // Định dạng HH:mm:ss
-  date: string; // Định dạng YYYY-MM-DD
+export interface AvailableTime {
+  date: string;
+  startTime: string;
+  endTime: string;
 }
 export enum OrderStatus {
   PENDING = "Pending",
