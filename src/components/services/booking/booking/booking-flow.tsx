@@ -328,7 +328,7 @@ export function BookingFlow({
       const result = await submitBooking(requestWithRoom).unwrap();
 
       clearSavedBookingData();
-      setBookingId(result.bookingId);
+      setBookingId(result.value);
       setBookingComplete(true);
       setCurrentStep(steps.length - 1);
     } catch (error: any) {

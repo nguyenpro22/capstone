@@ -121,7 +121,7 @@ export const bookingCommandApi = createApi({
   reducerPath: "bookingCommandApi",
   baseQuery: reAuthQuery("command"), // Chạy trên port 4000
   endpoints: (builder) => ({
-    createBooking: builder.mutation<any, BookingRequest>({
+    createBooking: builder.mutation<IResCommon<string>, BookingRequest>({
       query: (data) => ({
         url: "/bookings",
         method: "POST",
