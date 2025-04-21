@@ -39,4 +39,5 @@ exampleSearch2: "Lịch trình điều trị",
 logoutConfirmTitle: "Bạn có chắc chắn muốn đăng xuất?",
 logoutConfirmDescription: "Điều này sẽ kết thúc phiên của bạn và đăng xuất bạn khỏi hệ thống.",
 cancel: "Hủy",
+platformPolicies: "Chính sách hệ thống"
 }

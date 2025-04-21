@@ -43,6 +43,7 @@ import { paginationMessages } from "./pagination";
 import { orderMessages } from "./order";
 import { orderDetail } from "./order-detail";
 import { registerSchedule } from "./register-schedule";
+import { profileMessages } from "./profile";
 
 const en = {
   home: homeMessages,
@@ -90,6 +91,7 @@ const en = {
   workingSchedule: workingScheduleMessages,
   pagination: paginationMessages,
   registerSchedule,
+   profile: profileMessages,
 };
 
 export default en;

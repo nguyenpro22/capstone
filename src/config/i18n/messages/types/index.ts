@@ -42,6 +42,7 @@ import { orderDetail } from "./order-detail";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
+import { profileMessages } from "./profile";
 
 export type Messages = {
   home: homeMessages;
@@ -89,4 +90,5 @@ export type Messages = {
   workingSchedule: workingScheduleMessages;
   pagination: paginationMessages;
   registerSchedule: registerSchedule;
+  profile: profileMessages;
 };

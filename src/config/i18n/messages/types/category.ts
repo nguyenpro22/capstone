@@ -1,5 +1,5 @@
 export type categoryMessages = {
-    title: string
+  title: string
     description: string
     search: string
     addNewCategory: string
@@ -19,6 +19,13 @@ export type categoryMessages = {
       actions: string
       noSubcategories: string
       addSubcategory: string
+      activate: string
+      adding: string
+      movingSubcategory: string
+      selectDestinationCategory: string
+      noDestinationCategories: string
+      processing: string
+      moveCategory: string
     }
     actions: {
       addSubcategory: string
@@ -41,5 +48,25 @@ export type categoryMessages = {
       subcategoryMoved: string
       subcategoryMoveFailed: string
       categoryAdded: string
+      categoryUpdated: string
+      invalidData: string
+      errorOccurred: string
+      subcategoryAdded: string
+      subcategoryAddFailed: string
+      subcategoryUpdated: string
+      subcategoryUpdateFailed: string
     }
-  }
+    placeholders: {
+      enterCategoryName: string
+      enterCategoryDescription: string
+      enterSubcategoryName: string
+      enterSubcategoryDescription: string
+    }
+    validations: {
+      subcategoryNameRequired: string
+    }
+    cancel: string
+    saving: string
+    saveChanges: string
+    saveCategory: string
+}

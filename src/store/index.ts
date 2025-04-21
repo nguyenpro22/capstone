@@ -63,6 +63,7 @@ import {
 import { clinicManagerDashboardQueryApi } from "@/features/dashboard/api";
 import { walletWithdrawCommandApi } from "@/features/clinic-wallet/api";
 import { walletTransactionCommandApi, walletTransactionQueryApi } from "@/features/wallet-transaction/api";
+import { livestreamQueryApi } from "@/features/livestream/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -121,6 +122,8 @@ const rootReducer = combineReducers({
   [walletTransactionCommandApi.reducerPath]: walletTransactionCommandApi.reducer,
 
   [userCommandApi.reducerPath]: userCommandApi.reducer,
+  [livestreamQueryApi.reducerPath]: livestreamQueryApi.reducer,
+
 });
 
 // Persisted reducer
@@ -176,7 +179,8 @@ const store = configureStore({
       clinicManagerDashboardQueryApi.middleware,
       walletWithdrawCommandApi.middleware,
       walletTransactionQueryApi.middleware,
-      walletTransactionCommandApi.middleware
+      walletTransactionCommandApi.middleware,
+      livestreamQueryApi.middleware,
     ),
 });
 

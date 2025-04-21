@@ -51,5 +51,6 @@ export type sidebarMessages = {
   lightMode: string
   darkMode: string
   workingSchedule: string
+  branchRequest: string
   }
   

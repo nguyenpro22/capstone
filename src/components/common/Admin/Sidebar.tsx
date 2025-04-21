@@ -94,6 +94,11 @@ const menuItems = {
   systemStaff: [
     { label: "clinic", path: "/systemStaff/clinic", icon: Building2 },
     { label: "partnership", path: "/systemStaff/partnership", icon: Layers },
+    {
+      label: "branchRequest",
+      path: "/systemStaff/branch-request",
+      icon: Building2,
+    },
     { label: "settings", path: "/systemStaff/setting", icon: Settings },
   ],
   clinicManager: [

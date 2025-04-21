@@ -6,6 +6,7 @@ export const BASE_URL = {
   command: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_COMMAND_URL || "",
   query: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_QUERY_URL || "",
   signaling: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_SIGNALING_URL || "",
+  livestream: process.env.NEXT_PUBLIC_BEAUTIFY_BACKEND_LIVESTREAM_URL || "",
 };
 export type ServiceType = keyof typeof BASE_URL;
 

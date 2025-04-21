@@ -11,9 +11,16 @@ export const partnershipRequestApi = createApi({
       query: ({ pageIndex, pageSize, searchTerm }) =>
         `/clinics/application?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
     }),
+    getBranchRequests: builder.query({
+      query: ({ pageIndex, pageSize, searchTerm }) =>
+        `/clinics/application/clinic?pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
+    }),
     // New endpoint to get a specific partnership request by ID
     getPartnershipRequestById: builder.query({
       query: (id) => `clinics/application/${id}`,
+    }),
+    getBranchRequestById: builder.query({
+      query: (id) => `clinics/application/${id}/clinic`,
     }),
      // Get schedule by ID
      getApplication: builder.query<IResCommon<ClinicApplication>, string>({
@@ -37,11 +44,18 @@ export const partnershipRequestCommandApi = createApi({
         body: { requestId, action, rejectReason },
       }),
     }),
+    updateBranchRequest: builder.mutation({
+      query: ({ requestId, action, rejectReason }) => ({
+        url: `/clinics/${requestId}/response/branch`,
+        method: "PUT",
+        body: { requestId, action, rejectReason },
+      }),
+    }),
   }),
 })
 
 export const { useGetPartnershipRequestsQuery, useGetPartnershipRequestByIdQuery,
-  useGetApplicationQuery
+  useGetApplicationQuery, useGetBranchRequestsQuery, useGetBranchRequestByIdQuery
  } = partnershipRequestApi
 
-export const { useUpdatePartnershipRequestMutation } = partnershipRequestCommandApi
+export const { useUpdatePartnershipRequestMutation, useUpdateBranchRequestMutation } = partnershipRequestCommandApi

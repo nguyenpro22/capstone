@@ -138,5 +138,11 @@ export type customerScheduleTranslations = {
     remainingAmount: string
     doctorInformation: string
     atThisClinic: string
+    enterCustomTime: string
+    selectFromOptions: string
+    enterSpecificTime: string
+    timeFormatHint: string
+    invalidTimeFormat: string
+    timeNotAvailable: string
   }
   

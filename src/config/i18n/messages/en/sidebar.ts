@@ -55,5 +55,6 @@ export const sidebarMessages: Messages["sidebar"] = {
   // New translations for mobile sidebar
   lightMode: "Light Mode",
   darkMode: "Dark Mode",
-  workingSchedule:" Working Schedule"
+  workingSchedule:" Working Schedule",
+  branchRequest: "Branch Request"
 }

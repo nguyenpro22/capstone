@@ -2,7 +2,7 @@ import { IListResponse } from './../../../lib/api/type';
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { IResCommon } from "@/lib/api";
-import { BusyTimeSlot, WorkingSchedule, WorkingScheduleDetail, WorkingScheduleResponse } from "../types";
+import { AvailableSlot, BusyTimeSlot, WorkingSchedule, WorkingScheduleDetail } from "../types";
 
 
 export const workingScheduleApi = createApi({
@@ -47,6 +47,21 @@ export const workingScheduleApi = createApi({
             },
           }),
         }),
+
+    getDoctorAvailableTimes: builder.query<
+      IResCommon<AvailableSlot[]>,
+      {
+        serviceIdOrCustomerScheduleId: string
+        isCustomerSchedule: true
+        date: string
+      }
+    >({
+      query: ({  serviceIdOrCustomerScheduleId, isCustomerSchedule, date }) => ({
+        url: `working-schedules/doctors/available-times`,
+        method: "GET",
+        params: {  serviceIdOrCustomerScheduleId, isCustomerSchedule, date },
+      }),
+    }),
   getWorkingSchedulesByShiftGroup: builder.query<
   IResCommon<IListResponse<WorkingScheduleDetail>>,
       {
@@ -100,6 +115,7 @@ export const workingScheduleCommandApi = createApi({
 export const {
   useGetDoctorBusyTimesQuery,
   useLazyGetDoctorBusyTimesQuery,
+  useLazyGetDoctorAvailableTimesQuery,
   useGetWorkingScheduleQuery,
   useGetWorkingSchedulesByShiftGroupQuery
 } = workingScheduleApi;

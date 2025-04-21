@@ -26,13 +26,13 @@ export const workingScheduleMessages: Messages["workingSchedule"] = {
   // Configuration section
   configTitle: "Working Schedule Configuration",
   configDescription: "Set up the number of doctors who can register and working hours",
-  totalDoctorsPerDay: "Total number of doctors per day",
-  doctorsTooltip: "This is the total number of doctors who can register across all time slots for this day",
+  totalDoctorsPerDay: "Total number of shifts per day",
+  doctorsTooltip: "This is the total number of shifts which can register across all time slots for this day",
   workingHours: "Working Hours",
   addTimeSlot: "Add Time Slot",
   startTime: "Start Time",
   endTime: "End Time",
-  doctorsCount: "Number of Doctors",
+  doctorsCount: "Number of Shifts",
   noTimeSlots: "No time slots have been set up",
   
   // Warnings and errors

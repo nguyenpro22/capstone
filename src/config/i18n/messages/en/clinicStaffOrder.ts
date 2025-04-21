@@ -77,7 +77,8 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     depositAmount: "Deposit Amount",
     remainingAmount: "Remaining Amount",
     actions: "Actions",
-    columns: "Columns"
+    columns: "Columns",
+    columnDisplay:"Column Display"
 
 
 }

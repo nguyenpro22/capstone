@@ -142,4 +142,10 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   remainingAmount: "Số tiền còn lại",
   doctorInformation: "Thông tin bác sĩ",
   atThisClinic: "tại phòng khám này",
+  enterCustomTime: "Nhập thời gian tùy chỉnh",
+  selectFromOptions: "Chọn từ các tùy chọn",
+  enterSpecificTime: "Nhập thời gian cụ thể",
+  timeFormatHint: "Nhập thời gian theo định dạng 24 giờ (ví dụ: 15:15)",
+  invalidTimeFormat: "Định dạng thời gian không hợp lệ. Vui lòng sử dụng định dạng HH:MM (ví dụ: 15:15)",
+  timeNotAvailable: "Thời gian này không khả dụng. Vui lòng chọn thời gian trong khung giờ làm việc của bác sĩ"
 }

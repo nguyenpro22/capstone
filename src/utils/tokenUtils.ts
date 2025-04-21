@@ -79,6 +79,7 @@ export const GetDataByToken = (token: string): TokenData | null => {
   const subscriptionPackageId = decoded?.SubscriptionPackageId;
   const isFirstLogin = decoded?.IsFirstLogin;
   const isRejected = decoded?.IsRejected;
+  const dateJoined = decoded?.DateJoined;
   return {
     roleName,
     roleId,
@@ -89,7 +90,8 @@ export const GetDataByToken = (token: string): TokenData | null => {
     subscriptionPackageId,
     isFirstLogin,
     phone,
-    isRejected
+    isRejected,
+    dateJoined
   };
 };
 
@@ -103,7 +105,8 @@ export type TokenData = {
   phone?: string;
   subscriptionPackageId?: string;
   isFirstLogin: string;
-  isRejected: string
+  isRejected: string;
+  dateJoined: string;
 };
 
 export const rememberMe = (token: string, refreshToken: string): void => {

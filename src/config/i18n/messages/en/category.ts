@@ -13,14 +13,21 @@ export const categoryMessages: Messages["category"] = {
     number: "No.",
     categoryName: "Category Name",
     description: "Description",
-    actions: "Actions"
+    actions: "Actions",
   },
   subcategory: {
     subcategoryName: "Subcategory Name",
     description: "Description",
     actions: "Actions",
     noSubcategories: "No subcategories yet",
-    addSubcategory: "Add subcategory"
+    addSubcategory: "Add Subcategory",
+    activate: "Activate",
+    adding: "Adding...",
+    movingSubcategory: "You are moving the subcategory:",
+    selectDestinationCategory: "Select destination category",
+    noDestinationCategories: "No destination categories available",
+    processing: "Processing...",
+    moveCategory: "Move category",
   },
   actions: {
     addSubcategory: "Add subcategory",
@@ -28,11 +35,11 @@ export const categoryMessages: Messages["category"] = {
     delete: "Delete category",
     moveSubcategory: "Move subcategory",
     editSubcategory: "Edit subcategory",
-    deleteSubcategory: "Delete subcategory"
+    deleteSubcategory: "Delete subcategory",
   },
   confirmations: {
     deleteCategory: "Are you sure you want to delete this category?",
-    deleteSubcategory: "Are you sure you want to delete this subcategory?"
+    deleteSubcategory: "Are you sure you want to delete this subcategory?",
   },
   notifications: {
     categoryDeleted: "Category successfully deleted!",
@@ -42,6 +49,26 @@ export const categoryMessages: Messages["category"] = {
     loadCategoryFailed: "Unable to load category information!",
     subcategoryMoved: "Subcategory moved successfully!",
     subcategoryMoveFailed: "Unable to move subcategory!",
-    categoryAdded: "Category added successfully!"
-  }
+    categoryAdded: "Category added successfully!",
+    categoryUpdated: "Category updated successfully!",
+    invalidData: "Invalid data!",
+    errorOccurred: "An error occurred, please try again!",
+    subcategoryAdded: "Subcategory created successfully!",
+    subcategoryAddFailed: "Failed to create subcategory",
+    subcategoryUpdated: "Subcategory updated successfully!",
+    subcategoryUpdateFailed: "Failed to update subcategory!",
+  },
+  placeholders: {
+    enterCategoryName: "Enter category name",
+    enterCategoryDescription: "Enter category description",
+    enterSubcategoryName: "Enter subcategory name",
+    enterSubcategoryDescription: "Enter detailed description about subcategory",
+  },
+  validations: {
+    subcategoryNameRequired: "Subcategory name cannot be empty!",
+  },
+  cancel: "Cancel",
+  saving: "Saving...",
+  saveChanges: "Save changes",
+  saveCategory: "Save Category",
 }

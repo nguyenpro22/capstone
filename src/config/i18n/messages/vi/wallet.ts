@@ -177,6 +177,7 @@ export const walletMessages: Messages["wallet"] = {
       error: "Lỗi",
       branchDataUnavailable: "Không thể yêu cầu rút tiền. Dữ liệu chi nhánh không khả dụng.",
       exportFunctionality: "Chức năng xuất sẽ được triển khai tại đây",
+      exportSuccess: " Xuất file thành công"
     },
   }
   

@@ -44,6 +44,7 @@ import { orderDetail } from "./order-detail";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
+import { profileMessages } from "./profile";
 
 const vi = {
   home: homeMessages,
@@ -91,6 +92,7 @@ const vi = {
   workingSchedule: workingScheduleMessages,
   pagination: paginationMessages,
   registerSchedule,
+  profile: profileMessages,
 };
 
 export default vi;

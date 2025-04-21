@@ -1,35 +1,42 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useCreateCategoryMutation } from "@/features/category-service/api"
-import { toast } from "react-toastify"
-import { X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { AlertCircle } from "lucide-react"
+import { useState } from "react";
+import { useCreateCategoryMutation } from "@/features/category-service/api";
+import { toast } from "react-toastify";
+import { X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface SubCategoryFormProps {
-  parentId: string
-  onClose: () => void
-  onSaveSuccess: () => void
+  parentId: string;
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
-export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: SubCategoryFormProps) {
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [isActivated, setIsActivated] = useState(true)
-  // Thay đổi phần khai báo state error
-  const [errors, setErrors] = useState<{ code: string; message: string }[]>([])
+export default function SubCategoryForm({
+  parentId,
+  onClose,
+  onSaveSuccess,
+}: SubCategoryFormProps) {
+  // Get translations for the category namespace
+  const t = useTranslations("category");
 
-  const [addSubCategory, { isLoading }] = useCreateCategoryMutation()
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isActivated, setIsActivated] = useState(true);
+  const [errors, setErrors] = useState<{ code: string; message: string }[]>([]);
+
+  const [addSubCategory, { isLoading }] = useCreateCategoryMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!name.trim()) {
-      toast.error("Tên danh mục con không được để trống!")
-      return
+      toast.error(t("validations.subcategoryNameRequired"));
+      return;
     }
 
     try {
@@ -38,36 +45,38 @@ export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: Su
         description,
         isActivated,
         parentId,
-      }).unwrap()
+      }).unwrap();
 
-      toast.success("Subcategory created successfully!", {
+      toast.success(t("notifications.subcategoryAdded"), {
         position: "top-right",
         className: "bg-white border border-green-100 text-green-600",
-      })
-      onSaveSuccess()
-      onClose()
+      });
+      onSaveSuccess();
+      onClose();
     } catch (error: any) {
-      console.error("Error creating subcategory:", error)
+      console.error("Error creating subcategory:", error);
 
-      // Xử lý lỗi từ API response
+      // Handle API response errors
       if (error.data && error.data.errors) {
-        setErrors(error.data.errors)
-        // Hiển thị toast với lỗi đầu tiên
+        setErrors(error.data.errors);
+        // Display toast with first error
         if (error.data.errors.length > 0) {
           toast.error(error.data.errors[0].message, {
             position: "top-right",
             className: "bg-white border border-red-100 text-red-600",
-          })
+          });
         }
       } else {
-        setErrors([{ code: "general", message: "Failed to create subcategory" }])
-        toast.error("Failed to create subcategory", {
+        setErrors([
+          { code: "general", message: t("notifications.subcategoryAddFailed") },
+        ]);
+        toast.error(t("notifications.subcategoryAddFailed"), {
           position: "top-right",
           className: "bg-white border border-red-100 text-red-600",
-        })
+        });
       }
     }
-  }
+  };
 
   return (
     <motion.div
@@ -77,7 +86,9 @@ export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: Su
     >
       {/* Header with gradient - Fixed at top */}
       <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 p-5 rounded-t-xl sticky top-0 z-10">
-        <h2 className="text-2xl font-bold text-white">Thêm Danh mục con</h2>
+        <h2 className="text-2xl font-bold text-white">
+          {t("subcategory.addSubcategory")}
+        </h2>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
@@ -109,16 +120,17 @@ export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: Su
           )}
         </AnimatePresence>
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-gray-700">Tên Danh mục con</label>
-          {/* Thêm xử lý validation cho input name */}
+          <label className="block text-sm font-medium text-gray-700">
+            {t("subcategory.subcategoryName")}
+          </label>
           <input
             type="text"
             value={name}
             onChange={(e) => {
-              setName(e.target.value)
-              // Xóa lỗi liên quan đến Name khi người dùng nhập
+              setName(e.target.value);
+              // Clear Name-related errors when user types
               if (errors.some((err) => err.code === "Name")) {
-                setErrors(errors.filter((err) => err.code !== "Name"))
+                setErrors(errors.filter((err) => err.code !== "Name"));
               }
             }}
             className={`w-full px-4 py-3 rounded-lg border ${
@@ -126,21 +138,25 @@ export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: Su
                 ? "border-red-300 focus:border-red-400 focus:ring-red-200"
                 : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
             } focus:ring focus:ring-opacity-50 transition-all duration-200`}
-            placeholder="Enter subcategory name"
+            placeholder={t("placeholders.enterSubcategoryName")}
             required
           />
           {errors.some((err) => err.code === "Name") && (
-            <p className="mt-1 text-xs text-red-600">{errors.find((err) => err.code === "Name")?.message}</p>
+            <p className="mt-1 text-xs text-red-600">
+              {errors.find((err) => err.code === "Name")?.message}
+            </p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-gray-700">Mô tả</label>
+          <label className="block text-sm font-medium text-gray-700">
+            {t("subcategory.description")}
+          </label>
           <textarea
             className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all min-h-[100px]"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Nhập mô tả chi tiết về danh mục con"
+            placeholder={t("placeholders.enterSubcategoryDescription")}
           />
         </div>
 
@@ -152,8 +168,11 @@ export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: Su
             checked={isActivated}
             onChange={(e) => setIsActivated(e.target.checked)}
           />
-          <label htmlFor="isActivated" className="ml-2 text-sm font-medium text-gray-700">
-            Kích hoạt
+          <label
+            htmlFor="isActivated"
+            className="ml-2 text-sm font-medium text-gray-700"
+          >
+            {t("subcategory.activate")}
           </label>
         </div>
 
@@ -163,18 +182,19 @@ export default function SubCategoryForm({ parentId, onClose, onSaveSuccess }: Su
             onClick={onClose}
             className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
           >
-            Hủy
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={isLoading}
             className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Đang thêm..." : "Thêm danh mục con"}
+            {isLoading
+              ? t("subcategory.adding")
+              : t("subcategory.addSubcategory")}
           </button>
         </div>
       </form>
     </motion.div>
-  )
+  );
 }
-

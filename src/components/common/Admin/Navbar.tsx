@@ -204,8 +204,21 @@ export default function Navbar({
       router.push("/clinicStaff/profile");
     } else if (role === "Clinic Admin") {
       router.push("/clinicManager/profile");
+    } else if (role === "System Admin") {
+      router.push("/systemAdmin/profile");
     } else {
       router.push("/systemStaff/profile");
+    }
+  };
+  const navigateToPolicyPage = () => {
+    if (role === "Clinic Staff") {
+      router.push("/clinicStaff/policy");
+    } else if (role === "Clinic Admin") {
+      router.push("/clinicManager/policy");
+    } else if (role === "System Admin") {
+      router.push("/systemAdmin/policy");
+    } else {
+      router.push("/systemStaff/policy");
     }
   };
 
@@ -226,7 +239,11 @@ export default function Navbar({
   const mobileMenuItems = [
     { label: t("profile"), icon: User, onClick: navigateToProfile },
     { label: t("settings"), icon: Settings, onClick: () => {} },
-    { label: t("support"), icon: HelpCircle, onClick: () => {} },
+    {
+      label: t("platformPolicies"),
+      icon: HelpCircle,
+      onClick: navigateToPolicyPage,
+    },
     {
       label: t("logout"),
       icon: LogOut,
@@ -541,8 +558,11 @@ export default function Navbar({
                 <DropdownMenuItem className="dark:text-white dark:hover:bg-gray-800 dark:focus:bg-gray-800">
                   {t("settings")}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="dark:text-white dark:hover:bg-gray-800 dark:focus:bg-gray-800">
-                  {t("support")}
+                <DropdownMenuItem
+                  onClick={navigateToPolicyPage}
+                  className="dark:text-white dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+                >
+                  {t("platformPolicies")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="dark:border-gray-800" />
                 <DropdownMenuItem
