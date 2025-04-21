@@ -144,5 +144,6 @@ export type customerScheduleTranslations = {
     timeFormatHint: string
     invalidTimeFormat: string
     timeNotAvailable: string
+    selectDateTimeForChangeAppointment: string
   }
   

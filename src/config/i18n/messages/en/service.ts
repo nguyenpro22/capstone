@@ -71,6 +71,8 @@ export const serviceMessages: Messages["serviceMessage"] = {
   servicesList: "Services List",
   no: "No.",
   addNewService: "Add new Service",
+  addFirstService:"Add First Service",
+  noServicesAvailable:"No Services Available",
   serviceName: "Service Name",
   price: "Price",
   coverImage: "Cover Image",

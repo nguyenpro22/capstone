@@ -147,5 +147,6 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
     enterSpecificTime: "Enter specific time",
     timeFormatHint: "Enter time in 24-hour format (e.g., 15:15)",
     invalidTimeFormat: "Invalid time format. Please use HH:MM format (e.g., 15:15)",
-    timeNotAvailable: "This time is not available. Please select a time within doctor's available hours"
+    timeNotAvailable: "This time is not available. Please select a time within doctor's available hours",
+    selectDateTimeForChangeAppointment: "Select a date and time to change appointment for customer"
 }

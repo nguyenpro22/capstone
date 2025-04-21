@@ -63,6 +63,8 @@ export type serviceMessages = {
   servicesList: string
   no: string
   addNewService: string
+  addFirstService: string
+  noServicesAvailable: string
   serviceName: string
   price: string
   coverImage: string

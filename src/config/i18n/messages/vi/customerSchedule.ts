@@ -147,5 +147,6 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   enterSpecificTime: "Nhập thời gian cụ thể",
   timeFormatHint: "Nhập thời gian theo định dạng 24 giờ (ví dụ: 15:15)",
   invalidTimeFormat: "Định dạng thời gian không hợp lệ. Vui lòng sử dụng định dạng HH:MM (ví dụ: 15:15)",
-  timeNotAvailable: "Thời gian này không khả dụng. Vui lòng chọn thời gian trong khung giờ làm việc của bác sĩ"
+  timeNotAvailable: "Thời gian này không khả dụng. Vui lòng chọn thời gian trong khung giờ làm việc của bác sĩ",
+  selectDateTimeForChangeAppointment:"Chọn ngày và giờ để thay đổi lịch hẹn cho khách hàng"
 }
