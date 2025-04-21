@@ -43,6 +43,7 @@ import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
+import { Configuration } from "./configs";
 
 export type Messages = {
   home: homeMessages;
@@ -91,4 +92,5 @@ export type Messages = {
   pagination: paginationMessages;
   registerSchedule: registerSchedule;
   profile: profileMessages;
+  configs: Configuration;
 };

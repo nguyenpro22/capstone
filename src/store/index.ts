@@ -1,4 +1,3 @@
-
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import {
@@ -51,7 +50,10 @@ import {
   customerScheduleQueryApi,
 } from "@/features/customer-schedule/api";
 import { promotionCommandApi } from "@/features/promotion-service/api";
-import { workingScheduleApi, workingScheduleCommandApi } from "@/features/working-schedule/api";
+import {
+  workingScheduleApi,
+  workingScheduleCommandApi,
+} from "@/features/working-schedule/api";
 import { chatApi, inboxApi } from "@/features/inbox/api";
 import { bankApi } from "@/features/bank/api";
 import { doctorServiceCommandApi } from "@/features/doctor-service/api";
@@ -62,8 +64,12 @@ import {
 } from "@/features/customer-wallet/api";
 import { clinicManagerDashboardQueryApi } from "@/features/dashboard/api";
 import { walletWithdrawCommandApi } from "@/features/clinic-wallet/api";
-import { walletTransactionCommandApi, walletTransactionQueryApi } from "@/features/wallet-transaction/api";
+import {
+  walletTransactionCommandApi,
+  walletTransactionQueryApi,
+} from "@/features/wallet-transaction/api";
 import { livestreamQueryApi } from "@/features/livestream/api";
+import { configsCommandApi, configsQueryApi } from "@/features/configs/api";
 import { userQueryApi } from "@/features/user/api";
 
 // Redux Persist config
@@ -115,18 +121,20 @@ const rootReducer = combineReducers({
   [chatApi.reducerPath]: chatApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [orderQueryApi.reducerPath]: orderQueryApi.reducer,
-  [clinicManagerDashboardQueryApi.reducerPath]: clinicManagerDashboardQueryApi.reducer,
+  [clinicManagerDashboardQueryApi.reducerPath]:
+    clinicManagerDashboardQueryApi.reducer,
   [walletQueryApi.reducerPath]: walletQueryApi.reducer,
   [walletCommandApi.reducerPath]: walletCommandApi.reducer,
   [walletWithdrawCommandApi.reducerPath]: walletWithdrawCommandApi.reducer,
   [walletTransactionQueryApi.reducerPath]: walletTransactionQueryApi.reducer,
-  [walletTransactionCommandApi.reducerPath]: walletTransactionCommandApi.reducer,
+  [walletTransactionCommandApi.reducerPath]:
+    walletTransactionCommandApi.reducer,
 
   [userCommandApi.reducerPath]: userCommandApi.reducer,
   [livestreamQueryApi.reducerPath]: livestreamQueryApi.reducer,
+  [configsQueryApi.reducerPath]: configsQueryApi.reducer,
+  [configsCommandApi.reducerPath]: configsCommandApi.reducer,
   [userQueryApi.reducerPath]: userQueryApi.reducer,
-
-
 });
 
 // Persisted reducer
@@ -184,8 +192,9 @@ const store = configureStore({
       walletTransactionQueryApi.middleware,
       walletTransactionCommandApi.middleware,
       livestreamQueryApi.middleware,
-      userQueryApi.middleware,
-
+      configsQueryApi.middleware,
+      configsCommandApi.middleware,
+      userQueryApi.middleware
     ),
 });
 

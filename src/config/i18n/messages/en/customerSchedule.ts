@@ -1,4 +1,4 @@
-import type { Messages } from "../types"
+import type { Messages } from "../types";
 
 export const customerScheduleMessage: Messages["customerSchedule"] = {
   customerSchedules: "Customer Schedules",
@@ -68,12 +68,14 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   // New translations for early check-in
   earlyCheckInTitle: "Early Check-In",
   earlyCheckInDescription: "This customer is arriving earlier than scheduled",
-  earlyCheckInWarning: "This check-in is {minutes} minutes earlier than the scheduled time",
+  earlyCheckInWarning:
+    "This check-in is {minutes} minutes earlier than the scheduled time",
   scheduledTime: "Scheduled time",
   proceedWithEarlyCheckIn: "Proceed with early check-in",
   processing: "Processing...",
   // Follow-up modal translations
-  selectDateTimeForNextAppointment: "Select a date and time for the next appointment for",
+  selectDateTimeForNextAppointment:
+    "Select a date and time for the next appointment for",
   loadingAppointmentDetails: "Loading appointment details...",
   selectDate: "Select date",
   confirm: "Confirm",
@@ -85,7 +87,8 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   afternoon: "Afternoon",
   evening: "Evening",
   noAvailableTimes: "No Available Times",
-  doctorFullyBooked: "The doctor is fully booked on this date. Please select another date.",
+  doctorFullyBooked:
+    "The doctor is fully booked on this date. Please select another date.",
   selectedAppointment: "Selected appointment:",
   scheduling: "Scheduling...",
   // Payment modal translations
@@ -123,7 +126,8 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   proceedToCheckout: "Proceed to Checkout",
   // Next schedule notification translations
   followUpRequired: "Follow-up Required",
-  multipleFollowUpsNeeded: "{count} patients need to schedule their next appointment.",
+  multipleFollowUpsNeeded:
+    "{count} patients need to schedule their next appointment.",
   singleFollowUpNeeded: "{name} needs to schedule their next appointment.",
   // Follow-up selection modal translations
   selectAppointmentForFollowUp: "Select Appointment for Follow-up",
@@ -146,9 +150,12 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   selectFromOptions: "Select from options",
   enterSpecificTime: "Enter specific time",
   timeFormatHint: "Enter time in 24-hour format (e.g., 15:15)",
-  invalidTimeFormat: "Invalid time format. Please use HH:MM format (e.g., 15:15)",
-  timeNotAvailable: "This time is not available. Please select a time within doctor's available hours",
-  selectDateTimeForChangeAppointment: "Select a date and time to change appointment for customer",
+  invalidTimeFormat:
+    "Invalid time format. Please use HH:MM format (e.g., 15:15)",
+  timeNotAvailable:
+    "This time is not available. Please select a time within doctor's available hours",
+  selectDateTimeForChangeAppointment:
+    "Select a date and time to change appointment for customer",
   // Wallet balance related translations
   walletBalance: "Wallet Balance",
   sufficientBalanceMessage:
@@ -160,7 +167,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   usePartialWalletBalance: "Yes, Use Partial Wallet Balance",
   payWithoutWallet: "No, Pay Without Wallet",
   partialWalletPaymentInfo:
-  "{walletAmount} will be deducted from your wallet. Please select a payment method for the remaining {remainingAmount}.",
+    "{walletAmount} will be deducted from your wallet. Please select a payment method for the remaining {remainingAmount}.",
   confirmPayment: "Confirm Payment",
   back: "Back",
-}
+};

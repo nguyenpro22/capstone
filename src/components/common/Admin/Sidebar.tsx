@@ -130,7 +130,7 @@ const menuItems = {
     { label: "liveStream", path: "/clinicManager/live-stream", icon: Video },
     { label: "profile", path: "/clinicManager/profile", icon: UserCircle },
     { label: "wallet", path: "/clinicManager/wallet", icon: CreditCard },
-    { label: "settings", path: "/clinicManager/settings", icon: Settings },
+    { label: "configs", path: "/clinicManager/configuration", icon: Settings },
   ],
   clinicStaff: [
     {

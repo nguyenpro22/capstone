@@ -95,20 +95,22 @@ export function BookingSuccess({
             <div className="border-t border-green-200 dark:border-green-800/30 pt-3">
               <div className="text-left">
                 <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t("customer")}:
+                  {t("customer.customer")}:
                 </h3>
                 <div className="grid grid-cols-1 gap-2 pl-2">
                   <div className="text-gray-800 dark:text-gray-200">
-                    <span className="font-medium">{t("name")}:</span>{" "}
+                    <span className="font-medium">{t("customer.name")}:</span>{" "}
                     {customerInfo.name}
                   </div>
                   <div className="text-gray-800 dark:text-gray-200">
-                    <span className="font-medium">{t("phone")}:</span>{" "}
+                    <span className="font-medium">{t("customer.phone")}:</span>{" "}
                     {customerInfo.phone}
                   </div>
                   {customerInfo.email && (
                     <div className="text-gray-800 dark:text-gray-200">
-                      <span className="font-medium">{t("email")}:</span>{" "}
+                      <span className="font-medium">
+                        {t("customer.email")}:
+                      </span>{" "}
                       {customerInfo.email}
                     </div>
                   )}
