@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, CheckCircle, X } from "lucide-react";
+import { Clock, MapPin, CheckCircle, X, AlertCircle } from "lucide-react";
 import type { ClinicShiftSchedule } from "@/features/doctor/types";
 
 interface ShiftDetailsModalProps {
@@ -21,6 +21,7 @@ interface ShiftDetailsModalProps {
   onClose: () => void;
   onSelect: (shift: ClinicShiftSchedule) => void;
   isSelected: boolean;
+  isDisabled?: boolean;
 }
 
 export function ShiftDetailsModal({
@@ -29,6 +30,7 @@ export function ShiftDetailsModal({
   onClose,
   onSelect,
   isSelected,
+  isDisabled = false,
 }: ShiftDetailsModalProps) {
   const t = useTranslations("registerSchedule");
 
@@ -116,9 +118,21 @@ export function ShiftDetailsModal({
             <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
               {t("status")}
             </div>
-            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-              {t("available")}
+            <Badge
+              className={
+                isDisabled
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+              }
+            >
+              {isDisabled ? t("unavailable") : t("available")}
             </Badge>
+            {isDisabled && (
+              <div className="mt-2 flex items-center gap-2 text-red-500 dark:text-red-400 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {t("shiftOverlapsWarning")}
+              </div>
+            )}
           </div>
         </div>
 
@@ -134,9 +148,12 @@ export function ShiftDetailsModal({
             </Button>
             <Button
               onClick={handleSelect}
+              disabled={!isSelected && isDisabled}
               className={`flex-1 ${
                 isSelected
                   ? "bg-red-600 hover:bg-red-700"
+                  : isDisabled
+                  ? "bg-slate-400 dark:bg-slate-600 cursor-not-allowed"
                   : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               }`}
             >

@@ -71,6 +71,7 @@ export const doctorQueryApi = createApi({
         pageSize = 10,
       }) => ({
         url: `/working-schedules/${clinicId}/unregistered`,
+        method: "GET",
         params: {
           searchTerm,
           sortColumn,
@@ -101,6 +102,7 @@ export const doctorCommandApi = createApi({
       {
         query: (body) => ({
           url: `/working-schedules/doctor/schedules`,
+          method: "POST",
           body,
         }),
         transformErrorResponse: (response: {

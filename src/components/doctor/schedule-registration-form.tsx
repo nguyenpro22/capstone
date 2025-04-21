@@ -82,9 +82,10 @@ export function ScheduleRegistrationForm({
       const workingScheduleIds = selectedShifts.map(
         (shift) => shift.workingScheduleId
       );
+      console.log(workingScheduleIds);
 
       await registerSchedule({
-        clinicId: clinicId || "c0b7058f-8e72-4dee-8742-0df6206d1843",
+        clinicId: clinicId || "",
         workingScheduleIds,
       }).unwrap();
 
