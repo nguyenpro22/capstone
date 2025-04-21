@@ -461,7 +461,7 @@ export default function WorkingSchedulePage() {
             // Nếu chưa từng có, tạo mới với giá trị mặc định
             return {
               date: formattedDate,
-              capacity: 20, // Giá trị mặc định
+              capacity: 10, // Giá trị mặc định
               timeSlots: [
                 { startTime: "08:00", endTime: "12:00", capacity: 10 },
               ],
@@ -523,7 +523,7 @@ export default function WorkingSchedulePage() {
         // Nếu không có dữ liệu từ API, tạo mới với giá trị mặc định
         return {
           date: formattedDate,
-          capacity: 20, // Giá trị mặc định
+          capacity: 10, // Giá trị mặc định
           timeSlots: [{ startTime: "08:00", endTime: "12:00", capacity: 10 }],
           shiftGroupId: "",
           numberOfDoctors: "0",

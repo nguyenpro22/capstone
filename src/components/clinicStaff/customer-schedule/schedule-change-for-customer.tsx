@@ -465,7 +465,7 @@ export default function ScheduleFollowUpModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{t("scheduleFollowUp")}</DialogTitle>
+            <DialogTitle>{t("reschedule")}</DialogTitle>
             <DialogDescription>
               {t("loadingAppointmentDetails")}
             </DialogDescription>
@@ -482,9 +482,9 @@ export default function ScheduleFollowUpModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>{t("scheduleFollowUp")}</DialogTitle>
+          <DialogTitle>{t("reschedule")}</DialogTitle>
           <DialogDescription>
-            {t("selectDateTimeForNextAppointment")} {schedule?.customerName}.
+            {t("selectDateTimeForChangeAppointment")} {schedule?.customerName}.
           </DialogDescription>
         </DialogHeader>
 
