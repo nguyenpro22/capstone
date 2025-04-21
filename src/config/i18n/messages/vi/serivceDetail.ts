@@ -77,7 +77,7 @@ export const serviceDetail: Messages["serviceDetail"] = {
   includedConsultation: "Bao gồm tư vấn với chuyên gia",
   includedAftercare: "Bao gồm sản phẩm chăm sóc sau",
   includedFollowup: "Bao gồm cuộc hẹn theo dõi",
-  refundable: "Đặt cọc hoàn lại",
+  refundable: "Hoàn tiền theo giai đoạn",
   bookNow: "Đặt lịch ngay",
   chatWithUs: "Trò chuyện với chúng tôi",
   instantSupport: "Cần hỗ trợ ngay?",

@@ -77,7 +77,7 @@ export const serviceDetail: Messages["serviceDetail"] = {
   includedConsultation: "Included consultation with specialist",
   includedAftercare: "Included aftercare products",
   includedFollowup: "Included follow-up appointment",
-  refundable: "Refundable deposit",
+  refundable: "Refundable by procedure",
   bookNow: "Book Now",
   chatWithUs: "Chat with Us",
   instantSupport: "Need instant support?",

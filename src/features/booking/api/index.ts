@@ -2,11 +2,10 @@ import { IListResponse, IResCommon, reAuthQuery } from "@/lib/api";
 import { createApi } from "@reduxjs/toolkit/query/react";
 import {
   AppointmentDetail,
+  AvailableTime,
   Booking,
   BookingRequest,
   CustomerSchedule,
-  Order,
-  TimeSlot,
 } from "../types";
 import { OrderItem } from "@/features/order/types";
 
@@ -43,13 +42,25 @@ export const bookingQueryApi = createApi({
         },
       }),
     }),
-    getBusyTimes: builder.query<
-      IResCommon<TimeSlot[]>,
-      { doctorId: string; clinicId: string; date: string }
+    getAvalableTimes: builder.query<
+      IResCommon<AvailableTime[]>,
+      {
+        doctorId: string;
+        serviceIdOrCustomerScheduleId: string;
+        clinicId: string;
+        date: string;
+      }
     >({
-      query: ({ doctorId, clinicId, date }) => ({
-        url: `/working-schedules/doctors/busy-times?doctorId=${doctorId}&clinicId=${clinicId}&date=${date}`,
+      query: ({ doctorId, serviceIdOrCustomerScheduleId, clinicId, date }) => ({
+        url: `/working-schedules/doctors/available-times`,
         method: "GET",
+        params: {
+          doctorId,
+          serviceIdOrCustomerScheduleId,
+          clinicId,
+          isCustomerSchedule: "false",
+          date,
+        },
       }),
     }),
     getBookingById: builder.query<IResCommon<Booking>, string>({
@@ -130,7 +141,7 @@ export const bookingCommandApi = createApi({
 export const {
   useGetBookingsQuery,
   useGetBookingByIdQuery,
-  useGetBusyTimesQuery,
+  useGetAvalableTimesQuery,
   useGetAppointmentsTotalQuery,
   useLazyGetAppointmentsTotalQuery,
   useGetAppointmentsByDateQuery,

@@ -549,85 +549,6 @@ function Footer(): JSX.Element {
   );
 }
 
-// Stats Section Component
-function StatsSection(): JSX.Element {
-  return (
-    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 py-12 my-16">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <motion.div
-            className="p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h4 className="text-3xl font-bold text-purple-900 dark:text-purple-300 mb-1">
-              10,000+
-            </h4>
-            <p className="text-gray-600 dark:text-gray-400">
-              Khách hàng hài lòng
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            viewport={{ once: true }}
-          >
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Star className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h4 className="text-3xl font-bold text-purple-900 dark:text-purple-300 mb-1">
-              4.9
-            </h4>
-            <p className="text-gray-600 dark:text-gray-400">
-              Đánh giá trung bình
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MapPin className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h4 className="text-3xl font-bold text-purple-900 dark:text-purple-300 mb-1">
-              20+
-            </h4>
-            <p className="text-gray-600 dark:text-gray-400">Địa điểm</p>
-          </motion.div>
-
-          <motion.div
-            className="p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            viewport={{ once: true }}
-          >
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h4 className="text-3xl font-bold text-purple-900 dark:text-purple-300 mb-1">
-              100%
-            </h4>
-            <p className="text-gray-600 dark:text-gray-400">Đảm bảo hài lòng</p>
-          </motion.div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // Main component
 export default function ServicesPage(): JSX.Element {
   const t = useTranslations("serviceMessage.serviceMessage");
@@ -1005,7 +926,7 @@ export default function ServicesPage(): JSX.Element {
               </CardContent>
             </Card>
 
-            {/* Featured Service */}
+            {/* Featured Service
             {services.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -1019,7 +940,7 @@ export default function ServicesPage(): JSX.Element {
                 </h3>
                 <FeaturedServiceCard service={services[0]} />
               </motion.div>
-            )}
+            )} */}
           </motion.div>
 
           {/* Services Grid - Redesigned */}
@@ -1080,98 +1001,89 @@ export default function ServicesPage(): JSX.Element {
                   </div>
                 )}
 
-                {/* Stats Section */}
-                {pageIndex === 1 && !isSearching && <StatsSection />}
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <Pagination className="mt-12">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (servicesData.value.hasPreviousPage) {
-                              handlePreviousPage();
-                            }
-                          }}
-                          className={`${
-                            !servicesData.value.hasPreviousPage
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          } dark:text-gray-300 dark:hover:text-white`}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </PaginationPrevious>
-                      </PaginationItem>
-
-                      {Array.from(
-                        { length: Math.min(5, totalPages) },
-                        (_, i) => {
-                          let pageNum = i + 1;
-                          if (totalPages > 5) {
-                            if (pageIndex <= 3) {
-                              // Near the start
-                              pageNum = i + 1;
-                            } else if (pageIndex >= totalPages - 2) {
-                              // Near the end
-                              pageNum = totalPages - 4 + i;
-                            } else {
-                              // In the middle
-                              pageNum = pageIndex - 2 + i;
-                            }
+                <Pagination className="mt-12">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (servicesData.value.hasPreviousPage) {
+                            handlePreviousPage();
                           }
+                        }}
+                        className={`${
+                          !servicesData.value.hasPreviousPage
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        } dark:text-gray-300 dark:hover:text-white`}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </PaginationPrevious>
+                    </PaginationItem>
 
-                          return (
-                            <PaginationItem key={pageNum}>
-                              <PaginationLink
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setPageIndex(pageNum);
-                                  window.scrollTo({
-                                    top: 450,
-                                    behavior: "smooth",
-                                  });
-                                }}
-                                isActive={pageIndex === pageNum}
-                                className="dark:text-gray-300 dark:hover:text-white"
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum = i + 1;
+                      if (totalPages > 5) {
+                        if (pageIndex <= 3) {
+                          // Near the start
+                          pageNum = i + 1;
+                        } else if (pageIndex >= totalPages - 2) {
+                          // Near the end
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          // In the middle
+                          pageNum = pageIndex - 2 + i;
                         }
-                      )}
+                      }
 
-                      {totalPages > 5 && pageIndex < totalPages - 2 && (
-                        <PaginationItem>
-                          <PaginationEllipsis className="dark:text-gray-300" />
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPageIndex(pageNum);
+                              window.scrollTo({
+                                top: 450,
+                                behavior: "smooth",
+                              });
+                            }}
+                            isActive={pageIndex === pageNum}
+                            className="dark:text-gray-300 dark:hover:text-white"
+                          >
+                            {pageNum}
+                          </PaginationLink>
                         </PaginationItem>
-                      )}
+                      );
+                    })}
 
+                    {totalPages > 5 && pageIndex < totalPages - 2 && (
                       <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (servicesData.value.hasNextPage) {
-                              handleNextPage();
-                            }
-                          }}
-                          className={`${
-                            !servicesData.value.hasNextPage
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          } dark:text-gray-300 dark:hover:text-white`}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </PaginationNext>
+                        <PaginationEllipsis className="dark:text-gray-300" />
                       </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (servicesData.value.hasNextPage) {
+                            handleNextPage();
+                          }
+                        }}
+                        className={`${
+                          !servicesData.value.hasNextPage
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        } dark:text-gray-300 dark:hover:text-white`}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </PaginationNext>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </>
             ) : (
               <motion.div
