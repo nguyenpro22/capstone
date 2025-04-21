@@ -1,4 +1,4 @@
-import type { Messages } from "../types"
+import type { Messages } from "../types";
 
 export const sidebarMessages: Messages["sidebar"] = {
   // Common sidebar items
@@ -27,6 +27,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   doctorManagement: "Doctor Management",
   buyPackage: "Buy Package",
   liveStream: "Live Stream",
+  configs: "Configs",
 
   // Clinic Staff items
   scheduleApproval: "Schedule Approval",
@@ -44,7 +45,8 @@ export const sidebarMessages: Messages["sidebar"] = {
 
   // Logout dialog
   logoutConfirmTitle: "Are you sure you want to logout?",
-  logoutConfirmDescription: "This will end your session and log you out of the system.",
+  logoutConfirmDescription:
+    "This will end your session and log you out of the system.",
   cancel: "Cancel",
 
   // Clinic Manager items
@@ -55,6 +57,6 @@ export const sidebarMessages: Messages["sidebar"] = {
   // New translations for mobile sidebar
   lightMode: "Light Mode",
   darkMode: "Dark Mode",
-  workingSchedule:" Working Schedule",
-  branchRequest: "Branch Request"
-}
+  workingSchedule: " Working Schedule",
+  branchRequest: "Branch Request",
+};

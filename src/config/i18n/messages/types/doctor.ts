@@ -70,6 +70,7 @@ type Sidebar = {
   language: string;
   signout: string;
   settings: string;
+  configs: string;
 };
 
 export type doctor = {

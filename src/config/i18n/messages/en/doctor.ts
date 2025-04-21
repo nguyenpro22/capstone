@@ -72,5 +72,6 @@ export const doctor: Messages["doctorService"] = {
     language: "Language",
     signout: "Sign Out",
     settings: "Settings",
+    configs: "Configs",
   },
 };

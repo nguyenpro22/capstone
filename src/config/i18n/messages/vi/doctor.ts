@@ -72,5 +72,6 @@ export const doctor: Messages["doctorService"] = {
     language: "Ngôn Ngữ",
     signout: "Đăng Xuất",
     settings: "Cài Đặt",
+    configs: "Thiết lập",
   },
 };

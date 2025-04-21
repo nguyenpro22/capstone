@@ -1,16 +1,20 @@
-import { IListResponse } from './../../../lib/api/type';
+import { IListResponse } from "./../../../lib/api/type";
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { IResCommon } from "@/lib/api";
-import { AvailableSlot, BusyTimeSlot, WorkingSchedule, WorkingScheduleDetail } from "../types";
-
+import {
+  AvailableSlot,
+  BusyTimeSlot,
+  WorkingSchedule,
+  WorkingScheduleDetail,
+} from "../types";
 
 export const workingScheduleApi = createApi({
   reducerPath: "workingScheduleApi",
   baseQuery: reAuthQuery("query"),
   endpoints: (builder) => ({
     getDoctorBusyTimes: builder.query<
-    IResCommon<BusyTimeSlot[]>,
+      IResCommon<BusyTimeSlot[]>,
       { doctorId: string; clinicId: string; date: string }
     >({
       query: ({ doctorId, clinicId, date }) => ({
@@ -20,50 +24,50 @@ export const workingScheduleApi = createApi({
       }),
     }),
     getWorkingSchedule: builder.query<
-    IResCommon<IListResponse<WorkingSchedule>>,
-          {
-            pageIndex?: number;
-            pageSize?: number;
-            searchTerm?: string;
-            sortColumn?: string;
-            sortOrder?: string;
-          }
-        >({
-          query: ({
-            pageIndex = 1,
-            pageSize = 10,
-            searchTerm = "",
-            sortColumn = "",
-            sortOrder = "",
-          }) => ({
-            url: `/working-schedules/clinics`,
-            method: "GET",
-            params: {
-              pageIndex,
-              pageSize,
-              searchTerm,
-              sortColumn,
-              sortOrder,
-            },
-          }),
-        }),
+      IResCommon<IListResponse<WorkingSchedule>>,
+      {
+        pageIndex?: number;
+        pageSize?: number;
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+      }
+    >({
+      query: ({
+        pageIndex = 1,
+        pageSize = 10,
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+      }) => ({
+        url: `/working-schedules/clinics`,
+        method: "GET",
+        params: {
+          pageIndex,
+          pageSize,
+          searchTerm,
+          sortColumn,
+          sortOrder,
+        },
+      }),
+    }),
 
     getDoctorAvailableTimes: builder.query<
       IResCommon<AvailableSlot[]>,
       {
-        serviceIdOrCustomerScheduleId: string
-        isCustomerSchedule: true
-        date: string
+        serviceIdOrCustomerScheduleId: string;
+        isCustomerSchedule: true;
+        date: string;
       }
     >({
-      query: ({  serviceIdOrCustomerScheduleId, isCustomerSchedule, date }) => ({
+      query: ({ serviceIdOrCustomerScheduleId, isCustomerSchedule, date }) => ({
         url: `working-schedules/doctors/available-times`,
         method: "GET",
-        params: {  serviceIdOrCustomerScheduleId, isCustomerSchedule, date },
+        params: { serviceIdOrCustomerScheduleId, isCustomerSchedule, date },
       }),
     }),
-  getWorkingSchedulesByShiftGroup: builder.query<
-  IResCommon<IListResponse<WorkingScheduleDetail>>,
+    getWorkingSchedulesByShiftGroup: builder.query<
+      IResCommon<IListResponse<WorkingScheduleDetail>>,
       {
         shiftGroupId: string;
         pageNumber?: number;
@@ -99,26 +103,24 @@ export const workingScheduleCommandApi = createApi({
   baseQuery: reAuthQuery("command"),
   endpoints: (builder) => ({
     createClinicSchedules: builder.mutation<
-    void,
-      {   workingDates: WorkingSchedule[]  }
-  >({
-    query: ( data ) => ({
-      url: `working-schedules/schedules`,
-      method: "POST",
-      body: data,
+      IResCommon<string>,
+      { workingDates: WorkingSchedule[] }
+    >({
+      query: (body) => ({
+        url: `working-schedules/schedules`,
+        method: "POST",
+        body,
       }),
     }),
   }),
 });
-  // Thêm endpoint để tạo lịch làm việc mới
- 
+// Thêm endpoint để tạo lịch làm việc mới
+
 export const {
   useGetDoctorBusyTimesQuery,
   useLazyGetDoctorBusyTimesQuery,
   useLazyGetDoctorAvailableTimesQuery,
   useGetWorkingScheduleQuery,
-  useGetWorkingSchedulesByShiftGroupQuery
+  useGetWorkingSchedulesByShiftGroupQuery,
 } = workingScheduleApi;
-export const {
-useCreateClinicSchedulesMutation
-} = workingScheduleCommandApi;
+export const { useCreateClinicSchedulesMutation } = workingScheduleCommandApi;

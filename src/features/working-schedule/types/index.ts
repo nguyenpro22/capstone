@@ -1,51 +1,46 @@
-
-
 export interface BusyTimeSlot {
-    start: string;
-    end: string;
-    date: string;
-  }
-  export interface AvailableSlot {
-    startTime: string;
-    endTime: string;
-    date: string;
-  }
-  
-  export  interface AvailableTimesResponse {
-    value: AvailableSlot[]
-    isSuccess: boolean
-    isFailure: boolean
-    error: {
-      code: string
-      message: string
-    }
-  }
-export  interface BusyTimesResponse {
-    value: BusyTimeSlot[]
-    isSuccess: boolean
-    isFailure: boolean
-    error: {
-      code: string
-      message: string
-    }
-  }
+  start: string;
+  end: string;
+  date: string;
+}
+export interface AvailableSlot {
+  startTime: string;
+  endTime: string;
+  date: string;
+}
 
- export interface TimeSlot {
-  startTime: string
-  endTime: string
-  capacity: number
+export interface AvailableTimesResponse {
+  value: AvailableSlot[];
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
+}
+export interface BusyTimesResponse {
+  value: BusyTimeSlot[];
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
+}
+
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+  capacity: number;
 }
 
 // WorkingSchedule interface that matches the API expectation
 export interface WorkingSchedule {
-  shiftGroupId: string
-  numberOfDoctors: string
-  numberOfCustomers:string
-  date: string
-  capacity: number
-  startTime?: string
-  endTime?: string
+  shiftGroupId: string;
+  date: string;
+  capacity: number;
 }
+
 export interface WorkingScheduleDetail {
   workingScheduleId: string;
   doctorId: string | null;
@@ -65,9 +60,9 @@ export interface WorkingScheduleDetail {
 }
 // Extended WorkingSchedule for UI with timeSlots
 export interface ExtendedWorkingSchedule {
-  date: string
-  capacity: number
-  timeSlots?: TimeSlot[]
+  date: string;
+  capacity: number;
+  timeSlots?: TimeSlot[];
 }
 
 export interface WorkingScheduleResponse {
