@@ -144,9 +144,23 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   atThisClinic: "at this clinic",
   enterCustomTime: "Enter custom time",
   selectFromOptions: "Select from options",
-    enterSpecificTime: "Enter specific time",
-    timeFormatHint: "Enter time in 24-hour format (e.g., 15:15)",
-    invalidTimeFormat: "Invalid time format. Please use HH:MM format (e.g., 15:15)",
-    timeNotAvailable: "This time is not available. Please select a time within doctor's available hours",
-    selectDateTimeForChangeAppointment: "Select a date and time to change appointment for customer"
+  enterSpecificTime: "Enter specific time",
+  timeFormatHint: "Enter time in 24-hour format (e.g., 15:15)",
+  invalidTimeFormat: "Invalid time format. Please use HH:MM format (e.g., 15:15)",
+  timeNotAvailable: "This time is not available. Please select a time within doctor's available hours",
+  selectDateTimeForChangeAppointment: "Select a date and time to change appointment for customer",
+  // Wallet balance related translations
+  walletBalance: "Wallet Balance",
+  sufficientBalanceMessage:
+    "Your wallet balance is sufficient to cover this payment. Would you like to use your wallet balance?",
+  insufficientBalanceMessage:
+    "Your wallet balance is insufficient to cover the full amount. Would you like to use your available balance and pay the remaining amount?",
+  walletAmount: "Wallet Amount",
+  useWalletBalance: "Yes, Use Wallet Balance",
+  usePartialWalletBalance: "Yes, Use Partial Wallet Balance",
+  payWithoutWallet: "No, Pay Without Wallet",
+  partialWalletPaymentInfo:
+  "{walletAmount} will be deducted from your wallet. Please select a payment method for the remaining {remainingAmount}.",
+  confirmPayment: "Confirm Payment",
+  back: "Back",
 }

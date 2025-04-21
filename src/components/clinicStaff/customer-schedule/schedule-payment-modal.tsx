@@ -32,10 +32,13 @@ import {
   Percent,
   Receipt,
   Tag,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useCreateOrderPaymentMutation } from "@/features/payment/api";
+import { useGetUserBalanceQuery } from "@/features/user/api";
+
 import type { CustomerSchedule } from "@/features/customer-schedule/types";
 import PaymentService from "@/hooks/usePaymentStatus";
 import { useUpdateScheduleStatusMutation } from "@/features/customer-schedule/api";
@@ -56,6 +59,13 @@ export default function SchedulePaymentModal({
   onClose,
   onSuccess,
 }: SchedulePaymentModalProps) {
+  const [walletBalance, setWalletBalance] = useState<string | null>(null);
+  const [useWalletBalance, setUseWalletBalance] = useState<boolean | null>(
+    null
+  );
+  const [showBalanceConfirmation, setShowBalanceConfirmation] =
+    useState<boolean>(false);
+  const [showPaymentMethods, setShowPaymentMethods] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<string>("qr");
   const [paymentStatus, setPaymentStatus] = useState<
     "idle" | "processing" | "success" | "failed"
@@ -83,6 +93,16 @@ export default function SchedulePaymentModal({
   const [generateSchedules, { isLoading: isGeneratingSchedules }] =
     useGenerateSchedulesMutation();
   const t = useTranslations("customerSchedule");
+  // Track the remaining amount to pay (after deducting wallet balance)
+  const [remainingAmount, setRemainingAmount] = useState<number | null>(null);
+
+  const {
+    data: balanceData,
+    isLoading: isLoadingBalance,
+    refetch: refetchBalance,
+  } = useGetUserBalanceQuery(schedule?.userId || "", {
+    skip: !schedule?.userId,
+  });
 
   useEffect(() => {
     if (!transactionId) return;
@@ -242,6 +262,22 @@ export default function SchedulePaymentModal({
     };
   }, [countdown, showQR, transactionId, isTimedOut]);
 
+  // Calculate remaining amount when wallet balance or useWalletBalance changes
+  useEffect(() => {
+    if (schedule && useWalletBalance && walletBalance) {
+      const totalAmount = schedule.amount || 0;
+      const balance = Number.parseFloat(walletBalance);
+
+      if (balance < totalAmount) {
+        setRemainingAmount(totalAmount - balance);
+      } else {
+        setRemainingAmount(0);
+      }
+    } else {
+      setRemainingAmount(null);
+    }
+  }, [walletBalance, useWalletBalance, schedule]);
+
   if (!schedule) return null;
 
   const formatPrice = (price: number) => {
@@ -276,6 +312,32 @@ export default function SchedulePaymentModal({
     return Math.round((schedule.discountAmount / schedule.servicePrice) * 100);
   };
 
+  const handleProceedToPayment = async () => {
+    if (!schedule || !schedule.userId) return;
+
+    setPaymentStatus("processing");
+
+    try {
+      // Fetch the latest balance
+      await refetchBalance().unwrap();
+
+      if (balanceData?.isSuccess && balanceData?.value) {
+        setWalletBalance(balanceData.value);
+        setShowBalanceConfirmation(true);
+        setPaymentStatus("idle");
+      } else {
+        // If we can't get the balance, proceed directly to payment methods
+        setShowPaymentMethods(true);
+        setPaymentStatus("idle");
+      }
+    } catch (error) {
+      console.error("Failed to fetch balance:", error);
+      // If balance fetch fails, still allow payment methods
+      setShowPaymentMethods(true);
+      setPaymentStatus("idle");
+    }
+  };
+
   const handlePayment = async () => {
     if (!schedule) return;
 
@@ -286,11 +348,49 @@ export default function SchedulePaymentModal({
       // Use the amount field which is the total amount to be paid
       const amount = schedule.amount || 100000; // Default amount if not available
 
-      const result = await createOrderPayment({
-        id: schedule.orderId,
-        amount: amount,
-        paymentMethod: paymentMethod,
-      }).unwrap();
+      // IMPORTANT: Force isDeductFromCustomerBalance to true when useWalletBalance is true
+      // This is a workaround for the state timing issue
+      const currentUseWalletBalance = useWalletBalance;
+      const isDeductFromCustomerBalance = currentUseWalletBalance === true;
+
+      // Debug log to verify the value
+      console.log("Current useWalletBalance state:", currentUseWalletBalance);
+      console.log("isDeductFromCustomerBalance:", isDeductFromCustomerBalance);
+
+      // IMPORTANT: If using wallet balance, set paymentMethod to "balance"
+      // Otherwise, use the selected payment method
+      const effectivePaymentMethod =
+        currentUseWalletBalance === true ? "balance" : paymentMethod;
+
+      // Debug log for payment method
+      console.log("effectivePaymentMethod:", effectivePaymentMethod);
+
+      // Calculate the amount to be paid via the selected payment method
+      // If using wallet balance and it's insufficient, use the remaining amount
+      // Otherwise, use the full amount
+      const amountToPay =
+        currentUseWalletBalance === true &&
+        walletBalance &&
+        Number.parseFloat(walletBalance) < amount &&
+        remainingAmount !== null
+          ? remainingAmount
+          : amount;
+
+      console.log("Amount to pay:", amountToPay);
+
+      // Make sure isDeductFromCustomerBalance is always true when useWalletBalance is true
+      const paymentParams = {
+        orderId: schedule.orderId,
+        paymentMethod: effectivePaymentMethod,
+        // Force to true if we know the user selected to use wallet balance
+        isDeductFromCustomerBalance: currentUseWalletBalance === true,
+        // Add the amount to pay if it's different from the total amount
+        amount: amountToPay !== amount ? amountToPay : undefined,
+      };
+
+      console.log("Payment params:", paymentParams);
+
+      const result = await createOrderPayment(paymentParams).unwrap();
 
       if (result.isSuccess && result.value.qrUrl) {
         setQrUrl(result.value.qrUrl);
@@ -303,13 +403,20 @@ export default function SchedulePaymentModal({
         setShowQR(true);
         setCountdown(59); // Reset countdown to 59 seconds
         setIsTimedOut(false);
-      } else if (paymentMethod === "cash") {
-        // For cash payments, show success immediately
+      } else if (
+        effectivePaymentMethod === "balance" ||
+        effectivePaymentMethod === "cash"
+      ) {
+        // For wallet or cash payments, show success immediately
         setPaymentStatus("success");
         setShowPaymentResult(true);
-        toast.success("Cash payment recorded successfully!");
+        toast.success(
+          currentUseWalletBalance
+            ? "Wallet payment successful!"
+            : "Cash payment recorded successfully!"
+        );
 
-        // Update schedule status to Completed for cash payments
+        // Update schedule status to Completed for cash/wallet payments
         if (schedule && schedule.id) {
           try {
             await updateScheduleStatus({
@@ -318,7 +425,7 @@ export default function SchedulePaymentModal({
             }).unwrap();
             console.log("Schedule status updated to Completed");
 
-            // Generate follow-up schedules for cash payments
+            // Generate follow-up schedules for cash/wallet payments
             if (schedule.id) {
               try {
                 await generateSchedules(schedule.id).unwrap();
@@ -328,7 +435,20 @@ export default function SchedulePaymentModal({
               }
             }
 
-            // Automatically close the modal after 2 seconds for cash payments
+            // Refetch data to update UI with latest status
+            if (onSuccess) {
+              onSuccess(); // This should trigger any parent component refetches
+            }
+
+            // If there are any specific queries that need refetching, do it here
+            try {
+              // Refetch balance to show updated wallet amount
+              refetchBalance();
+            } catch (error) {
+              console.error("Failed to refetch data:", error);
+            }
+
+            // Automatically close the modal after 2 seconds for cash/wallet payments
             setTimeout(() => {
               onClose();
               router.push("/clinicStaff/customer-schedule");
@@ -379,6 +499,10 @@ export default function SchedulePaymentModal({
     setErrorMessage(null);
     setCountdown(30);
     setIsTimedOut(false);
+    setShowBalanceConfirmation(false);
+    setShowPaymentMethods(false);
+    setUseWalletBalance(null);
+    setRemainingAmount(null);
   };
 
   // Get status badge with updated colors
@@ -413,6 +537,205 @@ export default function SchedulePaymentModal({
     }
   };
 
+  // Modified to ensure state is updated before proceeding
+  const handleWalletBalanceChoice = (useBalance: boolean) => {
+    // Explicitly set useWalletBalance to true or false (not null)
+    setUseWalletBalance(useBalance);
+    console.log("Setting useWalletBalance to:", useBalance);
+
+    setShowBalanceConfirmation(false);
+
+    if (useBalance) {
+      // Calculate remaining amount if wallet balance is insufficient
+      if (walletBalance) {
+        const totalAmount = schedule.amount || 0;
+        const balance = Number.parseFloat(walletBalance);
+
+        if (balance < totalAmount) {
+          setRemainingAmount(totalAmount - balance);
+        } else {
+          setRemainingAmount(0);
+        }
+      }
+
+      // If balance is sufficient, proceed directly with payment
+      if (
+        walletBalance &&
+        Number.parseFloat(walletBalance) >= (schedule?.amount || 0)
+      ) {
+        // Instead of calling handlePayment directly, use a timeout to ensure state is updated
+        setTimeout(() => {
+          // Create a direct payment with wallet balance
+          handleDirectWalletPayment(useBalance);
+        }, 0);
+      } else {
+        // If balance is insufficient but user wants to use it, show payment methods for remaining amount
+        setShowPaymentMethods(true);
+      }
+    } else {
+      // If user doesn't want to use wallet, show payment methods
+      setShowPaymentMethods(true);
+    }
+  };
+
+  // New function to handle direct wallet payments
+  const handleDirectWalletPayment = (useWalletBalanceValue: boolean) => {
+    if (!schedule) return;
+
+    try {
+      setPaymentStatus("processing");
+      setErrorMessage(null);
+
+      // Use the amount field which is the total amount to be paid
+      const amount = schedule.amount || 100000; // Default amount if not available
+
+      // IMPORTANT: Always use the passed value, not the state
+      const isDeductFromCustomerBalance = useWalletBalanceValue;
+
+      console.log(
+        "Direct payment - useWalletBalanceValue:",
+        useWalletBalanceValue
+      );
+      console.log(
+        "Direct payment - isDeductFromCustomerBalance:",
+        isDeductFromCustomerBalance
+      );
+
+      // IMPORTANT: For wallet payments, use "balance" as payment method
+      const effectivePaymentMethod = "balance";
+
+      console.log(
+        "Direct payment - effectivePaymentMethod:",
+        effectivePaymentMethod
+      );
+
+      // Make sure isDeductFromCustomerBalance is always true for wallet payments
+      const paymentParams = {
+        orderId: schedule.orderId,
+        paymentMethod: effectivePaymentMethod,
+        isDeductFromCustomerBalance: true, // Force to true for direct wallet payments
+      };
+
+      console.log("Direct payment - Payment params:", paymentParams);
+
+      createOrderPayment(paymentParams)
+        .unwrap()
+        .then((result) => {
+          // For wallet payments, show success immediately
+          setPaymentStatus("success");
+          setShowPaymentResult(true);
+          toast.success("Wallet payment successful!");
+
+          // Update schedule status to Completed
+          if (schedule && schedule.id) {
+            updateScheduleStatus({
+              scheduleId: schedule.id,
+              status: "Completed",
+            })
+              .unwrap()
+              .then(() => {
+                console.log("Schedule status updated to Completed");
+
+                // Generate follow-up schedules
+                if (schedule.id) {
+                  generateSchedules(schedule.id)
+                    .unwrap()
+                    .then(() => {
+                      console.log("Follow-up schedules generated successfully");
+                    })
+                    .catch((error) => {
+                      console.error(
+                        "Failed to generate follow-up schedules:",
+                        error
+                      );
+                    });
+                }
+
+                // Refetch data to update UI with latest status
+                if (onSuccess) {
+                  onSuccess(); // This should trigger any parent component refetches
+                }
+
+                // If there are any specific queries that need refetching, do it here
+                try {
+                  // Refetch balance to show updated wallet amount
+                  refetchBalance();
+                } catch (error) {
+                  console.error("Failed to refetch data:", error);
+                }
+
+                // Automatically close the modal after 2 seconds
+                setTimeout(() => {
+                  onClose();
+                  router.push("/clinicStaff/customer-schedule");
+                }, 2000);
+              })
+              .catch((error: any) => {
+                console.error("Failed to update schedule status:", error);
+                // Extract error detail if available
+                const errorDetail =
+                  error?.data?.detail || "Failed to update schedule status";
+                setErrorMessage(errorDetail);
+
+                // If the error is "Order already completed", we can still show success
+                if (errorDetail.includes("already completed")) {
+                  toast.info("This order was already marked as completed");
+
+                  // Automatically close the modal after 2 seconds even if already completed
+                  setTimeout(() => {
+                    onClose();
+                    router.push("/schedules");
+                  }, 2000);
+                } else {
+                  toast.error(errorDetail);
+                }
+              });
+          }
+        })
+        .catch((error: any) => {
+          console.error("Payment failed:", error);
+          setPaymentStatus("failed");
+          setShowPaymentResult(true);
+
+          // Extract error detail if available
+          const errorDetail =
+            error?.data?.detail || "Payment failed. Please try again.";
+          setErrorMessage(errorDetail);
+          toast.error(errorDetail);
+        });
+    } catch (error: any) {
+      console.error("Payment failed:", error);
+      setPaymentStatus("failed");
+      setShowPaymentResult(true);
+
+      // Extract error detail if available
+      const errorDetail =
+        error?.data?.detail || "Payment failed. Please try again.";
+      setErrorMessage(errorDetail);
+      toast.error(errorDetail);
+    }
+  };
+
+  // Handle going back to previous screen
+  const handleGoBack = () => {
+    if (showPaymentMethods) {
+      // Go back to wallet balance confirmation
+      setShowPaymentMethods(false);
+      setShowBalanceConfirmation(true);
+      setUseWalletBalance(null);
+      setRemainingAmount(null);
+    } else if (showBalanceConfirmation) {
+      // Go back to initial screen
+      setShowBalanceConfirmation(false);
+      setWalletBalance(null);
+      setRemainingAmount(null);
+    } else if (showQR) {
+      // Go back to payment methods
+      setShowQR(false);
+      setShowPaymentMethods(true);
+    }
+  };
+
   return (
     <Dialog
       open={isOpen}
@@ -436,226 +759,354 @@ export default function SchedulePaymentModal({
           </DialogDescription>
         </DialogHeader>
 
-        {paymentStatus === "idle" && !showQR && !showPaymentResult && (
-          <>
-            <div className="overflow-y-auto pr-1 max-h-[60vh]">
-              <div className="space-y-4">
-                {/* Booking ID */}
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <Receipt className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {t("bookingId")}:
-                    </span>
-                    <span className="text-sm text-gray-600">{schedule.id}</span>
-                  </div>
-                </div>
-
-                {/* Schedule Details */}
-                <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-none">
-                  <CardContent className="pt-6 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <User className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("customer")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.customerName}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Phone className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("phone")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.customerPhoneNumber || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Mail className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("email")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.customerEmail || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Separator className="my-1" />
-
-                    <div className="flex items-start gap-3">
-                      <Stethoscope className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("service")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.serviceName}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Tag className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("serviceType")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.procedureName || ""} -{" "}
-                          {schedule.procedurePriceTypeName}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Building className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("doctor")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.doctorName}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Calendar className="h-5 w-5 text-pink-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-700">
-                          {t("dateAndTime")}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {schedule.bookingDate},{" "}
-                          {formatTimeRange(
-                            schedule.startTime,
-                            schedule.endTime
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      {getStatusBadge(schedule.status)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Payment Amount */}
-                <div className="bg-white p-4 rounded-lg border">
-                  <h3 className="font-medium text-gray-700 mb-3">
-                    {t("priceInformation")}
-                  </h3>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">{t("servicePrice")}</span>
-                      <span className="font-medium">
-                        {formatPrice(schedule.servicePrice || 0)}
+        {paymentStatus === "idle" &&
+          !showQR &&
+          !showPaymentResult &&
+          !showBalanceConfirmation &&
+          !showPaymentMethods && (
+            <>
+              <div className="overflow-y-auto pr-1 max-h-[60vh]">
+                <div className="space-y-4">
+                  {/* Booking ID */}
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {t("bookingId")}:
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {schedule.id}
                       </span>
                     </div>
+                  </div>
 
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-600">{t("discount")}</span>
-                        <Percent className="h-3 w-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">
-                          ({calculateDiscountPercentage()}%)
+                  {/* Schedule Details */}
+                  <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-none">
+                    <CardContent className="pt-6 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <User className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("customer")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.customerName}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Phone className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("phone")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.customerPhoneNumber || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Mail className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("email")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.customerEmail || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Separator className="my-1" />
+
+                      <div className="flex items-start gap-3">
+                        <Stethoscope className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("service")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.serviceName}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Tag className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("serviceType")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.procedureName || ""} -{" "}
+                            {schedule.procedurePriceTypeName}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Building className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("doctor")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.doctorName}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Calendar className="h-5 w-5 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {t("dateAndTime")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {schedule.bookingDate},{" "}
+                            {formatTimeRange(
+                              schedule.startTime,
+                              schedule.endTime
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        {getStatusBadge(schedule.status)}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Payment Amount */}
+                  <div className="bg-white p-4 rounded-lg border">
+                    <h3 className="font-medium text-gray-700 mb-3">
+                      {t("priceInformation")}
+                    </h3>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">
+                          {t("servicePrice")}
+                        </span>
+                        <span className="font-medium">
+                          {formatPrice(schedule.servicePrice || 0)}
                         </span>
                       </div>
-                      <span className="font-medium text-red-500">
-                        {schedule.discountAmount > 0 ? "-" : ""}
-                        {formatPrice(schedule.discountAmount || 0)}
-                      </span>
-                    </div>
 
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">{t("deposit")}</span>
-                      <span className="font-medium text-blue-500">
-                        {schedule.depositAmount > 0 ? "-" : ""}
-                        {formatPrice(schedule.depositAmount || 0)}
-                      </span>
-                    </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-600">{t("discount")}</span>
+                          <Percent className="h-3 w-3 text-gray-400" />
+                          <span className="text-xs text-gray-500">
+                            ({calculateDiscountPercentage()}%)
+                          </span>
+                        </div>
+                        <span className="font-medium text-red-500">
+                          {schedule.discountAmount > 0 ? "-" : ""}
+                          {formatPrice(schedule.discountAmount || 0)}
+                        </span>
+                      </div>
 
-                    <Separator className="my-2" />
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">{t("deposit")}</span>
+                        <span className="font-medium text-blue-500">
+                          {schedule.depositAmount > 0 ? "-" : ""}
+                          {formatPrice(schedule.depositAmount || 0)}
+                        </span>
+                      </div>
 
-                    <div className="flex justify-between items-center pt-1">
-                      <span className="text-gray-700 font-medium">
-                        {t("totalAmount")}
-                      </span>
-                      <span className="text-xl font-bold text-pink-700">
-                        {formatPrice(schedule.amount || 0)}
-                      </span>
+                      <Separator className="my-2" />
+
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="text-gray-700 font-medium">
+                          {t("totalAmount")}
+                        </span>
+                        <span className="text-xl font-bold text-pink-700">
+                          {formatPrice(schedule.amount || 0)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Payment Method Selection */}
-                <div className="bg-white p-4 rounded-lg border">
-                  <h3 className="font-medium text-gray-700 mb-3">
-                    {t("selectPaymentMethod")}
-                  </h3>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={setPaymentMethod}
-                    className="grid grid-cols-2 gap-4"
-                  >
-                    <div>
-                      <RadioGroupItem
-                        value="qr"
-                        id="qr"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="qr"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
-                      >
-                        <CreditCard className="mb-3 h-6 w-6 text-pink-500" />
-                        QR
-                      </Label>
-                    </div>
+              <DialogFooter className="mt-4 pt-2 border-t">
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  className="w-full sm:w-auto"
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  onClick={handleProceedToPayment}
+                  disabled={isLoading || isLoadingBalance}
+                  className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                >
+                  {isLoading || isLoadingBalance ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      {t("processing")}
+                    </>
+                  ) : (
+                    <>
+                      {t("proceedToPayment")}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
 
-                    <div>
-                      <RadioGroupItem
-                        value="cash"
-                        id="cash"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="cash"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
-                      >
-                        <Wallet className="mb-3 h-6 w-6 text-pink-500" />
-                        Cash
-                      </Label>
+        {/* Wallet Balance Confirmation */}
+        {showBalanceConfirmation && walletBalance && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg border">
+              <div className="text-center">
+                <Wallet className="h-12 w-12 text-pink-500 mx-auto mb-2" />
+                <h3 className="text-lg font-medium">{t("walletBalance")}</h3>
+                <p className="text-2xl font-bold text-pink-700 mt-2">
+                  {formatPrice(Number.parseFloat(walletBalance))}
+                </p>
+              </div>
+
+              <Separator className="my-4" />
+
+              <div className="space-y-4">
+                <p className="text-center text-gray-700">
+                  {Number.parseFloat(walletBalance) >= (schedule?.amount || 0)
+                    ? t("sufficientBalanceMessage") ||
+                      "Your wallet balance is sufficient to cover this payment. Would you like to use your wallet balance?"
+                    : t("insufficientBalanceMessage") ||
+                      "Your wallet balance is insufficient to cover the full amount. Would you like to use your available balance and pay the remaining amount?"}
+                </p>
+
+                {Number.parseFloat(walletBalance) < (schedule?.amount || 0) && (
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span>{t("walletAmount") || "Wallet Amount"}</span>
+                      <span className="font-medium">
+                        {formatPrice(Number.parseFloat(walletBalance))}
+                      </span>
                     </div>
-                  </RadioGroup>
-                </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span>{t("remainingAmount") || "Remaining Amount"}</span>
+                      <span className="font-medium">
+                        {formatPrice(
+                          (schedule?.amount || 0) -
+                            Number.parseFloat(walletBalance)
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <DialogFooter className="mt-4 pt-2 border-t">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 variant="outline"
-                onClick={onClose}
-                className="w-full sm:w-auto"
+                onClick={() => handleWalletBalanceChoice(false)}
+                className="flex-1"
               >
-                {t("cancel")}
+                {t("payWithoutWallet") || "No, Pay Without Wallet"}
+              </Button>
+              <Button
+                onClick={() => handleWalletBalanceChoice(true)}
+                className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              >
+                {Number.parseFloat(walletBalance) >= (schedule?.amount || 0)
+                  ? t("useWalletBalance") || "Yes, Use Wallet Balance"
+                  : t("usePartialWalletBalance") ||
+                    "Yes, Use Partial Wallet Balance"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Method Selection - Only shown after wallet balance decision if needed */}
+        {showPaymentMethods && (
+          <div className="space-y-6">
+            <div className="bg-white p-4 rounded-lg border">
+              <h3 className="font-medium text-gray-700 mb-3">
+                {t("selectPaymentMethod")}
+              </h3>
+
+              {useWalletBalance &&
+                walletBalance &&
+                Number.parseFloat(walletBalance) < (schedule?.amount || 0) && (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <p className="text-sm text-blue-700">
+                      {t("partialWalletPaymentInfo", {
+                        walletAmount: formatPrice(
+                          Number.parseFloat(walletBalance)
+                        ),
+                        remainingAmount: formatPrice(
+                          (schedule?.amount || 0) -
+                            Number.parseFloat(walletBalance)
+                        ),
+                      }) ||
+                        `${formatPrice(
+                          Number.parseFloat(walletBalance)
+                        )} will be deducted from your wallet. Please select a payment method for the remaining ${formatPrice(
+                          (schedule?.amount || 0) -
+                            Number.parseFloat(walletBalance)
+                        )}.`}
+                    </p>
+                  </div>
+                )}
+
+              <RadioGroup
+                value={paymentMethod}
+                onValueChange={setPaymentMethod}
+                className="grid grid-cols-2 gap-4"
+              >
+                <div>
+                  <RadioGroupItem value="qr" id="qr" className="peer sr-only" />
+                  <Label
+                    htmlFor="qr"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
+                  >
+                    <CreditCard className="mb-3 h-6 w-6 text-pink-500" />
+                    QR
+                  </Label>
+                </div>
+
+                <div>
+                  <RadioGroupItem
+                    value="cash"
+                    id="cash"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="cash"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-pink-500 [&:has([data-state=checked])]:border-pink-500"
+                  >
+                    <Wallet className="mb-3 h-6 w-6 text-pink-500" />
+                    Cash
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Added back button */}
+              <Button
+                variant="outline"
+                onClick={handleGoBack}
+                className="flex-1"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t("back") || "Back"}
               </Button>
               <Button
                 onClick={handlePayment}
                 disabled={isLoading}
-                className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
               >
                 {isLoading ? (
                   <>
@@ -664,19 +1115,19 @@ export default function SchedulePaymentModal({
                   </>
                 ) : (
                   <>
-                    {t("proceedToPayment")}
+                    {t("confirmPayment") || "Confirm Payment"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
-            </DialogFooter>
-          </>
+            </div>
+          </div>
         )}
 
         {/* QR Code Display */}
         {showQR && (
-          <div className="flex flex-col items-center p-4">
-            <div className="text-center mb-4">
+          <div className="flex flex-col items-center p-2 max-h-[70vh] overflow-y-auto">
+            <div className="text-center mb-2">
               <h3 className="text-lg font-medium">{t("paymentQRCode")}</h3>
               <p className="text-sm text-gray-500">
                 {t("scanQRCodeToComplete")}
@@ -684,7 +1135,7 @@ export default function SchedulePaymentModal({
             </div>
 
             {qrUrl ? (
-              <div className="relative w-64 h-64 mb-4">
+              <div className="relative w-56 h-56 mb-3">
                 <Image
                   src={qrUrl || "/placeholder.svg"}
                   alt="Payment QR Code"
@@ -693,20 +1144,23 @@ export default function SchedulePaymentModal({
                 />
               </div>
             ) : (
-              <div className="w-64 h-64 bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg mb-4 flex items-center justify-center border-2 border-dashed border-gray-200">
+              <div className="w-56 h-56 bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg mb-3 flex items-center justify-center border-2 border-dashed border-gray-200">
                 <p className="text-gray-500 text-center px-4">
                   {t("loadingQRCode")}
                 </p>
               </div>
             )}
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1">
+              {/* Display the remaining amount if using wallet balance, otherwise show full amount */}
               <p className="font-semibold text-lg text-gray-900">
-                {formatPrice(schedule.amount || 0)}
+                {remainingAmount !== null && useWalletBalance
+                  ? formatPrice(remainingAmount)
+                  : formatPrice(schedule.amount || 0)}
               </p>
-              <p className="text-sm text-gray-500">{t("scanWithBankingApp")}</p>
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-2">
-                <Clock className="h-4 w-4" />
+              <p className="text-xs text-gray-500">{t("scanWithBankingApp")}</p>
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mt-1">
+                <Clock className="h-3 w-3" />
                 <span
                   className={countdown <= 10 ? "text-red-500 font-bold" : ""}
                 >
@@ -715,13 +1169,19 @@ export default function SchedulePaymentModal({
               </div>
 
               {/* Payment Status Indicator */}
-              <div className="mt-2">
-                <div className="flex items-center justify-center gap-2 text-amber-500">
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>{t("waitingForPayment")}</span>
+              <div className="mt-1">
+                <div className="flex items-center justify-center gap-1 text-amber-500">
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <span className="text-xs">{t("waitingForPayment")}</span>
                 </div>
               </div>
             </div>
+
+            {/* Added back button for QR screen */}
+            <Button variant="outline" onClick={handleGoBack} className="mt-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("back") || "Back"}
+            </Button>
           </div>
         )}
 

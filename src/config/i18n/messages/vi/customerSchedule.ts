@@ -128,7 +128,6 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   // Follow-up selection modal translations
   selectAppointmentForFollowUp: "Chọn cuộc hẹn để theo dõi",
   multipleAppointmentsNeedFollowUps: "Nhiều cuộc hẹn cần theo dõi. Vui lòng chọn cuộc hẹn bạn muốn lên lịch tiếp theo.",
-
   // Additional fields for schedule details modal
   customerInformation: "Thông tin khách hàng",
   email: "Email",
@@ -148,5 +147,18 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   timeFormatHint: "Nhập thời gian theo định dạng 24 giờ (ví dụ: 15:15)",
   invalidTimeFormat: "Định dạng thời gian không hợp lệ. Vui lòng sử dụng định dạng HH:MM (ví dụ: 15:15)",
   timeNotAvailable: "Thời gian này không khả dụng. Vui lòng chọn thời gian trong khung giờ làm việc của bác sĩ",
-  selectDateTimeForChangeAppointment:"Chọn ngày và giờ để thay đổi lịch hẹn cho khách hàng"
+  selectDateTimeForChangeAppointment: "Chọn ngày và giờ để thay đổi lịch hẹn cho khách hàng",
+  // Wallet balance related translations
+  walletBalance: "Số dư ví",
+  sufficientBalanceMessage: "Số dư ví của bạn đủ để thanh toán. Bạn có muốn sử dụng số dư ví không?",
+  insufficientBalanceMessage:
+    "Số dư ví của bạn không đủ để thanh toán toàn bộ. Bạn có muốn sử dụng số dư hiện có và thanh toán số tiền còn lại không?",
+  walletAmount: "Số tiền trong ví",
+  useWalletBalance: "Có, sử dụng số dư ví",
+  usePartialWalletBalance: "Có, sử dụng một phần số dư ví",
+  payWithoutWallet: "Không, thanh toán không dùng ví",
+  partialWalletPaymentInfo:
+    "{walletAmount} sẽ được trừ từ ví của bạn. Vui lòng chọn phương thức thanh toán cho số tiền còn lại {remainingAmount}.",
+  confirmPayment: "Xác nhận thanh toán",
+  back: "Quay lại",
 }
