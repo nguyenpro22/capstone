@@ -175,6 +175,7 @@ export type walletMessages = {
       error: string
       branchDataUnavailable: string
       exportFunctionality: string
+      exportSuccess: string
     }
   }
   

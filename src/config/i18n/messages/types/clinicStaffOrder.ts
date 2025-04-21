@@ -76,4 +76,5 @@ export type clinicStaffOrderMessages = {
   remainingAmount: string
   actions: string
   columns: string
+  columnDisplay: string
 }

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useEffect } from "react"
-import { useUpdatePackageMutation } from "@/features/package/api"
-import { toast } from "react-toastify"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useRef, useEffect } from "react";
+import { useUpdatePackageMutation } from "@/features/package/api";
+import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Layers,
   X,
@@ -18,104 +18,123 @@ import {
   Video,
   Users,
   PlusCircle,
-} from "lucide-react"
+} from "lucide-react";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface EditPackageFormProps {
-  initialData: any
-  onClose: () => void
-  onSaveSuccess: () => void
+  initialData: any;
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
 interface ValidationErrors {
-  id?: string
-  name?: string
-  description?: string
-  price?: string
-  duration?: string
-  limitBranch?: string
-  limitLiveStream?: string
-  enhancedViewer?: string
-  priceBranchAddition?: string
-  priceLiveStreamAddition?: string
+  id?: string;
+  name?: string;
+  description?: string;
+  price?: string;
+  duration?: string;
+  limitBranch?: string;
+  limitLiveStream?: string;
+  enhancedViewer?: string;
+  priceBranchAddition?: string;
+  priceLiveStreamAddition?: string;
 }
 
-export default function EditPackageForm({ initialData, onClose, onSaveSuccess }: EditPackageFormProps) {
-  const [formData, setFormData] = useState(initialData)
-  const [updatePackage, { isLoading }] = useUpdatePackageMutation()
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+export default function EditPackageForm({
+  initialData,
+  onClose,
+  onSaveSuccess,
+}: EditPackageFormProps) {
+  // Get translations for the package namespace
+  const t = useTranslations();
+
+  const [formData, setFormData] = useState(initialData);
+  const [updatePackage, { isLoading }] = useUpdatePackageMutation();
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
 
   // Ref to track the currently focused input
-  const focusedInputRef = useRef<string | null>(null)
-  const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({})
-  const inputTypes = useRef<Record<string, string>>({})
+  const focusedInputRef = useRef<string | null>(null);
+  const inputRefs = useRef<
+    Record<string, HTMLInputElement | HTMLTextAreaElement | null>
+  >({});
+  const inputTypes = useRef<Record<string, string>>({});
 
   // Effect to restore focus after re-render
   useEffect(() => {
     if (focusedInputRef.current && inputRefs.current[focusedInputRef.current]) {
-      const input = inputRefs.current[focusedInputRef.current]
+      const input = inputRefs.current[focusedInputRef.current];
       if (input) {
         // Just focus the input without trying to set selection range
-        input.focus()
+        input.focus();
 
         // Only set selection range for text inputs and textareas
-        const inputType = inputTypes.current[focusedInputRef.current]
-        if (input instanceof HTMLTextAreaElement || (input instanceof HTMLInputElement && inputType === "text")) {
-          const length = input.value.length
+        const inputType = inputTypes.current[focusedInputRef.current];
+        if (
+          input instanceof HTMLTextAreaElement ||
+          (input instanceof HTMLInputElement && inputType === "text")
+        ) {
+          const length = input.value.length;
           try {
-            input.setSelectionRange(length, length)
+            input.setSelectionRange(length, length);
           } catch (error) {
-            console.log("Could not set selection range for this input type")
+            console.log("Could not set selection range for this input type");
           }
         }
       }
     }
-  }, [formData])
+  }, [formData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
 
     // Store the name of the input being edited
-    focusedInputRef.current = name
+    focusedInputRef.current = name;
 
     setFormData((prev: any) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     setValidationErrors((prev) => ({
       ...prev,
       [name]: "",
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await updatePackage(formData).unwrap()
-      toast.success("Package updated successfully!")
-      onSaveSuccess()
+      await updatePackage(formData).unwrap();
+      toast.success(t("package.notifications.packageUpdated"));
+      onSaveSuccess();
     } catch (error: any) {
-      console.log("Error response:", error)
+      console.log("Error response:", error);
       if (error?.status === 400 || error?.status === 422) {
-        const validationErrors = error?.data?.errors || []
+        const validationErrors = error?.data?.errors || [];
         if (validationErrors.length > 0) {
-          const newErrors: Record<string, string> = {}
+          const newErrors: Record<string, string> = {};
           validationErrors.forEach((err: { code: string; message: string }) => {
-            newErrors[err.code.toLowerCase()] = err.message
-          })
-          setValidationErrors(newErrors)
+            newErrors[err.code.toLowerCase()] = err.message;
+          });
+          setValidationErrors(newErrors);
         }
-        toast.error(error?.data?.detail || "Invalid data provided!")
+        toast.error(
+          error?.data?.detail || t("package.notifications.invalidData")
+        );
       } else {
-        toast.error("An error occurred, please try again!")
+        toast.error(t("package.notifications.errorOccurred"));
       }
     }
-  }
+  };
 
   // Prevent modal from closing when clicking inside
   const handleModalClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
+    e.stopPropagation();
+  };
 
   // Input field with icon component
   const InputField = ({
@@ -129,20 +148,20 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
     required = true,
     error,
   }: {
-    label: string
-    name: string
-    value: any
-    type?: string
-    placeholder?: string
-    icon: React.ElementType
-    readOnly?: boolean
-    required?: boolean
-    error?: string
+    label: string;
+    name: string;
+    value: any;
+    type?: string;
+    placeholder?: string;
+    icon: React.ElementType;
+    readOnly?: boolean;
+    required?: boolean;
+    error?: string;
   }) => {
     // Store the input type for later reference
     useEffect(() => {
-      inputTypes.current[name] = type
-    }, [name, type])
+      inputTypes.current[name] = type;
+    }, [name, type]);
 
     return (
       <div className="space-y-2">
@@ -165,17 +184,17 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
             readOnly={readOnly}
             required={required}
             ref={(el) => {
-              inputRefs.current[name] = el
+              inputRefs.current[name] = el;
             }}
             onFocus={() => {
-              focusedInputRef.current = name
+              focusedInputRef.current = name;
             }}
           />
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <motion.div
@@ -212,7 +231,9 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Layers className="w-6 h-6 text-purple-600" />
               </div>
-              <h2 className="text-2xl font-serif tracking-wide text-gray-800">Edit Package</h2>
+              <h2 className="text-2xl font-serif tracking-wide text-gray-800">
+                {t("package.editPackage")}
+              </h2>
             </div>
             <button
               onClick={onClose}
@@ -234,11 +255,14 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                 {Object.entries(validationErrors).map(
                   ([field, message], index) =>
                     message && (
-                      <div key={index} className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2"
+                      >
                         <AlertCircle className="w-5 h-5 flex-shrink-0" />
                         <p className="text-sm">{message}</p>
                       </div>
-                    ),
+                    )
                 )}
               </motion.div>
             )}
@@ -251,17 +275,19 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
 
             {/* Name */}
             <InputField
-              label="Package Name"
+              label={t("package.fields.packageName")}
               name="name"
               value={formData.name}
               icon={Package}
-              placeholder="Enter package name"
+              placeholder={t("package.placeholders.enterPackageName")}
               error={validationErrors.name}
             />
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Description</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("package.fields.description")}
+              </label>
               <div className="relative">
                 <div className="absolute top-3 left-3 pointer-events-none">
                   <FileText className="w-5 h-5 text-gray-400" />
@@ -272,98 +298,106 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                   onChange={handleChange}
                   rows={3}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                    validationErrors.description ? "border-red-300 bg-red-50" : "border-gray-200"
+                    validationErrors.description
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-200"
                   } focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200`}
-                  placeholder="Enter package description"
+                  placeholder={t("package.placeholders.enterDescription")}
                   required
                   ref={(el) => {
-                    inputRefs.current["description"] = el
+                    inputRefs.current["description"] = el;
                   }}
                   onFocus={() => {
-                    focusedInputRef.current = "description"
+                    focusedInputRef.current = "description";
                   }}
                 />
               </div>
-              {validationErrors.description && <p className="text-red-500 text-sm">{validationErrors.description}</p>}
+              {validationErrors.description && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.description}
+                </p>
+              )}
             </div>
 
             {/* Two-column layout for smaller fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Price */}
               <InputField
-                label="Price (VND)"
+                label={t("package.fields.price")}
                 name="price"
                 value={formData.price}
                 type="number"
                 icon={DollarSign}
-                placeholder="Enter price"
+                placeholder={t("package.placeholders.enterPrice")}
                 error={validationErrors.price}
               />
 
               {/* Duration */}
               <InputField
-                label="Duration (Months)"
+                label={t("package.fields.duration")}
                 name="duration"
                 value={formData.duration}
                 type="number"
                 icon={Clock}
-                placeholder="Enter duration"
+                placeholder={t("package.placeholders.enterDuration")}
                 error={validationErrors.duration}
               />
 
               {/* Branch Limit */}
               <InputField
-                label="Branch Limit"
+                label={t("package.fields.limitBranches")}
                 name="limitBranch"
                 value={formData.limitBranch}
                 type="number"
                 icon={Building2}
-                placeholder="Enter branch limit"
+                placeholder={t("package.placeholders.enterLimitBranches")}
                 error={validationErrors.limitBranch}
               />
 
               {/* Live Stream Limit */}
               <InputField
-                label="Live Stream Limit"
+                label={t("package.fields.limitLiveStream")}
                 name="limitLiveStream"
                 value={formData.limitLiveStream}
                 type="number"
                 icon={Video}
-                placeholder="Enter live stream limit"
+                placeholder={t("package.placeholders.enterLimitLiveStream")}
                 error={validationErrors.limitLiveStream}
               />
 
               {/* Price More Branch */}
               <InputField
-                label="Price Per Additional Branch"
+                label={t("package.fields.priceBranchAddition")}
                 name="priceBranchAddition"
                 value={formData.priceBranchAddition || ""}
                 type="number"
                 icon={PlusCircle}
-                placeholder="Enter price per additional branch"
+                placeholder={t("package.placeholders.enterPriceBranchAddition")}
                 error={validationErrors.priceBranchAddition}
               />
 
               {/* Price More Livestream */}
               <InputField
-                label="Price Per Additional Livestream"
+                label={t("package.fields.priceLiveStreamAddition")}
                 name="priceLiveStreamAddition"
                 value={formData.priceLiveStreamAddition || ""}
                 type="number"
                 icon={PlusCircle}
-                placeholder="Enter price per additional livestream"
+                placeholder={t(
+                  "package.placeholders.enterPriceLiveStreamAddition"
+                )}
                 error={validationErrors.priceLiveStreamAddition}
               />
             </div>
 
             {/* Enhanced Viewer - Full width */}
             <InputField
-              label="Enhanced Viewer Capacity"
+              label={t("package.fields.enhancedView")}
               name="enhancedViewer"
               value={formData.enhancedViewer}
               type="number"
               icon={Users}
-              placeholder="Enter enhanced viewer capacity"
+              placeholder={t("package.placeholders.enterEnhancedView")}
               error={validationErrors.enhancedViewer}
             />
 
@@ -376,7 +410,7 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                 whileTap={{ scale: 0.98 }}
                 className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
               >
-                Cancel
+                {t("package.cancel")}
               </motion.button>
               <motion.button
                 type="submit"
@@ -388,10 +422,10 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
+                    <span>{t("package.saving")}</span>
                   </div>
                 ) : (
-                  "Save Changes"
+                  t("package.saveChanges")
                 )}
               </motion.button>
             </div>
@@ -399,5 +433,5 @@ export default function EditPackageForm({ initialData, onClose, onSaveSuccess }:
         </div>
       </motion.div>
     </motion.div>
-  )
+  );
 }

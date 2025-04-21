@@ -40,4 +40,5 @@ export const navbarAdminMessages: Messages["navbarAdmin"] = {
   logoutConfirmTitle: "Are you sure you want to logout?",
   logoutConfirmDescription: "This will end your session and log you out of the system.",
   cancel: "Cancel",
+  platformPolicies: "Platform Policies"
 }

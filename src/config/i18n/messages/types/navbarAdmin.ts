@@ -39,5 +39,6 @@ export type navbarAdminMessages = {
     logoutConfirmTitle: string
     logoutConfirmDescription: string
     cancel: string
+    platformPolicies: string
   }
   

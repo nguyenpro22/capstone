@@ -76,7 +76,8 @@ export const clinicMessages: Messages["clinic"] = {
   noBanksFound: "Không tìm thấy ngân hàng nào",
   bankingInfoHelp:
     "Thông tin ngân hàng sẽ được sử dụng cho các giao dịch tài chính với phòng khám của bạn. Vui lòng đảm bảo thông tin chính xác.",
-    copyToClipboard: "Sao chép vào bảng tạm",
+  copyToClipboard: "Sao chép vào bảng tạm",
+
   // New keys for partnership request component
   partnershipRequests: "Yêu cầu hợp tác",
   totalRequests: "Tổng số",
@@ -104,5 +105,23 @@ export const clinicMessages: Messages["clinic"] = {
   partnershipRequestAccepted: "Yêu cầu hợp tác đã được chấp nhận thành công",
   partnershipRequestRejected: "Yêu cầu hợp tác đã bị từ chối thành công",
   partnershipRequestBanned: "Yêu cầu hợp tác đã bị cấm thành công",
-  failedToUpdateRequest: "Không thể cập nhật yêu cầu"
-  }
+  failedToUpdateRequest: "Không thể cập nhật yêu cầu",
+
+  // New keys for branch request component
+  branchName: "Tên chi nhánh",
+  requestDate: "Ngày yêu cầu",
+  parentEmail: "Email chính",
+  branchRequests: "Yêu cầu chi nhánh",
+   // New keys for branch request detail component
+   partnershipRequestDetails: "Chi tiết yêu cầu hợp tác",
+   detailedInformationAboutRequest: "Thông tin chi tiết về yêu cầu hợp tác này",
+   information: "Thông tin",
+   branchInformation: "Thông tin chi nhánh",
+   createdOn: "Ngày tạo",
+   rejectReason: "Lý do từ chối",
+   parentClinicInformation: "Thông tin phòng khám chính",
+   addressInformation: "Thông tin địa chỉ",
+   city: "Thành phố",
+   noDetailsAvailable: "Không có thông tin chi tiết cho yêu cầu này",
+   branchRequestsTitle:"Danh sách chi nhánh cần phê duyệt"
+}

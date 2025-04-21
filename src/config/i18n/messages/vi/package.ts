@@ -1,6 +1,7 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
 
 export const packageMessages: Messages["package"] = {
+  // Existing fields
   packageLists: "Danh sách gói",
   searchByPackageName: "Tìm kiếm theo tên gói",
   addNewPackage: "Thêm gói mới",
@@ -38,7 +39,8 @@ export const packageMessages: Messages["package"] = {
   enhancedViewerCapacity: "Số lượng người xem nâng cao",
   additionalLivestreamPrice: "Giá mỗi lượt thêm phiên livestream",
   additionalBranchPrice: "Giá mỗi lượt thêm chi nhánh",
-  // New fields
+  
+  // New fields for premium packages
   premiumBeautyPackages: "Gói Làm Đẹp Cao Cấp",
   enhanceYourBeautyServices: "Nâng Cao Dịch Vụ Làm Đẹp Của Bạn",
   purchaseAdditionalSlots: "Mua Thêm Slot Bổ Sung",
@@ -93,4 +95,50 @@ export const packageMessages: Messages["package"] = {
   durationDays: "{duration} ngày",
   liveStreams: "{count} phiên livestream",
   enhancedViewers: "{count} người xem nâng cao",
+  
+  // Additional fields needed for edit-package-form and package-form
+  editPackage: "Chỉnh sửa Gói dịch vụ",
+  saving: "Đang lưu...",
+  saveChanges: "Lưu thay đổi",
+  savePackage: "Lưu Gói dịch vụ",
+  cancel: "Hủy",
+  packageUpdated: "Cập nhật gói dịch vụ thành công!",
+  invalidData: "Dữ liệu không hợp lệ!",
+
+  // Fields structure for form fields
+  fields: {
+    packageName: "Tên Gói dịch vụ",
+    description: "Mô tả",
+    price: "Giá (VND)",
+    duration: "Thời hạn (Tháng)",
+    limitBranches: "Giới hạn Chi nhánh",
+    limitLiveStream: "Giới hạn Live Stream",
+    priceBranchAddition: "Giá cho mỗi Chi nhánh bổ sung",
+    priceLiveStreamAddition: "Giá cho mỗi Livestream bổ sung",
+    enhancedView: "Lượt xem nâng cao",
+  },
+
+  // Placeholders for form inputs
+  placeholders: {
+    enterPackageName: "Nhập tên gói dịch vụ",
+    enterDescription: "Nhập mô tả",
+    enterPrice: "Nhập giá",
+    enterDuration: "Nhập thời hạn theo ngày",
+    enterLimitBranches: "Nhập giới hạn chi nhánh",
+    enterLimitLiveStream: "Nhập giới hạn live stream",
+    enterPriceBranchAddition: "Nhập giá cho mỗi chi nhánh bổ sung",
+    enterPriceLiveStreamAddition: "Nhập giá cho mỗi livestream bổ sung",
+    enterEnhancedView: "Nhập số lượng lượt xem nâng cao",
+  },
+
+  // Notifications for form actions
+  notifications: {
+    packageAdded: "Thêm gói dịch vụ thành công!",
+    packageAddFailed: "Không thể thêm gói dịch vụ!",
+    packageUpdated: "Cập nhật gói dịch vụ thành công!",
+    packageUpdateFailed: "Không thể cập nhật gói dịch vụ!",
+    invalidData: "Dữ liệu không hợp lệ!",
+    errorOccurred: "Có lỗi xảy ra, vui lòng thử lại!",
+    unexpectedError: "Đã xảy ra lỗi không mong muốn",
+  },
 }

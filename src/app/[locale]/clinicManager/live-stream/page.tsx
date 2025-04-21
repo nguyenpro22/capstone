@@ -2,12 +2,14 @@
 
 import type React from "react";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Upload, History, ArrowRight, Loader2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import Image from "next/image";
+import { useGetLiveStreamsQuery } from "@/features/livestream/api"; // Add this import
+import LivestreamDetailModal from "@/components/clinicManager/livestream/livestream-detail-modal"; // Import the modal component
 
 // export function convertImageToBase64(file: File): Promise<string> {
 //   return new Promise((resolve, reject) => {
@@ -45,9 +47,48 @@ export default function LiveStreamPage() {
   const [coverImagePreview, setCoverImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
-  const [pastLivestreams, setPastLivestreams] = useState<LivestreamRoom[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
+  const [pageIndex, setPageIndex] = useState<number>(0);
+  const [pageSize] = useState<number>(10);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Add state for the modal
+  const [selectedLivestreamId, setSelectedLivestreamId] = useState<
+    string | null
+  >(null);
+  const [selectedLivestreamInfo, setSelectedLivestreamInfo] =
+    useState<LivestreamRoom | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Add this RTK Query hook instead:
   const user = useSelector((state: RootState) => state?.auth?.user);
+  const {
+    data,
+    isLoading: isLoadingHistory,
+    refetch,
+    error,
+  } = useGetLiveStreamsQuery({
+    clinicId: user?.clinicId || "",
+    pageIndex,
+    pageSize,
+    searchTerm,
+  });
+
+  // Extract the livestreams from the response with proper type handling
+  const pastLivestreams = data?.value?.items || [];
+  const pagination = data?.value || {
+    pageIndex: 0,
+    pageSize: 10,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
+
+  // Function to open the modal with the selected livestream
+  const openLivestreamDetails = (livestream: LivestreamRoom) => {
+    setSelectedLivestreamId(livestream.id);
+    setSelectedLivestreamInfo(livestream);
+    setIsModalOpen(true);
+  };
 
   // Handle file input change
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,33 +131,18 @@ export default function LiveStreamPage() {
     }
   };
 
-  // Fetch past livestreams
-  const fetchPastLivestreams = useCallback(async () => {
-    try {
-      setIsLoadingHistory(true);
-      const response = await fetch(
-        `https://api.beautify.asia/signaling-api/LiveStream/Rooms?clinicId=${user?.clinicId}`
-      );
-      const data = await response.json();
-
-      if (data.isSuccess) {
-        setPastLivestreams(data.value);
-      } else {
-        console.error(
-          "Failed to fetch livestream history:",
-          data.error?.message
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching livestream history:", error);
-    } finally {
-      setIsLoadingHistory(false);
+  // Handle pagination
+  const handleNextPage = () => {
+    if (pagination.hasNextPage) {
+      setPageIndex(pageIndex + 1);
     }
-  }, [user?.clinicId]);
+  };
 
-  useEffect(() => {
-    fetchPastLivestreams();
-  }, [fetchPastLivestreams]);
+  const handlePreviousPage = () => {
+    if (pagination.hasPreviousPage) {
+      setPageIndex(pageIndex - 1);
+    }
+  };
 
   // Format date for better readability
   const formatDate = (dateString: string) => {
@@ -302,31 +328,90 @@ export default function LiveStreamPage() {
               <History className="mr-2 h-5 w-5" />
               Past Livestreams
             </h2>
-            <button
-              onClick={fetchPastLivestreams}
-              className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 text-sm font-medium flex items-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search livestreams..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-4 py-2 pr-10 border border-rose-200 dark:border-rose-800/50 rounded-lg text-sm focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
                 />
-              </svg>
-              Refresh
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <button
+                onClick={() => refetch()}
+                className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 text-sm font-medium flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Refresh
+              </button>
+            </div>
           </div>
 
           {isLoadingHistory ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-rose-500 dark:text-rose-400" />
+            </div>
+          ) : error ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-rose-100 dark:border-rose-800/30">
+              <div className="flex flex-col items-center">
+                <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-3 mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-red-500 dark:text-red-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                  Error Loading Livestreams
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  There was a problem loading your livestream history. Please
+                  try again.
+                </p>
+                <button
+                  onClick={() => refetch()}
+                  className="px-4 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 transition"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           ) : pastLivestreams.length > 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-rose-100 dark:border-rose-800/30">
@@ -375,11 +460,6 @@ export default function LiveStreamPage() {
                             ? "bg-white dark:bg-gray-800"
                             : "bg-rose-50/30 dark:bg-rose-900/10"
                         }
-                        onClick={() =>
-                          router.push(
-                            `/clinicManager/live-stream/host-page?roomId=${room.id}`
-                          )
-                        }
                         style={{ cursor: "pointer" }}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -426,9 +506,7 @@ export default function LiveStreamPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(
-                                `/clinicManager/live-stream/host-page?roomId=${room.id}`
-                              );
+                              openLivestreamDetails(room);
                             }}
                             className="text-rose-600 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-300 flex items-center justify-end"
                           >
@@ -445,13 +523,31 @@ export default function LiveStreamPage() {
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Showing{" "}
                   <span className="font-medium">{pastLivestreams.length}</span>{" "}
+                  of{" "}
+                  <span className="font-medium">{pagination.totalCount}</span>{" "}
                   livestreams
                 </div>
                 <div className="flex space-x-2">
-                  <button className="px-3 py-1 border border-rose-200 dark:border-rose-800/50 rounded-md text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                  <button
+                    className={`px-3 py-1 border border-rose-200 dark:border-rose-800/50 rounded-md text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 ${
+                      !pagination.hasPreviousPage
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    onClick={handlePreviousPage}
+                    disabled={!pagination.hasPreviousPage}
+                  >
                     Previous
                   </button>
-                  <button className="px-3 py-1 bg-rose-500 dark:bg-rose-600 text-white rounded-md text-sm hover:bg-rose-600 dark:hover:bg-rose-700">
+                  <button
+                    className={`px-3 py-1 bg-rose-500 dark:bg-rose-600 text-white rounded-md text-sm hover:bg-rose-600 dark:hover:bg-rose-700 ${
+                      !pagination.hasNextPage
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    onClick={handleNextPage}
+                    disabled={!pagination.hasNextPage}
+                  >
                     Next
                   </button>
                 </div>
@@ -474,6 +570,14 @@ export default function LiveStreamPage() {
           )}
         </div>
       </div>
+
+      {/* Livestream Detail Modal */}
+      <LivestreamDetailModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        livestreamId={selectedLivestreamId}
+        livestreamInfo={selectedLivestreamInfo}
+      />
     </div>
   );
 }

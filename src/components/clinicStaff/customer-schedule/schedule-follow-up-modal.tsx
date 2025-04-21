@@ -1,8 +1,10 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect, useMemo, useRef } from "react";
 import { format, isToday } from "date-fns";
-import { CalendarIcon, Loader2, Clock, AlertCircle } from "lucide-react";
+import { CalendarIcon, Loader2, Clock, AlertCircle, Edit } from "lucide-react";
 import { toast } from "react-toastify";
 
 import {
@@ -16,16 +18,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   useUpdateCustomerScheduleMutation,
   useLazyGetScheduleByIdQuery,
 } from "@/features/customer-schedule/api";
-import { useLazyGetDoctorBusyTimesQuery } from "@/features/working-schedule/api";
+import { useLazyGetDoctorAvailableTimesQuery } from "@/features/working-schedule/api";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import type { CustomerSchedule } from "@/features/customer-schedule/types";
+import type { AvailableSlot } from "@/features/working-schedule/types";
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 
 // Add the useTranslations import at the top of the file
@@ -36,12 +40,6 @@ interface ScheduleFollowUpModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-}
-
-interface BusyTimeSlot {
-  start: string;
-  end: string;
-  date: string;
 }
 
 interface TimeSlotGroupProps {
@@ -107,37 +105,65 @@ function formatDateForDisplay(date: Date): string {
   return format(date, "EEEE, MMMM d, yyyy");
 }
 
-const allTimeSlots = [
-  "08:00:00",
-  "08:30:00",
-  "09:00:00",
-  "09:30:00",
-  "10:00:00",
-  "10:30:00",
-  "11:00:00",
-  "11:30:00",
-  "13:00:00",
-  "13:30:00",
-  "14:00:00",
-  "14:30:00",
-  "15:00:00",
-  "15:30:00",
-  "16:00:00",
-  "16:30:00",
-  "17:00:00",
-  "17:30:00",
-  "18:00:00",
-  "18:30:00",
-  "19:00:00",
-  "19:30:00",
-  "20:00:00",
-  "20:30:00",
-  "21:00:00",
-  "21:30:00",
-  "22:00:00",
-  "22:30:00",
-  "23:00:00",
-];
+// Function to generate time slots from available slots
+function generateTimeSlotsFromAvailable(
+  availableSlots: AvailableSlot[]
+): string[] {
+  if (!availableSlots || availableSlots.length === 0) return [];
+
+  const timeSlots: string[] = [];
+
+  availableSlots.forEach((slot) => {
+    const startHour = Number.parseInt(slot.startTime.split(":")[0], 10);
+    const startMinute = Number.parseInt(slot.startTime.split(":")[1], 10);
+    const endHour = Number.parseInt(slot.endTime.split(":")[0], 10);
+    const endMinute = Number.parseInt(slot.endTime.split(":")[1], 10);
+
+    // Convert to minutes for easier calculation
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = endHour * 60 + endMinute;
+
+    // Generate 30-minute slots
+    for (let time = startTimeInMinutes; time < endTimeInMinutes; time += 30) {
+      const hour = Math.floor(time / 60);
+      const minute = time % 60;
+      const timeString = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}:00`;
+      timeSlots.push(timeString);
+    }
+  });
+
+  // Sort the time slots
+  return timeSlots.sort();
+}
+
+// Function to check if a custom time is within available slots
+function isTimeWithinAvailableSlots(
+  time: string,
+  availableSlots: AvailableSlot[]
+): boolean {
+  if (!time || !availableSlots || availableSlots.length === 0) return false;
+
+  // Parse the time string to get hours and minutes
+  const [hours, minutes] = time.split(":").map(Number);
+
+  // Convert to minutes for easier comparison
+  const timeInMinutes = hours * 60 + minutes;
+
+  // Check if the time falls within any available slot
+  return availableSlots.some((slot) => {
+    const startHour = Number.parseInt(slot.startTime.split(":")[0], 10);
+    const startMinute = Number.parseInt(slot.startTime.split(":")[1], 10);
+    const endHour = Number.parseInt(slot.endTime.split(":")[0], 10);
+    const endMinute = Number.parseInt(slot.endTime.split(":")[1], 10);
+
+    const slotStartMinutes = startHour * 60 + startMinute;
+    const slotEndMinutes = endHour * 60 + endMinute;
+
+    return timeInMinutes >= slotStartMinutes && timeInMinutes < slotEndMinutes;
+  });
+}
 
 export default function ScheduleFollowUpModal({
   schedule,
@@ -149,14 +175,17 @@ export default function ScheduleFollowUpModal({
   const t = useTranslations("customerSchedule");
   const token = getAccessToken();
   const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
-  const clinicId = tokenData?.clinicId || "";
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState<string>("");
-  const [busyTimeSlots, setBusyTimeSlots] = useState<BusyTimeSlot[]>([]);
+  const [customTimeInput, setCustomTimeInput] = useState<string>("");
+  const [showCustomTimeInput, setShowCustomTimeInput] =
+    useState<boolean>(false);
+  const [customTimeError, setCustomTimeError] = useState<string>("");
+  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [updateCustomerSchedule, { isLoading }] =
     useUpdateCustomerScheduleMutation();
-  const [getDoctorBusyTimes, { isLoading: isLoadingBusyTimes }] =
-    useLazyGetDoctorBusyTimesQuery();
+  const [getDoctorAvailableTimes, { isLoading: isLoadingAvailableTimes }] =
+    useLazyGetDoctorAvailableTimesQuery();
   const [getScheduleById, { isLoading: isLoadingSchedule }] =
     useLazyGetScheduleByIdQuery();
   const [scheduleDetail, setScheduleDetail] = useState<CustomerSchedule | null>(
@@ -166,6 +195,7 @@ export default function ScheduleFollowUpModal({
     "calendar"
   );
   const selectedAppointmentRef = useRef<HTMLDivElement>(null);
+  const customTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen && schedule) {
@@ -182,8 +212,8 @@ export default function ScheduleFollowUpModal({
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         setDate(tomorrow);
-        if (result.value.doctorId && clinicId) {
-          fetchBusyTimes(tomorrow, result.value.doctorId, clinicId);
+        if (result.value.id) {
+          fetchAvailableTimes(tomorrow, result.value.id);
         }
       }
     } catch (error) {
@@ -195,34 +225,43 @@ export default function ScheduleFollowUpModal({
   useEffect(() => {
     if (isOpen) {
       setStartTime("");
-      setBusyTimeSlots([]);
+      setCustomTimeInput("");
+      setShowCustomTimeInput(false);
+      setCustomTimeError("");
+      setAvailableSlots([]);
       setViewMode("calendar");
     }
   }, [isOpen]);
 
-  const fetchBusyTimes = async (
+  // Focus the custom time input when it becomes visible
+  useEffect(() => {
+    if (showCustomTimeInput && customTimeInputRef.current) {
+      customTimeInputRef.current.focus();
+    }
+  }, [showCustomTimeInput]);
+
+  const fetchAvailableTimes = async (
     selectedDate: Date,
-    doctorId: string,
-    clinicId: string
+    customerScheduleId: string
   ) => {
     try {
       const formattedDate = format(selectedDate, "yyyy-MM-dd");
-      console.log(`Fetching busy times with params:`, {
-        doctorId,
-        clinicId,
+      console.log(`Fetching available times with params:`, {
+        serviceIdOrCustomerScheduleId: customerScheduleId,
+        isCustomerSchedule: true,
         date: formattedDate,
       });
 
-      if (!doctorId || !clinicId || !formattedDate) {
+      if (!customerScheduleId || !formattedDate) {
         throw new Error(
           "Missing required parameters: " +
-            JSON.stringify({ doctorId, clinicId, date: formattedDate })
+            JSON.stringify({ customerScheduleId, date: formattedDate })
         );
       }
 
-      const queryResult = getDoctorBusyTimes({
-        doctorId,
-        clinicId,
+      const queryResult = getDoctorAvailableTimes({
+        serviceIdOrCustomerScheduleId: customerScheduleId,
+        isCustomerSchedule: true,
         date: formattedDate,
       });
       console.log("Query result before unwrap:", queryResult);
@@ -231,23 +270,23 @@ export default function ScheduleFollowUpModal({
       console.log("Unwrapped API response:", response);
 
       if (response && response.isSuccess && Array.isArray(response.value)) {
-        setBusyTimeSlots(response.value);
-        console.log("Busy time slots set:", response.value);
-        // Switch to time slots view after fetching busy times
+        setAvailableSlots(response.value);
+        console.log("Available time slots set:", response.value);
+        // Switch to time slots view after fetching available times
         setViewMode("timeSlots");
       } else {
-        console.log("Invalid response format or no busy times:", response);
-        setBusyTimeSlots([]);
+        console.log("Invalid response format or no available times:", response);
+        setAvailableSlots([]);
         if (response?.isFailure) {
           console.log("API error:", response.error);
         }
       }
     } catch (error) {
-      console.error("Failed to fetch busy times:", error);
+      console.error("Failed to fetch available times:", error);
       toast.error(
-        "Failed to fetch doctor's busy schedule. Using default time slots."
+        "Failed to fetch doctor's available schedule. Please try again."
       );
-      setBusyTimeSlots([]);
+      setAvailableSlots([]);
     }
   };
 
@@ -255,97 +294,45 @@ export default function ScheduleFollowUpModal({
     console.log("Date selected:", newDate);
     setDate(newDate);
     setStartTime("");
+    setCustomTimeInput("");
+    setShowCustomTimeInput(false);
+    setCustomTimeError("");
     setViewMode("calendar");
 
-    if (newDate && scheduleDetail && scheduleDetail.doctorId && clinicId) {
-      console.log("Calling fetchBusyTimes with:", {
+    if (newDate && scheduleDetail && scheduleDetail.id) {
+      console.log("Calling fetchAvailableTimes with:", {
         date: newDate,
-        doctorId: scheduleDetail.doctorId,
-        clinicId: clinicId,
+        customerScheduleId: scheduleDetail.id,
       });
-      fetchBusyTimes(newDate, scheduleDetail.doctorId, clinicId);
+      fetchAvailableTimes(newDate, scheduleDetail.id);
     } else {
-      console.log("Not calling fetchBusyTimes because:", {
+      console.log("Not calling fetchAvailableTimes because:", {
         hasDate: !!newDate,
         hasScheduleDetail: !!scheduleDetail,
-        hasDoctorId: scheduleDetail ? !!scheduleDetail.doctorId : false,
-        hasClinicId: !!clinicId,
+        hasScheduleId: scheduleDetail ? !!scheduleDetail.id : false,
       });
-      setBusyTimeSlots([]);
+      setAvailableSlots([]);
     }
-  };
-
-  const convertTimeToMinutes = (timeString: string): number => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    return hours * 60 + minutes;
-  };
-
-  const minutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours.toString().padStart(2, "0")}:${mins
-      .toString()
-      .padStart(2, "0")}:00`;
   };
 
   const availableTimeSlots = useMemo(() => {
-    console.log("Current busyTimeSlots in useMemo:", busyTimeSlots);
-    if (!busyTimeSlots.length) {
-      console.log("No busy slots, returning all time slots:", allTimeSlots);
-      return allTimeSlots.filter((timeSlot) => {
-        // If selected date is today, filter out past time slots
-        if (date && isToday(date)) {
-          const now = new Date();
-          const [hours, minutes] = timeSlot.split(":").map(Number);
-          const slotTime = new Date(date);
-          slotTime.setHours(hours, minutes, 0);
-          return slotTime > now;
-        }
-        return true;
-      });
-    }
+    console.log("Current availableSlots in useMemo:", availableSlots);
 
-    const filteredSlots = allTimeSlots.filter((timeSlot) => {
-      // If selected date is today, filter out past time slots
+    // Generate time slots from available slots
+    const generatedTimeSlots = generateTimeSlotsFromAvailable(availableSlots);
+
+    // Filter out past time slots if the selected date is today
+    return generatedTimeSlots.filter((timeSlot) => {
       if (date && isToday(date)) {
         const now = new Date();
         const [hours, minutes] = timeSlot.split(":").map(Number);
         const slotTime = new Date(date);
         slotTime.setHours(hours, minutes, 0);
-        if (slotTime <= now) return false;
+        return slotTime > now;
       }
-
-      const slotStartMinutes = convertTimeToMinutes(timeSlot);
-      const slotEndMinutes = slotStartMinutes + 30;
-
-      const isBusy = busyTimeSlots.some((busySlot) => {
-        const busyStartMinutes = convertTimeToMinutes(busySlot.start);
-        const busyEndMinutes = convertTimeToMinutes(busySlot.end);
-
-        const overlaps =
-          (slotStartMinutes >= busyStartMinutes &&
-            slotStartMinutes < busyEndMinutes) ||
-          (slotEndMinutes > busyStartMinutes &&
-            slotEndMinutes <= busyEndMinutes) ||
-          (slotStartMinutes <= busyStartMinutes &&
-            slotEndMinutes >= busyEndMinutes);
-
-        if (overlaps) {
-          console.log(
-            `Excluding ${timeSlot} (ends ${minutesToTime(
-              slotEndMinutes
-            )}) due to overlap with ${busySlot.start}-${busySlot.end}`
-          );
-        }
-        return overlaps;
-      });
-
-      return !isBusy;
+      return true;
     });
-
-    console.log("Filtered available time slots:", filteredSlots);
-    return filteredSlots;
-  }, [busyTimeSlots, date]);
+  }, [availableSlots, date]);
 
   // Group time slots by period
   const timeSlotGroups = useMemo(
@@ -355,6 +342,9 @@ export default function ScheduleFollowUpModal({
 
   const handleTimeSelect = (time: string) => {
     setStartTime(time);
+    setCustomTimeInput("");
+    setShowCustomTimeInput(false);
+    setCustomTimeError("");
 
     // Use setTimeout to ensure the selectedAppointment section is rendered before scrolling
     setTimeout(() => {
@@ -365,6 +355,69 @@ export default function ScheduleFollowUpModal({
         });
       }
     }, 100);
+  };
+
+  const toggleCustomTimeInput = () => {
+    setShowCustomTimeInput(!showCustomTimeInput);
+    if (!showCustomTimeInput) {
+      setStartTime("");
+    } else {
+      setCustomTimeInput("");
+      setCustomTimeError("");
+    }
+  };
+
+  const validateAndSetCustomTime = () => {
+    // Basic format validation
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+    if (!timeRegex.test(customTimeInput)) {
+      setCustomTimeError(t("invalidTimeFormat"));
+      return;
+    }
+
+    // Parse the time
+    const [hours, minutes] = customTimeInput.split(":").map(Number);
+
+    // Check if the time is within available slots
+    const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:00`;
+
+    if (!isTimeWithinAvailableSlots(customTimeInput, availableSlots)) {
+      setCustomTimeError(t("timeNotAvailable"));
+      return;
+    }
+
+    // Clear any errors and set the time
+    setCustomTimeError("");
+    setStartTime(formattedTime);
+
+    // Scroll to the selected appointment section
+    setTimeout(() => {
+      if (selectedAppointmentRef.current) {
+        selectedAppointmentRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }, 100);
+  };
+
+  const handleCustomTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomTimeInput(e.target.value);
+    // Clear error when user starts typing again
+    if (customTimeError) {
+      setCustomTimeError("");
+    }
+  };
+
+  const handleCustomTimeKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      validateAndSetCustomTime();
+    }
   };
 
   const handleSubmit = async () => {
@@ -399,6 +452,9 @@ export default function ScheduleFollowUpModal({
   const goBackToCalendar = () => {
     setViewMode("calendar");
     setStartTime("");
+    setCustomTimeInput("");
+    setShowCustomTimeInput(false);
+    setCustomTimeError("");
   };
 
   if (isLoadingSchedule && !scheduleDetail) {
@@ -488,7 +544,47 @@ export default function ScheduleFollowUpModal({
                 </Button>
               </div>
 
-              {isLoadingBusyTimes ? (
+              {/* Custom time input toggle button */}
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleCustomTimeInput}
+                  className="flex items-center gap-1"
+                >
+                  <Edit className="h-3 w-3" />
+                  {showCustomTimeInput
+                    ? t("selectFromOptions")
+                    : t("enterCustomTime")}
+                </Button>
+              </div>
+
+              {/* Custom time input field */}
+              {showCustomTimeInput ? (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-time">{t("enterSpecificTime")}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-time"
+                      ref={customTimeInputRef}
+                      placeholder="15:15"
+                      value={customTimeInput}
+                      onChange={handleCustomTimeChange}
+                      onKeyDown={handleCustomTimeKeyDown}
+                      className={cn(customTimeError && "border-red-500")}
+                    />
+                    <Button onClick={validateAndSetCustomTime}>
+                      {t("apply")}
+                    </Button>
+                  </div>
+                  {customTimeError && (
+                    <p className="text-sm text-red-500">{customTimeError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {t("timeFormatHint")}
+                  </p>
+                </div>
+              ) : isLoadingAvailableTimes ? (
                 <div className="flex justify-center items-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-pink-500 dark:text-pink-400 mr-2" />
                   <span>{t("loadingAvailableTimes")}</span>
@@ -558,7 +654,9 @@ export default function ScheduleFollowUpModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || isLoadingBusyTimes || !date || !startTime}
+            disabled={
+              isLoading || isLoadingAvailableTimes || !date || !startTime
+            }
           >
             {isLoading ? (
               <>

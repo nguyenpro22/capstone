@@ -6,6 +6,22 @@ export interface RequestItem {
     totalApply: number;
   }
 
+  export interface BranchRequestItem {
+    id: string;
+    name: string;
+    createdOnUtc: string;
+    parentId: string;
+    parentName: number;
+    parentEmail: string;
+    parentPhoneNumber: string;
+    parentCity: string;
+    parentDistrict: string;
+    parentWard: number;
+    parentAddress: string;
+    rejectReason: number;
+  }
+
+
   
 export interface PartnershipRequestsResponse {
   value: {

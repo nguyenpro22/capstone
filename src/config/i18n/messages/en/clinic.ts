@@ -76,9 +76,9 @@ export const clinicMessages: Messages["clinic"] = {
   noBanksFound: "No banks found",
   bankingInfoHelp:
     "Banking information will be used for financial transactions with your clinic. Please ensure the information is accurate.",
+  copyToClipboard: "Copy to clipboard",
 
-    copyToClipboard: "Copy to clipboard",
-    // New keys for partnership request component
+  // New keys for partnership request component
   partnershipRequests: "Partnership Requests",
   totalRequests: "Total",
   searchByNameOrEmail: "Search by name or email...",
@@ -106,4 +106,22 @@ export const clinicMessages: Messages["clinic"] = {
   partnershipRequestRejected: "Partnership request rejected successfully",
   partnershipRequestBanned: "Partnership request banned successfully",
   failedToUpdateRequest: "Failed to update the request",
+
+  // New keys for branch request component
+  branchName: "Branch Name",
+  requestDate: "Request Date",
+  parentEmail: "Clinic Email",
+  branchRequests: "Branch Requests",
+   // New keys for branch request detail component
+   partnershipRequestDetails: "Partnership Request Details",
+   detailedInformationAboutRequest: "Detailed information about this partnership request",
+   information: "Information",
+   branchInformation: "Branch Information",
+   createdOn: "Created On",
+   rejectReason: "Reject Reason",
+   parentClinicInformation: "Parent Clinic Information",
+   addressInformation: "Address Information",
+   city: "City",
+   noDetailsAvailable: "No details available for this request",
+   branchRequestsTitle: " Branch Requests List"
 }

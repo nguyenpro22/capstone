@@ -55,5 +55,6 @@ export const sidebarMessages: Messages["sidebar"] = {
   // New translations for mobile sidebar
   lightMode: "Chế độ sáng",
   darkMode: "Chế độ tối",
-  workingSchedule: "Khung Giờ Hoạt Động"
+  workingSchedule: "Khung Giờ Hoạt Động",
+  branchRequest: "Phê Duyệt Chi Nhánh"
 }

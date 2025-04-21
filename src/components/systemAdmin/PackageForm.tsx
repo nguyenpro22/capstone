@@ -1,36 +1,46 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useCreatePackageMutation, useGetPackagesQuery } from "@/features/package/api"
-import { motion, AnimatePresence } from "framer-motion"
-import { Package, X, AlertCircle, DollarSign, Clock } from "lucide-react"
+import { useState } from "react";
+import {
+  useCreatePackageMutation,
+  useGetPackagesQuery,
+} from "@/features/package/api";
+import { motion, AnimatePresence } from "framer-motion";
+import { Package, X, AlertCircle, DollarSign, Clock } from "lucide-react";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface PackageFormProps {
-  initialData?: any
-  onClose: () => void
-  onSaveSuccess: () => void
+  initialData?: any;
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
-export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps) {
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [price, setPrice] = useState("")
-  const [duration, setDuration] = useState("")
-  const [limitBranches, setLimitBranches] = useState("0")
-  const [limitLiveStream, setLimitLiveStream] = useState("0")
-  const [priceBranchAddition, setPriceBranchAddition] = useState("")
-  const [priceLiveStreamAddition, setPriceLiveStreamAddition] = useState("")
-  const [enhancedView, setEnhancedView] = useState("0")
-  const [errorMessages, setErrorMessages] = useState<string[]>([])
+export default function PackageForm({
+  onClose,
+  onSaveSuccess,
+}: PackageFormProps) {
+  // Get translations for the package namespace
+  const t = useTranslations("package");
 
-  const [createPackage, { isLoading }] = useCreatePackageMutation()
-  const { refetch } = useGetPackagesQuery(undefined)
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [duration, setDuration] = useState("");
+  const [limitBranches, setLimitBranches] = useState("0");
+  const [limitLiveStream, setLimitLiveStream] = useState("0");
+  const [priceBranchAddition, setPriceBranchAddition] = useState("");
+  const [priceLiveStreamAddition, setPriceLiveStreamAddition] = useState("");
+  const [enhancedView, setEnhancedView] = useState("0");
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
+  const [createPackage, { isLoading }] = useCreatePackageMutation();
+  const { refetch } = useGetPackagesQuery(undefined);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMessages([])
+    e.preventDefault();
+    setErrorMessages([]);
 
     try {
       const response = await createPackage({
@@ -43,26 +53,26 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
         priceBranchAddition: Number.parseFloat(priceBranchAddition),
         priceLiveStreamAddition: Number.parseFloat(priceLiveStreamAddition),
         enhancedView: Number.parseInt(enhancedView),
-      }).unwrap()
+      }).unwrap();
 
       if (response.isSuccess) {
-        onSaveSuccess()
-        await refetch()
-        onClose()
+        onSaveSuccess();
+        await refetch();
+        onClose();
       } else {
-        setErrorMessages(["An unexpected error occurred"])
+        setErrorMessages([t("notifications.unexpectedError")]);
       }
     } catch (err: any) {
-      console.error("API Error:", err)
+      console.error("API Error:", err);
 
       if (err?.data?.status === 422 && err?.data?.errors) {
-        const messages = err.data.errors.map((error: any) => error.message)
-        setErrorMessages(messages)
+        const messages = err.data.errors.map((error: any) => error.message);
+        setErrorMessages(messages);
       } else {
-        setErrorMessages(["An unexpected error occurred"])
+        setErrorMessages([t("notifications.unexpectedError")]);
       }
     }
-  }
+  };
 
   return (
     <motion.div
@@ -88,9 +98,14 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center gap-3">
                 <Package className="w-6 h-6 text-purple-500" />
-                <h2 className="text-2xl font-serif tracking-wide text-gray-800">New Package</h2>
+                <h2 className="text-2xl font-serif tracking-wide text-gray-800">
+                  {t("addNewPackage")}
+                </h2>
               </div>
-              <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -105,7 +120,10 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                   className="mb-6"
                 >
                   {errorMessages.map((msg, index) => (
-                    <div key={index} className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2">
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2"
+                    >
                       <AlertCircle className="w-5 h-5" />
                       <p className="text-sm">{msg}</p>
                     </div>
@@ -117,10 +135,16 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
 
           {/* Form with scroll */}
           <div className="px-8 overflow-y-auto">
-            <form id="package-form" onSubmit={handleSubmit} className="space-y-6">
+            <form
+              id="package-form"
+              onSubmit={handleSubmit}
+              className="space-y-6"
+            >
               {/* Package Name */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Package Name</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("packageName")}
+                </label>
                 <input
                   type="text"
                   value={name}
@@ -128,12 +152,15 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                          focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
+                  placeholder={t("placeholders.enterPackageName")}
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Description</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("description")}
+                </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -141,12 +168,15 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                          focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
+                  placeholder={t("placeholders.enterDescription")}
                 />
               </div>
 
               {/* Price */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Price</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("price")}
+                </label>
                 <div className="relative">
                   <input
                     type="number"
@@ -155,6 +185,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                            focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                     required
+                    placeholder={t("placeholders.enterPrice")}
                   />
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
@@ -162,7 +193,9 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
 
               {/* Duration */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Duration (days)</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("duration")}
+                </label>
                 <div className="relative">
                   <input
                     type="number"
@@ -171,6 +204,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                            focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                     required
+                    placeholder={t("placeholders.enterDuration")}
                   />
                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
@@ -178,7 +212,9 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
 
               {/* Limit Branches */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Limit Branches</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("branchLimit")}
+                </label>
                 <input
                   type="number"
                   value={limitBranches}
@@ -186,12 +222,15 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                          focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
+                  placeholder={t("placeholders.enterLimitBranches")}
                 />
               </div>
 
               {/* Limit Live Stream */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Limit Live Stream</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("liveStreamLimit")}
+                </label>
                 <input
                   type="number"
                   value={limitLiveStream}
@@ -199,12 +238,15 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                          focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
+                  placeholder={t("placeholders.enterLimitLiveStream")}
                 />
               </div>
 
               {/* Price More Branch */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Price Per Additional Branch</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("additionalBranchPrice")}
+                </label>
                 <div className="relative">
                   <input
                     type="number"
@@ -213,6 +255,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                            focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                     required
+                    placeholder={t("placeholders.enterPriceBranchAddition")}
                   />
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
@@ -220,7 +263,9 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
 
               {/* Price More Livestream */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Price Per Additional Livestream</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("additionalLivestreamPrice")}
+                </label>
                 <div className="relative">
                   <input
                     type="number"
@@ -229,6 +274,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                            focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                     required
+                    placeholder={t("placeholders.enterPriceLiveStreamAddition")}
                   />
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
@@ -236,7 +282,9 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
 
               {/* Enhanced View */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Enhanced View</label>
+                <label className="text-sm font-medium text-gray-700">
+                  {t("enhancedViewerCapacity")}
+                </label>
                 <input
                   type="number"
                   value={enhancedView}
@@ -244,6 +292,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                          focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
+                  placeholder={t("placeholders.enterEnhancedView")}
                 />
               </div>
             </form>
@@ -258,7 +307,7 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                 className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 
                          hover:bg-gray-50 transition-colors duration-200"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="submit"
@@ -271,10 +320,10 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
+                    <span>{t("saving")}</span>
                   </div>
                 ) : (
-                  "Save Package"
+                  t("savePackage")
                 )}
               </button>
             </div>
@@ -282,5 +331,5 @@ export default function PackageForm({ onClose, onSaveSuccess }: PackageFormProps
         </div>
       </motion.div>
     </motion.div>
-  )
+  );
 }

@@ -77,5 +77,6 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     depositAmount: "Tiền đặt cọc",
     remainingAmount: "Số tiền còn lại",
     actions:"Hành Động",
-    columns: "Cột"
+    columns: "Cột",
+    columnDisplay: "Cột Hiển Thị"
 }

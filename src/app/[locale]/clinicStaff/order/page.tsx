@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type React from "react";
 
 import {
@@ -20,13 +20,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Filter, ChevronDown, MoreHorizontal, Loader2 } from "lucide-react";
+import {
+  Filter,
+  ChevronDown,
+  MoreHorizontal,
+  Loader2,
+  Columns,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { useGetOrdersQuery } from "@/features/order/api"; // Adjust the import path as needed
 import { useDebounce } from "@/hooks/use-debounce"; // Assuming you have this hook
@@ -76,6 +83,57 @@ export default function OrderPage() {
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
+  // Define column keys as a type for type safety
+  type ColumnKey =
+    | "orderId"
+    | "customerName"
+    | "service"
+    | "date"
+    | "finalAmount"
+    | "status"
+    | "actions";
+
+  // State for column visibility
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<ColumnKey, boolean>
+  >({
+    orderId: true,
+    customerName: true,
+    service: true,
+    date: true,
+    finalAmount: true,
+    status: true,
+    actions: true,
+  });
+
+  // Define available columns
+  const availableColumns = useMemo(
+    () => [
+      { id: "orderId" as ColumnKey, label: t("orderId") },
+      { id: "customerName" as ColumnKey, label: t("customerName") },
+      { id: "service" as ColumnKey, label: t("service") },
+      { id: "date" as ColumnKey, label: t("date") },
+      { id: "finalAmount" as ColumnKey, label: t("finalAmount") },
+      { id: "status" as ColumnKey, label: t("status") },
+      { id: "actions" as ColumnKey, label: t("actions") },
+    ],
+    [t]
+  );
+
+  // Toggle column visibility
+  const toggleColumnVisibility = (columnId: ColumnKey) => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }));
+  };
+
+  // Get visible columns
+  const visibleColumns = useMemo(
+    () => availableColumns.filter((column) => columnVisibility[column.id]),
+    [availableColumns, columnVisibility]
+  );
+
   // Debounce search term to avoid too many API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -116,6 +174,19 @@ export default function OrderPage() {
     setIsDetailDialogOpen(true);
   };
 
+  // Reset column visibility to default
+  const resetColumnVisibility = () => {
+    setColumnVisibility({
+      orderId: true,
+      customerName: true,
+      service: true,
+      date: true,
+      finalAmount: true,
+      status: true,
+      actions: true,
+    } as Record<ColumnKey, boolean>);
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
@@ -128,11 +199,32 @@ export default function OrderPage() {
             value={searchTerm}
             onChange={handleSearchChange}
           />
-          <Button variant="outline" className="gap-2">
-            <Filter size={16} />
-            {t("filter")}
-            <ChevronDown size={16} />
-          </Button>
+
+          {/* Column visibility dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Columns size={16} />
+                {t("columnDisplay")}
+                <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={resetColumnVisibility}>
+                {t("resetFilters")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {availableColumns.map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={columnVisibility[column.id]}
+                  onCheckedChange={() => toggleColumnVisibility(column.id)}
+                >
+                  {column.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -156,20 +248,16 @@ export default function OrderPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("orderId")}</TableHead>
-                    <TableHead>{t("customerName")}</TableHead>
-                    <TableHead>{t("service")}</TableHead>
-                    <TableHead>{t("date")}</TableHead>
-                    <TableHead>{t("finalAmount")}</TableHead>
-                    <TableHead>{t("status")}</TableHead>
-                    <TableHead>{t("actions")}</TableHead>
+                    {visibleColumns.map((column) => (
+                      <TableHead key={column.id}>{column.label}</TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {orders.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={visibleColumns.length}
                         className="text-center py-8 text-muted-foreground"
                       >
                         {t("noOrdersFound")}
@@ -178,46 +266,62 @@ export default function OrderPage() {
                   ) : (
                     orders.map((order: OrderItem) => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">
-                          {order.id}
-                        </TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>{order.serviceName}</TableCell>
-                        <TableCell>{formatDate(order.orderDate)}</TableCell>
-                        <TableCell>
-                          {formatCurrency(order.finalAmount)} đ
-                        </TableCell>
-                        <TableCell>{getStatusBadge(order.status, t)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewOrderDetails(order)}
-                            >
-                              {t("viewDetails")}
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  {t("printInvoice")}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  {t("updateStatus")}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
-                                  {t("cancelOrder")}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
+                        {columnVisibility.orderId && (
+                          <TableCell className="font-medium">
+                            {order.id}
+                          </TableCell>
+                        )}
+                        {columnVisibility.customerName && (
+                          <TableCell>{order.customerName}</TableCell>
+                        )}
+                        {columnVisibility.service && (
+                          <TableCell>{order.serviceName}</TableCell>
+                        )}
+                        {columnVisibility.date && (
+                          <TableCell>{formatDate(order.orderDate)}</TableCell>
+                        )}
+                        {columnVisibility.finalAmount && (
+                          <TableCell>
+                            {formatCurrency(order.finalAmount)} đ
+                          </TableCell>
+                        )}
+                        {columnVisibility.status && (
+                          <TableCell>
+                            {getStatusBadge(order.status, t)}
+                          </TableCell>
+                        )}
+                        {columnVisibility.actions && (
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewOrderDetails(order)}
+                              >
+                                {t("viewDetails")}
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    {t("printInvoice")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    {t("updateStatus")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    {t("cancelOrder")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}

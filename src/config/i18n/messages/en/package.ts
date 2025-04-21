@@ -1,5 +1,7 @@
-import { Messages } from "../types";
+import type { Messages } from "../types"
+
 export const packageMessages: Messages["package"] = {
+  // Existing fields
   packageLists: "Package Lists",
   searchByPackageName: "Search By Package Name",
   addNewPackage: "Add New Package",
@@ -37,12 +39,12 @@ export const packageMessages: Messages["package"] = {
   enhancedViewerCapacity: "Enhanced Viewer Capacity",
   additionalLivestreamPrice: "Additional Livestream Price",
   additionalBranchPrice: "Additional Branch Price",
-  // New fields
+  
+  // New fields for premium packages
   premiumBeautyPackages: "Premium Beauty Packages",
   enhanceYourBeautyServices: "Enhance Your Beauty Services",
   purchaseAdditionalSlots: "Purchase Additional Slots",
-  chooseFromExclusiveRange:
-    "Choose from our exclusive range of premium packages designed to elevate your beauty services.",
+  chooseFromExclusiveRange: "Choose from our exclusive range of premium packages designed to elevate your beauty services.",
   addMoreBranchesAndLivestreams: "Add more branches and livestreams to your current subscription.",
   packages: "Packages",
   additionalSlots: "Additional Slots",
@@ -93,4 +95,50 @@ export const packageMessages: Messages["package"] = {
   durationDays: "{duration} days",
   liveStreams: "{count} live streams",
   enhancedViewers: "{count} enhanced viewers",
+  
+  // Additional fields needed for edit-package-form
+  editPackage: "Edit Package",
+  saving: "Saving...",
+  saveChanges: "Save Changes",
+  savePackage: "Save Package",
+  cancel: "Cancel",
+  packageUpdated: "Package updated successfully!",
+  invalidData: "Invalid data provided!",
+  
+  // Fields structure for form fields
+  fields: {
+    packageName: "Package Name",
+    description: "Description",
+    price: "Price (USD)",
+    duration: "Duration (Months)",
+    limitBranches: "Branch Limit",
+    limitLiveStream: "Live Stream Limit",
+    priceBranchAddition: "Price Per Additional Branch",
+    priceLiveStreamAddition: "Price Per Additional Livestream",
+    enhancedView: "Enhanced Viewer Capacity"
+  },
+  
+  // Placeholders for form inputs
+  placeholders: {
+    enterPackageName: "Enter package name",
+    enterDescription: "Enter description",
+    enterPrice: "Enter price",
+    enterDuration: "Enter duration in days",
+    enterLimitBranches: "Enter branch limit",
+    enterLimitLiveStream: "Enter live stream limit",
+    enterPriceBranchAddition: "Enter price per additional branch",
+    enterPriceLiveStreamAddition: "Enter price per additional livestream",
+    enterEnhancedView: "Enter enhanced view capacity"
+  },
+  
+  // Notifications for form actions
+  notifications: {
+    packageAdded: "Package added successfully!",
+    packageAddFailed: "Failed to add package!",
+    packageUpdated: "Package updated successfully!",
+    packageUpdateFailed: "Failed to update package!",
+    invalidData: "Invalid data provided!",
+    errorOccurred: "An error occurred, please try again!",
+    unexpectedError: "An unexpected error occurred"
+  },
 }

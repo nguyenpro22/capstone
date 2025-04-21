@@ -1,9 +1,15 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
-import { useCreateCategoryMutation, useGetCategoriesQuery } from "@/features/category-service/api";
+import {
+  useCreateCategoryMutation,
+  useGetCategoriesQuery,
+} from "@/features/category-service/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, X, AlertCircle, FileText } from 'lucide-react';
+import { Layers, X, AlertCircle, FileText } from "lucide-react";
+import { useTranslations } from "next-intl"; // Import useTranslations
 
 interface CategoryFormProps {
   initialData?: any;
@@ -11,13 +17,23 @@ interface CategoryFormProps {
   onSaveSuccess: () => void;
 }
 
-export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormProps) {
+export default function CategoryForm({
+  onClose,
+  onSaveSuccess,
+}: CategoryFormProps) {
+  // Get translations for the category namespace
+  const t = useTranslations("category");
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const [createCategory, { isLoading }] = useCreateCategoryMutation();
-  const { refetch } = useGetCategoriesQuery({ pageIndex: 1, pageSize: 10, searchTerm: "" });
+  const { refetch } = useGetCategoriesQuery({
+    pageIndex: 1,
+    pageSize: 10,
+    searchTerm: "",
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +87,9 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <Layers className="w-6 h-6 text-purple-500" />
-              <h2 className="text-2xl font-serif tracking-wide text-gray-800">New Category</h2>
+              <h2 className="text-2xl font-serif tracking-wide text-gray-800">
+                {t("addNewCategory")}
+              </h2>
             </div>
             <button
               onClick={onClose}
@@ -107,7 +125,9 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Category Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Category Name</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("table.categoryName")}
+              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -116,14 +136,16 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                            focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
-                  placeholder="Enter category name"
+                  placeholder={t("table.categoryName")}
                 />
               </div>
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Description</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("table.description")}
+              </label>
               <div className="relative">
                 <textarea
                   value={description}
@@ -132,7 +154,7 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
                            focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
                   required
-                  placeholder="Enter category description"
+                  placeholder={t("table.description")}
                 />
                 <FileText className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
               </div>
@@ -146,7 +168,8 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
                 className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 
                          hover:bg-gray-50 transition-colors duration-200"
               >
-                Cancel
+                {/* We need to add "cancel" to the translations */}
+                {t.rich("cancel", { defaultMessage: "Cancel" })}
               </button>
               <button
                 type="submit"
@@ -158,10 +181,12 @@ export default function CategoryForm({ onClose, onSaveSuccess }: CategoryFormPro
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
+                    <span>
+                      {t.rich("saving", { defaultMessage: "Saving..." })}
+                    </span>
                   </div>
                 ) : (
-                  "Save Category"
+                  t.rich("saveCategory", { defaultMessage: "Save Category" })
                 )}
               </button>
             </div>

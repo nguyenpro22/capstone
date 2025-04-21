@@ -177,6 +177,7 @@ export const walletMessages: Messages["wallet"] = {
       error: "Error",
       branchDataUnavailable: "Cannot request withdrawal. Branch data is not available.",
       exportFunctionality: "Export functionality would be implemented here",
+      exportSuccess: "Export Success"
     },
   }
   

@@ -1,55 +1,62 @@
-"use client"
-import { useMemo, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { X, Check, Building, ArrowRight, Loader2 } from "lucide-react"
-import { useChangeDoctorBranchMutation, useGetBranchesQuery } from "@/features/clinic/api"
-import { toast } from "react-toastify"
-import { useTranslations } from "next-intl"
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils"
-import type { Doctor, Branch } from "@/features/clinic/types"
-import { useTheme } from "next-themes"
-
+"use client";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { X, Check, Building, ArrowRight, Loader2 } from "lucide-react";
+import {
+  useChangeDoctorBranchMutation,
+  useGetBranchesQuery,
+} from "@/features/clinic/api";
+import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
+import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import type { Doctor, Branch } from "@/features/clinic/types";
+import { useTheme } from "next-themes";
 
 // Define the form schema
 const changeBranchSchema = z.object({
   newBranchId: z.string().min(1, "New branch is required"),
-})
+});
 
-type ChangeBranchFormValues = z.infer<typeof changeBranchSchema>
+type ChangeBranchFormValues = z.infer<typeof changeBranchSchema>;
 
 interface ChangeDoctorBranchFormProps {
-  doctor: Doctor
-  onClose: () => void
-  onSaveSuccess: () => void
+  doctor: Doctor;
+  onClose: () => void;
+  onSaveSuccess: () => void;
 }
 
-export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess }: ChangeDoctorBranchFormProps) {
-  const t = useTranslations("staffDoctor")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [changeDoctorBranch] = useChangeDoctorBranchMutation()
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
-  const { theme } = useTheme()
+export default function ChangeDoctorBranchForm({
+  doctor,
+  onClose,
+  onSaveSuccess,
+}: ChangeDoctorBranchFormProps) {
+  const t = useTranslations("staffDoctor");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [changeDoctorBranch] = useChangeDoctorBranchMutation();
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const { theme } = useTheme();
 
   // Get the token and extract clinicId
-  const token = getAccessToken()
+  const token = getAccessToken();
   // Add null check for token
-  const tokenData = token ? (GetDataByToken(token) as TokenData) : null
-  const clinicId = tokenData?.clinicId || ""
+  const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+  const clinicId = tokenData?.clinicId || "";
 
   // Fetch branches
-  const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery(clinicId)
+  const { data: branchesData, isLoading: isLoadingBranches } =
+    useGetBranchesQuery(clinicId);
 
   // Fix the typing issue by ensuring branches is always an array
   const branches = useMemo(() => {
     // Check if data exists and has the expected structure
     if (branchesData?.value?.branches?.items) {
-      return branchesData.value.branches.items || []
+      return branchesData.value.branches.items || [];
     }
-    return []
-  }, [branchesData])
+    return [];
+  }, [branchesData]);
 
   const {
     register,
@@ -61,50 +68,56 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
     defaultValues: {
       newBranchId: "",
     },
-  })
+  });
 
   // Watch for changes to newBranchId
-  const newBranchId = watch("newBranchId")
+  const newBranchId = watch("newBranchId");
 
   // Update selectedBranch when newBranchId changes
   useMemo(() => {
     if (newBranchId) {
-      const branch = branches.find((b) => b.id === newBranchId)
-      setSelectedBranch(branch || null)
+      const branch = branches.find((b) => b.id === newBranchId);
+      setSelectedBranch(branch || null);
     } else {
-      setSelectedBranch(null)
+      setSelectedBranch(null);
     }
-  }, [newBranchId, branches])
+  }, [newBranchId, branches]);
 
   const onSubmit = async (data: ChangeBranchFormValues) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // Create FormData object for the multipart/form-data request
-      const formData = new FormData()
-      formData.append("clinicId", data.newBranchId)
-      formData.append("doctorId", doctor.employeeId) // Using doctor.id instead of employeeId
+      const formData = new FormData();
+      formData.append("clinicId", data.newBranchId);
+      formData.append("doctorId", doctor.employeeId); // Using doctor.id instead of employeeId
 
       await changeDoctorBranch({
         id: data.newBranchId, // Clinic ID for the URL path parameter
         data: formData,
-      }).unwrap()
+      }).unwrap();
 
-      toast.success(t("branchChangedSuccess") || "Doctor's branch changed successfully!")
-      onSaveSuccess()
+      toast.success(
+        t("branchChangedSuccess") || "Doctor's branch changed successfully!"
+      );
+      onSaveSuccess();
     } catch (error: any) {
-      console.error("Failed to change doctor's branch:", error)
-      if(error.status == 400){
-        toast.error(error.detail || t("branchChangeFailed"))
+      console.error("Failed to change doctor's branch:", error);
+      if (error.status == 400) {
+        toast.error(error.data.detail || t("branchChangeFailed"));
+      } else {
+        toast.error(error.data.detail || t("branchChangeFailed"));
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Get current branch name
   const currentBranchName =
-    doctor.branchs && doctor.branchs.length > 0 ? doctor.branchs[0].name : t("noBranch") || "No branch assigned"
+    doctor.branchs && doctor.branchs.length > 0
+      ? doctor.branchs[0].name
+      : t("noBranch") || "No branch assigned";
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 p-4">
@@ -117,9 +130,12 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
       >
         {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 p-6 text-white relative">
-          <h2 className="text-2xl font-bold">{t("changeDoctorBranch") || "Change Doctor's Branch"}</h2>
+          <h2 className="text-2xl font-bold">
+            {t("changeDoctorBranch") || "Change Doctor's Branch"}
+          </h2>
           <p className="text-purple-100 dark:text-purple-50 mt-1 opacity-90">
-            {t("updateDoctorBranch") || "Update the branch assignment for this doctor"}
+            {t("updateDoctorBranch") ||
+              "Update the branch assignment for this doctor"}
           </p>
           <button
             onClick={onClose}
@@ -137,7 +153,9 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
               {doctor.fullName?.charAt(0) || "D"}
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">{doctor.fullName}</h3>
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                {doctor.fullName}
+              </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {doctor.email || t("noEmail") || "No email provided"}
               </p>
@@ -146,7 +164,10 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
         </div>
 
         {/* Form content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 dark:bg-gray-900">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-6 dark:bg-gray-900"
+        >
           {/* Current branch display */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
@@ -154,7 +175,9 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
             </label>
             <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
               <Building className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">{currentBranchName}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {currentBranchName}
+              </span>
             </div>
           </div>
 
@@ -167,7 +190,9 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
               <select
                 {...register("newBranchId")}
                 className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
-                  errors.newBranchId ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-700"
+                  errors.newBranchId
+                    ? "border-red-300 dark:border-red-700"
+                    : "border-gray-300 dark:border-gray-700"
                 }`}
                 disabled={isLoadingBranches}
               >
@@ -201,7 +226,12 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -279,5 +309,5 @@ export default function ChangeDoctorBranchForm({ doctor, onClose, onSaveSuccess 
         </form>
       </motion.div>
     </div>
-  )
+  );
 }

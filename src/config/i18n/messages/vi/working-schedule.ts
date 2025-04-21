@@ -26,13 +26,13 @@ export const workingScheduleMessages: Messages["workingSchedule"] = {
   // Configuration section
   configTitle: "Cấu hình lịch làm việc",
   configDescription: "Thiết lập số lượng bác sĩ có thể đăng ký và khung giờ làm việc",
-  totalDoctorsPerDay: "Tổng số lượng bác sĩ trong ngày",
-  doctorsTooltip: "Đây là tổng số lượng bác sĩ có thể đăng ký trong tất cả các khung giờ của ngày này",
+  totalDoctorsPerDay: "Tổng số lượng ca làm trong ngày",
+  doctorsTooltip: "Đây là tổng số lượng ca làm có thể đăng ký trong tất cả các khung giờ của ngày này",
   workingHours: "Khung giờ làm việc",
   addTimeSlot: "Thêm khung giờ",
   startTime: "Giờ bắt đầu",
   endTime: "Giờ kết thúc",
-  doctorsCount: "Số lượng bác sĩ",
+  doctorsCount: "Số lượng ca làm",
   noTimeSlots: "Chưa có khung giờ nào được thiết lập",
   
   // Warnings and errors
@@ -67,7 +67,7 @@ export const workingScheduleMessages: Messages["workingSchedule"] = {
   dateHeader: "Ngày",
   timeHeader: "Thời gian",
   shiftGroupIdHeader: "Mã nhóm ca",
-  doctorsCountHeader: "Số lượng bác sĩ",
+  doctorsCountHeader: "Số lượng ca làm",
   customersCountHeader: "Số lượng khách hàng",
   capacityHeader: "Capacity",
   statusHeader: "Trạng thái",

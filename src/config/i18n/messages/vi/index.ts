@@ -43,6 +43,7 @@ import { orderMessages } from "./order";
 import { orderDetail } from "./order-detail";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
+import { profileMessages } from "./profile";
 
 const vi = {
   home: homeMessages,
@@ -89,6 +90,7 @@ const vi = {
   orderDetail,
   workingSchedule:workingScheduleMessages,
   pagination: paginationMessages,
+  profile: profileMessages,
 };
 
 export default vi;

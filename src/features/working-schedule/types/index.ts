@@ -5,7 +5,21 @@ export interface BusyTimeSlot {
     end: string;
     date: string;
   }
+  export interface AvailableSlot {
+    startTime: string;
+    endTime: string;
+    date: string;
+  }
   
+  export  interface AvailableTimesResponse {
+    value: AvailableSlot[]
+    isSuccess: boolean
+    isFailure: boolean
+    error: {
+      code: string
+      message: string
+    }
+  }
 export  interface BusyTimesResponse {
     value: BusyTimeSlot[]
     isSuccess: boolean

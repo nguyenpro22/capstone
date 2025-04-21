@@ -13,26 +13,33 @@ export const categoryMessages: Messages["category"] = {
     number: "STT",
     categoryName: "Tên Danh mục",
     description: "Mô tả",
-    actions: "Thao tác"
+    actions: "Thao tác",
   },
   subcategory: {
     subcategoryName: "Tên danh mục con",
     description: "Mô tả",
     actions: "Thao tác",
     noSubcategories: "Chưa có danh mục con nào",
-    addSubcategory: "Thêm danh mục con"
+    addSubcategory: "Thêm danh mục con",
+    activate: "Kích hoạt",
+    adding: "Đang thêm...",
+    movingSubcategory: "Bạn đang chuyển danh mục con:",
+    selectDestinationCategory: "Chọn danh mục đích",
+    noDestinationCategories: "Không có danh mục đích nào khả dụng",
+    processing: "Đang xử lý...",
+    moveCategory: "Chuyển danh mục",
   },
   actions: {
     addSubcategory: "Thêm danh mục con",
     edit: "Chỉnh sửa danh mục",
     delete: "Xóa danh mục",
-    moveSubcategory: "Chuyển danh mục",
+    moveSubcategory: "Chuyển danh mục con",
     editSubcategory: "Chỉnh sửa danh mục con",
-    deleteSubcategory: "Xóa danh mục con"
+    deleteSubcategory: "Xóa danh mục con",
   },
   confirmations: {
     deleteCategory: "Bạn có chắc chắn muốn xóa danh mục này?",
-    deleteSubcategory: "Bạn có chắc chắn muốn xóa danh mục con này?"
+    deleteSubcategory: "Bạn có chắc chắn muốn xóa danh mục con này?",
   },
   notifications: {
     categoryDeleted: "Danh mục đã được xóa thành công!",
@@ -42,6 +49,26 @@ export const categoryMessages: Messages["category"] = {
     loadCategoryFailed: "Không thể lấy thông tin danh mục!",
     subcategoryMoved: "Chuyển danh mục thành công!",
     subcategoryMoveFailed: "Không thể chuyển danh mục!",
-    categoryAdded: "Thêm danh mục thành công!"
-  }
+    categoryAdded: "Thêm danh mục thành công!",
+    categoryUpdated: "Cập nhật danh mục thành công!",
+    invalidData: "Dữ liệu không hợp lệ!",
+    errorOccurred: "Có lỗi xảy ra, vui lòng thử lại!",
+    subcategoryAdded: "Thêm danh mục con thành công!",
+    subcategoryAddFailed: "Không thể tạo danh mục con",
+    subcategoryUpdated: "Cập nhật danh mục con thành công!",
+    subcategoryUpdateFailed: "Cập nhật danh mục con thất bại!",
+  },
+  placeholders: {
+    enterCategoryName: "Nhập tên danh mục",
+    enterCategoryDescription: "Nhập mô tả danh mục",
+    enterSubcategoryName: "Nhập tên danh mục con",
+    enterSubcategoryDescription: "Nhập mô tả chi tiết về danh mục con",
+  },
+  validations: {
+    subcategoryNameRequired: "Tên danh mục con không được để trống!",
+  },
+  cancel: "Hủy",
+  saving: "Đang lưu...",
+  saveChanges: "Lưu thay đổi",
+  saveCategory: "Lưu Danh mục",
 }
