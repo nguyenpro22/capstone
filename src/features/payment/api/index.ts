@@ -14,17 +14,17 @@ export const paymentsApi = createApi({
       }),
     }),
     
-    createOrderPayment: builder.mutation<PaymentResponse, { id: string;
-      amount: number
-      paymentMethod: string
-      }>(
-      {
-        query: ({ id, amount, paymentMethod }) => ({
-              url: `payments/order/${id}/${amount}/${paymentMethod}`,
-              method: "POST",
-            }),
-      }
-      ),
+    createOrderPayment: builder.mutation<PaymentResponse, { 
+      orderId: string;
+      paymentMethod: string;
+      isDeductFromCustomerBalance?: boolean;
+    }>({
+      query: (body) => ({
+        url: `payments/order`,
+        method: "POST",
+        body
+      }),
+    }),
       createSubscriptionOverPayment: builder.mutation<PaymentResponse, SubscriptionOverPaymentRequest>({
         query: (body) => ({
           url: "payments/subscription/over",
