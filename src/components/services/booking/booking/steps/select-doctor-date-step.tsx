@@ -96,6 +96,12 @@ export function SelectDoctorDateStep({
     }
   );
 
+  useEffect(() => {
+    if (data) {
+      refetch();
+    }
+  }, [selectedDate]);
+
   // Calculate available time slots when available times data changes
   useEffect(() => {
     const calculateAvailableSlots = async () => {
@@ -174,7 +180,6 @@ export function SelectDoctorDateStep({
       setSelectedDate(date);
       setSelectedTime(null); // Reset selected time when date changes
       updateBookingData({ date, time: null });
-      refetch();
     }
   };
 

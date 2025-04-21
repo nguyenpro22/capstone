@@ -158,9 +158,9 @@ export function BookingFlow({
 
   const clearSavedBookingData = useCallback(() => {
     // Uncomment to actually clear data
-    // localStorage.removeItem(BOOKING_DATA_STORAGE_KEY);
-    // localStorage.removeItem(BOOKING_DATA_TIMESTAMP_KEY);
-    // localStorage.removeItem(BOOKING_RETRY_URL_KEY);
+    localStorage.removeItem(BOOKING_DATA_STORAGE_KEY);
+    localStorage.removeItem(BOOKING_DATA_TIMESTAMP_KEY);
+    localStorage.removeItem(BOOKING_RETRY_URL_KEY);
   }, []);
 
   const checkForSavedBookingData = useCallback(() => {

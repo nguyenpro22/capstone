@@ -647,51 +647,13 @@ export default function ServiceDetail() {
 
               {/* Title */}
               <motion.h1
-                className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 font-serif"
+                className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 "
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
                 {service.name}
               </motion.h1>
-
-              {/* Price Range */}
-              <motion.div
-                className="flex items-center gap-4 text-white mb-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <div className="font-semibold">
-                  {hasDiscount ? (
-                    <>
-                      <span className="text-xl">
-                        {service.discountMinPrice.toLocaleString("vi-VN")}đ
-                      </span>
-                      {" - "}
-                      <span className="text-xl">
-                        {service.discountMaxPrice.toLocaleString("vi-VN")}đ
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xl">
-                        {service.minPrice.toLocaleString("vi-VN")}đ
-                      </span>
-                      {" - "}
-                      <span className="text-xl">
-                        {service.maxPrice.toLocaleString("vi-VN")}đ
-                      </span>
-                    </>
-                  )}
-                </div>
-                {hasDiscount && (
-                  <span className="text-white/60 line-through">
-                    {service.minPrice.toLocaleString("vi-VN")}đ -{" "}
-                    {service.maxPrice.toLocaleString("vi-VN")}đ
-                  </span>
-                )}
-              </motion.div>
 
               {/* Rating preview */}
               <motion.div
@@ -861,7 +823,7 @@ export default function ServiceDetail() {
 
                   {/* Description Section */}
                   <div className="prose dark:prose-invert max-w-none mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white font-serif">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white ">
                       {t("aboutService")}
                     </h2>
                     <div
@@ -1037,7 +999,7 @@ export default function ServiceDetail() {
                   <TabsContent value="procedure" className="m-0">
                     <CardContent className="p-6">
                       <div className="prose dark:prose-invert max-w-none">
-                        <h3 className="text-2xl font-serif font-semibold mb-4 text-gray-900 dark:text-white">
+                        <h3 className="text-2xl  font-semibold mb-4 text-gray-900 dark:text-white">
                           {t("implementationProcess")}
                         </h3>
 
@@ -1154,7 +1116,7 @@ export default function ServiceDetail() {
                   <TabsContent value="doctors" className="m-0">
                     <CardContent className="p-6">
                       <div className="prose dark:prose-invert max-w-none">
-                        <h3 className="text-2xl font-serif font-semibold mb-6 text-gray-900 dark:text-white">
+                        <h3 className="text-2xl  font-semibold mb-6 text-gray-900 dark:text-white">
                           {t("expertTeam")}
                         </h3>
 
@@ -1379,7 +1341,7 @@ export default function ServiceDetail() {
                   <TabsContent value="clinics" className="m-0">
                     <CardContent className="p-6">
                       <div className="prose dark:prose-invert max-w-none">
-                        <h3 className="text-2xl font-serif font-semibold mb-6 text-gray-900 dark:text-white">
+                        <h3 className="text-2xl  font-semibold mb-6 text-gray-900 dark:text-white">
                           {t("ourLocations")}
                         </h3>
 
@@ -1515,7 +1477,7 @@ export default function ServiceDetail() {
                   {/* <TabsContent value="faq" className="m-0">
                     <CardContent className="p-6">
                       <div className="prose dark:prose-invert max-w-none">
-                        <h3 className="text-2xl font-serif font-semibold mb-6 text-gray-900 dark:text-white">
+                        <h3 className="text-2xl  font-semibold mb-6 text-gray-900 dark:text-white">
                           {t("frequentlyAskedQuestions")}
                         </h3>
 
@@ -1595,7 +1557,7 @@ export default function ServiceDetail() {
                     <CardContent className="p-6">
                       <div className="prose dark:prose-invert max-w-none">
                         <div className="flex justify-between items-center mb-6">
-                          <h3 className="text-2xl font-serif font-semibold text-gray-900 dark:text-white">
+                          <h3 className="text-2xl  font-semibold text-gray-900 dark:text-white">
                             {t("customerReviews")}
                           </h3>
                           {/* <Button className="bg-purple-600 hover:bg-purple-700 text-white">
@@ -1737,7 +1699,7 @@ export default function ServiceDetail() {
                 {/* Price Card */}
                 <Card className="border-none overflow-hidden shadow-xl bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                   <CardHeader className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-800/50 dark:to-indigo-800/50 p-4 dark:border-b dark:border-gray-700">
-                    <h3 className="font-serif text-lg font-semibold flex items-center">
+                    <h3 className=" text-lg font-semibold flex items-center">
                       <Percent className="h-5 w-5 text-purple-600 dark:text-purple-500 mr-2" />
                       {t("pricingPlans")}
                     </h3>
@@ -1848,7 +1810,7 @@ export default function ServiceDetail() {
                 {/* Beauty Center Card */}
                 <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                   <CardHeader className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-800/50 dark:to-purple-800/50 p-4 dark:border-b dark:border-gray-700">
-                    <h3 className="font-serif text-lg font-semibold flex items-center">
+                    <h3 className=" text-lg font-semibold flex items-center">
                       <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
                       {t("beautyCenter")}
                     </h3>
@@ -1929,7 +1891,7 @@ export default function ServiceDetail() {
                 {service.category && (
                   <Card className="border-none overflow-hidden shadow-xl bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                     <CardHeader className="bg-gradient-to-r from-green-100 to-teal-100 dark:from-green-800/50 dark:to-teal-800/50 p-4 dark:border-b dark:border-gray-700">
-                      <h3 className="font-serif text-lg font-semibold flex items-center">
+                      <h3 className=" text-lg font-semibold flex items-center">
                         <Zap className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
                         {t("categoryInfo")}
                       </h3>
@@ -1965,7 +1927,7 @@ export default function ServiceDetail() {
                 {/* Related Services Card
                 <Card className="border-none overflow-hidden shadow-xl mb-5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 backdrop-blur-sm">
                   <CardHeader className="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-800/50 dark:to-yellow-800/50 p-4 dark:border-b dark:border-gray-700">
-                    <h3 className="font-serif text-lg font-semibold flex items-center">
+                    <h3 className=" text-lg font-semibold flex items-center">
                       <ThumbsUp className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" />
                       {t("relatedServices")}
                     </h3>
