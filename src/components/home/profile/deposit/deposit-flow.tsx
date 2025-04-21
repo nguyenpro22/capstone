@@ -1,11 +1,9 @@
 "use client";
 
-import type React from "react";
-
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { toast } from "react-toastify";
-
+import { NumericFormat } from "react-number-format";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -48,6 +45,15 @@ export function DepositFlow({
   onComplete,
   defaultAmount,
 }: DepositFlowProps) {
+  // Helper function for consistent currency formatting
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const [topUp] = useTopUpMutation();
 
   // Deposit flow state
@@ -92,11 +98,9 @@ export function DepositFlow({
         onBalanceUpdate(newBalance);
 
         toast.success(
-          `Số tiền ${new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-            minimumFractionDigits: 0,
-          }).format(transaction.amount)} đã được thêm vào ví của bạn`,
+          `Số tiền ${formatCurrency(
+            transaction.amount
+          )} đã được thêm vào ví của bạn`,
           {
             position: "top-right",
             autoClose: 5000,
@@ -144,8 +148,8 @@ export function DepositFlow({
   }, [transaction, depositStep]);
 
   // Handle amount input change
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.-]+/g, "");
+  const handleAmountChange = (values: { value: string }) => {
+    const value = values.value.replace(/[^0-9.-]+/g, "");
     setDepositAmount(value);
     setVietnameseNumber(value.toString());
   };
@@ -264,17 +268,17 @@ export function DepositFlow({
               Số tiền (VND)
             </Label>
             <div className="relative">
-              <Input
-                id="depositAmount"
-                type="text"
-                placeholder="Nhập số tiền"
+              <NumericFormat
+                id="price"
                 value={depositAmount}
-                onChange={handleAmountChange}
-                className="pl-12 bg-white dark:bg-gray-800 border-green-200 dark:border-green-800/30 focus-visible:ring-green-500 dark:focus-visible:ring-green-400"
+                onValueChange={(values) => handleAmountChange(values)}
+                thousandSeparator=","
+                decimalSeparator="."
+                prefix="₫"
+                allowNegative={false}
+                className="border px-3 py-2 rounded-md w-full"
+                placeholder="₫3.000"
               />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <span className="text-gray-500 dark:text-gray-400">VND</span>
-              </div>
             </div>
           </div>
 
@@ -367,8 +371,20 @@ export function DepositFlow({
   const renderDepositPaymentStep = () => {
     if (!transaction) return null;
 
+    const formattedAmount = formatCurrency(transaction.amount);
+
     return (
       <div className="space-y-6">
+        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800/30 mb-4">
+          <div className="flex flex-col items-center">
+            <p className="text-sm font-medium text-green-700 dark:text-green-400">
+              Số tiền cần thanh toán
+            </p>
+            <p className="text-2xl font-bold text-green-800 dark:text-green-300">
+              {formattedAmount}
+            </p>
+          </div>
+        </div>
         <Tabs defaultValue="qr" className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="qr">Mã QR</TabsTrigger>
@@ -503,13 +519,16 @@ export function DepositFlow({
           </h3>
           <p className="text-gray-500 dark:text-gray-400 text-center">
             {transactionStatus === "completed"
-              ? `Số tiền ${new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                  minimumFractionDigits: 0,
-                }).format(transaction.amount)} đã được thêm vào ví của bạn`
+              ? `Số tiền ${formatCurrency(
+                  transaction.amount
+                )} đã được thêm vào ví của bạn`
               : "Vui lòng kiểm tra lại thông tin thanh toán và thử lại"}
           </p>
+          {transactionStatus === "completed" && (
+            <div className="mt-2 text-2xl font-bold text-green-600 dark:text-green-400">
+              {formatCurrency(transaction.amount)}
+            </div>
+          )}
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">

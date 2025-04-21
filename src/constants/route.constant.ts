@@ -50,6 +50,7 @@ export const doctorRoutes = {
   DEFAULT: `${privateDoctorPath}/calendar`,
   CALENDAR: `${privateDoctorPath}/calendar`,
   PROFILE: `${privateDoctorPath}/profile`,
+  REGISTER_SCHEDULE: `${privateDoctorPath}/register-schedule`,
 };
 
 // CLINIC STAFF ROUTES

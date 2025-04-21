@@ -1,43 +1,34 @@
 export type serviceDetail = {
-  // General
   home: string;
   services: string;
-  image: string;
-  new: string;
   discount: string;
+  new: string;
   locations: string;
-
-  // Service Info
-  aboutService: string;
+  image: string;
   duration: string;
   recovery: string;
   experts: string;
-  specialists: string;
   results: string;
-  highSatisfaction: string;
   hours: string;
   days: string;
+  specialists: string;
+  highSatisfaction: string;
+  aboutService: string;
+  showLess: string;
+  readMore: string;
   reviews: string;
   stars: string;
   star: string;
-
-  // Tabs
   procedure: string;
   doctors: string;
   clinics: string;
   faq: string;
-
-  // Procedure
   implementationProcess: string;
   implementationStep: string;
   noDetailedDescription: string;
   serviceOptions: string;
   service: string;
-  minutes: string;
   recommended: string;
-  noDetailedProcedureInfo: string;
-
-  // Doctors
   expertTeam: string;
   specialist: string;
   contactInfo: string;
@@ -46,47 +37,16 @@ export type serviceDetail = {
   beautyServices: string;
   advancedTechniques: string;
   certifications: string;
-  viewProfile: string;
-  bookWithDoctor: string;
-  noDoctorInfo: string;
-
-  // Doctor Modal
-  verified: string;
-  seniorSpecialist: string;
-  about: string;
-  biography: string;
-  doctorBiographyPlaceholder: string;
-  yearsExperience: string;
-  procedures: string;
-  rating: string;
-  satisfaction: string;
-  email: string;
-  phone: string;
-  specializations: string;
-  primarySpecialization: string;
-  secondarySpecialization: string;
-  skills: string;
-  patientCare: string;
-  servicesOffered: string;
-  noCertificates: string;
-  noCertificatesDescription: string;
-  contactDoctor: string;
-  bookAppointment: string;
-  viewAll: string;
-  expertQuote: string;
-  consultNow: string;
-
-  // Clinics
   ourLocations: string;
   mainBranch: string;
   branch: string;
+  active: string;
+  inactive: string;
   contactForAddress: string;
   openingHours: string;
   getDirections: string;
   bookHere: string;
-  noLocationInfo: string;
-
-  // FAQ
+  serviceUnavailable: string;
   frequentlyAskedQuestions: string;
   faqQuestion1: string;
   faqAnswer1: string;
@@ -98,59 +58,44 @@ export type serviceDetail = {
   faqAnswer4: string;
   faqQuestion5: string;
   faqAnswer5: string;
-
-  // Reviews
   customerReviews: string;
   writeReview: string;
-  reviewerName1: string;
-  reviewerName2: string;
-  reviewerName3: string;
-  reviewDate1: string;
-  reviewDate2: string;
-  reviewDate3: string;
-  reviewText1: string;
-  reviewText2: string;
-  reviewText3: string;
-  staffResponse: string;
-  staffResponseText: string;
+  anonymousUser: string;
+  noContentProvided: string;
+  noReviewsYet: string;
+  beFirstToReview: string;
   loadMoreReviews: string;
-
-  // Pricing
   pricingPlans: string;
   limitedTimeOffer: string;
   includedConsultation: string;
   includedAftercare: string;
   includedFollowup: string;
+  refundable: string;
   bookNow: string;
-  askQuestion: string;
+  chatWithUs: string;
   instantSupport: string;
   businessHours: string;
-
-  // Category
+  beautyCenter: string;
+  verified: string;
+  viewProfile: string;
+  chat: string;
   categoryInfo: string;
-  exploreCategory: string;
-
-  // Contact Modal
-  close: string;
-  getPersonalConsultation: string;
-  consultationDescription: string;
-  requestSent: string;
-  contactSuccessMessage: string;
-  fullName: string;
-  phoneNumber: string;
-  yourQuestion: string;
-  sending: string;
-  sendConsultationRequest: string;
-
-  // Error States
+  viewAllInCategory: string;
+  relatedServices: string;
+  relatedService1Title: string;
+  relatedService1Description: string;
+  relatedService2Title: string;
+  relatedService2Description: string;
+  relatedService3Title: string;
+  relatedService3Description: string;
+  view: string;
+  shareService: string;
+  shareServiceDescription: string;
+  copyLink: string;
+  clickToEnlarge: string;
   errorLoadingService: string;
   errorMessage: string;
-  retry: string;
   serviceNotFound: string;
   serviceNotFoundMessage: string;
   backToServices: string;
-  serviceUnavailable: string,
-    serviceInactiveMessage: string
-    active: string
-    inactive: string
 };

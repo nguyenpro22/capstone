@@ -43,6 +43,7 @@ import { orderMessages } from "./order";
 import { orderDetail } from "./order-detail";
 import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
+import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
 
 const vi = {
@@ -88,8 +89,9 @@ const vi = {
   withdrawal: withdrawalMessages,
   orderMessages,
   orderDetail,
-  workingSchedule:workingScheduleMessages,
+  workingSchedule: workingScheduleMessages,
   pagination: paginationMessages,
+  registerSchedule,
   profile: profileMessages,
 };
 

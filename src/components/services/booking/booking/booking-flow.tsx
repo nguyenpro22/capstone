@@ -53,7 +53,7 @@ export function BookingFlow({
   const [bookingData, setBookingData] = useState<BookingData>({
     service,
     doctor: doctor || null,
-    clinic: clinic || null,
+    clinic: clinic ? { ...clinic, address: clinic.address || "" } : null,
     date: null,
     time: null,
     selectedProcedures: [],
@@ -112,7 +112,9 @@ export function BookingFlow({
   // Update booking data when clinic changes
   useEffect(() => {
     if (clinic) {
-      updateBookingData({ clinic });
+      updateBookingData({
+        clinic: { ...clinic, address: clinic.address || "" },
+      });
     }
   }, [clinic]);
 

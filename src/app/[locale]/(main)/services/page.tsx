@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,10 @@ import {
   Instagram,
   Twitter,
   FolderTree,
+  Star,
+  Users,
+  Shield,
+  Zap,
 } from "lucide-react";
 import { useGetAllServicesQuery } from "@/features/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,8 +42,6 @@ import ServiceCard from "@/components/services/service-card";
 import type { ServiceItem } from "@/features/services/types";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-
-// Import the Pagination components from shadcn/ui
 import {
   Pagination,
   PaginationContent,
@@ -49,6 +52,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useGetAllcategoriesQuery } from "@/features/home/api";
+import { cn } from "@/lib/utils";
 
 // Utility functions
 const formatPrice = (
@@ -77,13 +81,14 @@ interface Category {
 // Loading Overlay Component
 function LoadingIndicator(): JSX.Element {
   return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <div className="relative h-12 w-12">
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="relative h-14 w-14">
         <div className="absolute top-0 left-0 h-full w-full rounded-full border-4 border-t-purple-500 border-r-transparent border-b-purple-300 border-l-transparent animate-spin"></div>
-        <div className="absolute top-1 left-1 h-10 w-10 rounded-full border-4 border-t-transparent border-r-purple-300 border-b-transparent border-l-purple-500 animate-spin animation-delay-200"></div>
+        <div className="absolute top-1 left-1 h-12 w-12 rounded-full border-4 border-t-transparent border-r-purple-300 border-b-transparent border-l-purple-500 animate-spin animation-delay-200"></div>
+        <div className="absolute top-2 left-2 h-10 w-10 rounded-full border-4 border-t-purple-400 border-r-transparent border-b-transparent border-l-transparent animate-spin animation-delay-400"></div>
       </div>
-      <p className="mt-3 text-purple-700 dark:text-purple-300 font-medium">
-        Đang tìm kiếm...
+      <p className="mt-4 text-purple-700 dark:text-purple-300 font-medium">
+        Đang tìm kiếm dịch vụ...
       </p>
     </div>
   );
@@ -94,7 +99,7 @@ function ServicesPageSkeleton(): JSX.Element {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
       {/* Banner Skeleton */}
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <Skeleton className="h-full w-full dark:bg-gray-800" />
         </div>
@@ -155,6 +160,9 @@ function ErrorDisplay({ onRetry }: ErrorDisplayProps): JSX.Element {
   return (
     <div className="container mx-auto py-12 text-center">
       <div className="max-w-md mx-auto p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <X className="h-8 w-8 text-red-500" />
+        </div>
         <h2 className="text-2xl font-bold mb-4 dark:text-white">
           {t("errorLoading")}
         </h2>
@@ -163,7 +171,7 @@ function ErrorDisplay({ onRetry }: ErrorDisplayProps): JSX.Element {
         </p>
         <Button
           onClick={onRetry}
-          className="bg-purple-600 hover:bg-purple-700 text-white"
+          className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 py-2 shadow-md hover:shadow-lg transition-all"
         >
           {t("retry")}
         </Button>
@@ -188,7 +196,7 @@ function CategoryFilter({
 
   return (
     <Select value={selectedCategory} onValueChange={onSelectCategory}>
-      <SelectTrigger className="w-full bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700">
+      <SelectTrigger className="w-full bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700 h-12 rounded-lg">
         <SelectValue placeholder="Tất cả dịch vụ" />
       </SelectTrigger>
       <SelectContent className="max-h-[300px] dark:bg-gray-800 dark:border-gray-700">
@@ -220,12 +228,169 @@ function CategoryFilter({
   );
 }
 
-// Footer Component
-function Footer(): JSX.Element {
-  const t = useTranslations("serviceMessage.serviceMessage");
+// Featured Service Card Component
+function FeaturedServiceCard({
+  service,
+}: {
+  service: ServiceItem;
+}): JSX.Element {
+  const router = useRouter();
+  const hasDiscount =
+    service.discountPercent && Number(service.discountPercent) > 0;
+  const displayPrice = hasDiscount
+    ? service.discountMaxPrice
+    : service.maxPrice;
 
   return (
+    <motion.div
+      className="relative overflow-hidden rounded-2xl shadow-xl group cursor-pointer"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      whileHover={{ y: -5 }}
+      onClick={() => router.push(`/services/${service.id}`)}
+    >
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+          style={{
+            backgroundImage: `url(${
+              service.coverImage?.[0]?.url ||
+              "/placeholder.svg?height=400&width=600"
+            })`,
+            opacity: 0.7,
+          }}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 p-6 h-full flex flex-col justify-end min-h-[400px]">
+        <div className="space-y-2 mb-4">
+          {service.category && (
+            <Badge className="bg-purple-500/80 hover:bg-purple-600/80 text-white backdrop-blur-sm">
+              {service.category.name}
+            </Badge>
+          )}
+          <h3 className="text-2xl font-bold text-white">{service.name}</h3>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-yellow-500/20 backdrop-blur-sm px-2 py-1 rounded-md">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+              <span className="text-sm font-medium text-yellow-300">4.9</span>
+            </div>
+            <span className="text-sm text-white/80">(120 reviews)</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex flex-col">
+            {hasDiscount && (
+              <span className="text-sm text-white/60 line-through">
+                {formatPrice(service.maxPrice)}
+              </span>
+            )}
+            <span className="text-xl font-bold text-white">
+              {formatPrice(displayPrice)}
+            </span>
+          </div>
+          <Button
+            className="bg-white text-purple-700 hover:bg-white/90 rounded-full px-5 shadow-lg group-hover:shadow-xl transition-all"
+            size="sm"
+          >
+            Xem chi tiết
+            <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+          </Button>
+        </div>
+
+        {/* Featured Badge */}
+        <div className="absolute top-4 right-4">
+          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 shadow-lg">
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+            Nổi bật
+          </Badge>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// View Toggle Component
+function ViewToggle({
+  viewMode,
+  setViewMode,
+}: {
+  viewMode: "grid" | "list";
+  setViewMode: (mode: "grid" | "list") => void;
+}): JSX.Element {
+  return (
+    <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm">
+      <button
+        className={cn(
+          "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+          viewMode === "grid"
+            ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+            : "text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+        )}
+        onClick={() => setViewMode("grid")}
+      >
+        <div className="flex items-center gap-1.5">
+          <div className="grid grid-cols-2 gap-0.5">
+            <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+            <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+            <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+            <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+          </div>
+          <span className="hidden sm:inline">Grid</span>
+        </div>
+      </button>
+      <button
+        className={cn(
+          "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+          viewMode === "list"
+            ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+            : "text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+        )}
+        onClick={() => setViewMode("list")}
+      >
+        <div className="flex items-center gap-1.5">
+          <div className="flex flex-col gap-0.5">
+            <div className="w-4 h-1 bg-current rounded-sm"></div>
+            <div className="w-4 h-1 bg-current rounded-sm"></div>
+            <div className="w-4 h-1 bg-current rounded-sm"></div>
+          </div>
+          <span className="hidden sm:inline">List</span>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+// Footer Component
+function Footer(): JSX.Element {
+  return (
     <footer className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white">
+      {/* Newsletter Section */}
+      <div className="border-b border-white/10">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center">
+            <h3 className="text-2xl font-bold mb-3">Đăng ký nhận thông tin</h3>
+            <p className="text-white/70 mb-6">
+              Nhận thông tin về các dịch vụ mới và ưu đãi đặc biệt từ chúng tôi.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <Input
+                type="email"
+                placeholder="Email của bạn"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white"
+              />
+              <Button className="bg-white text-purple-900 hover:bg-white/90">
+                Đăng ký
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Footer */}
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-12">
@@ -234,8 +399,9 @@ function Footer(): JSX.Element {
             <div>
               <h3 className="text-xl font-bold mb-4">Beauty & Spa</h3>
               <p className="text-white/70 mb-6">
-                Premium beauty and wellness services tailored to your needs.
-                Experience the difference with our expert team.
+                Dịch vụ làm đẹp và chăm sóc sức khỏe cao cấp được thiết kế riêng
+                cho nhu cầu của bạn. Trải nghiệm sự khác biệt với đội ngũ chuyên
+                gia của chúng tôi.
               </p>
               <div className="flex space-x-4">
                 <a
@@ -261,14 +427,14 @@ function Footer(): JSX.Element {
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <h3 className="text-lg font-semibold mb-4">Liên kết nhanh</h3>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Home
+                    Trang chủ
                   </Link>
                 </li>
                 <li>
@@ -276,7 +442,7 @@ function Footer(): JSX.Element {
                     href="/about"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    About Us
+                    Về chúng tôi
                   </Link>
                 </li>
                 <li>
@@ -284,7 +450,7 @@ function Footer(): JSX.Element {
                     href="/services"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Services
+                    Dịch vụ
                   </Link>
                 </li>
                 <li>
@@ -292,7 +458,7 @@ function Footer(): JSX.Element {
                     href="/pricing"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Pricing
+                    Bảng giá
                   </Link>
                 </li>
                 <li>
@@ -300,7 +466,7 @@ function Footer(): JSX.Element {
                     href="/contact"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Contact
+                    Liên hệ
                   </Link>
                 </li>
               </ul>
@@ -308,14 +474,16 @@ function Footer(): JSX.Element {
 
             {/* Services */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Our Services</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Dịch vụ của chúng tôi
+              </h3>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/services"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    All Services
+                    Tất cả dịch vụ
                   </Link>
                 </li>
                 <li>
@@ -347,7 +515,9 @@ function Footer(): JSX.Element {
 
             {/* Contact */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Liên hệ với chúng tôi
+              </h3>
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <MapPin className="h-5 w-5 mr-3 text-purple-300 mt-0.5" />
@@ -395,6 +565,8 @@ export default function ServicesPage(): JSX.Element {
   const [isSearchFromCategory, setIsSearchFromCategory] =
     useState<boolean>(false);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   // Fetch categories
   const {
@@ -505,6 +677,19 @@ export default function ServicesPage(): JSX.Element {
     router.push(`/services/${service.id}`);
   };
 
+  // Toggle favorite
+  const handleToggleFavorite = (serviceId: string) => {
+    setFavorites((prev) => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(serviceId)) {
+        newFavorites.delete(serviceId);
+      } else {
+        newFavorites.add(serviceId);
+      }
+      return newFavorites;
+    });
+  };
+
   // Reset filters
   const handleResetFilters = () => {
     setSearchTerm("");
@@ -515,6 +700,7 @@ export default function ServicesPage(): JSX.Element {
     setSortOrder("asc");
     setIsSearchFromCategory(false);
   };
+
   useEffect(() => {
     setIsSearching(isServicesFetching);
   }, [isServicesFetching]);
@@ -739,6 +925,22 @@ export default function ServicesPage(): JSX.Element {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Featured Service
+            {services.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="hidden lg:block"
+              >
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                  <Zap className="h-4 w-4 mr-2 text-purple-500 dark:text-purple-400" />
+                  Dịch vụ nổi bật
+                </h3>
+                <FeaturedServiceCard service={services[0]} />
+              </motion.div>
+            )} */}
           </motion.div>
 
           {/* Services Grid - Redesigned */}
@@ -750,7 +952,7 @@ export default function ServicesPage(): JSX.Element {
           >
             {services.length > 0 ? (
               <>
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                   <div className="flex items-center">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                       <span>{t("services")}</span>
@@ -761,130 +963,127 @@ export default function ServicesPage(): JSX.Element {
                       </Badge>
                     )}
                   </div>
-                  <Badge className="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 px-3 py-1 rounded-full text-sm font-medium">
-                    {t("resultsCount", {
-                      count: servicesData.value.totalCount,
-                    })}
-                  </Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 px-3 py-1 rounded-full text-sm font-medium">
+                      {t("resultsCount", {
+                        count: servicesData.value.totalCount,
+                      })}
+                    </Badge>
+                    <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+                  </div>
                 </div>
 
                 {/* Services Grid with Animation */}
                 {isSearching ? (
                   <LoadingIndicator />
                 ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div
+                    className={
+                      viewMode === "grid"
+                        ? "grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                        : "flex flex-col gap-4"
+                    }
+                  >
                     {services.map((service, index) => (
                       <motion.div
                         key={generateServiceKey(service.id, index)}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
-                        whileHover={{
-                          y: -5,
-                          transition: { duration: 0.2 },
-                        }}
                       >
                         <ServiceCard
                           service={service}
-                          onFavoriteToggle={() => {}}
                           onBookService={() => handleViewDetails(service)}
-                          isFavorite={false}
-                          viewMode="grid"
+                          viewMode={viewMode}
                         />
                       </motion.div>
                     ))}
                   </div>
                 )}
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <Pagination className="mt-12">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (servicesData.value.hasPreviousPage) {
-                              handlePreviousPage();
-                            }
-                          }}
-                          className={`${
-                            !servicesData.value.hasPreviousPage
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          } dark:text-gray-300 dark:hover:text-white`}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </PaginationPrevious>
-                      </PaginationItem>
-
-                      {Array.from(
-                        { length: Math.min(5, totalPages) },
-                        (_, i) => {
-                          let pageNum = i + 1;
-                          if (totalPages > 5) {
-                            if (pageIndex <= 3) {
-                              // Near the start
-                              pageNum = i + 1;
-                            } else if (pageIndex >= totalPages - 2) {
-                              // Near the end
-                              pageNum = totalPages - 4 + i;
-                            } else {
-                              // In the middle
-                              pageNum = pageIndex - 2 + i;
-                            }
+                <Pagination className="mt-12">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (servicesData.value.hasPreviousPage) {
+                            handlePreviousPage();
                           }
+                        }}
+                        className={`${
+                          !servicesData.value.hasPreviousPage
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        } dark:text-gray-300 dark:hover:text-white`}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </PaginationPrevious>
+                    </PaginationItem>
 
-                          return (
-                            <PaginationItem key={pageNum}>
-                              <PaginationLink
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setPageIndex(pageNum);
-                                  window.scrollTo({
-                                    top: 450,
-                                    behavior: "smooth",
-                                  });
-                                }}
-                                isActive={pageIndex === pageNum}
-                                className="dark:text-gray-300 dark:hover:text-white"
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum = i + 1;
+                      if (totalPages > 5) {
+                        if (pageIndex <= 3) {
+                          // Near the start
+                          pageNum = i + 1;
+                        } else if (pageIndex >= totalPages - 2) {
+                          // Near the end
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          // In the middle
+                          pageNum = pageIndex - 2 + i;
                         }
-                      )}
+                      }
 
-                      {totalPages > 5 && pageIndex < totalPages - 2 && (
-                        <PaginationItem>
-                          <PaginationEllipsis className="dark:text-gray-300" />
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPageIndex(pageNum);
+                              window.scrollTo({
+                                top: 450,
+                                behavior: "smooth",
+                              });
+                            }}
+                            isActive={pageIndex === pageNum}
+                            className="dark:text-gray-300 dark:hover:text-white"
+                          >
+                            {pageNum}
+                          </PaginationLink>
                         </PaginationItem>
-                      )}
+                      );
+                    })}
 
+                    {totalPages > 5 && pageIndex < totalPages - 2 && (
                       <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (servicesData.value.hasNextPage) {
-                              handleNextPage();
-                            }
-                          }}
-                          className={`${
-                            !servicesData.value.hasNextPage
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          } dark:text-gray-300 dark:hover:text-white`}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </PaginationNext>
+                        <PaginationEllipsis className="dark:text-gray-300" />
                       </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (servicesData.value.hasNextPage) {
+                            handleNextPage();
+                          }
+                        }}
+                        className={`${
+                          !servicesData.value.hasNextPage
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        } dark:text-gray-300 dark:hover:text-white`}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </PaginationNext>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </>
             ) : (
               <motion.div

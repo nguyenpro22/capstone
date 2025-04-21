@@ -1,180 +1,217 @@
-// components/OrderTable.tsx
-import React from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { OrderDetailDialog } from "@/components/services/user/order-detail-dialog";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
-import type { OrderItem } from "@/features/order/types";
-import { format, parseISO } from "date-fns";
-import { vi } from "date-fns/locale";
+// "use client";
 
-interface Props {
-  t: any;
-  orders: OrderItem[];
-  loading: boolean;
-  columnVisibility: any;
-  setCurrentPage: (n: number) => void;
-  getStatusBadge: (status: string) => React.ReactNode;
-  getStatusIcon: (status: string) => React.ReactNode;
-  getStatusColor: (status: string) => string;
-  getFeedbackStars: (rating: number | null) => React.ReactNode;
-  formatCurrency: (amount: number) => string;
-  formatTime: (time: string | null) => string;
-}
+// import {
+//   type ColumnDef,
+//   flexRender,
+//   getCoreRowModel,
+//   getPaginationRowModel,
+//   useReactTable,
+//   type SortingState,
+//   getSortedRowModel,
+//   type ColumnFiltersState,
+//   getFilteredRowModel,
+// } from "@tanstack/react-table";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "@/components/ui/table";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuCheckboxItem,
+//   DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu";
+// import { useState } from "react";
+// import { useTranslations } from "next-intl";
+// import { CalendarIcon, ChevronDown, MessageSquare } from "lucide-react";
+// import { formatDate } from "../booking/utils/booking-utils";
+// import { FeedbackDialog } from "./FeedbackDialog";
+// import { orderDetail } from "@/config/i18n/messages/types/order-detail";
 
-export const OrderTable: React.FC<Props> = ({
-  t,
-  orders,
-  loading,
-  columnVisibility,
-  setCurrentPage,
-  getStatusBadge,
-  getStatusColor,
-  getStatusIcon,
-  getFeedbackStars,
-  formatCurrency,
-  formatTime,
-}) => {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 dark:border-purple-400"></div>
-      </div>
-    );
-  }
+// interface DataTableProps<TData, TValue> {
+//   columns: ColumnDef<TData, TValue>[];
+//   data: TData[];
+// }
 
-  if (!orders.length) {
-    return (
-      <div className="text-center py-16">
-        <h3 className="text-xl font-semibold text-gray-700 dark:text-indigo-200 mb-2">
-          {t("noOrders.title")}
-        </h3>
-        <p className="text-gray-500 dark:text-indigo-300/70 max-w-md mx-auto">
-          {t("noOrders.description")}
-        </p>
-      </div>
-    );
-  }
+// export function OrderTable<TData, TValue>({
+//   columns,
+//   data,
+// }: DataTableProps<TData, TValue>) {
+//   const [sorting, setSorting] = useState<SortingState>([]);
+//   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+//   const [columnVisibility, setColumnVisibility] = useState({});
+//   const [rowSelection, setRowSelection] = useState({});
+//   const t = useTranslations("Index");
+//   const [currentPage, setCurrentPage] = useState(1);
 
-  return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-purple-50/80 dark:bg-indigo-900/30 border-b-0">
-            {columnVisibility.id && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.id")}
-              </TableHead>
-            )}
-            {columnVisibility.customerName && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.customerName")}
-              </TableHead>
-            )}
-            {columnVisibility.serviceName && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.serviceName")}
-              </TableHead>
-            )}
-            {columnVisibility.orderDate && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.orderDate")}
-              </TableHead>
-            )}
-            {columnVisibility.finalAmount && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.finalAmount")}
-              </TableHead>
-            )}
-            {columnVisibility.feedback && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.feedback")}
-              </TableHead>
-            )}
-            {columnVisibility.status && (
-              <TableHead className="text-gray-600 dark:text-indigo-200">
-                {t("columns.status")}
-              </TableHead>
-            )}
-            {columnVisibility.details && (
-              <TableHead className="text-gray-600 dark:text-indigo-200 text-right">
-                {t("columns.details")}
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow
-              key={order.id}
-              className="hover:bg-purple-50/50 dark:hover:bg-indigo-900/40"
-            >
-              {columnVisibility.id && (
-                <TableCell className="dark:text-indigo-200">
-                  {order.id.substring(0, 8)}...
-                </TableCell>
-              )}
-              {columnVisibility.customerName && (
-                <TableCell className="dark:text-indigo-200">
-                  {order.customerName}
-                </TableCell>
-              )}
-              {columnVisibility.serviceName && (
-                <TableCell className="dark:text-indigo-200">
-                  {order.serviceName}
-                </TableCell>
-              )}
-              {columnVisibility.orderDate && (
-                <TableCell className="dark:text-indigo-200">
-                  {format(parseISO(order.orderDate), "dd/MM/yyyy", {
-                    locale: vi,
-                  })}
-                </TableCell>
-              )}
-              {columnVisibility.finalAmount && (
-                <TableCell className="font-semibold text-purple-600 dark:text-purple-300">
-                  {formatCurrency(order.finalAmount)}
-                </TableCell>
-              )}
-              {columnVisibility.feedback && (
-                <TableCell className="dark:text-indigo-200">
-                  {/* {order.rating ? ( */}
-                  {/* getFeedbackStars(order.rating) */}
-                  {/* ) : ( */}
-                  <span className="text-gray-500 italic">
-                    {t("noFeedback")}
-                  </span>
-                  {/* )} */}
-                </TableCell>
-              )}
-              {columnVisibility.status && (
-                <TableCell>{getStatusBadge(order.status)}</TableCell>
-              )}
-              {columnVisibility.details && (
-                <TableCell className="text-right">
-                  <OrderDetailDialog order={order}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full h-8 w-8 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/20"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span className="sr-only">{t("viewDetails")}</span>
-                    </Button>
-                  </OrderDetailDialog>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-};
+//   const table = useReactTable({
+//     data,
+//     columns,
+//     getCoreRowModel: getCoreRowModel(),
+//     getPaginationRowModel: getPaginationRowModel(),
+//     onSortingChange: setSorting,
+//     getSortedRowModel: getSortedRowModel(),
+//     onColumnFiltersChange: setColumnFilters,
+//     getFilteredRowModel: getFilteredRowModel(),
+//     onColumnVisibilityChange: setColumnVisibility,
+//     onRowSelectionChange: setRowSelection,
+//     state: {
+//       sorting,
+//       columnFilters,
+//       columnVisibility,
+//       rowSelection,
+//     },
+//   });
+
+//   const getFeedbackStars = (rating: number) => {
+//     let stars = "";
+//     for (let i = 0; i < rating; i++) {
+//       stars += "⭐";
+//     }
+//     return stars;
+//   };
+
+//   return (
+//     <div className="w-full">
+//       <div className="flex items-center py-4">
+//         <Input
+//           placeholder={`${t("filterOrders")}...`}
+//           value={(table.getColumn("orderId")?.getFilterValue() as string) ?? ""}
+//           onChange={(event) =>
+//             table.getColumn("orderId")?.setFilterValue(event.target.value)
+//           }
+//           className="max-w-sm"
+//         />
+//         <DropdownMenu>
+//           <DropdownMenuTrigger asChild>
+//             <Button variant="outline" className="ml-auto">
+//               {t("columns")} <ChevronDown className="ml-2 h-4 w-4" />
+//             </Button>
+//           </DropdownMenuTrigger>
+//           <DropdownMenuContent align="end">
+//             {table
+//               .getAllColumns()
+//               .filter((column) => column.getCanHide())
+//               .map((column) => {
+//                 return (
+//                   <DropdownMenuCheckboxItem
+//                     key={column.id}
+//                     checked={column.getIsVisible()}
+//                     onCheckedChange={(value) => column.toggleVisibility(value)}
+//                   >
+//                     {column.id}
+//                   </DropdownMenuCheckboxItem>
+//                 );
+//               })}
+//           </DropdownMenuContent>
+//         </DropdownMenu>
+//       </div>
+//       <div className="rounded-md border">
+//         <Table>
+//           <TableHeader>
+//             {table.getHeaderGroups().map((headerGroup) => (
+//               <TableRow key={headerGroup.id}>
+//                 {headerGroup.headers.map((header) => {
+//                   return (
+//                     <TableHead key={header.id}>
+//                       {header.isPlaceholder
+//                         ? null
+//                         : flexRender(
+//                             header.column.columnDef.header,
+//                             header.getContext()
+//                           )}
+//                     </TableHead>
+//                   );
+//                 })}
+//               </TableRow>
+//             ))}
+//           </TableHeader>
+//           <TableBody>
+//             {table.getRowModel().rows.map((row) => (
+//               <TableRow
+//                 key={row.id}
+//                 data-state={row.getIsSelected() && "selected"}
+//               >
+//                 {row.getVisibleCells().map((cell) => (
+//                   <TableCell key={cell.id} className="dark:text-indigo-200">
+//                     {cell.column.id === "createdAt" ? (
+//                       <div className="flex items-center">
+//                         <CalendarIcon className="mr-2 h-4 w-4" />
+//                         {formatDate(new Date(cell.getValue() as string))}
+//                       </div>
+//                     ) : cell.column.id === "feedback" ? (
+//                       <>
+//                         {columnVisibility.feedback && (
+//                           <TableCell className="dark:text-indigo-200">
+//                             {(row.original as Order).rating ? (
+//                               getFeedbackStars((row.original as Order).rating!)
+//                             ) : (row.original as orderDetail).status ===
+//                               "Completed" ? (
+//                               <FeedbackDialog
+//                                 orderId={(row.original as orderDetail).orderId}
+//                                 onFeedbackSubmitted={() => setCurrentPage(1)}
+//                               >
+//                                 <Button
+//                                   variant="ghost"
+//                                   size="sm"
+//                                   className="text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/20"
+//                                 >
+//                                   <MessageSquare className="h-4 w-4 mr-1" />
+//                                   {t("leaveFeedback")}
+//                                 </Button>
+//                               </FeedbackDialog>
+//                             ) : (
+//                               <span className="text-gray-500 italic">
+//                                 {t("noFeedback")}
+//                               </span>
+//                             )}
+//                           </TableCell>
+//                         )}
+//                       </>
+//                     ) : (
+//                       flexRender(cell.column.columnDef.cell, cell.getContext())
+//                     )}
+//                   </TableCell>
+//                 ))}
+//               </TableRow>
+//             ))}
+//             {table.getRowModel().rows.length === 0 ? (
+//               <TableRow>
+//                 <TableCell
+//                   colSpan={columns.length}
+//                   className="h-24 text-center"
+//                 >
+//                   {t("noResults")}
+//                 </TableCell>
+//               </TableRow>
+//             ) : null}
+//           </TableBody>
+//         </Table>
+//       </div>
+//       <div className="flex items-center justify-end space-x-2 py-4">
+//         <Button
+//           variant="outline"
+//           size="sm"
+//           onClick={() => table.previousPage()}
+//           disabled={!table.getCanPreviousPage()}
+//         >
+//           {t("previous")}
+//         </Button>
+//         <Button
+//           variant="outline"
+//           size="sm"
+//           onClick={() => table.nextPage()}
+//           disabled={!table.getCanNextPage()}
+//         >
+//           {t("next")}
+//         </Button>
+//       </div>
+//     </div>
+//   );
+// }

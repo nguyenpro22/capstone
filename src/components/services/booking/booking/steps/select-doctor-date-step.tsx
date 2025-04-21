@@ -7,11 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { BookingData, Doctor } from "../../types/booking";
-import { formatDate, groupTimeSlots } from "../../utils/booking-utils";
+import { groupTimeSlots, formatTimeDisplay } from "../../utils/booking-utils";
 import { Clock, AlertCircle } from "lucide-react";
 import { TimeSlotGroup } from "../time-slot-group";
 import { DoctorItem } from "../doctor-item";
-import { useGetBusyTimesQuery } from "@/features/booking/api";
+import { useGetAvalableTimesQuery } from "@/features/booking/api";
 import { BookingService } from "../../utils/booking-service";
 import { CustomCalendar } from "./custom-calendar";
 import { useTranslations } from "next-intl"; // Import useTranslations
@@ -82,12 +82,13 @@ export function SelectDoctorDateStep({
     return `${year}-${month}-${day}`;
   }
 
-  // Use RTK Query hook to fetch busy times
-  const { data, isLoading, refetch } = useGetBusyTimesQuery(
+  // Use RTK Query hook to fetch available times
+  const { data, isLoading, refetch } = useGetAvalableTimesQuery(
     {
       doctorId: currentDoctor?.id || "",
       clinicId: clinic?.id || "",
       date: selectedDate ? formatDateForApi(selectedDate) : "",
+      serviceIdOrCustomerScheduleId: bookingData.service.id,
     },
     // Only run the query if we have all required parameters
     {
@@ -95,12 +96,11 @@ export function SelectDoctorDateStep({
     }
   );
 
-  // Calculate available time slots when busy times data changes
-    useEffect(() => {
+  // Calculate available time slots when available times data changes
+  useEffect(() => {
     const calculateAvailableSlots = async () => {
       if (data?.value && selectedDate) {
         try {
-          // Use the BookingService to calculate available time slots
           const slots = await BookingService.getAvailableTimeSlots(data.value);
 
           // Filter out past time slots if the selected date is today
@@ -124,6 +124,8 @@ export function SelectDoctorDateStep({
               );
             });
 
+            console.log("Filtered slots:", filteredSlots);
+
             setAvailableTimeSlots(filteredSlots);
           } else {
             setAvailableTimeSlots(slots);
@@ -140,6 +142,8 @@ export function SelectDoctorDateStep({
     calculateAvailableSlots();
   }, [data, selectedDate]);
 
+  // Group time slots by period
+  const timeSlotGroups = groupTimeSlots(availableTimeSlots);
 
   const handleDoctorSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
@@ -178,9 +182,6 @@ export function SelectDoctorDateStep({
     setSelectedTime(time);
     updateBookingData({ time });
   };
-
-  // Group time slots by period
-  const timeSlotGroups = groupTimeSlots(availableTimeSlots);
 
   // Check if we have all required data
   const missingRequirements = !currentDoctor || !clinic;
@@ -380,7 +381,7 @@ export function SelectDoctorDateStep({
               </Badge>
               <Badge className="bg-purple-600 dark:bg-purple-500 text-white">
                 <Clock className="h-3 w-3 mr-1" />
-                {selectedTime}
+                {formatTimeDisplay(selectedTime)}
               </Badge>
             </div>
           </div>
