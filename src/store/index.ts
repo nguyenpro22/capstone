@@ -70,6 +70,7 @@ import {
 } from "@/features/wallet-transaction/api";
 import { livestreamQueryApi } from "@/features/livestream/api";
 import { configsCommandApi, configsQueryApi } from "@/features/configs/api";
+import { userQueryApi } from "@/features/user/api";
 
 // Redux Persist config
 const persistConfig = {
@@ -133,6 +134,7 @@ const rootReducer = combineReducers({
   [livestreamQueryApi.reducerPath]: livestreamQueryApi.reducer,
   [configsQueryApi.reducerPath]: configsQueryApi.reducer,
   [configsCommandApi.reducerPath]: configsCommandApi.reducer,
+  [userQueryApi.reducerPath]: userQueryApi.reducer,
 });
 
 // Persisted reducer
@@ -191,7 +193,8 @@ const store = configureStore({
       walletTransactionCommandApi.middleware,
       livestreamQueryApi.middleware,
       configsQueryApi.middleware,
-      configsCommandApi.middleware
+      configsCommandApi.middleware,
+      userQueryApi.middleware
     ),
 });
 
