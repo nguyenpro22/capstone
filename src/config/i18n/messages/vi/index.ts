@@ -45,6 +45,7 @@ import { workingScheduleMessages } from "./working-schedule";
 import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
+import { configs } from "./configs";
 
 const vi = {
   home: homeMessages,
@@ -93,6 +94,7 @@ const vi = {
   pagination: paginationMessages,
   registerSchedule,
   profile: profileMessages,
+  configs,
 };
 
 export default vi;

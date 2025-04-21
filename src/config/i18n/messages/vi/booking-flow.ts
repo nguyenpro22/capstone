@@ -104,7 +104,15 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   clinic: "Phòng khám",
   doctor: "Bác sĩ",
   time: "Thời gian",
-  customer: "Khách hàng",
+  depositRequired: "Cần Đặt Cọc",
+  customer: {
+    customer: "Khách hàng",
+    name: "Tên Khách Hàng",
+    phone: "Số điện thoại",
+    email: "Email",
+  },
+  backToHome: "Quay Lại Trang Chủ",
+  viewAppointments: "Xem Lịch Hẹn",
   formattedDate: "Ngày {date} tháng {month} năm {year}",
   months: {
     0: "1",

@@ -103,7 +103,15 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   clinic: "Clinic",
   doctor: "Doctor",
   time: "Time",
-  customer: "Customer",
+  depositRequired: "Deposit Required",
+  customer: {
+    customer: "Customer",
+    name: "Customer Name",
+    phone: "Customer Phone",
+    email: "Email",
+  },
+  backToHome: "Back to Home",
+  viewAppointments: "View Appointments",
   formattedDate: "{month} {date}, {year}",
   months: {
     0: "January",

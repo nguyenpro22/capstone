@@ -79,7 +79,15 @@ export type BookingFlowMessages = {
   subtotal: string;
   vatTax: string;
   total: string;
-
+  depositRequired: string;
+  customer: {
+    customer: string;
+    name: string;
+    phone: string;
+    email: string;
+  };
+  backToHome: string;
+  viewAppointments: string;
   // Customer information
   customerInfo: string;
   pleaseUpdateInfo: string;
@@ -99,7 +107,6 @@ export type BookingFlowMessages = {
   clinic: string;
   doctor: string;
   time: string;
-  customer: string;
   formattedDate: string;
   months: {
     [key: number]: string; // Key là số tháng từ 0 đến 11

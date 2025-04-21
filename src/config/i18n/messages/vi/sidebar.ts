@@ -1,4 +1,4 @@
-import type { Messages } from "../types"
+import type { Messages } from "../types";
 
 export const sidebarMessages: Messages["sidebar"] = {
   // Common sidebar items
@@ -14,7 +14,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   voucher: "Phiếu Giảm Giá",
   package: "Gói Dịch Vụ",
   categoryServices: "Danh Mục Dịch Vụ",
-  withdrawalApproval: "Lệnh Rút Tiền" ,
+  withdrawalApproval: "Lệnh Rút Tiền",
 
   // System Staff items
   user: "Người Dùng",
@@ -27,6 +27,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   doctorManagement: "Quản Lý Bác Sĩ",
   buyPackage: "Mua Gói Dịch Vụ",
   liveStream: "Phát Trực Tiếp",
+  configs: "Thiết lập",
 
   // Clinic Staff items
   scheduleApproval: "Lịch Trình Phê Duyệt",
@@ -44,9 +45,10 @@ export const sidebarMessages: Messages["sidebar"] = {
 
   // Logout dialog
   logoutConfirmTitle: "Bạn có chắc chắn muốn đăng xuất?",
-  logoutConfirmDescription: "Điều này sẽ kết thúc phiên của bạn và đăng xuất bạn khỏi hệ thống.",
+  logoutConfirmDescription:
+    "Điều này sẽ kết thúc phiên của bạn và đăng xuất bạn khỏi hệ thống.",
   cancel: "Hủy",
-  
+
   // Clinic Manager items
   wallet: "Ví Tiền",
 
@@ -56,5 +58,5 @@ export const sidebarMessages: Messages["sidebar"] = {
   lightMode: "Chế độ sáng",
   darkMode: "Chế độ tối",
   workingSchedule: "Khung Giờ Hoạt Động",
-  branchRequest: "Phê Duyệt Chi Nhánh"
-}
+  branchRequest: "Phê Duyệt Chi Nhánh",
+};

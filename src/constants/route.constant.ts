@@ -21,8 +21,6 @@ export const systemAdminRoutes = {
   WITHDRAWS: `${privateSystemAdminPath}/withdrawal-approval`, // Sửa lỗi đường dẫn
   POLICIES: `${privateSystemAdminPath}/policy`, // Sửa lỗi đường dẫn
   PROFILE: `${privateSystemAdminPath}/profile`, // Sửa lỗi đường dẫn
-
-
 };
 
 // CLINIC ADMIN ROUTES
@@ -42,7 +40,7 @@ export const clinicAdminRoutes = {
   WALLET: `${privateClinicAdminPath}/wallet`,
   WITHDRAWS: `${privateClinicAdminPath}/withdrawal-approval`,
   POLICIES: `${privateClinicAdminPath}/policy`,
-
+  CONFIGS: `${privateClinicAdminPath}/configuration`,
 };
 
 // DOCTOR ROUTES
@@ -92,7 +90,7 @@ export const systemStaffRoutes = {
   SETTINGS: `${privateSystemStaffPath}/setting`,
   CLINICS: `${privateSystemStaffPath}/clinic`,
   PROFILES: `${privateSystemStaffPath}/profile`,
-  BRANCHES:`${privateSystemStaffPath}/branch-request`,
+  BRANCHES: `${privateSystemStaffPath}/branch-request`,
 };
 
 export const publicRoutes = {
