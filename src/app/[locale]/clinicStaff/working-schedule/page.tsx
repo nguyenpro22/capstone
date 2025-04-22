@@ -1582,7 +1582,7 @@ export default function WorkingSchedulePage() {
                                         <div className="flex justify-between items-center mb-2">
                                           <div className="flex items-center gap-2">
                                             <div className="font-medium">
-                                              {t("shiftId")}: {shift.id}
+                                              {t("shiftId")}: {shift.name}
                                             </div>
                                           </div>
                                           <Button
@@ -1649,7 +1649,7 @@ export default function WorkingSchedulePage() {
                                           <Input
                                             id={`capacity-${schedule.date}-${shift.id}`}
                                             type="number"
-                                            min="1"
+                                            min="0"
                                             value={getShiftCapacity(
                                               schedule.date,
                                               shift.id
