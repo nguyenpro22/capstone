@@ -37,13 +37,15 @@ import { useTranslations } from "next-intl";
 import React from "react";
 
 // Import the WorkingScheduleDetail interface
-import type { WorkingScheduleDetail } from "@/features/working-schedule/types";
-import type { WorkingSchedule } from "@/features/working-schedule/types";
+import type {
+  WorkingScheduleDetail,
+  WorkingScheduleResponseGetAll,
+} from "@/features/working-schedule/types";
 
 interface WorkingScheduleDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  schedule: WorkingSchedule | null;
+  schedule: WorkingScheduleResponseGetAll | null;
   scheduleDetails: WorkingScheduleDetail[] | undefined;
   isLoading: boolean;
   error: any;

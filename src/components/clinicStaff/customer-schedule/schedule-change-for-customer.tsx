@@ -667,7 +667,7 @@ export default function ScheduleFollowUpModal({
                 {t("scheduling")}
               </>
             ) : (
-              t("scheduleFollowUp")
+              t("reschedule")
             )}
           </Button>
         </DialogFooter>

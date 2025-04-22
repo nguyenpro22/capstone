@@ -7,6 +7,7 @@ import {
   BusyTimeSlot,
   WorkingSchedule,
   WorkingScheduleDetail,
+  WorkingScheduleResponseGetAll,
 } from "../types";
 
 export const workingScheduleApi = createApi({
@@ -24,7 +25,7 @@ export const workingScheduleApi = createApi({
       }),
     }),
     getWorkingSchedule: builder.query<
-      IResCommon<IListResponse<WorkingSchedule>>,
+      IResCommon<IListResponse<WorkingScheduleResponseGetAll>>,
       {
         pageIndex?: number;
         pageSize?: number;

@@ -95,6 +95,10 @@ export default function SchedulePaymentModal({
   const t = useTranslations("customerSchedule");
   // Track the remaining amount to pay (after deducting wallet balance)
   const [remainingAmount, setRemainingAmount] = useState<number | null>(null);
+  // Track the current schedule ID to detect changes
+  const [currentScheduleId, setCurrentScheduleId] = useState<string | null>(
+    null
+  );
 
   const {
     data: balanceData,
@@ -103,6 +107,44 @@ export default function SchedulePaymentModal({
   } = useGetUserBalanceQuery(schedule?.userId || "", {
     skip: !schedule?.userId,
   });
+
+  // Reset all payment states when the modal is closed
+  const resetAllStates = () => {
+    setWalletBalance(null);
+    setUseWalletBalance(null);
+    setShowBalanceConfirmation(false);
+    setShowPaymentMethods(false);
+    setPaymentMethod("qr");
+    setPaymentStatus("idle");
+    setQrUrl(null);
+    setTransactionId(null);
+    setShowQR(false);
+    setShowPaymentResult(false);
+    setPaymentDetails({
+      amount: null,
+      timestamp: null,
+      message: null,
+    });
+    setErrorMessage(null);
+    setCountdown(30);
+    setIsTimedOut(false);
+    setRemainingAmount(null);
+  };
+
+  // Reset states when schedule changes
+  useEffect(() => {
+    if (schedule?.id && schedule.id !== currentScheduleId) {
+      setCurrentScheduleId(schedule.id);
+      resetAllStates();
+    }
+  }, [schedule, currentScheduleId]);
+
+  // Reset states when modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      resetAllStates();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!transactionId) return;
@@ -138,6 +180,8 @@ export default function SchedulePaymentModal({
               toast.success("Payment successful!");
               // Close the QR dialog and show payment result
               setShowQR(false);
+              setShowPaymentMethods(false); // Add this line to hide payment methods
+              setShowBalanceConfirmation(false); // Add this line to hide balance confirmation
               setShowPaymentResult(true);
               if (onSuccess) {
                 onSuccess();
@@ -201,6 +245,8 @@ export default function SchedulePaymentModal({
               toast.error(errorMsg);
               // Show payment result with failure details
               setShowQR(false);
+              setShowPaymentMethods(false); // Add this line to hide payment methods
+              setShowBalanceConfirmation(false); // Add this line to hide balance confirmation
               setShowPaymentResult(true);
             }
           }
@@ -345,6 +391,72 @@ export default function SchedulePaymentModal({
       setPaymentStatus("processing");
       setErrorMessage(null);
 
+      // For cash payments, skip the payment API call and directly update the status
+      if (paymentMethod === "cash") {
+        // Show success immediately for cash payments
+        setPaymentStatus("success");
+        setShowPaymentResult(true);
+        setShowQR(false);
+        setShowPaymentMethods(false);
+        setShowBalanceConfirmation(false);
+        toast.success("Cash payment recorded successfully!");
+
+        // Update schedule status to Completed for cash payments
+        if (schedule && schedule.id) {
+          try {
+            await updateScheduleStatus({
+              scheduleId: schedule.id,
+              status: "Completed",
+            }).unwrap();
+            console.log("Schedule status updated to Completed");
+
+            // Generate follow-up schedules for cash payments
+            if (schedule.id) {
+              try {
+                await generateSchedules(schedule.id).unwrap();
+                console.log("Follow-up schedules generated successfully");
+              } catch (error) {
+                console.error("Failed to generate follow-up schedules:", error);
+              }
+            }
+
+            // Refetch data to update UI with latest status
+            if (onSuccess) {
+              onSuccess(); // This should trigger any parent component refetches
+            }
+
+            // Automatically close the modal after 2 seconds for cash payments
+            setTimeout(() => {
+              onClose();
+              router.push("/clinicStaff/customer-schedule");
+            }, 2000);
+          } catch (error: any) {
+            console.error("Failed to update schedule status:", error);
+            // Extract error detail if available
+            const errorDetail =
+              error?.data?.detail || "Failed to update schedule status";
+            setErrorMessage(errorDetail);
+
+            // If the error is "Order already completed", we can still show success
+            if (errorDetail.includes("already completed")) {
+              toast.info("This order was already marked as completed");
+
+              // Automatically close the modal after 2 seconds even if already completed
+              setTimeout(() => {
+                onClose();
+                router.push("/schedules");
+              }, 2000);
+            } else {
+              toast.error(errorDetail);
+              setPaymentStatus("failed");
+              setShowPaymentResult(true);
+            }
+          }
+        }
+        return;
+      }
+
+      // For other payment methods, continue with the existing flow
       // Use the amount field which is the total amount to be paid
       const amount = schedule.amount || 100000; // Default amount if not available
 
@@ -401,22 +513,19 @@ export default function SchedulePaymentModal({
         }
 
         setShowQR(true);
+        setShowPaymentMethods(false); // Add this line to ensure payment methods are hidden
         setCountdown(59); // Reset countdown to 59 seconds
         setIsTimedOut(false);
-      } else if (
-        effectivePaymentMethod === "balance" ||
-        effectivePaymentMethod === "cash"
-      ) {
-        // For wallet or cash payments, show success immediately
+      } else if (effectivePaymentMethod === "balance") {
+        // For wallet payments, show success immediately
         setPaymentStatus("success");
         setShowPaymentResult(true);
-        toast.success(
-          currentUseWalletBalance
-            ? "Wallet payment successful!"
-            : "Cash payment recorded successfully!"
-        );
+        setShowQR(false); // Add this line to ensure QR is hidden
+        setShowPaymentMethods(false); // Add this line to ensure payment methods are hidden
+        setShowBalanceConfirmation(false); // Add this line to ensure balance confirmation is hidden
+        toast.success("Wallet payment successful!");
 
-        // Update schedule status to Completed for cash/wallet payments
+        // Update schedule status to Completed for wallet payments
         if (schedule && schedule.id) {
           try {
             await updateScheduleStatus({
@@ -425,7 +534,7 @@ export default function SchedulePaymentModal({
             }).unwrap();
             console.log("Schedule status updated to Completed");
 
-            // Generate follow-up schedules for cash/wallet payments
+            // Generate follow-up schedules for wallet payments
             if (schedule.id) {
               try {
                 await generateSchedules(schedule.id).unwrap();
@@ -448,7 +557,7 @@ export default function SchedulePaymentModal({
               console.error("Failed to refetch data:", error);
             }
 
-            // Automatically close the modal after 2 seconds for cash/wallet payments
+            // Automatically close the modal after 2 seconds for wallet payments
             setTimeout(() => {
               onClose();
               router.push("/clinicStaff/customer-schedule");
@@ -494,15 +603,7 @@ export default function SchedulePaymentModal({
   };
 
   const handleRetry = () => {
-    setPaymentStatus("idle");
-    setShowPaymentResult(false);
-    setErrorMessage(null);
-    setCountdown(30);
-    setIsTimedOut(false);
-    setShowBalanceConfirmation(false);
-    setShowPaymentMethods(false);
-    setUseWalletBalance(null);
-    setRemainingAmount(null);
+    resetAllStates();
   };
 
   // Get status badge with updated colors
@@ -624,6 +725,9 @@ export default function SchedulePaymentModal({
           // For wallet payments, show success immediately
           setPaymentStatus("success");
           setShowPaymentResult(true);
+          setShowQR(false); // Add this line to ensure QR is hidden
+          setShowPaymentMethods(false); // Add this line to ensure payment methods are hidden
+          setShowBalanceConfirmation(false); // Add this line to ensure balance confirmation is hidden
           toast.success("Wallet payment successful!");
 
           // Update schedule status to Completed
@@ -740,13 +844,14 @@ export default function SchedulePaymentModal({
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open && transactionId) {
-          // When closing the dialog, leave the payment session
-          PaymentService.leavePaymentSession(transactionId);
-          setCountdown(30);
-          setIsTimedOut(false);
+        if (!open) {
+          // When closing the dialog, leave the payment session and reset all states
+          if (transactionId) {
+            PaymentService.leavePaymentSession(transactionId);
+          }
+          resetAllStates();
+          onClose();
         }
-        onClose();
       }}
     >
       <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl">
@@ -759,7 +864,9 @@ export default function SchedulePaymentModal({
           </DialogDescription>
         </DialogHeader>
 
-        {paymentStatus === "idle" &&
+        {/* Only show payment details and proceed button if payment is not successful */}
+        {paymentStatus !== "success" &&
+          paymentStatus === "idle" &&
           !showQR &&
           !showPaymentResult &&
           !showBalanceConfirmation &&
@@ -1209,9 +1316,14 @@ export default function SchedulePaymentModal({
                         {new Date(paymentDetails.timestamp).toLocaleString()}
                       </p>
                     )}
-                    <p className="text-sm text-green-600 animate-pulse">
-                      {t("redirectingToSchedules")}
-                    </p>
+                    <div className="mt-4">
+                      <Button
+                        onClick={onClose}
+                        className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                      >
+                        {t("close")}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
