@@ -1298,10 +1298,11 @@ export default function SchedulesPage() {
                               {getStatusBadge(schedule.status)}
                             </TableCell>
                             <TableCell className="text-center">
-                              <div className="flex gap-2 justify-center">
+                              <div className="flex gap-2 justify-center items-center min-w-[220px]">
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="w-[100px] justify-center"
                                   onClick={() => handleViewSchedule(schedule)}
                                 >
                                   <Eye className="h-4 w-4 mr-1" />
@@ -1314,7 +1315,7 @@ export default function SchedulesPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
+                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
                                         onClick={() => handleCheckout(schedule)}
                                       >
                                         <CreditCard className="h-4 w-4 mr-1" />
@@ -1324,7 +1325,7 @@ export default function SchedulesPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
                                         onClick={() => {
                                           updateScheduleStatus({
                                             scheduleId: schedule.id,
@@ -1377,7 +1378,7 @@ export default function SchedulesPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
+                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
                                         onClick={() => handleCheckout(schedule)}
                                       >
                                         <CreditCard className="h-4 w-4 mr-1" />
@@ -1390,7 +1391,7 @@ export default function SchedulesPage() {
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
                                     onClick={() => handleCheckIn(schedule)}
                                     disabled={isUpdatingStatus}
                                   >
@@ -1419,7 +1420,11 @@ export default function SchedulesPage() {
                                     }}
                                   >
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-[40px] h-[32px] flex-shrink-0"
+                                      >
                                         <MoreHorizontal className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -1512,10 +1517,11 @@ export default function SchedulesPage() {
                               {getStatusBadge(schedule.status)}
                             </TableCell>
                             <TableCell className="text-center">
-                              <div className="flex gap-2 justify-center">
+                              <div className="flex gap-2 justify-center items-center min-w-[220px]">
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="w-[100px] justify-center"
                                   onClick={() => handleViewSchedule(schedule)}
                                 >
                                   <Eye className="h-4 w-4 mr-1" />
@@ -1528,7 +1534,7 @@ export default function SchedulesPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
+                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
                                         onClick={() => handleCheckout(schedule)}
                                       >
                                         <CreditCard className="h-4 w-4 mr-1" />
@@ -1538,7 +1544,7 @@ export default function SchedulesPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
                                         onClick={() => {
                                           updateScheduleStatus({
                                             scheduleId: schedule.id,
@@ -1584,7 +1590,7 @@ export default function SchedulesPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white"
+                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
                                         onClick={() => handleCheckout(schedule)}
                                       >
                                         <CreditCard className="h-4 w-4 mr-1" />
@@ -1597,7 +1603,7 @@ export default function SchedulesPage() {
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
                                     onClick={() => handleCheckIn(schedule)}
                                     disabled={isUpdatingStatus}
                                   >
@@ -1626,7 +1632,11 @@ export default function SchedulesPage() {
                                     }}
                                   >
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-[40px] h-[32px] flex-shrink-0"
+                                      >
                                         <MoreHorizontal className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>

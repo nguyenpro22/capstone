@@ -12,9 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Trash2,
   Plus,
   Save,
   Clock,
@@ -23,11 +21,10 @@ import {
   CalendarRange,
   Search,
   CalendarIcon,
-  Info,
   AlertCircle,
-  Users,
-  UserCheck,
   Layers,
+  Check,
+  Info,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -45,12 +42,17 @@ import {
 import { vi } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
-import type { TimeSlot } from "@/features/working-schedule/types";
+import type {
+  ExtendedWorkingSchedule,
+  WorkingScheduleResponseGetAll,
+  Shift,
+} from "@/features/working-schedule/types";
 import {
   useCreateClinicSchedulesMutation,
   useGetWorkingScheduleQuery,
   useGetWorkingSchedulesByShiftGroupQuery,
 } from "@/features/working-schedule/api";
+import { useGetAllShiftsQuery } from "@/features/configs/api";
 import {
   Table,
   TableBody,
@@ -77,6 +79,16 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WorkingScheduleDetailModal } from "@/components/clinicStaff/working-schedule/working-schedule-detail-modal";
 import { useTranslations } from "next-intl";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 // Thêm import cho các type lỗi từ RTK Query
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
@@ -86,26 +98,16 @@ import type {
   ErrorMutationResponse,
 } from "@/lib/api";
 
-// Updated WorkingSchedule interface with new fields but without status
+// Define a type for the WorkingSchedule - updated to match API requirements
 interface WorkingSchedule {
-  shiftGroupId: string;
-  numberOfDoctors: string;
-  numberOfCustomers: string;
   date: string;
   capacity: number;
-  startTime?: string;
-  endTime?: string;
-  workingScheduleId?: string;
+  shiftGroupId: string;
 }
 
-// Define a new type that extends WorkingSchedule to include optional doctorName
-interface ExtendedWorkingSchedule extends WorkingSchedule {
-  doctorName?: string;
-  timeSlots?: TimeSlot[];
-  error?: {
-    field: string;
-    message: string;
-  };
+// Define a type for shift with capacity for internal use
+interface ShiftWithCapacity extends Shift {
+  capacity?: number;
 }
 
 export default function WorkingSchedulePage() {
@@ -133,8 +135,25 @@ export default function WorkingSchedulePage() {
 
   // Add these new states inside your component
   const [selectedSchedule, setSelectedSchedule] =
-    useState<WorkingSchedule | null>(null);
+    useState<WorkingScheduleResponseGetAll | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // New states for shift selection
+  const [isShiftSelectionOpen, setIsShiftSelectionOpen] = useState(false);
+  // Replace the single selectedShift state with an array
+  const [selectedShiftsForModal, setSelectedShiftsForModal] = useState<Shift[]>(
+    []
+  );
+  const [selectedDateForShift, setSelectedDateForShift] = useState<string>("");
+  const [multiDateShiftSelection, setMultiDateShiftSelection] = useState(false);
+  const [selectedShifts, setSelectedShifts] = useState<{
+    [dateKey: string]: Shift;
+  }>({});
+
+  // State to store shift capacities
+  const [shiftCapacities, setShiftCapacities] = useState<{
+    [key: string]: number; // key format: "date-shiftId"
+  }>({});
 
   // Get the token and extract clinicId
   const token = getAccessToken();
@@ -180,6 +199,21 @@ export default function WorkingSchedulePage() {
     }
   );
 
+  // Add this query to fetch all available shifts
+  const {
+    data: shiftsData,
+    isLoading: isLoadingShifts,
+    error: shiftsError,
+  } = useGetAllShiftsQuery(
+    {
+      pageIndex: 1,
+      pageSize: 100,
+    },
+    {
+      skip: !clinicId,
+    }
+  );
+
   // Refs cho các card ngày
   const dateCardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const timeSlotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -197,7 +231,27 @@ export default function WorkingSchedulePage() {
   const disabledDays = { before: today };
 
   // Add a new state to store original API data
-  const [originalApiData, setOriginalApiData] = useState<any[]>([]);
+  const [originalApiData, setOriginalApiData] = useState<
+    WorkingScheduleResponseGetAll[]
+  >([]);
+
+  // Helper function to get capacity for a shift
+  const getShiftCapacity = (date: string, shiftId: string): number => {
+    const key = `${date}-${shiftId}`;
+    return shiftCapacities[key] || 10; // Default to 10 if not set
+  };
+
+  // Helper function to set capacity for a shift
+  const setShiftCapacity = (
+    date: string,
+    shiftId: string,
+    capacity: number
+  ) => {
+    setShiftCapacities((prev) => ({
+      ...prev,
+      [`${date}-${shiftId}`]: capacity,
+    }));
+  };
 
   // Load dữ liệu lịch làm việc khi component được mount
   useEffect(() => {
@@ -228,46 +282,97 @@ export default function WorkingSchedulePage() {
           acc[dateKey].push(item);
           return acc;
         },
-        {} as Record<string, any[]>
+        {} as Record<string, WorkingScheduleResponseGetAll[]>
       );
+
+      // Initialize shift capacities from API data
+      const newShiftCapacities = { ...shiftCapacities };
 
       // Tạo schedules từ dữ liệu API đã nhóm
       const newSchedules = Object.entries(schedulesByDate).map(
         ([dateKey, schedules]) => {
-          // Tính tổng capacity cho ngày này
-          const totalCapacity = schedules.reduce(
-            (sum, schedule) => sum + (schedule.capacity || 0),
-            0
-          );
+          // Fetch shift details for each schedule if available
+          const shifts = schedules.map((schedule) => {
+            // Store capacity in shiftCapacities state
+            const key = `${dateKey}-${schedule.shiftGroupId}`;
+            newShiftCapacities[key] = schedule.capacity || 10;
 
-          // Tạo timeSlots từ các lịch làm việc - giữ nguyên tất cả các khung giờ
+            // Try to find the shift in shiftsData
+            if (shiftsData?.value?.items) {
+              const matchingShift = shiftsData.value.items.find(
+                (shift) => shift.id === schedule.shiftGroupId
+              );
+              if (matchingShift) {
+                return {
+                  ...matchingShift,
+                  // Don't add capacity to the shift object itself
+                };
+              }
+            }
+
+            // If no matching shift found, create a placeholder with available data
+            return {
+              id: schedule.shiftGroupId,
+              name: `Shift ${schedule.shiftGroupId.substring(0, 6)}...`,
+              note: `${formatTime(schedule.startTime)} - ${formatTime(
+                schedule.endTime
+              )}`,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              createdAt: "",
+            };
+          });
+
+          // Create timeSlots from shifts
           const timeSlots = schedules.map((schedule) => ({
             startTime: formatTime(schedule.startTime),
             endTime: formatTime(schedule.endTime),
-            capacity: schedule.capacity || 0,
+            capacity: schedule.capacity || 10,
           }));
 
           return {
             date: dateKey,
-            capacity: totalCapacity, // Tổng capacity của tất cả lịch trong ngày
             timeSlots:
               timeSlots.length > 0
                 ? timeSlots
                 : [{ startTime: "08:00", endTime: "12:00", capacity: 10 }],
             // Include new fields with default values if they don't exist
             shiftGroupId: schedules[0]?.shiftGroupId || "",
-            numberOfDoctors: schedules[0]?.numberOfDoctors || "0",
-            numberOfCustomers: schedules[0]?.numberOfCustomers || "0",
+            // Add time properties from the API response
+            startTime: schedules[0]?.startTime || "",
+            endTime: schedules[0]?.endTime || "",
+            // Add the shifts array
+            shifts: shifts,
+            // Add capacity (will be used for API submission)
+            capacity: schedules[0]?.capacity || 10,
           };
         }
       );
 
+      setShiftCapacities(newShiftCapacities);
       setSchedules(newSchedules);
 
       // Lưu trữ dữ liệu gốc từ API để sử dụng khi chọn lại ngày
       setOriginalApiData(workingSchedulesData.value.items);
+
+      // Also populate selectedShifts state for existing shifts
+      const newSelectedShifts = { ...selectedShifts };
+      workingSchedulesData.value.items.forEach((item) => {
+        if (item.shiftGroupId) {
+          // Try to find the shift in shiftsData
+          if (shiftsData?.value?.items) {
+            const matchingShift = shiftsData.value.items.find(
+              (shift) => shift.id === item.shiftGroupId
+            );
+            if (matchingShift) {
+              newSelectedShifts[item.date] = matchingShift;
+            }
+          }
+        }
+      });
+      setSelectedShifts(newSelectedShifts);
     }
-  }, [workingSchedulesData]);
+  }, [workingSchedulesData, shiftsData]);
 
   // Xóa lỗi validation khi người dùng thay đổi dữ liệu
   useEffect(() => {
@@ -278,53 +383,7 @@ export default function WorkingSchedulePage() {
     if (serverError) {
       setServerError(null);
     }
-  }, [schedules]);
-
-  // Cập nhật capacity cho ngày
-  const updateDayCapacity = (date: string, capacity: number) => {
-    setSchedules(
-      schedules.map((schedule) => {
-        if (schedule.date === date) {
-          // Tính toán capacity cho mỗi timeSlot dựa trên tỷ lệ hiện tại
-          const timeSlots = schedule.timeSlots || [];
-          const totalSlotCapacity = timeSlots.reduce(
-            (sum, slot) => sum + slot.capacity,
-            0
-          );
-
-          // Nếu không có timeSlots hoặc tổng capacity là 0, phân bổ đều
-          if (timeSlots.length === 0 || totalSlotCapacity === 0) {
-            return {
-              ...schedule,
-              capacity,
-              timeSlots:
-                timeSlots.length > 0
-                  ? timeSlots.map((slot) => ({
-                      ...slot,
-                      capacity: Math.floor(capacity / timeSlots.length),
-                    }))
-                  : [
-                      {
-                        startTime: "08:00",
-                        endTime: "12:00",
-                        capacity: capacity,
-                      },
-                    ],
-            };
-          }
-
-          // Phân bổ capacity mới dựa trên tỷ lệ hiện tại
-          const updatedTimeSlots = timeSlots.map((slot) => {
-            const ratio = slot.capacity / totalSlotCapacity;
-            return { ...slot, capacity: Math.floor(capacity * ratio) };
-          });
-
-          return { ...schedule, capacity, timeSlots: updatedTimeSlots };
-        }
-        return schedule;
-      })
-    );
-  };
+  }, [schedules, shiftCapacities]);
 
   // Xử lý khi chọn ngày từ lịch
   const handleDateSelect = (dates: Date[] | undefined) => {
@@ -412,6 +471,16 @@ export default function WorkingSchedulePage() {
               )
           )
         );
+
+        // Also remove from selectedShifts
+        const newSelectedShifts = { ...selectedShifts };
+        removedDates.forEach((date) => {
+          const dateKey = format(date, "yyyy-MM-dd");
+          if (newSelectedShifts[dateKey]) {
+            delete newSelectedShifts[dateKey];
+          }
+        });
+        setSelectedShifts(newSelectedShifts);
       }
 
       // Xử lý các ngày mới thêm
@@ -432,20 +501,25 @@ export default function WorkingSchedulePage() {
               capacity: schedule.capacity || 0,
             }));
 
-            // Tính tổng capacity
-            const totalCapacity = apiSchedules.reduce(
-              (sum, schedule) => sum + (schedule.capacity || 0),
-              0
-            );
+            // Update shift capacities
+            apiSchedules.forEach((schedule) => {
+              const key = `${formattedDate}-${schedule.shiftGroupId}`;
+              setShiftCapacity(
+                formattedDate,
+                schedule.shiftGroupId,
+                schedule.capacity || 10
+              );
+            });
 
             return {
               date: formattedDate,
-              capacity: totalCapacity,
+              capacity: apiSchedules[0]?.capacity || 10,
               timeSlots: timeSlots,
               // Include new fields
               shiftGroupId: apiSchedules[0]?.shiftGroupId || "",
-              numberOfDoctors: apiSchedules[0]?.numberOfDoctors || "0",
-              numberOfCustomers: apiSchedules[0]?.numberOfCustomers || "0",
+              // Add time properties from the API response
+              startTime: apiSchedules[0]?.startTime || "",
+              endTime: apiSchedules[0]?.endTime || "",
             };
           } else {
             // Nếu không có dữ liệu từ API, kiểm tra xem đã từng có trong schedules chưa
@@ -462,12 +536,10 @@ export default function WorkingSchedulePage() {
             return {
               date: formattedDate,
               capacity: 10, // Giá trị mặc định
-              timeSlots: [
-                { startTime: "08:00", endTime: "12:00", capacity: 10 },
-              ],
+              timeSlots: [],
               shiftGroupId: "",
-              numberOfDoctors: "0",
-              numberOfCustomers: "0",
+              startTime: "",
+              endTime: "",
             };
           }
         });
@@ -504,30 +576,35 @@ export default function WorkingSchedulePage() {
           capacity: schedule.capacity || 0,
         }));
 
-        // Tính tổng capacity
-        const totalCapacity = apiSchedules.reduce(
-          (sum, schedule) => sum + (schedule.capacity || 0),
-          0
-        );
+        // Update shift capacities
+        apiSchedules.forEach((schedule) => {
+          const key = `${formattedDate}-${schedule.shiftGroupId}`;
+          setShiftCapacity(
+            formattedDate,
+            schedule.shiftGroupId,
+            schedule.capacity || 10
+          );
+        });
 
         return {
           date: formattedDate,
-          capacity: totalCapacity,
+          capacity: apiSchedules[0]?.capacity || 10,
           timeSlots: timeSlots,
           // Include new fields
           shiftGroupId: apiSchedules[0]?.shiftGroupId || "",
-          numberOfDoctors: apiSchedules[0]?.numberOfDoctors || "0",
-          numberOfCustomers: apiSchedules[0]?.numberOfCustomers || "0",
+          // Add time properties from the API response
+          startTime: apiSchedules[0]?.startTime || "",
+          endTime: apiSchedules[0]?.endTime || "",
         };
       } else {
         // Nếu không có dữ liệu từ API, tạo mới với giá trị mặc định
         return {
           date: formattedDate,
           capacity: 10, // Giá trị mặc định
-          timeSlots: [{ startTime: "08:00", endTime: "12:00", capacity: 10 }],
+          timeSlots: [],
           shiftGroupId: "",
-          numberOfDoctors: "0",
-          numberOfCustomers: "0",
+          startTime: "",
+          endTime: "",
         };
       }
     });
@@ -582,6 +659,7 @@ export default function WorkingSchedulePage() {
   const clearAllSelectedDates = () => {
     setSelectedDates([]);
     setSchedules([]);
+    setSelectedShifts({});
 
     toast.success(t("clearAllDates"));
   };
@@ -705,7 +783,6 @@ export default function WorkingSchedulePage() {
     }
     return null;
   };
-
   // Tìm ngày và khung giờ từ index lỗi
   const findScheduleFromErrorIndex = (
     index: number,
@@ -778,120 +855,159 @@ export default function WorkingSchedulePage() {
     );
   };
 
-  // Add a new state for unusual time warnings
-  const [unusualTimeWarnings, setUnusualTimeWarnings] = useState<{
-    [key: string]: { type: string; message: string };
-  }>({});
+  // Format time from string format
+  const formatTime = (time: string | number | null | undefined): string => {
+    if (!time) return "--:--";
 
-  // Add a function to check for unusual working hours after the formatTime function
-  const checkUnusualWorkingHours = (
-    time: string,
-    type: "start" | "end"
-  ): { isUnusual: boolean; message: string } => {
-    if (!time || time === "--:--") {
-      return { isUnusual: false, message: "" };
+    // If it's already a string in the format "HH:MM:SS"
+    if (typeof time === "string") {
+      // Extract hours and minutes from the time string
+      const timeParts = time.split(":");
+      if (timeParts.length >= 2) {
+        // Xử lý hiển thị đặc biệt cho 24:00
+        if (timeParts[0] === "24") {
+          return "12:00"; // Hiển thị 24:00 như 12:00
+        }
+        // Xử lý hiển thị đặc biệt cho 12:00 (nếu là AM)
+        if (timeParts[0] === "12" && timeParts[1] === "00") {
+          // Giữ nguyên là 12:00
+        }
+        return `${timeParts[0]}:${timeParts[1]}`;
+      }
+      return time;
     }
 
-    // Extract hours from time string (format: HH:MM or HH:MM:SS)
-    const hours = Number.parseInt(time.split(":")[0], 10);
-
-    // Check for unusual start times (very early morning)
-    if (type === "start" && hours >= 0 && hours < 6) {
-      return {
-        isUnusual: true,
-        message: t("earlyStartWarning", { time }),
-      };
+    // If it's a number (legacy format)
+    if (typeof time === "number") {
+      const timeStr = time.toString().padStart(4, "0");
+      return `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
     }
 
-    // Check for unusual end times (very late night)
-    if (type === "end" && hours >= 22) {
-      return {
-        isUnusual: true,
-        message: t("lateEndWarning", { time }),
-      };
-    }
-
-    // Check for long working hours (more than 12 hours)
-    if (type === "end" && hours >= 12 + 12) {
-      return {
-        isUnusual: true,
-        message: t("longHoursWarning"),
-      };
-    }
-
-    return { isUnusual: false, message: "" };
+    return "--:--";
   };
 
-  // Modify the updateTimeSlot function to check for unusual hours
-  const updateTimeSlot = (
-    date: string,
-    index: number,
-    field: string,
-    value: string | number
-  ) => {
-    // Check for unusual working hours if the field is startTime or endTime
-    if (
-      (field === "startTime" || field === "endTime") &&
-      typeof value === "string"
-    ) {
-      const type = field === "startTime" ? "start" : "end";
-      const { isUnusual, message } = checkUnusualWorkingHours(value, type);
+  // Open shift selection modal
+  const openShiftSelection = (date: string) => {
+    setSelectedDateForShift(date);
 
-      const warningKey = `${date}-${index}-${field}`;
+    // Initialize selected shifts for the modal with any existing shifts for this date
+    const existingSchedule = schedules.find((s) => s.date === date);
+    const existingShiftIds = existingSchedule?.shifts?.map((s) => s.id) || [];
 
-      if (isUnusual) {
-        // Set warning for this time slot
-        setUnusualTimeWarnings((prev) => ({
-          ...prev,
-          [warningKey]: { type, message },
-        }));
-      } else {
-        // Remove warning if it exists
-        setUnusualTimeWarnings((prev) => {
-          const newWarnings = { ...prev };
-          delete newWarnings[warningKey];
-          return newWarnings;
-        });
-      }
+    // Find the corresponding Shift objects from shiftsData
+    const preselectedShifts =
+      shiftsData?.value?.items.filter((shift) =>
+        existingShiftIds.includes(shift.id)
+      ) || [];
+
+    setSelectedShiftsForModal(preselectedShifts);
+    setIsShiftSelectionOpen(true);
+  };
+
+  // Handle shift selection
+  const handleShiftSelect = (shift: Shift) => {
+    // Check if shift is already selected
+    const isAlreadySelected = selectedShiftsForModal.some(
+      (s) => s.id === shift.id
+    );
+
+    if (isAlreadySelected) {
+      // Remove the shift if already selected
+      setSelectedShiftsForModal(
+        selectedShiftsForModal.filter((s) => s.id !== shift.id)
+      );
+    } else {
+      // Add the shift if not already selected
+      setSelectedShiftsForModal([...selectedShiftsForModal, shift]);
+    }
+  };
+
+  // Apply selected shift to date(s)
+  const applyShiftToDate = () => {
+    if (selectedShiftsForModal.length === 0) {
+      toast.error(t("selectShiftFirst"));
+      return;
     }
 
-    setSchedules(
-      schedules.map((schedule) => {
-        if (schedule.date === date && schedule.timeSlots) {
-          const updatedTimeSlots = [...schedule.timeSlots];
-          updatedTimeSlots[index] = {
-            ...updatedTimeSlots[index],
-            [field]: value,
+    // If multi-date selection is enabled, apply to all selected dates
+    if (multiDateShiftSelection) {
+      const updatedSchedules = schedules.map((schedule) => {
+        if (
+          selectedDates.some(
+            (date) => format(date, "yyyy-MM-dd") === schedule.date
+          )
+        ) {
+          // Create shift assignments from selected shifts
+          const shiftAssignments = selectedShiftsForModal.map((shift) => ({
+            ...shift,
+            // Don't add capacity to the shift object
+          }));
+
+          // Create timeSlots from shifts
+          const timeSlots = selectedShiftsForModal.map((shift) => ({
+            startTime: formatTime(shift.startTime),
+            endTime: formatTime(shift.endTime),
+            capacity: 10, // Default capacity
+          }));
+
+          // Initialize capacities for each shift
+          selectedShiftsForModal.forEach((shift) => {
+            setShiftCapacity(schedule.date, shift.id, 10); // Default capacity
+          });
+
+          return {
+            ...schedule,
+            // Use the first shift's ID as the shiftGroupId if needed
+            shiftGroupId: selectedShiftsForModal[0]?.id || "",
+            timeSlots: timeSlots,
+            shifts: shiftAssignments,
           };
-
-          // Nếu field là capacity, cập nhật tổng capacity của ngày
-          if (field === "capacity") {
-            const totalCapacity = updatedTimeSlots.reduce(
-              (sum, slot) =>
-                sum + (typeof slot.capacity === "number" ? slot.capacity : 0),
-              0
-            );
-            return {
-              ...schedule,
-              timeSlots: updatedTimeSlots,
-              capacity: totalCapacity,
-            };
-          }
-
-          return { ...schedule, timeSlots: updatedTimeSlots };
         }
         return schedule;
-      })
-    );
-  };
+      });
 
-  // Add a function to dismiss warnings
-  const dismissWarning = (warningKey: string) => {
-    setUnusualTimeWarnings((prev) => {
-      const newWarnings = { ...prev };
-      delete newWarnings[warningKey];
-      return newWarnings;
-    });
+      setSchedules(updatedSchedules);
+      toast.success(t("shiftsAppliedToMultipleDates"));
+    } else {
+      // Apply to single date
+      const updatedSchedules = schedules.map((schedule) => {
+        if (schedule.date === selectedDateForShift) {
+          // Create shift assignments from selected shifts
+          const shiftAssignments = selectedShiftsForModal.map((shift) => ({
+            ...shift,
+            // Don't add capacity to the shift object
+          }));
+
+          // Create timeSlots from shifts
+          const timeSlots = selectedShiftsForModal.map((shift) => ({
+            startTime: formatTime(shift.startTime),
+            endTime: formatTime(shift.endTime),
+            capacity: 10, // Default capacity
+          }));
+
+          // Initialize capacities for each shift
+          selectedShiftsForModal.forEach((shift) => {
+            setShiftCapacity(schedule.date, shift.id, 10); // Default capacity
+          });
+
+          return {
+            ...schedule,
+            // Use the first shift's ID as the shiftGroupId if needed
+            shiftGroupId: selectedShiftsForModal[0]?.id || "",
+            timeSlots: timeSlots,
+            shifts: shiftAssignments,
+          };
+        }
+        return schedule;
+      });
+
+      setSchedules(updatedSchedules);
+      toast.success(t("shiftsAppliedToDate", { date: selectedDateForShift }));
+    }
+
+    // Close the modal
+    setIsShiftSelectionOpen(false);
+    setSelectedShiftsForModal([]);
   };
 
   // Update fields for the schedule
@@ -913,7 +1029,66 @@ export default function WorkingSchedulePage() {
     );
   };
 
-  // Cập nhật hàm handleSubmit để xử lý lỗi đúng cách
+  // Function to check if a field has an error
+  const hasFieldError = (key: string, field: string): boolean => {
+    const errorKey = `${key}-${field}`;
+    return !!validationErrors[errorKey];
+  };
+
+  // Function to get the error message for a field
+  const getFieldErrorMessage = (key: string, field: string): string => {
+    const errorKey = `${key}-${field}`;
+    return validationErrors[errorKey]?.message || "";
+  };
+
+  // Add a function to remove a shift
+  const removeShift = (date: string, shiftId: string) => {
+    setSchedules(
+      schedules.map((schedule) => {
+        if (schedule.date === date && schedule.shifts) {
+          // Filter out the shift to remove
+          const updatedShifts = schedule.shifts.filter(
+            (shift) => shift.id !== shiftId
+          );
+
+          // Update timeSlots to remove the corresponding time slot
+          const updatedTimeSlots = schedule.timeSlots?.filter((slot) => {
+            const shiftToRemove = schedule.shifts?.find(
+              (s) => s.id === shiftId
+            );
+            if (shiftToRemove) {
+              return !(
+                slot.startTime === formatTime(shiftToRemove.startTime) &&
+                slot.endTime === formatTime(shiftToRemove.endTime)
+              );
+            }
+            return true;
+          });
+
+          return {
+            ...schedule,
+            shifts: updatedShifts,
+            timeSlots: updatedTimeSlots,
+            // If we removed all shifts, reset these fields
+            shiftGroupId: updatedShifts.length > 0 ? updatedShifts[0].id : "",
+          };
+        }
+        return schedule;
+      })
+    );
+
+    // Also remove from shiftCapacities
+    const key = `${date}-${shiftId}`;
+    setShiftCapacities((prev) => {
+      const newCapacities = { ...prev };
+      delete newCapacities[key];
+      return newCapacities;
+    });
+
+    toast.success(t("shiftRemoved"));
+  };
+
+  // Update the handleSubmit function to handle individual shift capacities
   const handleSubmit = async () => {
     if (schedules.length === 0) {
       toast.error(t("selectAtLeastOneDay"));
@@ -925,6 +1100,15 @@ export default function WorkingSchedulePage() {
       return;
     }
 
+    // Check if all dates have shifts assigned
+    const datesWithoutShifts = schedules.filter(
+      (schedule) => !schedule.shifts || schedule.shifts.length === 0
+    );
+    if (datesWithoutShifts.length > 0) {
+      toast.error(t("assignShiftsToAllDates"));
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       // Xóa lỗi validation cũ
@@ -932,69 +1116,30 @@ export default function WorkingSchedulePage() {
       // Xóa lỗi server cũ
       setServerError(null);
 
-      // Kiểm tra dữ liệu trước khi gửi
-      let hasEmptyTimeSlot = false;
-      const apiFormattedSchedules = schedules.flatMap(
-        (schedule, scheduleIndex) => {
-          // Nếu không có timeSlots hoặc mảng rỗng, tạo một khung giờ mặc định
-          if (!schedule.timeSlots || schedule.timeSlots.length === 0) {
-            return [
-              {
-                date: schedule.date,
-                capacity: schedule.capacity,
-                startTime: "08:00",
-                endTime: "17:00",
-                shiftGroupId: schedule.shiftGroupId,
-                numberOfDoctors: schedule.numberOfDoctors,
-                numberOfCustomers: schedule.numberOfCustomers,
-              },
-            ];
-          }
+      // Format data for API - create an entry for each shift in each day
+      const apiFormattedSchedules: WorkingSchedule[] = [];
 
-          // Tạo một mục riêng biệt cho mỗi khung giờ
-          return schedule.timeSlots.map((timeSlot, slotIndex) => {
-            const normalizedStartTime = normalizeTimeFormat(timeSlot.startTime);
-            const normalizedEndTime = normalizeTimeFormat(timeSlot.endTime);
-
-            // Kiểm tra thời gian trống
-            if (!normalizedStartTime || normalizedStartTime === ":00") {
-              hasEmptyTimeSlot = true;
-              toast.error(
-                t("missingStartTime", {
-                  date: schedule.date,
-                  index: slotIndex + 1,
-                })
-              );
-            }
-
-            if (!normalizedEndTime || normalizedEndTime === ":00") {
-              hasEmptyTimeSlot = true;
-              toast.error(
-                t("missingEndTime", {
-                  date: schedule.date,
-                  index: slotIndex + 1,
-                })
-              );
-            }
-
-            return {
+      schedules.forEach((schedule) => {
+        if (schedule.shifts && schedule.shifts.length > 0) {
+          // Add each shift as a separate entry
+          schedule.shifts.forEach((shift) => {
+            const capacity = getShiftCapacity(schedule.date, shift.id);
+            apiFormattedSchedules.push({
               date: schedule.date,
-              capacity: timeSlot.capacity, // Sử dụng capacity của từng khung giờ
-              startTime: normalizedStartTime, // Chuẩn hóa định dạng thời gian
-              endTime: normalizedEndTime, // Chuẩn hóa định dạng thời gian
-              shiftGroupId: schedule.shiftGroupId,
-              numberOfDoctors: schedule.numberOfDoctors,
-              numberOfCustomers: schedule.numberOfCustomers,
-            };
+              capacity: capacity,
+              shiftGroupId: shift.id,
+            });
+          });
+        } else {
+          // Fallback for schedules without shifts array
+          apiFormattedSchedules.push({
+            date: schedule.date,
+            capacity: schedule.capacity || 10,
+            shiftGroupId:
+              schedule.shiftGroupId || selectedShifts[schedule.date]?.id || "",
           });
         }
-      );
-
-      // Nếu có khung giờ trống, dừng lại
-      if (hasEmptyTimeSlot) {
-        setIsSubmitting(false);
-        return;
-      }
+      });
 
       console.log("Sending data to API:", apiFormattedSchedules);
 
@@ -1155,37 +1300,6 @@ export default function WorkingSchedulePage() {
     return dateA.getTime() - dateB.getTime();
   });
 
-  // Format time from string format
-  const formatTime = (time: string | number | null | undefined): string => {
-    if (!time) return "--:--";
-
-    // If it's already a string in the format "HH:MM:SS"
-    if (typeof time === "string") {
-      // Extract hours and minutes from the time string
-      const timeParts = time.split(":");
-      if (timeParts.length >= 2) {
-        // Xử lý hiển thị đặc biệt cho 24:00
-        if (timeParts[0] === "24") {
-          return "12:00"; // Hiển thị 24:00 như 12:00
-        }
-        // Xử lý hiển thị đặc biệt cho 12:00 (nếu là AM)
-        if (timeParts[0] === "12" && timeParts[1] === "00") {
-          // Giữ nguyên là 12:00
-        }
-        return `${timeParts[0]}:${timeParts[1]}`;
-      }
-      return time;
-    }
-
-    // If it's a number (legacy format)
-    if (typeof time === "number") {
-      const timeStr = time.toString().padStart(4, "0");
-      return `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
-    }
-
-    return "--:--";
-  };
-
   // Handle page change
   const handlePageChange = (newPage: number) => {
     setPageIndex(newPage);
@@ -1211,84 +1325,8 @@ export default function WorkingSchedulePage() {
     setPageIndex(1);
   };
 
-  // Function to add a new time slot
-  const addTimeSlot = (date: string) => {
-    // Thông báo cho người dùng biết về giới hạn của API
-    toast.info(t("apiLimitWarning"));
-
-    setSchedules(
-      schedules.map((schedule) => {
-        if (schedule.date === date) {
-          const newTimeSlot = {
-            startTime: "08:00",
-            endTime: "12:00",
-            capacity: 10,
-          };
-          const updatedTimeSlots = [...(schedule.timeSlots || []), newTimeSlot];
-
-          // Tính toán lại tổng capacity
-          const newTotalCapacity = updatedTimeSlots.reduce(
-            (sum, slot) =>
-              sum + (typeof slot.capacity === "number" ? slot.capacity : 0),
-            0
-          );
-
-          return {
-            ...schedule,
-            timeSlots: updatedTimeSlots,
-            capacity: newTotalCapacity, // Cập nhật tổng capacity
-          };
-        }
-        return schedule;
-      })
-    );
-  };
-
-  // Function to remove a time slot
-  const removeTimeSlot = (date: string, index: number) => {
-    setSchedules(
-      schedules.map((schedule) => {
-        if (schedule.date === date && schedule.timeSlots) {
-          const updatedTimeSlots = [...schedule.timeSlots];
-
-          // Lấy capacity của khung giờ sẽ xóa
-          const removedCapacity = updatedTimeSlots[index]?.capacity || 0;
-
-          // Xóa khung giờ
-          updatedTimeSlots.splice(index, 1);
-
-          // Tính toán lại tổng capacity
-          const newTotalCapacity = updatedTimeSlots.reduce(
-            (sum, slot) =>
-              sum + (typeof slot.capacity === "number" ? slot.capacity : 0),
-            0
-          );
-
-          return {
-            ...schedule,
-            timeSlots: updatedTimeSlots,
-            capacity: newTotalCapacity, // Cập nhật tổng capacity
-          };
-        }
-        return schedule;
-      })
-    );
-  };
-
-  // Kiểm tra xem một trường có lỗi không
-  const hasFieldError = (date: string, field: string) => {
-    const errorKey = `${date}-${field.toLowerCase()}`;
-    return !!validationErrors[errorKey];
-  };
-
-  // Lấy thông báo lỗi cho một trường
-  const getFieldErrorMessage = (date: string, field: string) => {
-    const errorKey = `${date}-${field.toLowerCase()}`;
-    return validationErrors[errorKey]?.message || "";
-  };
-
   // Add this function to handle row click
-  const handleScheduleRowClick = (schedule: WorkingSchedule) => {
+  const handleScheduleRowClick = (schedule: WorkingScheduleResponseGetAll) => {
     setSelectedSchedule(schedule);
     setIsDetailModalOpen(true);
   };
@@ -1303,13 +1341,26 @@ export default function WorkingSchedulePage() {
       <h1 className="text-2xl font-bold mb-6">{t("pageTitle")}</h1>
 
       <Tabs defaultValue="setup" className="mb-6" onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="setup">{t("setupTabTitle")}</TabsTrigger>
-          <TabsTrigger value="view">{t("viewTabTitle")}</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center mb-2">
+          <TabsList>
+            <TabsTrigger value="setup">{t("setupTabTitle")}</TabsTrigger>
+            <TabsTrigger value="view">{t("viewTabTitle")}</TabsTrigger>
+          </TabsList>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder={t("searchDatePlaceholder")}
+              value={searchDate}
+              onChange={(e) => setSearchDate(e.target.value)}
+              className="w-40 md:w-48"
+            />
+            <Button variant="outline" size="icon" onClick={handleSearch}>
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         <TabsContent value="setup">
-          {isLoadingWorkingSchedules ? (
+          {isLoadingWorkingSchedules || isLoadingShifts ? (
             <div className="flex items-center justify-center h-40">
               <p>{t("loading")}</p>
             </div>
@@ -1380,28 +1431,6 @@ export default function WorkingSchedulePage() {
                         {t("clearAllDates")}
                       </Button>
                     </div>
-
-                    <div className="mt-4">
-                      <Label htmlFor="search-date">{t("searchDate")}</Label>
-                      <div className="flex gap-2 mt-1">
-                        <Input
-                          id="search-date"
-                          placeholder={t("searchDatePlaceholder")}
-                          value={searchDate}
-                          onChange={(e) => setSearchDate(e.target.value)}
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleSearch}
-                        >
-                          <Search className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {t("searchDateFormat")}
-                      </p>
-                    </div>
                   </CardContent>
                   <CardFooter>
                     <p className="text-sm text-muted-foreground">
@@ -1409,27 +1438,71 @@ export default function WorkingSchedulePage() {
                     </p>
                   </CardFooter>
                 </Card>
-                <div className="mt-4">
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={
-                      isSubmitting || isCreating || schedules.length === 0
-                    }
-                    className="w-full gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    {isSubmitting || isCreating
-                      ? t("saving")
-                      : t("saveSchedule")}
-                  </Button>
-                </div>
+
+                {selectedDates.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t("bulkShiftAssignment")}</CardTitle>
+                      <CardDescription>
+                        {t("bulkShiftAssignmentDescription")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center space-x-2 mb-4">
+                        <Checkbox
+                          id="multi-date-shift"
+                          checked={multiDateShiftSelection}
+                          onCheckedChange={(checked) =>
+                            setMultiDateShiftSelection(checked === true)
+                          }
+                        />
+                        <Label htmlFor="multi-date-shift">
+                          {t("applyShiftToAllDates")}
+                        </Label>
+                      </div>
+
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          if (multiDateShiftSelection) {
+                            // If multi-date is selected, just open the modal
+                            setSelectedDateForShift("");
+                            setIsShiftSelectionOpen(true);
+                          } else {
+                            // If not multi-date, show a message
+                            toast.info(t("selectShiftForEachDate"));
+                          }
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t("selectShiftForMultipleDates")}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               <div className="space-y-6" ref={configSectionRef}>
                 <Card className="h-full">
-                  <CardHeader className="sticky top-0 bg-card z-10">
-                    <CardTitle>{t("configTitle")}</CardTitle>
-                    <CardDescription>{t("configDescription")}</CardDescription>
+                  <CardHeader className="sticky top-0 bg-card z-10 flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>{t("configTitle")}</CardTitle>
+                      <CardDescription>
+                        {t("configDescription")}
+                      </CardDescription>
+                    </div>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={
+                        isSubmitting || isCreating || schedules.length === 0
+                      }
+                      className="gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      {isSubmitting || isCreating
+                        ? t("saving")
+                        : t("saveSchedule")}
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     {serverError && (
@@ -1483,253 +1556,108 @@ export default function WorkingSchedulePage() {
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <div className="flex items-center gap-1">
-                                    <Label
-                                      htmlFor={`capacity-${schedule.date}`}
-                                    >
-                                      {t("totalDoctorsPerDay")}
-                                    </Label>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>{t("doctorsTooltip")}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                  <Input
-                                    id={`capacity-${schedule.date}`}
-                                    type="number"
-                                    min="1"
-                                    value={schedule.capacity}
-                                    onChange={(e) =>
-                                      updateDayCapacity(
-                                        schedule.date,
-                                        Number.parseInt(e.target.value) || 0
-                                      )
-                                    }
-                                    className={`mt-1 ${
-                                      hasFieldError(schedule.date, "capacity")
-                                        ? "border-red-500 ring-2 ring-red-500"
-                                        : ""
-                                    }`}
-                                  />
-                                  {hasFieldError(schedule.date, "capacity") && (
-                                    <p className="text-xs text-red-500 mt-1">
-                                      {getFieldErrorMessage(
-                                        schedule.date,
-                                        "capacity"
-                                      )}
-                                    </p>
-                                  )}
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {t("doctorsTooltip")}
-                                  </p>
-                                </div>
-                              </div>
-
                               <div>
                                 <div className="flex items-center justify-between mb-2">
-                                  <Label>{t("workingHours")}</Label>
+                                  <Label>{t("selectedShifts")}</Label>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => addTimeSlot(schedule.date)}
+                                    onClick={() =>
+                                      openShiftSelection(schedule.date)
+                                    }
                                   >
                                     <Plus className="h-4 w-4 mr-1" />{" "}
-                                    {t("addTimeSlot")}
+                                    {t("addShift")}
                                   </Button>
                                 </div>
 
-                                {schedule.timeSlots &&
-                                schedule.timeSlots.length > 0 ? (
-                                  <div className="space-y-3">
-                                    {schedule.timeSlots.map((slot, index) => (
+                                {schedule.shifts &&
+                                schedule.shifts.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {schedule.shifts.map((shift, index) => (
                                       <div
-                                        key={index}
-                                        className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end border p-3 rounded-md"
+                                        key={`${schedule.date}-${shift.id}-${index}`}
+                                        className="border p-4 rounded-md"
                                       >
-                                        <div>
-                                          <Label
-                                            htmlFor={`start-${schedule.date}-${index}`}
-                                          >
-                                            {t("startTime")}
-                                          </Label>
-                                          <div className="flex items-center mt-1">
-                                            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                                            <div
-                                              ref={(el) => {
-                                                timeSlotRefs.current[
-                                                  `${schedule.date}-${index}-starttime`
-                                                ] = el;
-                                              }}
-                                              className="w-full"
-                                            >
-                                              <Input
-                                                id={`start-${schedule.date}-${index}`}
-                                                type="time"
-                                                value={slot.startTime}
-                                                onChange={(e) =>
-                                                  updateTimeSlot(
-                                                    schedule.date,
-                                                    index,
-                                                    "startTime",
-                                                    e.target.value
-                                                  )
-                                                }
-                                                className={
-                                                  hasFieldError(
-                                                    schedule.date,
-                                                    "starttime"
-                                                  )
-                                                    ? "border-red-500"
-                                                    : ""
-                                                }
-                                              />
-                                              {unusualTimeWarnings[
-                                                `${schedule.date}-${index}-startTime`
-                                              ] && (
-                                                <Alert className="mt-2 py-2">
-                                                  <AlertCircle className="h-4 w-4" />
-                                                  <AlertTitle className="text-xs">
-                                                    {t("unusualTimeWarning")}
-                                                  </AlertTitle>
-                                                  <AlertDescription className="text-xs">
-                                                    {
-                                                      unusualTimeWarnings[
-                                                        `${schedule.date}-${index}-startTime`
-                                                      ].message
-                                                    }
-                                                    <Button
-                                                      variant="outline"
-                                                      size="sm"
-                                                      className="ml-2 h-6 px-2 text-xs"
-                                                      onClick={() =>
-                                                        dismissWarning(
-                                                          `${schedule.date}-${index}-startTime`
-                                                        )
-                                                      }
-                                                    >
-                                                      {t("confirm")}
-                                                    </Button>
-                                                  </AlertDescription>
-                                                </Alert>
-                                              )}
-                                              {hasFieldError(
+                                        <div className="flex justify-between items-center mb-2">
+                                          <div className="flex items-center gap-2">
+                                            <div className="font-medium">
+                                              {t("shiftId")}: {shift.name}
+                                            </div>
+                                          </div>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-destructive hover:text-destructive"
+                                            onClick={() =>
+                                              removeShift(
                                                 schedule.date,
-                                                "starttime"
-                                              ) && (
-                                                <p className="text-xs text-red-500 mt-1">
-                                                  {getFieldErrorMessage(
-                                                    schedule.date,
-                                                    "starttime"
-                                                  )}
-                                                </p>
-                                              )}
+                                                shift.id
+                                              )
+                                            }
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                          {shift.note}
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                          <div>
+                                            <Label className="text-xs">
+                                              {t("startTime")}
+                                            </Label>
+                                            <div className="flex items-center mt-1">
+                                              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                                              <div className="text-sm">
+                                                {formatTime(shift.startTime)}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <Label className="text-xs">
+                                              {t("endTime")}
+                                            </Label>
+                                            <div className="flex items-center mt-1">
+                                              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                                              <div className="text-sm">
+                                                {formatTime(shift.endTime)}
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
+
+                                        {/* Add capacity input for each shift */}
                                         <div>
-                                          <Label
-                                            htmlFor={`end-${schedule.date}-${index}`}
-                                          >
-                                            {t("endTime")}
-                                          </Label>
-                                          <div className="flex items-center mt-1">
-                                            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                                            <div
-                                              ref={(el) => {
-                                                timeSlotRefs.current[
-                                                  `${schedule.date}-${index}-endtime`
-                                                ] = el;
-                                              }}
-                                              className="w-full"
+                                          <div className="flex items-center gap-1">
+                                            <Label
+                                              htmlFor={`capacity-${schedule.date}-${shift.id}`}
                                             >
-                                              <Input
-                                                id={`end-${schedule.date}-${index}`}
-                                                type="time"
-                                                value={slot.endTime}
-                                                onChange={(e) =>
-                                                  updateTimeSlot(
-                                                    schedule.date,
-                                                    index,
-                                                    "endTime",
-                                                    e.target.value
-                                                  )
-                                                }
-                                                className={
-                                                  hasFieldError(
-                                                    schedule.date,
-                                                    "endtime"
-                                                  )
-                                                    ? "border-red-500"
-                                                    : ""
-                                                }
-                                              />
-                                              {unusualTimeWarnings[
-                                                `${schedule.date}-${index}-endTime`
-                                              ] && (
-                                                <Alert className="mt-2 py-2">
-                                                  <AlertCircle className="h-4 w-4" />
-                                                  <AlertTitle className="text-xs">
-                                                    {t("unusualTimeWarning")}
-                                                  </AlertTitle>
-                                                  <AlertDescription className="text-xs">
-                                                    {
-                                                      unusualTimeWarnings[
-                                                        `${schedule.date}-${index}-endTime`
-                                                      ].message
-                                                    }
-                                                    <Button
-                                                      variant="outline"
-                                                      size="sm"
-                                                      className="ml-2 h-6 px-2 text-xs"
-                                                      onClick={() =>
-                                                        dismissWarning(
-                                                          `${schedule.date}-${index}-endTime`
-                                                        )
-                                                      }
-                                                    >
-                                                      {t("confirm")}
-                                                    </Button>
-                                                  </AlertDescription>
-                                                </Alert>
-                                              )}
-                                              {hasFieldError(
-                                                schedule.date,
-                                                "endtime"
-                                              ) && (
-                                                <p className="text-xs text-red-500 mt-1">
-                                                  {getFieldErrorMessage(
-                                                    schedule.date,
-                                                    "endtime"
-                                                  )}
-                                                </p>
-                                              )}
-                                            </div>
+                                              {t("capacity")}
+                                            </Label>
+                                            <TooltipProvider>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                  <p>{t("capacityTooltip")}</p>
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider>
                                           </div>
-                                        </div>
-                                        <div>
-                                          <Label
-                                            htmlFor={`slot-capacity-${schedule.date}-${index}`}
-                                          >
-                                            {t("doctorsCount")}
-                                          </Label>
                                           <Input
-                                            id={`slot-capacity-${schedule.date}-${index}`}
+                                            id={`capacity-${schedule.date}-${shift.id}`}
                                             type="number"
-                                            min="1"
-                                            value={slot.capacity}
+                                            min="0"
+                                            value={getShiftCapacity(
+                                              schedule.date,
+                                              shift.id
+                                            )}
                                             onChange={(e) =>
-                                              updateTimeSlot(
+                                              setShiftCapacity(
                                                 schedule.date,
-                                                index,
-                                                "capacity",
+                                                shift.id,
                                                 Number.parseInt(
                                                   e.target.value
                                                 ) || 0
@@ -1737,34 +1665,49 @@ export default function WorkingSchedulePage() {
                                             }
                                             className={`mt-1 ${
                                               hasFieldError(
-                                                schedule.date,
+                                                `${schedule.date}-${shift.id}`,
                                                 "capacity"
                                               )
-                                                ? "border-red-500"
+                                                ? "border-red-500 ring-2 ring-red-500"
                                                 : ""
                                             }`}
+                                            ref={(el) => {
+                                              timeSlotRefs.current[
+                                                `${schedule.date}-${index}-capacity`
+                                              ] = el;
+                                            }}
                                           />
+                                          {hasFieldError(
+                                            `${schedule.date}-${shift.id}`,
+                                            "capacity"
+                                          ) && (
+                                            <p className="text-xs text-red-500 mt-1">
+                                              {getFieldErrorMessage(
+                                                `${schedule.date}-${shift.id}`,
+                                                "capacity"
+                                              )}
+                                            </p>
+                                          )}
                                         </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() =>
-                                            removeTimeSlot(schedule.date, index)
-                                          }
-                                          className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 self-end"
-                                          disabled={
-                                            (schedule.timeSlots?.length || 0) <=
-                                            1
-                                          }
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
                                       </div>
                                     ))}
                                   </div>
                                 ) : (
-                                  <div className="text-center py-4 text-muted-foreground border rounded-md">
-                                    {t("noTimeSlots")}
+                                  <div className="border border-dashed p-4 rounded-md text-center">
+                                    <p className="text-muted-foreground">
+                                      {t("noShiftsSelected")}
+                                    </p>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-2"
+                                      onClick={() =>
+                                        openShiftSelection(schedule.date)
+                                      }
+                                    >
+                                      <Plus className="h-4 w-4 mr-1" />{" "}
+                                      {t("addShift")}
+                                    </Button>
                                   </div>
                                 )}
                               </div>
@@ -1882,32 +1825,6 @@ export default function WorkingSchedulePage() {
                           </TableHead>
                           <TableHead
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => handleSort("numberOfDoctors")}
-                          >
-                            <div className="flex items-center">
-                              {t("doctorsCountHeader")}
-                              {sortColumn === "numberOfDoctors" && (
-                                <span className="ml-1">
-                                  {sortOrder === "asc" ? "↑" : "↓"}
-                                </span>
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => handleSort("numberOfCustomers")}
-                          >
-                            <div className="flex items-center">
-                              {t("customersCountHeader")}
-                              {sortColumn === "numberOfCustomers" && (
-                                <span className="ml-1">
-                                  {sortOrder === "asc" ? "↑" : "↓"}
-                                </span>
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer hover:bg-muted/50"
                             onClick={() => handleSort("capacity")}
                           >
                             <div className="flex items-center">
@@ -1948,18 +1865,6 @@ export default function WorkingSchedulePage() {
                               <div className="flex items-center gap-2">
                                 <Layers className="h-4 w-4 text-muted-foreground" />
                                 <span>{schedule.shiftGroupId || "-"}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                <span>{schedule.numberOfDoctors || "0"}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                <span>{schedule.numberOfCustomers || "0"}</span>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -2030,6 +1935,89 @@ export default function WorkingSchedulePage() {
           error={scheduleDetailsError}
         />
       )}
+
+      {/* Modal for shift selection */}
+      <Dialog
+        open={isShiftSelectionOpen}
+        onOpenChange={setIsShiftSelectionOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {multiDateShiftSelection
+                ? t("selectShiftForMultipleDates")
+                : t("selectShiftForDate", { date: selectedDateForShift })}
+            </DialogTitle>
+            <DialogDescription>{t("selectShiftDescription")}</DialogDescription>
+          </DialogHeader>
+
+          {isLoadingShifts ? (
+            <div className="py-6 text-center">
+              <p>{t("loadingShifts")}</p>
+            </div>
+          ) : shiftsError ? (
+            <div className="py-6 text-center text-destructive">
+              <p>{t("errorLoadingShifts")}</p>
+            </div>
+          ) : !shiftsData?.value?.items?.length ? (
+            <div className="py-6 text-center text-muted-foreground">
+              <p>{t("noShiftsAvailable")}</p>
+            </div>
+          ) : (
+            <div className="max-h-[300px] overflow-y-auto">
+              <div className="space-y-2">
+                {shiftsData.value.items.map((shift) => (
+                  <div
+                    key={shift.id}
+                    className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                      selectedShiftsForModal.some((s) => s.id === shift.id)
+                        ? "border-primary bg-primary/10"
+                        : "hover:bg-muted"
+                    }`}
+                    onClick={() => handleShiftSelect(shift)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">{shift.name}</div>
+                      {selectedShiftsForModal.some(
+                        (s) => s.id === shift.id
+                      ) && <Check className="h-4 w-4 text-primary" />}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {shift.note}
+                    </p>
+                    <div className="flex items-center gap-4 mt-2 text-sm">
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                        {formatTime(shift.startTime)}
+                      </div>
+                      <div className="text-muted-foreground">-</div>
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                        {formatTime(shift.endTime)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsShiftSelectionOpen(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              onClick={applyShiftToDate}
+              disabled={selectedShiftsForModal.length === 0}
+            >
+              {t("applyShift")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

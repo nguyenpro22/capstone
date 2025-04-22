@@ -74,4 +74,41 @@ export const doctor: Messages["doctorService"] = {
     settings: "Settings",
     configs: "Configs",
   },
+  clinicStaff: {
+    title: "Doctors",
+    search: {
+      placeholder: "Search doctors...",
+      filter: "Filter",
+    },
+    loading: "Loading doctors...",
+    error: "Error loading doctors",
+    noData: "No doctors found",
+    card: {
+      doctor: "Doctor",
+      email: "Email",
+      phone: "Phone",
+      branches: "Branches",
+      noBranches: "No branches assigned",
+      viewSchedule: "View Schedule",
+      edit: "Edit",
+    },
+    table: {
+      title: "Doctors List",
+      description: "View all doctors in your clinic",
+      columns: {
+        doctor: "Doctor",
+        email: "Email",
+        phone: "Phone",
+        branches: "Branches",
+        actions: "Actions",
+      },
+      actions: {
+        view: "View",
+        editProfile: "Edit Profile",
+        editSchedule: "Edit Schedule",
+        assignToBranch: "Assign to Branch",
+        deactivate: "Deactivate",
+      },
+    },
+  },
 };
