@@ -1,7 +1,12 @@
-import { createApi } from "@reduxjs/toolkit/query/react"
-import { reAuthQuery } from "@/lib/api/reAuthQuery"
-import type { IListResponse, IResCommon } from "@/lib/api"
-import type { ApproveCustomerScheduleRequest, CustomerSchedule, UpdateCustomerScheduleRequest } from "../types"
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { reAuthQuery } from "@/lib/api/reAuthQuery";
+import type { IListResponse, IResCommon } from "@/lib/api";
+import type {
+  ApproveCustomerScheduleRequest,
+  BusyTime,
+  CustomerSchedule,
+  UpdateCustomerScheduleRequest,
+} from "../types";
 
 // Query API for read operations
 export const customerScheduleQueryApi = createApi({
@@ -10,33 +15,48 @@ export const customerScheduleQueryApi = createApi({
   endpoints: (builder) => ({
     // Get customer schedules by customer name and phone
     getCustomerSchedules: builder.query<
-    IResCommon<IListResponse<CustomerSchedule>>,
-    { 
-      customerName: string; 
-      customerPhone: string;
-      pageIndex?: number;
-      pageSize?: number;
-    }
-  >({
-    query: ({ customerName, customerPhone, pageIndex = 1, pageSize = 8 }) => ({
-      url: `/customer-schedules/customer/${encodeURIComponent(customerName)}?customerPhone=${encodeURIComponent(customerPhone)}&pageIndex=${pageIndex}&pageSize=${pageSize}`,
-      method: "GET",
+      IResCommon<IListResponse<CustomerSchedule>>,
+      {
+        customerName: string;
+        customerPhone: string;
+        pageIndex?: number;
+        pageSize?: number;
+      }
+    >({
+      query: ({
+        customerName,
+        customerPhone,
+        pageIndex = 1,
+        pageSize = 8,
+      }) => ({
+        url: `/customer-schedules/customer/${encodeURIComponent(
+          customerName
+        )}?customerPhone=${encodeURIComponent(
+          customerPhone
+        )}&pageIndex=${pageIndex}&pageSize=${pageSize}`,
+        method: "GET",
+      }),
     }),
-  }),
 
     // Get clinic schedules with pagination and filtering
     getClinicSchedules: builder.query<
       IResCommon<IListResponse<CustomerSchedule>>,
       {
-        pageIndex?: number
-        pageSize?: number
-        searchTerm?: string
-        sortColumn?: string
-        sortOrder?: string
-        status?: string
+        pageIndex?: number;
+        pageSize?: number;
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+        status?: string;
       }
     >({
-      query: ({ pageIndex = 1, pageSize = 10, searchTerm = "", sortColumn = "", sortOrder = ""}) => ({
+      query: ({
+        pageIndex = 1,
+        pageSize = 10,
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+      }) => ({
         url: `customer-schedules/clinic`,
         method: "GET",
         params: {
@@ -57,17 +77,27 @@ export const customerScheduleQueryApi = createApi({
       }),
     }),
 
-      // Get next schedule availability
-      getNextScheduleAvailability: builder.query({
-        query: (customerScheduleId) => ({
-          url: `/customer-schedules/${customerScheduleId}/next-schedule/availability`,
-          method: "GET",
-        }),
+    // Get next schedule availability
+    getNextScheduleAvailability: builder.query({
+      query: (customerScheduleId) => ({
+        url: `/customer-schedules/${customerScheduleId}/next-schedule/availability`,
+        method: "GET",
       }),
+    }),
+    getBusyTimes: builder.query<
+      IResCommon<BusyTime[]>,
+      {
+        customerId: string;
+        date: string;
+      }
+    >({
+      query: ({ customerId, date }) => ({
+        url: `/customer-schedules/${customerId}/busy-time/${date}`,
+        method: "GET",
+      }),
+    }),
   }),
-})
-
-
+});
 
 // Command API for write operations
 export const customerScheduleCommandApi = createApi({
@@ -84,7 +114,10 @@ export const customerScheduleCommandApi = createApi({
     }),
 
     // Update an existing schedule
-    updateSchedule: builder.mutation<IResCommon<CustomerSchedule>, { id: string; data: FormData }>({
+    updateSchedule: builder.mutation<
+      IResCommon<CustomerSchedule>,
+      { id: string; data: FormData }
+    >({
       query: ({ id, data }) => ({
         url: `/customer-schedules/${id}`,
         method: "PUT",
@@ -101,7 +134,10 @@ export const customerScheduleCommandApi = createApi({
     }),
 
     // Change schedule status (confirm, cancel, etc.)
-    changeScheduleStatus: builder.mutation<IResCommon<CustomerSchedule>, { id: string; status: string }>({
+    changeScheduleStatus: builder.mutation<
+      IResCommon<CustomerSchedule>,
+      { id: string; status: string }
+    >({
       query: ({ id, status }) => ({
         url: `/customer-schedules/${id}/status`,
         method: "PATCH",
@@ -110,7 +146,10 @@ export const customerScheduleCommandApi = createApi({
     }),
 
     // Update schedule status directly (using the new endpoint)
-    updateScheduleStatus: builder.mutation<IResCommon<CustomerSchedule>, { scheduleId: string; status: string }>({
+    updateScheduleStatus: builder.mutation<
+      IResCommon<CustomerSchedule>,
+      { scheduleId: string; status: string }
+    >({
       query: ({ scheduleId, status }) => ({
         url: `customer-schedules/${scheduleId}/${status}`,
         method: "PATCH",
@@ -126,15 +165,20 @@ export const customerScheduleCommandApi = createApi({
     }),
 
     // Generate schedules for remaining steps
-    generateSchedules: builder.mutation<IResCommon<CustomerSchedule[]>, string>({
-      query: (customerScheduleId) => ({
-        url: `customer-schedules/generate/${customerScheduleId}`,
-        method: "POST",
-      }),
-    }),
+    generateSchedules: builder.mutation<IResCommon<CustomerSchedule[]>, string>(
+      {
+        query: (customerScheduleId) => ({
+          url: `customer-schedules/generate/${customerScheduleId}`,
+          method: "POST",
+        }),
+      }
+    ),
 
     // Update customer schedule (from the image)
-    updateCustomerSchedule: builder.mutation<IResCommon<CustomerSchedule>, UpdateCustomerScheduleRequest>({
+    updateCustomerSchedule: builder.mutation<
+      IResCommon<CustomerSchedule>,
+      UpdateCustomerScheduleRequest
+    >({
       query: (data) => ({
         url: `customer-schedules/staff/${data.customerScheduleId}`,
         method: "PATCH",
@@ -142,11 +186,14 @@ export const customerScheduleCommandApi = createApi({
           customerScheduleId: data.customerScheduleId,
           date: data.date,
           startTime: data.startTime,
-          isNext: data.isNext ,
+          isNext: data.isNext,
         },
       }),
     }),
-    approveSchedule: builder.mutation<IResCommon<CustomerSchedule>, ApproveCustomerScheduleRequest>({
+    approveSchedule: builder.mutation<
+      IResCommon<CustomerSchedule>,
+      ApproveCustomerScheduleRequest
+    >({
       query: (data) => ({
         url: `/customer-schedules/staff/approve/${data.customerScheduleId}`,
         method: "PATCH",
@@ -155,12 +202,9 @@ export const customerScheduleCommandApi = createApi({
           status: data.status,
         },
       }),
-    
     }),
-
-    
   }),
-})
+});
 
 // Export hooks for queries
 export const {
@@ -170,8 +214,10 @@ export const {
   useLazyGetClinicSchedulesQuery,
   useGetScheduleByIdQuery,
   useLazyGetScheduleByIdQuery,
-  useLazyGetNextScheduleAvailabilityQuery
-} = customerScheduleQueryApi
+  useLazyGetNextScheduleAvailabilityQuery,
+  useLazyGetBusyTimesQuery,
+  useGetBusyTimesQuery,
+} = customerScheduleQueryApi;
 
 // Export hooks for commands
 export const {
@@ -184,5 +230,4 @@ export const {
   useGenerateSchedulesMutation,
   useUpdateCustomerScheduleMutation, // Export the new hook
   useApproveScheduleMutation,
-} = customerScheduleCommandApi
-
+} = customerScheduleCommandApi;

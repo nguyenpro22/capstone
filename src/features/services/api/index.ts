@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { reAuthQuery } from "@/lib/api/reAuthQuery";
 import { IListResponse, IResCommon } from "@/lib/api";
-import { ServiceDetail, ServiceItem } from "../types";
+import { DoctorServiceData, ServiceDetail, ServiceItem } from "../types";
 
 export const serviceApi = createApi({
   reducerPath: "serviceApi",
@@ -42,6 +42,13 @@ export const serviceApi = createApi({
         method: "GET",
       }),
     }),
+
+    getDoctorByServiceId: builder.query<IResCommon<DoctorServiceData>, string>({
+      query: (id) => ({
+        url: `/services/${id}/doctors`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -50,4 +57,6 @@ export const {
   useLazyGetAllServicesQuery,
   useGetServiceByIdQuery,
   useLazyGetServiceByIdQuery,
+  useGetDoctorByServiceIdQuery,
+  useLazyGetDoctorByServiceIdQuery,
 } = serviceApi;

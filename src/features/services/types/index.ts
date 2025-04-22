@@ -50,15 +50,6 @@ export type DoctorCertificate = {
   note: string;
 };
 
-export type Doctor = {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string | null;
-  profilePictureUrl: string | null;
-  doctorCertificates: DoctorCertificate[];
-};
-
 export type DoctorService = {
   id: string;
   serviceId: string;
@@ -152,3 +143,23 @@ export interface ServiceDetail {
 export interface RecentlyViewedService extends ServiceItem {
   viewedAt: number; // timestamp when the service was viewed
 }
+export type Doctor = {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  profilePictureUrl: string;
+  doctorCertificates: Certificate[]; // Chú ý thay thế Certificate nếu có cấu trúc cụ thể
+};
+
+type Certificate = {
+  // Định nghĩa cấu trúc của chứng chỉ nếu cần
+  certificateId: string;
+  certificateName: string;
+  issueDate: string;
+};
+
+export type DoctorServiceData = {
+  id: string;
+  doctorServices: DoctorService[];
+};

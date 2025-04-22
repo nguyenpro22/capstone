@@ -2,40 +2,13 @@
 
 // Cleaned-up base structure. Suggest splitting this into modular components below.
 
-import React, { useState, useEffect } from "react";
-import {
-  format,
-  parseISO,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameDay,
-} from "date-fns";
-import { vi } from "date-fns/locale";
+import React from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-
-import { useGetBookingsQuery, useGetOrdersQuery } from "@/features/booking/api";
-import type { Booking } from "@/features/booking/types";
-import type { OrderItem } from "@/features/order/types";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Card, CardHeader } from "@/components/ui/card";
+
 import {
   Dialog,
   DialogContent,

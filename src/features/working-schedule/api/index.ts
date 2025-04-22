@@ -57,7 +57,7 @@ export const workingScheduleApi = createApi({
       IResCommon<AvailableSlot[]>,
       {
         serviceIdOrCustomerScheduleId: string;
-        isCustomerSchedule: true;
+        isCustomerSchedule?: true;
         date: string;
       }
     >({
@@ -90,6 +90,36 @@ export const workingScheduleApi = createApi({
         method: "GET",
         params: {
           pageNumber,
+          pageSize,
+          searchTerm,
+          sortColumn,
+          sortOrder,
+        },
+      }),
+    }),
+    getClinicWorkingSchedule: builder.query<
+      IResCommon<IListResponse<WorkingSchedule>>,
+      {
+        clinicId: string;
+        pageIndex?: number;
+        pageSize?: number;
+        searchTerm?: string;
+        sortColumn?: string;
+        sortOrder?: string;
+      }
+    >({
+      query: ({
+        clinicId,
+        pageIndex = 1,
+        pageSize = 10,
+        searchTerm = "",
+        sortColumn = "",
+        sortOrder = "",
+      }) => ({
+        url: `/working-schedules/${clinicId}`,
+        method: "GET",
+        params: {
+          pageIndex,
           pageSize,
           searchTerm,
           sortColumn,
