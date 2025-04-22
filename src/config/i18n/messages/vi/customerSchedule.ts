@@ -54,6 +54,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   pending: "Đang chờ",
   inProgress: "Đang tiến hành",
   uncompleted: "Chưa hoàn thành",
+  waitingApproval: "Chờ duyệt",
   badRequest: "Yêu cầu không hợp lệ",
   pleaseEnterNameOrPhone: "Vui lòng nhập tên hoặc số điện thoại",
   serverError: "Lỗi máy chủ",

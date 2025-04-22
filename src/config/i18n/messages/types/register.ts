@@ -52,4 +52,28 @@ export type RegistrationTranslations = {
   pleaseEnterVerificationCode: string
   verifying: string
   verificationSuccessful: string
+  // Password validation messages
+  passwordNoSpaces: string;
+  passwordRequirements: string;
+  passwordRequiresUppercase: string;
+  passwordRequiresLowercase: string;
+  passwordRequiresNumber: string;
+  passwordRequiresSpecial: string;
+  passwordsDoNotMatch: string;
+  
+  // Email validation
+  invalidEmail: string;
+  
+  // Phone validation
+  invalidPhoneNumber: string;
+  
+  // Verification code validation
+  invalidVerificationCode: string;
+  
+  // Form submission
+  formSubmissionError: string;
+  serverError: string;
+  
+  // Address validation
+  invalidAddress: string;
 };

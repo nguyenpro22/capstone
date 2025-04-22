@@ -137,4 +137,5 @@ export const workingScheduleMessages: Messages["workingSchedule"] = {
   noShiftsSelected: "Chưa chọn ca làm việc nào",
   shiftRemoved: "Đã xóa ca làm việc thành công",
   shiftId:"Mã ca làm việc",
+  shiftsAppliedToMultipleDates: "Ca làm việc đã được áp dụng cho nhiều ngày"
 }

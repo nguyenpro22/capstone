@@ -55,5 +55,28 @@ export const register: Messages["register"] = {
     pleaseEnterVerificationCode: "Vui lòng nhập mã xác minh",
     verifying: "Đang xác minh...",
     verificationSuccessful: "Xác minh thành công!",
+    passwordNoSpaces: "Mật khẩu không được chứa khoảng trắng",
+  passwordRequirements: "Mật khẩu phải đáp ứng các yêu cầu sau:",
+  passwordRequiresUppercase: "Bao gồm ít nhất một chữ cái viết hoa",
+  passwordRequiresLowercase: "Bao gồm ít nhất một chữ cái viết thường",
+  passwordRequiresNumber: "Bao gồm ít nhất một số",
+  passwordRequiresSpecial: "Bao gồm ít nhất một ký tự đặc biệt",
+  passwordsDoNotMatch: "Mật khẩu không khớp",
+  
+  // Email validation
+  invalidEmail: "Vui lòng nhập địa chỉ email hợp lệ",
+  
+  // Phone validation
+  invalidPhoneNumber: "Vui lòng nhập số điện thoại hợp lệ",
+  
+  // Verification code validation
+  invalidVerificationCode: "Mã xác minh không hợp lệ. Vui lòng nhập mã 6 chữ số",
+  
+  // Form submission
+  formSubmissionError: "Đã xảy ra lỗi khi gửi biểu mẫu. Vui lòng thử lại.",
+  serverError: "Lỗi máy chủ. Vui lòng thử lại sau.",
+  
+  // Address validation
+  invalidAddress: "Vui lòng nhập địa chỉ hợp lệ",
 };
 

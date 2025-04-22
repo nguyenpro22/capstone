@@ -51,6 +51,7 @@ export type customerScheduleTranslations = {
   pending: string
   inProgress: string
   uncompleted: string
+  waitingApproval: string
   badRequest: string
   pleaseEnterNameOrPhone: string
   serverError: string

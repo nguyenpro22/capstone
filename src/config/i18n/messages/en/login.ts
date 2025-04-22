@@ -36,7 +36,7 @@ export const loginMessage: Messages["login"] = {
   enterPartnerDetails: "Please enter your partner account details.",
   partnerSignIn: "Partner Sign In",
   backToRegularLogin: "Back to regular login?",
-  regularLogin: "Regular Login",
+  regularLogin: "Login For Customer",
   staffLoginSuccess: "Partner login successful",
   verifying: "Verifying...",
   verificationSuccessful: "Verification successful!",
