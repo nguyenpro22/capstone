@@ -74,4 +74,42 @@ export const doctor: Messages["doctorService"] = {
     settings: "Cài Đặt",
     configs: "Thiết lập",
   },
+
+  clinicStaff: {
+    title: "Bác Sĩ",
+    search: {
+      placeholder: "Tìm kiếm bác sĩ...",
+      filter: "Lọc",
+    },
+    loading: "Đang tải danh sách bác sĩ...",
+    error: "Lỗi khi tải danh sách bác sĩ",
+    noData: "Không tìm thấy bác sĩ nào",
+    card: {
+      doctor: "Bác Sĩ",
+      email: "Email",
+      phone: "Điện thoại",
+      branches: "Chi nhánh",
+      noBranches: "Chưa được phân công chi nhánh",
+      viewSchedule: "Xem Lịch",
+      edit: "Chỉnh Sửa",
+    },
+    table: {
+      title: "Danh Sách Bác Sĩ",
+      description: "Xem tất cả bác sĩ trong phòng khám của bạn",
+      columns: {
+        doctor: "Bác Sĩ",
+        email: "Email",
+        phone: "Điện thoại",
+        branches: "Chi nhánh",
+        actions: "Thao tác",
+      },
+      actions: {
+        view: "Xem",
+        editProfile: "Chỉnh Sửa Hồ Sơ",
+        editSchedule: "Chỉnh Sửa Lịch",
+        assignToBranch: "Phân Công Chi Nhánh",
+        deactivate: "Vô Hiệu Hóa",
+      },
+    },
+  },
 };
