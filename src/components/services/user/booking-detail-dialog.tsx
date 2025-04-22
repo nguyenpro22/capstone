@@ -14,7 +14,6 @@ import {
 import { vi } from "date-fns/locale";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogTitle,
   DialogTrigger,
@@ -50,6 +49,7 @@ import {
 } from "lucide-react";
 import {
   useGetBookingByBookingIdQuery,
+  useLazyGetAvalableTimesQuery,
   useUpdateBookingMutation,
 } from "@/features/booking/api";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -69,10 +69,30 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLazyGetBusyTimesQuery } from "@/features/customer-schedule/api";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
+import { useLazyGetDoctorByServiceIdQuery } from "@/features/services/api";
+import { Doctor } from "@/features/services/types";
 
 interface BookingDetailDialogProps {
   booking: Booking;
   children?: React.ReactNode;
+}
+
+export interface BusyTime {
+  start: string;
+  end: string;
+}
+
+export interface AvailableSlot {
+  startTime: string;
+  endTime: string;
+}
+
+export interface Shift {
+  startTime: string;
+  endTime: string;
 }
 
 export function BookingDetailDialog({
@@ -88,11 +108,27 @@ export function BookingDetailDialog({
   } = useGetBookingByBookingIdQuery(
     isOpen && booking?.id ? { id: booking.id } : skipToken
   );
-
+  const user = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState("overview");
   const [showCalendarView, setShowCalendarView] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [busyTimes, setBusyTimes] = useState<BusyTime[]>([]);
+  const [doctorAvailableTimes, setDoctorAvailableTimes] = useState<
+    AvailableSlot[]
+  >([]);
 
+  const [clinicShifts, setClinicShifts] = useState<Shift[]>([]);
+  const [fetchDoctors] = useLazyGetDoctorByServiceIdQuery();
+  const [getDoctorAvailableTime] = useLazyGetAvalableTimesQuery();
+  // Add this mock implementation for getClinicShifts
+  const getClinicShifts = async ({ date }: { date: string }) => {
+    return {
+      unwrap: () => Promise.resolve({ value: [] }),
+    };
+  };
   // Reschedule state
   const [isRescheduleDialogOpen, setIsRescheduleDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -101,29 +137,7 @@ export function BookingDetailDialog({
   );
   const [rescheduleBooking, { isLoading: isRescheduling }] =
     useUpdateBookingMutation();
-
-  // Available time slots (in a real app, these would come from an API)
-  const availableTimeSlots = [
-    "08:00",
-    "08:30",
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "13:00",
-    "13:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-    "17:30",
-  ];
-
+  const [getBusyTime] = useLazyGetBusyTimesQuery();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -134,13 +148,55 @@ export function BookingDetailDialog({
 
   // Reset reschedule form when dialog opens
   useEffect(() => {
-    if (isRescheduleDialogOpen) {
-      // Set default date to the next day after the original booking
-      const originalDate = getOriginalBookingDate();
-      setSelectedDate(addDays(originalDate, 1));
-      setSelectedTime(undefined);
-    }
-  }, [isRescheduleDialogOpen]);
+    const loadDoctors = async () => {
+      console.log("Loading doctors effect triggered");
+
+      if (isRescheduleDialogOpen) {
+        console.log("Reschedule dialog is open");
+
+        if (bookingDetail?.value?.service?.id) {
+          console.log("Service ID found:", bookingDetail.value.service.id);
+          try {
+            // Set default date to the next day after the original booking
+            const originalDate = getOriginalBookingDate();
+            setSelectedDate(addDays(originalDate, 1));
+            setSelectedTime(undefined);
+
+            // Fetch doctors for the service
+            console.log(
+              "Fetching doctors for service:",
+              bookingDetail.value.service.id
+            );
+            const response = await fetchDoctors(
+              bookingDetail.value.service.id
+            ).unwrap();
+            console.log("Doctors response:", response);
+            if (response.value?.doctorServices) {
+              const doctorList = response.value.doctorServices.map(
+                (doctorService) => doctorService.doctor
+              );
+              console.log("Doctor list:", doctorList);
+              setDoctors(doctorList);
+            } else {
+              console.log("No doctor services found in response:", response);
+            }
+          } catch (error) {
+            console.error("Error loading doctors:", error);
+            toast({
+              title: "Lỗi",
+              description:
+                "Không thể tải danh sách bác sĩ. Vui lòng thử lại sau.",
+              variant: "destructive",
+            });
+          }
+        } else {
+          console.log("No service ID found in booking detail:", bookingDetail);
+        }
+      }
+    };
+
+    loadDoctors();
+  }, [isRescheduleDialogOpen, bookingDetail, fetchDoctors, toast]);
 
   // Reset selected time when date changes
   useEffect(() => {
@@ -379,10 +435,10 @@ export function BookingDetailDialog({
 
   // Handle reschedule submission
   const handleReschedule = async () => {
-    if (!selectedDate || !selectedTime || !booking.id) {
+    if (!selectedDate || !selectedTime || !booking.id || !selectedDoctor) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng chọn ngày và giờ cho lịch hẹn mới",
+        description: "Vui lòng chọn bác sĩ, ngày và giờ cho lịch hẹn mới",
         variant: "destructive",
       });
       return;
@@ -403,9 +459,9 @@ export function BookingDetailDialog({
 
     if (isSameDay(selectedDate, originalDate)) {
       const timeInMinutes = parseTimeToMinutes(selectedTime);
-      const originalTimeInMinutes = parseTimeToMinutes(originalTime);
+      const originalTimeMinutes = parseTimeToMinutes(originalTime);
 
-      if (timeInMinutes <= originalTimeInMinutes) {
+      if (timeInMinutes <= originalTimeMinutes) {
         toast({
           title: "Lỗi",
           description:
@@ -424,6 +480,7 @@ export function BookingDetailDialog({
         customerScheduleId: booking.id,
         date: formattedDate,
         startTime: selectedTime,
+        // doctorId: selectedDoctor.id,
       }).unwrap();
 
       // Close the reschedule dialog
@@ -432,7 +489,7 @@ export function BookingDetailDialog({
       // Show success toast with more prominent styling
       toast({
         title: "Đặt lại lịch thành công",
-        description: `Lịch hẹn của bạn đã được đặt lại vào ngày ${formattedDate} lúc ${selectedTime}`,
+        description: `Lịch hẹn của bạn đã được đặt lại với bác sĩ ${selectedDoctor.fullName} vào ngày ${formattedDate} lúc ${selectedTime}`,
         variant: "default",
         className:
           "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800/30",
@@ -451,8 +508,8 @@ export function BookingDetailDialog({
 
   // Check if the reschedule button should be disabled
   const isRescheduleSubmitButtonDisabled = () => {
-    // Disable if no date or time is selected
-    if (!selectedDate || !selectedTime) return true;
+    // Disable if no doctor, date or time is selected
+    if (!selectedDoctor || !selectedDate || !selectedTime) return true;
 
     // Disable if rescheduling is in progress
     if (isRescheduling) return true;
@@ -491,21 +548,201 @@ export function BookingDetailDialog({
   };
 
   // Handle date selection
-  const handleDateSelect = (date: Date | undefined) => {
-    console.log("Selected date:", date);
-    setSelectedDate(date);
+  const handleDateSelect = async (date: Date | undefined) => {
+    if (!date || !selectedDoctor) return;
+
+    try {
+      setSelectedDate(date);
+      setSelectedTime(undefined);
+
+      const dateFormatted = format(date, "yyyy-MM-dd");
+
+      // Fetch busy times for the customer
+      const busyTimeResponse = await getBusyTime({
+        customerId: user?.userId as string,
+        date: dateFormatted,
+      }).unwrap();
+      // Fetch doctor available times
+      const doctorAvailableTimeResponse = await getDoctorAvailableTime({
+        serviceIdOrCustomerScheduleId: bookingDetail?.value?.service?.id || "",
+        date: dateFormatted,
+        doctorId: selectedDoctor.id,
+        clinicId: bookingDetail?.value.clinic.id as string,
+      }).unwrap();
+
+      // Fetch clinic shifts for the selected date
+      const clinicShiftResponse = await getClinicShifts({
+        date: dateFormatted,
+      }).unwrap();
+
+      // Store the fetched data
+      setBusyTimes(busyTimeResponse.value || []);
+      setClinicShifts(clinicShiftResponse.value || []);
+      setDoctorAvailableTimes(doctorAvailableTimeResponse.value || []);
+
+      // Calculate available time slots based on all constraints
+      calculateAvailableTimeSlots(
+        busyTimeResponse.value || [],
+        doctorAvailableTimeResponse.value || [],
+        clinicShiftResponse.value || []
+      );
+    } catch (error) {
+      console.error("Error fetching availability data:", error);
+      toast({
+        title: "Lỗi",
+        description:
+          "Không thể tải thông tin lịch trống. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Add this new function to calculate available time slots
+  const calculateAvailableTimeSlots = (
+    customerBusyTimes: BusyTime[],
+    doctorAvailableTimes: AvailableSlot[],
+    clinicShifts: Shift[]
+  ) => {
+    // Default time slots (30-minute intervals from 8:00 to 17:30)
+    const defaultTimeSlots = [
+      "08:00",
+      "08:30",
+      "09:00",
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00",
+      "15:30",
+      "16:00",
+      "16:30",
+      "17:00",
+      "17:30",
+    ];
+
+    // 1. Start with clinic shifts - if no shifts, use default time slots
+    let availableSlots: string[] = [];
+
+    if (clinicShifts.length > 0) {
+      // Generate time slots based on clinic shifts
+      clinicShifts.forEach((shift) => {
+        const startMinutes = parseTimeToMinutes(shift.startTime);
+        const endMinutes = parseTimeToMinutes(shift.endTime);
+
+        // Generate 30-minute slots within each shift
+        for (let time = startMinutes; time < endMinutes; time += 30) {
+          const hours = Math.floor(time / 60);
+          const minutes = time % 60;
+          const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+            .toString()
+            .padStart(2, "0")}`;
+          availableSlots.push(timeString);
+        }
+      });
+    } else {
+      // If no clinic shifts, use default time slots
+      availableSlots = [...defaultTimeSlots];
+    }
+
+    // 2. Filter out customer busy times
+    customerBusyTimes.forEach((busyTime) => {
+      const busyStartMinutes = parseTimeToMinutes(busyTime.start);
+      const busyEndMinutes = parseTimeToMinutes(busyTime.end);
+
+      availableSlots = availableSlots.filter((slot) => {
+        const slotMinutes = parseTimeToMinutes(slot);
+        const slotEndMinutes = slotMinutes + 30; // Assuming 30-minute slots
+
+        // Keep slot if it doesn't overlap with busy time
+        return !(
+          (slotMinutes >= busyStartMinutes && slotMinutes < busyEndMinutes) ||
+          (slotEndMinutes > busyStartMinutes &&
+            slotEndMinutes <= busyEndMinutes) ||
+          (slotMinutes <= busyStartMinutes && slotEndMinutes >= busyEndMinutes)
+        );
+      });
+    });
+
+    // 3. Keep only slots that are within doctor's available times
+    if (doctorAvailableTimes.length > 0) {
+      const filteredSlots = [];
+
+      for (const slot of availableSlots) {
+        const slotMinutes = parseTimeToMinutes(slot);
+        const slotEndMinutes = slotMinutes + 30; // Assuming 30-minute slots
+
+        // Check if this slot is within any of the doctor's available times
+        const isAvailable = doctorAvailableTimes.some((availableTime) => {
+          const availStartMinutes = parseTimeToMinutes(availableTime.startTime);
+          const availEndMinutes = parseTimeToMinutes(availableTime.endTime);
+
+          return (
+            slotMinutes >= availStartMinutes &&
+            slotEndMinutes <= availEndMinutes
+          );
+        });
+
+        if (isAvailable) {
+          filteredSlots.push(slot);
+        }
+      }
+
+      availableSlots = filteredSlots;
+    }
+
+    // 4. Apply original booking time constraints
+    const originalDate = getOriginalBookingDate();
+    if (selectedDate && isSameDay(selectedDate, originalDate)) {
+      const originalTime = getOriginalBookingTime();
+      const originalTimeMinutes = parseTimeToMinutes(originalTime);
+
+      availableSlots = availableSlots.filter((slot) => {
+        const slotMinutes = parseTimeToMinutes(slot);
+        return slotMinutes > originalTimeMinutes;
+      });
+    }
+
+    // Update state with calculated available slots
+    setAvailableTimeSlots(availableSlots);
   };
 
   // Handle reschedule button click
   const handleRescheduleClick = () => {
     // Close the detail dialog
     setIsOpen(false);
-    // Open the reschedule dialog
-    setIsRescheduleDialogOpen(true);
+
+    // Make sure booking details are loaded
+    if (!bookingDetail?.value) {
+      console.log("Fetching booking details before opening reschedule dialog");
+      refetch().then(() => {
+        // Open the reschedule dialog after details are loaded
+        setIsRescheduleDialogOpen(true);
+      });
+    } else {
+      // Open the reschedule dialog
+      setIsRescheduleDialogOpen(true);
+    }
   };
 
   // Render time slot buttons in grid layout for better UI
   const renderTimeSlots = () => {
+    // If no available slots after calculations, show a message
+    if (availableTimeSlots.length === 0) {
+      return (
+        <div className="p-6 text-center">
+          <Clock className="h-12 w-12 mx-auto text-gray-300 dark:text-indigo-700 mb-2" />
+          <p className="text-gray-500 dark:text-indigo-300/70">
+            Không có khung giờ trống cho ngày này. Vui lòng chọn ngày khác.
+          </p>
+        </div>
+      );
+    }
+
     const morningSlots = availableTimeSlots.filter(
       (time) => parseTimeToMinutes(time) < 12 * 60
     );
@@ -515,56 +752,55 @@ export function BookingDetailDialog({
 
     return (
       <div className="space-y-4">
-        <div>
-          <h5 className="text-sm font-medium text-gray-600 dark:text-indigo-300 mb-2">
-            Buổi sáng
-          </h5>
-          <div className="grid grid-cols-3 gap-1.5">
-            {morningSlots.map((time) => (
-              <Button
-                key={time}
-                variant={selectedTime === time ? "default" : "outline"}
-                className={cn(
-                  "h-9 w-full text-sm",
-                  selectedTime === time
-                    ? "bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white"
-                    : "border-gray-200 dark:border-indigo-800/30 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/30",
-                  isTimeDisabled(time) &&
-                    "opacity-50 cursor-not-allowed dark:opacity-40 pointer-events-none"
-                )}
-                disabled={isTimeDisabled(time)}
-                onClick={() => setSelectedTime(time)}
-              >
-                {time}
-              </Button>
-            ))}
+        {morningSlots.length > 0 && (
+          <div>
+            <h5 className="text-sm font-medium text-gray-600 dark:text-indigo-300 mb-2">
+              Buổi sáng
+            </h5>
+            <div className="grid grid-cols-3 gap-1.5">
+              {morningSlots.map((time) => (
+                <Button
+                  key={time}
+                  variant={selectedTime === time ? "default" : "outline"}
+                  className={cn(
+                    "h-9 w-full text-sm",
+                    selectedTime === time
+                      ? "bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white"
+                      : "border-gray-200 dark:border-indigo-800/30 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
+                  )}
+                  onClick={() => setSelectedTime(time)}
+                >
+                  {time}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div>
-          <h5 className="text-sm font-medium text-gray-600 dark:text-indigo-300 mb-2">
-            Buổi chiều
-          </h5>
-          <div className="grid grid-cols-3 gap-1.5">
-            {afternoonSlots.map((time) => (
-              <Button
-                key={time}
-                variant={selectedTime === time ? "default" : "outline"}
-                className={cn(
-                  "h-9 w-full text-sm",
-                  selectedTime === time
-                    ? "bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white"
-                    : "border-gray-200 dark:border-indigo-800/30 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/30",
-                  isTimeDisabled(time) &&
-                    "opacity-50 cursor-not-allowed dark:opacity-40 pointer-events-none"
-                )}
-                disabled={isTimeDisabled(time)}
-                onClick={() => setSelectedTime(time)}
-              >
-                {time}
-              </Button>
-            ))}
+        )}
+
+        {afternoonSlots.length > 0 && (
+          <div>
+            <h5 className="text-sm font-medium text-gray-600 dark:text-indigo-300 mb-2">
+              Buổi chiều
+            </h5>
+            <div className="grid grid-cols-3 gap-1.5">
+              {afternoonSlots.map((time) => (
+                <Button
+                  key={time}
+                  variant={selectedTime === time ? "default" : "outline"}
+                  className={cn(
+                    "h-9 w-full text-sm",
+                    selectedTime === time
+                      ? "bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white"
+                      : "border-gray-200 dark:border-indigo-800/30 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
+                  )}
+                  onClick={() => setSelectedTime(time)}
+                >
+                  {time}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   };
@@ -922,6 +1158,7 @@ export function BookingDetailDialog({
                               <Image
                                 src={
                                   displayBooking.service.imageUrls[0] ||
+                                  "/placeholder.svg" ||
                                   "/placeholder.svg"
                                 }
                                 alt={
@@ -1183,6 +1420,9 @@ export function BookingDetailDialog({
                                     "/placeholder.svg" ||
                                     "/placeholder.svg" ||
                                     "/placeholder.svg" ||
+                                    "/placeholder.svg" ||
+                                    "/placeholder.svg" ||
+                                    "/placeholder.svg" ||
                                     "/placeholder.svg"
                                   }
                                   alt={displayBooking.doctor.name}
@@ -1231,6 +1471,9 @@ export function BookingDetailDialog({
                                     src={
                                       displayBooking.clinic.imageUrl ||
                                       `/placeholder.svg?height=64&width=64` ||
+                                      "/placeholder.svg" ||
+                                      "/placeholder.svg" ||
+                                      "/placeholder.svg" ||
                                       "/placeholder.svg"
                                     }
                                     alt={displayBooking.clinic.name}
@@ -1444,6 +1687,62 @@ export function BookingDetailDialog({
                     </div>
                   </div>
                 </div>
+                <div className="bg-white/50 dark:bg-indigo-900/10 p-6 rounded-xl border border-gray-100 dark:border-indigo-800/20 shadow-sm mb-5">
+                  <h4 className="font-medium text-lg text-gray-800 dark:text-indigo-200 mb-5 flex items-center">
+                    <Stethoscope className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
+                    Chọn bác sĩ
+                  </h4>
+
+                  {doctors.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {doctors.map((doctor) => (
+                        <div
+                          key={doctor.id}
+                          className={cn(
+                            "flex items-center p-3 rounded-lg border transition-all cursor-pointer",
+                            selectedDoctor?.id === doctor.id
+                              ? "bg-purple-50 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700"
+                              : "bg-white dark:bg-indigo-950/40 border-gray-200 dark:border-indigo-800/30 hover:border-purple-200 dark:hover:border-purple-800/50"
+                          )}
+                          onClick={() => setSelectedDoctor(doctor)}
+                        >
+                          <Avatar className="h-12 w-12 mr-3">
+                            <AvatarImage
+                              src={
+                                doctor.profilePictureUrl || "/placeholder.svg"
+                              }
+                              alt={doctor.fullName}
+                            />
+                            <AvatarFallback className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                              {doctor.fullName.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium dark:text-indigo-200">
+                              {doctor.fullName}
+                            </p>
+                            {doctor.doctorCertificates &&
+                              doctor.doctorCertificates.length > 0 && (
+                                <p className="text-sm text-gray-500 dark:text-indigo-300/70">
+                                  {doctor.doctorCertificates[0].certificateName}
+                                </p>
+                              )}
+                          </div>
+                          {selectedDoctor?.id === doctor.id && (
+                            <CheckCircle2 className="ml-auto h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 dark:bg-indigo-900/20 rounded-lg p-4 text-center">
+                      <Stethoscope className="h-10 w-10 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Không tìm thấy bác sĩ cho dịch vụ này
+                      </p>
+                    </div>
+                  )}
+                </div>
                 <div className="bg-white/50 dark:bg-indigo-900/10 p-6 rounded-xl border border-gray-100 dark:border-indigo-800/20 shadow-sm">
                   <h4 className="font-medium text-lg text-gray-800 dark:text-indigo-200 mb-5 flex items-center">
                     <ArrowRightCircle className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
@@ -1458,6 +1757,7 @@ export function BookingDetailDialog({
                         size="sm"
                         onClick={prevMonth}
                         className="h-8 w-8 p-0 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/20 rounded-full"
+                        disabled={!selectedDoctor}
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </Button>
@@ -1471,66 +1771,80 @@ export function BookingDetailDialog({
                         size="sm"
                         onClick={nextMonth}
                         className="h-8 w-8 p-0 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/20 rounded-full"
+                        disabled={!selectedDoctor}
                       >
                         <ChevronRight className="h-5 w-5" />
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                      {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((day) => (
-                        <div
-                          key={day}
-                          className="text-center font-medium text-gray-600 dark:text-indigo-300 text-xs py-1"
-                        >
-                          {day}
+                    {!selectedDoctor ? (
+                      <div className="bg-gray-50 dark:bg-indigo-900/20 rounded-lg p-4 text-center my-4">
+                        <CalendarIcon className="h-10 w-10 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                        <p className="text-gray-500 dark:text-gray-400">
+                          Vui lòng chọn bác sĩ trước khi chọn ngày
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-7 gap-1 mb-2">
+                          {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map(
+                            (day) => (
+                              <div
+                                key={day}
+                                className="text-center font-medium text-gray-600 dark:text-indigo-300 text-xs py-1"
+                              >
+                                {day}
+                              </div>
+                            )
+                          )}
                         </div>
-                      ))}
-                    </div>
 
-                    <div className="grid grid-cols-7 gap-1.5">
-                      {generateCalendarDays().map((day, i) => {
-                        // Check if this day is disabled
-                        const isDisabled = day ? isDateDisabled(day) : true;
+                        <div className="grid grid-cols-7 gap-1.5">
+                          {generateCalendarDays().map((day, i) => {
+                            // Check if this day is disabled
+                            const isDisabled = day ? isDateDisabled(day) : true;
 
-                        // Check if this day is the selected date
-                        const isSelected =
-                          day && selectedDate
-                            ? isSameDay(day, selectedDate)
-                            : false;
+                            // Check if this day is the selected date
+                            const isSelected =
+                              day && selectedDate
+                                ? isSameDay(day, selectedDate)
+                                : false;
 
-                        // Check if this day is today
-                        const isDayToday = day ? isToday(day) : false;
+                            // Check if this day is today
+                            const isDayToday = day ? isToday(day) : false;
 
-                        return (
-                          <div
-                            key={i}
-                            className={cn(
-                              "h-8 flex items-center justify-center rounded-md text-xs transition-colors duration-200",
-                              !day && "text-gray-300 dark:text-indigo-800",
-                              day &&
-                                !isDisabled &&
-                                !isSelected &&
-                                "hover:bg-purple-100 dark:hover:bg-indigo-900/40 cursor-pointer",
-                              day &&
-                                isDayToday &&
-                                !isSelected &&
-                                "bg-purple-500/20 dark:bg-purple-500/10 font-bold text-purple-700 dark:text-purple-400",
-                              day &&
-                                isSelected &&
-                                "bg-purple-600 dark:bg-purple-500 text-white font-bold shadow-sm",
-                              day &&
-                                isDisabled &&
-                                "text-gray-400 dark:text-indigo-800 cursor-not-allowed opacity-50"
-                            )}
-                            onClick={() =>
-                              day && !isDisabled && handleDateSelect(day)
-                            }
-                          >
-                            {day ? day.getDate() : ""}
-                          </div>
-                        );
-                      })}
-                    </div>
+                            return (
+                              <div
+                                key={i}
+                                className={cn(
+                                  "h-8 flex items-center justify-center rounded-md text-xs transition-colors duration-200",
+                                  !day && "text-gray-300 dark:text-indigo-800",
+                                  day &&
+                                    !isDisabled &&
+                                    !isSelected &&
+                                    "hover:bg-purple-100 dark:hover:bg-indigo-900/40 cursor-pointer",
+                                  day &&
+                                    isDayToday &&
+                                    !isSelected &&
+                                    "bg-purple-500/20 dark:bg-purple-500/10 font-bold text-purple-700 dark:text-purple-400",
+                                  day &&
+                                    isSelected &&
+                                    "bg-purple-600 dark:bg-purple-500 text-white font-bold shadow-sm",
+                                  day &&
+                                    isDisabled &&
+                                    "text-gray-400 dark:text-indigo-800 cursor-not-allowed opacity-50"
+                                )}
+                                onClick={() =>
+                                  day && !isDisabled && handleDateSelect(day)
+                                }
+                              >
+                                {day ? day.getDate() : ""}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {selectedDate && (

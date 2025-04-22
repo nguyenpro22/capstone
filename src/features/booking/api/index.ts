@@ -142,6 +142,7 @@ export const {
   useGetBookingsQuery,
   useGetBookingByIdQuery,
   useGetAvalableTimesQuery,
+  useLazyGetAvalableTimesQuery,
   useGetAppointmentsTotalQuery,
   useLazyGetAppointmentsTotalQuery,
   useGetAppointmentsByDateQuery,
