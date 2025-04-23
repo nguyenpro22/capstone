@@ -68,4 +68,8 @@ export const loginMessage: Messages["login"] = {
   enterConfirmPassword: "Vui lòng xác nhận mật khẩu mới",
   passwordMinLength: "Mật khẩu mới phải có ít nhất 6 ký tự",
   passwordsDoNotMatch: "Mật khẩu xác nhận không khớp",
+
+  logoutConfirmation: "Xác nhận đăng xuất",
+  logoutConfirmationMessage: "Bạn có chắc chắn muốn đăng xuất?",
+  cancel: "Hủy",
 }

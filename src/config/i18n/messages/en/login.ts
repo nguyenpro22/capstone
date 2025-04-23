@@ -68,4 +68,8 @@ export const loginMessage: Messages["login"] = {
   enterConfirmPassword: "Please confirm your new password",
   passwordMinLength: "New password must be at least 6 characters",
   passwordsDoNotMatch: "Passwords do not match",
+
+  logoutConfirmation: "Logout Confirmation",
+  logoutConfirmationMessage: "Do you want to logout?",
+  cancel: "Cancel",
 }

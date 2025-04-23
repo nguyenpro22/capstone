@@ -123,4 +123,5 @@ export type clinicMessages = {
   city: string
   noDetailsAvailable: string
   branchRequestsTitle: string
+  dateApplied: string
 }

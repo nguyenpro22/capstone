@@ -123,5 +123,6 @@ export const clinicMessages: Messages["clinic"] = {
    addressInformation: "Address Information",
    city: "City",
    noDetailsAvailable: "No details available for this request",
-   branchRequestsTitle: " Branch Requests List"
+   branchRequestsTitle: " Branch Requests List",
+   dateApplied: "Date Applied"
 }

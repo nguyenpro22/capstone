@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
+  LogOut,
 } from "lucide-react";
 import { useChangePasswordStaffMutation } from "@/features/auth/api";
 
@@ -29,10 +30,16 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Stepper } from "./stepper";
-import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
+import {
+  clearCookieStorage,
+  getAccessToken,
+  GetDataByToken,
+  type TokenData,
+} from "@/utils";
 import { processAuthSuccess } from "@/features/auth/utils";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 
 interface FirstLoginFlowProps {
   onComplete: () => void;
@@ -46,9 +53,19 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
   const [clinicHours, setClinicHours] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   const [changePasswordStaff] = useChangePasswordStaffMutation();
+  // Handle logout
+  const handleLogoutClick = () => {
+    setShowLogoutConfirmation(true);
+  };
 
+  // Handle actual logout after confirmation
+  const handleConfirmedLogout = () => {
+    clearCookieStorage();
+    router.push("/login");
+  };
   // Create schemas with translated error messages
   const clinicHoursSchema = z.object({
     workingTimeStart: z.string().min(1, t("enterWorkingTimeStart")),
@@ -176,12 +193,25 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
     }
   };
 
+  // Handle logout
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-50 to-white dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2" />
           <CardHeader className="pt-8 pb-4">
+            <div className="absolute top-4 right-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogoutClick}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {t("logout")}
+              </Button>
+            </div>
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="h-8 w-8 text-blue-600 dark:text-blue-300" />
@@ -387,6 +417,18 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
           </CardFooter>
         </Card>
       </div>
+      <ConfirmationDialog
+        isOpen={showLogoutConfirmation}
+        onClose={() => setShowLogoutConfirmation(false)}
+        onConfirm={handleConfirmedLogout}
+        title={t("logoutConfirmation")}
+        message={
+          t("logoutConfirmationMessage") || "Bạn có chắc chắn muốn đăng xuất?"
+        }
+        confirmButtonText={t("logout") || "Đăng xuất"}
+        cancelButtonText={t("cancel") || "Hủy"}
+        type="warning"
+      />
     </div>
   );
 }

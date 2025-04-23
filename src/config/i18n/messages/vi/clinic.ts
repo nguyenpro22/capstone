@@ -123,5 +123,6 @@ export const clinicMessages: Messages["clinic"] = {
    addressInformation: "Thông tin địa chỉ",
    city: "Thành phố",
    noDetailsAvailable: "Không có thông tin chi tiết cho yêu cầu này",
-   branchRequestsTitle:"Danh sách chi nhánh cần phê duyệt"
+   branchRequestsTitle:"Danh sách chi nhánh cần phê duyệt",
+   dateApplied: "Ngày nộp đơn"
 }

@@ -4,6 +4,7 @@ export interface RequestItem {
     email: string;
     fullAddress: string;
     totalApply: number;
+    dateApplied: string;
   }
 
   export interface BranchRequestItem {

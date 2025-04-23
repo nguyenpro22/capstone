@@ -140,5 +140,6 @@ export const packageMessages: Messages["package"] = {
     invalidData: "Dữ liệu không hợp lệ!",
     errorOccurred: "Có lỗi xảy ra, vui lòng thử lại!",
     unexpectedError: "Đã xảy ra lỗi không mong muốn",
+    pleaseCheckFields: "Vui lòng Kiểm tra các trường nhập vào",
   },
 }

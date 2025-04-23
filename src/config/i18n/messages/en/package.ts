@@ -139,6 +139,7 @@ export const packageMessages: Messages["package"] = {
     packageUpdateFailed: "Failed to update package!",
     invalidData: "Invalid data provided!",
     errorOccurred: "An error occurred, please try again!",
-    unexpectedError: "An unexpected error occurred"
+    unexpectedError: "An unexpected error occurred",
+    pleaseCheckFields: "Please check the information fields again."
   },
 }
