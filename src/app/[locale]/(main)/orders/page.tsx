@@ -31,6 +31,7 @@ import {
   getStatusColor,
   getStatusIcon,
 } from "@/utils/orderHelpers";
+import { BookingHistoryTable } from "@/components/services/user/orders/booking-history-table";
 
 export default function UserOrdersPage() {
   const t = useTranslations("orderMessages");
@@ -127,9 +128,11 @@ export default function UserOrdersPage() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    {/* <OrderTable
-                    columns={columnVisibility}
-                    /> */}
+                    <BookingHistoryTable
+                      orders={filteredOrders}
+                      loading={loading}
+                      columnVisibility={columnVisibility}
+                    />
                     <PaginationControl
                       t={t}
                       currentPage={currentPage}

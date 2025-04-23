@@ -105,3 +105,7 @@ export const formatTime = (time: string | null) => {
   if (!time) return "N/A";
   return time.substring(0, 5);
 };
+export const formatDate = (dateString: string | null) => {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString("vi-VN");
+};
