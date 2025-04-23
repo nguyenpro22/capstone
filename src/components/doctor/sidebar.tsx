@@ -157,7 +157,7 @@ export function Sidebar() {
 
         <div className="mt-6 mb-2 px-4">
           <h2 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
-            {t("Settings")}
+            {t("configs")}
           </h2>
         </div>
         <div className="px-3 py-3 rounded-xl bg-muted/30 dark:bg-muted/10 mx-1 border border-border/30 dark:border-border/20">

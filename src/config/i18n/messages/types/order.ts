@@ -1,3 +1,126 @@
+interface Common {
+  close: string;
+  cancel: string;
+  submit: string;
+  submitting: string;
+  loading: string;
+  save: string;
+  delete: string;
+  edit: string;
+  view: string;
+  create: string;
+}
+
+interface Errors {
+  somethingWentWrong: string;
+  failedToLoadBookings: string;
+  failedToLoadOrderDetails: string;
+}
+
+interface Status {
+  pending: string;
+  confirmed: string;
+  completed: string;
+  cancelled: string;
+}
+
+interface BookingHistoryColumns {
+  id: string;
+  service: string;
+  date: string;
+  amount: string;
+  status: string;
+  actions: string;
+}
+
+interface BookingHistoryActions {
+  viewDetails: string;
+}
+
+interface BookingHistory {
+  title: string;
+  search: string;
+  noBookings: string;
+  columns: BookingHistoryColumns;
+  actions: BookingHistoryActions;
+}
+
+interface OrderDetail {
+  title: string;
+  orderId: string;
+  status: string;
+  customerInfo: string;
+  customerName: string;
+  phone: string;
+  email: string;
+  livestream: string;
+  notSpecified: string;
+  serviceInfo: string;
+  serviceName: string;
+  schedules: string;
+  noSchedules: string;
+  doctor: string;
+  procedure: string;
+  date: string;
+  time: string;
+  paymentInfo: string;
+  totalAmount: string;
+  discount: string;
+  depositAmount: string;
+  finalAmount: string;
+}
+interface TableColumns {
+  id: string;
+  customer: string;
+  service: string;
+  date: string;
+  amount: string;
+  feedback: string;
+  status: string;
+  actions: string;
+}
+
+interface TableActions {
+  viewDetails: string;
+}
+
+interface Table {
+  columns: TableColumns;
+  noOrders: string;
+  noOrdersDescription: string;
+  actions: TableActions;
+}
+
+interface FeedbackErrors {
+  submitFailed: string;
+}
+
+interface FeedbackErrors {
+  ratingRequired: string;
+  contentRequired: string;
+  scheduleRatingRequired: string;
+  submitFailed: string;
+}
+
+interface Feedback {
+  createTitle: string;
+  viewTitle: string;
+  createFeedback: string;
+  viewFeedback: string;
+  overallRating: string;
+  content: string;
+  contentPlaceholder: string;
+  images: string;
+  uploadImage: string;
+  maxImages: string;
+  doctorFeedbacks: string;
+  doctorFeedbackPlaceholder: string;
+  noContent: string;
+  createdOn: string;
+  successMessage: string;
+  errors: FeedbackErrors;
+}
+
 export type order = {
   title: string;
   subtitle: string;
@@ -64,4 +187,13 @@ export type order = {
   noBookingsDescription: string;
   moreBookings: string;
   close: string;
+  bookingHistory: {
+    common: Common;
+    errors: Errors;
+    status: Status;
+    bookingHistory: BookingHistory;
+    orderDetail: OrderDetail;
+    feedback: Feedback;
+    table: Table;
+  };
 };
