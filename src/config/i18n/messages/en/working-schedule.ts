@@ -137,5 +137,6 @@ export const workingScheduleMessages: Messages["workingSchedule"] = {
   noShiftsSelected: "No shifts selected",
   shiftRemoved: "Shift removed successfully",
   shiftId: "Shift code",
-  shiftsAppliedToMultipleDates:"Shifts Applied To Multiple Dates"
+  shiftsAppliedToMultipleDates:"Shifts Applied To Multiple Dates Successfully!!!",
+  shiftsAppliedToDate: "Shifts Applied To Date Successfully!!!"
 }

@@ -179,8 +179,13 @@ export default function SchedulesPage() {
     return format(date, "yyyy-MM-dd");
   };
 
-  const formatTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime.substring(0, 5)} - ${endTime.substring(0, 5)}`;
+  const formatTimeRange = (
+    startTime: string | null,
+    endTime: string | null
+  ) => {
+    const formattedStart = startTime ? startTime.substring(0, 5) : "--:--";
+    const formattedEnd = endTime ? endTime.substring(0, 5) : "--:--";
+    return `${formattedStart} - ${formattedEnd}`;
   };
 
   const getDefaultDateRange = () => {
