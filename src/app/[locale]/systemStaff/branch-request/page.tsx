@@ -5,7 +5,7 @@ import {
   useGetBranchRequestsQuery,
   useUpdateBranchRequestMutation,
 } from "@/features/partnership/api";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/common/Pagination/Pagination";
 import type { BranchRequestItem } from "@/features/partnership/types";
@@ -171,8 +171,6 @@ const BranchRequest: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
-      <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
-
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 md:mb-0">

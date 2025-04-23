@@ -167,11 +167,11 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
         } catch (error) {
           console.error("Error processing auth success:", error);
           // Fallback to manual redirection if processAuthSuccess fails
-          router.push("/dashboard");
+          router.push("/login");
         }
       } else {
         // Fallback to manual redirection if token is not available
-        router.push("/dashboard");
+        router.push("/login");
       }
     } catch (error) {
       console.error("Password change error:", error);

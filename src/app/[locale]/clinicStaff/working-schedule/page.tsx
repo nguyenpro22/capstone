@@ -152,7 +152,7 @@ export default function WorkingSchedulePage() {
 
   // State to store shift capacities
   const [shiftCapacities, setShiftCapacities] = useState<{
-    [key: string]: number; // key format: "date-shiftId"
+    [key: string]: number | ""; // key format: "date-shiftId"
   }>({});
 
   // Get the token and extract clinicId
@@ -170,6 +170,7 @@ export default function WorkingSchedulePage() {
     data: workingSchedulesData,
     isLoading: isLoadingWorkingSchedules,
     error: workingSchedulesError,
+    refetch: refetchWorkingSchedules,
   } = useGetWorkingScheduleQuery(
     {
       pageIndex,
@@ -188,6 +189,7 @@ export default function WorkingSchedulePage() {
     data: scheduleDetailsData,
     isLoading: isLoadingScheduleDetails,
     error: scheduleDetailsError,
+    refetch: refetchScheduleDetails,
   } = useGetWorkingSchedulesByShiftGroupQuery(
     {
       shiftGroupId: selectedSchedule?.shiftGroupId || "",
@@ -204,6 +206,7 @@ export default function WorkingSchedulePage() {
     data: shiftsData,
     isLoading: isLoadingShifts,
     error: shiftsError,
+    refetch: refetchShifts,
   } = useGetAllShiftsQuery(
     {
       pageIndex: 1,
@@ -236,16 +239,16 @@ export default function WorkingSchedulePage() {
   >([]);
 
   // Helper function to get capacity for a shift
-  const getShiftCapacity = (date: string, shiftId: string): number => {
+  const getShiftCapacity = (date: string, shiftId: string): number | "" => {
     const key = `${date}-${shiftId}`;
-    return shiftCapacities[key] || 10; // Default to 10 if not set
+    return shiftCapacities[key] !== undefined ? shiftCapacities[key] : 2; // Default to 10 only if undefined
   };
 
   // Helper function to set capacity for a shift
   const setShiftCapacity = (
     date: string,
     shiftId: string,
-    capacity: number
+    capacity: number | ""
   ) => {
     setShiftCapacities((prev) => ({
       ...prev,
@@ -295,7 +298,7 @@ export default function WorkingSchedulePage() {
           const shifts = schedules.map((schedule) => {
             // Store capacity in shiftCapacities state
             const key = `${dateKey}-${schedule.shiftGroupId}`;
-            newShiftCapacities[key] = schedule.capacity || 10;
+            newShiftCapacities[key] = schedule.capacity || 2;
 
             // Try to find the shift in shiftsData
             if (shiftsData?.value?.items) {
@@ -327,7 +330,7 @@ export default function WorkingSchedulePage() {
           const timeSlots = schedules.map((schedule) => ({
             startTime: formatTime(schedule.startTime),
             endTime: formatTime(schedule.endTime),
-            capacity: schedule.capacity || 10,
+            capacity: schedule.capacity || 2,
           }));
 
           return {
@@ -335,7 +338,7 @@ export default function WorkingSchedulePage() {
             timeSlots:
               timeSlots.length > 0
                 ? timeSlots
-                : [{ startTime: "08:00", endTime: "12:00", capacity: 10 }],
+                : [{ startTime: "08:00", endTime: "12:00", capacity: 2 }],
             // Include new fields with default values if they don't exist
             shiftGroupId: schedules[0]?.shiftGroupId || "",
             // Add time properties from the API response
@@ -344,7 +347,7 @@ export default function WorkingSchedulePage() {
             // Add the shifts array
             shifts: shifts,
             // Add capacity (will be used for API submission)
-            capacity: schedules[0]?.capacity || 10,
+            capacity: schedules[0]?.capacity || 2,
           };
         }
       );
@@ -507,13 +510,13 @@ export default function WorkingSchedulePage() {
               setShiftCapacity(
                 formattedDate,
                 schedule.shiftGroupId,
-                schedule.capacity || 10
+                schedule.capacity || 2
               );
             });
 
             return {
               date: formattedDate,
-              capacity: apiSchedules[0]?.capacity || 10,
+              capacity: apiSchedules[0]?.capacity || 2,
               timeSlots: timeSlots,
               // Include new fields
               shiftGroupId: apiSchedules[0]?.shiftGroupId || "",
@@ -535,7 +538,7 @@ export default function WorkingSchedulePage() {
             // Nếu chưa từng có, tạo mới với giá trị mặc định
             return {
               date: formattedDate,
-              capacity: 10, // Giá trị mặc định
+              capacity: 2, // Giá trị mặc định
               timeSlots: [],
               shiftGroupId: "",
               startTime: "",
@@ -582,13 +585,13 @@ export default function WorkingSchedulePage() {
           setShiftCapacity(
             formattedDate,
             schedule.shiftGroupId,
-            schedule.capacity || 10
+            schedule.capacity || 2
           );
         });
 
         return {
           date: formattedDate,
-          capacity: apiSchedules[0]?.capacity || 10,
+          capacity: apiSchedules[0]?.capacity || 2,
           timeSlots: timeSlots,
           // Include new fields
           shiftGroupId: apiSchedules[0]?.shiftGroupId || "",
@@ -600,7 +603,7 @@ export default function WorkingSchedulePage() {
         // Nếu không có dữ liệu từ API, tạo mới với giá trị mặc định
         return {
           date: formattedDate,
-          capacity: 10, // Giá trị mặc định
+          capacity: 2, // Giá trị mặc định
           timeSlots: [],
           shiftGroupId: "",
           startTime: "",
@@ -947,12 +950,12 @@ export default function WorkingSchedulePage() {
           const timeSlots = selectedShiftsForModal.map((shift) => ({
             startTime: formatTime(shift.startTime),
             endTime: formatTime(shift.endTime),
-            capacity: 10, // Default capacity
+            capacity: 2, // Default capacity
           }));
 
           // Initialize capacities for each shift
           selectedShiftsForModal.forEach((shift) => {
-            setShiftCapacity(schedule.date, shift.id, 10); // Default capacity
+            setShiftCapacity(schedule.date, shift.id, 2); // Default capacity
           });
 
           return {
@@ -982,12 +985,12 @@ export default function WorkingSchedulePage() {
           const timeSlots = selectedShiftsForModal.map((shift) => ({
             startTime: formatTime(shift.startTime),
             endTime: formatTime(shift.endTime),
-            capacity: 10, // Default capacity
+            capacity: 2, // Default capacity
           }));
 
           // Initialize capacities for each shift
           selectedShiftsForModal.forEach((shift) => {
-            setShiftCapacity(schedule.date, shift.id, 10); // Default capacity
+            setShiftCapacity(schedule.date, shift.id, 2); // Default capacity
           });
 
           return {
@@ -1126,7 +1129,7 @@ export default function WorkingSchedulePage() {
             const capacity = getShiftCapacity(schedule.date, shift.id);
             apiFormattedSchedules.push({
               date: schedule.date,
-              capacity: capacity,
+              capacity: capacity === "" ? 0 : capacity,
               shiftGroupId: shift.id,
             });
           });
@@ -1134,7 +1137,7 @@ export default function WorkingSchedulePage() {
           // Fallback for schedules without shifts array
           apiFormattedSchedules.push({
             date: schedule.date,
-            capacity: schedule.capacity || 10,
+            capacity: schedule.capacity || 2,
             shiftGroupId:
               schedule.shiftGroupId || selectedShifts[schedule.date]?.id || "",
           });
@@ -1147,6 +1150,19 @@ export default function WorkingSchedulePage() {
       const response = await createClinicSchedules({
         workingDates: apiFormattedSchedules,
       });
+
+      // Check if the response was successful (no error)
+      if (!response.error) {
+        // Show success message
+        toast.success(t("scheduleUpdated"));
+
+        // Refetch all data to update the UI
+        refetchWorkingSchedules();
+        refetchShifts();
+        if (selectedSchedule?.shiftGroupId) {
+          refetchScheduleDetails();
+        }
+      }
 
       // Kiểm tra response để xác định thành công hay thất bại
       if (response.error) {
@@ -1252,16 +1268,15 @@ export default function WorkingSchedulePage() {
             setServerError(errorMessage);
           }
         } else {
-          // Xử lý SerializedError hoặc lỗi khác
-          const errorMessage = isErrorWithMessage(error)
-            ? error.message
-            : "Không thể cập nhật lịch làm việc. Vui lòng thử lại sau.";
-          toast.error(errorMessage);
-          setServerError(errorMessage);
+          // Chỉ hiển thị thông báo thành công khi không có lỗi
+          toast.success(t("scheduleUpdated"));
+          // Refetch all data to update the UI
+          refetchWorkingSchedules();
+          refetchShifts();
+          if (selectedSchedule?.shiftGroupId) {
+            refetchScheduleDetails();
+          }
         }
-      } else {
-        // Chỉ hiển thị thông báo thành công khi không có lỗi
-        toast.success(t("scheduleUpdated"));
       }
     } catch (error: any) {
       console.error("Error updating schedules:", error);
@@ -1654,15 +1669,22 @@ export default function WorkingSchedulePage() {
                                               schedule.date,
                                               shift.id
                                             )}
-                                            onChange={(e) =>
-                                              setShiftCapacity(
-                                                schedule.date,
-                                                shift.id,
-                                                Number.parseInt(
-                                                  e.target.value
-                                                ) || 0
-                                              )
-                                            }
+                                            onChange={(e) => {
+                                              const value = e.target.value;
+                                              if (value === "") {
+                                                setShiftCapacity(
+                                                  schedule.date,
+                                                  shift.id,
+                                                  ""
+                                                );
+                                              } else {
+                                                setShiftCapacity(
+                                                  schedule.date,
+                                                  shift.id,
+                                                  Number.parseInt(value) || 0
+                                                );
+                                              }
+                                            }}
                                             className={`mt-1 ${
                                               hasFieldError(
                                                 `${schedule.date}-${shift.id}`,
