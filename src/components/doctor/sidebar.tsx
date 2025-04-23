@@ -32,7 +32,9 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const router = useRouter();
-  const { data, isLoading, refetch } = useGetUserProfileQuery();
+  const { data, isLoading } = useGetUserProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   const navItems = [
     {
@@ -54,17 +56,6 @@ export function Sidebar() {
 
   const onLogout = async () => {
     await handleLogout({ router });
-  };
-
-  const handleRefetch = async () => {
-    try {
-      setIsRefetching(true);
-      await refetch();
-      toast(t("profileRefreshed"));
-    } catch (error) {
-    } finally {
-      setIsRefetching(false);
-    }
   };
 
   const SidebarContent = () => (
@@ -93,21 +84,6 @@ export function Sidebar() {
               )}
             </div>
             <div className="flex gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="rounded-full h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground"
-                onClick={handleRefetch}
-                disabled={isLoading || isRefetching}
-              >
-                <RefreshCw
-                  className={cn(
-                    "h-4 w-4",
-                    (isLoading || isRefetching) && "animate-spin"
-                  )}
-                />
-                <span className="sr-only">{t("refreshProfile")}</span>
-              </Button>
               <Button
                 size="icon"
                 variant="ghost"

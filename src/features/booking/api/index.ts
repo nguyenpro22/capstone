@@ -62,6 +62,7 @@ export const bookingQueryApi = createApi({
           date,
         },
       }),
+      keepUnusedDataFor: 0,
     }),
     getBookingById: builder.query<IResCommon<Booking>, string>({
       query: (id) => `clinic/${id}?id=${id}`,

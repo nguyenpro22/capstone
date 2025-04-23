@@ -36,6 +36,7 @@ export const customerScheduleQueryApi = createApi({
         )}&pageIndex=${pageIndex}&pageSize=${pageSize}`,
         method: "GET",
       }),
+      keepUnusedDataFor: 0,
     }),
 
     // Get clinic schedules with pagination and filtering
@@ -75,6 +76,7 @@ export const customerScheduleQueryApi = createApi({
         url: `/customer-schedules/${id}`,
         method: "GET",
       }),
+      keepUnusedDataFor: 0,
     }),
 
     // Get next schedule availability

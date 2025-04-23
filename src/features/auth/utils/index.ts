@@ -271,7 +271,7 @@ export const handleGoogleLogin = async ({
 
     let errorMessage =
       t("providerLoginError", { provider: "Google" }) ||
-      "Đăng nhập với Google th���t bại";
+      "Đăng nhập với Google thất bại";
 
     if (error.code === "auth/popup-closed-by-user") {
       errorMessage = t("authCancelled") || "Đăng nhập đã bị hủy";

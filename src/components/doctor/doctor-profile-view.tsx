@@ -20,7 +20,12 @@ export default function DoctorProfileView() {
   const t = useTranslations("doctorProfile");
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const { data: profile, isLoading, error, refetch } = useGetUserProfileQuery();
+  const {
+    data: profile,
+    isLoading,
+    error,
+    refetch,
+  } = useGetUserProfileQuery(undefined, { refetchOnMountOrArgChange: true });
   const user = profile?.value;
 
   if (isLoading) {
