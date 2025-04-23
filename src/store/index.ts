@@ -34,6 +34,7 @@ import {
   partnershipRequestCommandApi,
 } from "@/features/partnership/api";
 import { serviceApi } from "@/features/services/api";
+import { doctorServiceApi } from "@/features/services/api";
 import { categoryApi, userApi, userCommandApi } from "@/features/home/api";
 import {
   categoryQueryApi,
@@ -135,6 +136,7 @@ const rootReducer = combineReducers({
   [configsQueryApi.reducerPath]: configsQueryApi.reducer,
   [configsCommandApi.reducerPath]: configsCommandApi.reducer,
   [userQueryApi.reducerPath]: userQueryApi.reducer,
+  [doctorServiceApi.reducerPath]: doctorServiceApi.reducer,
 });
 
 // Persisted reducer
@@ -194,7 +196,8 @@ const store = configureStore({
       livestreamQueryApi.middleware,
       configsQueryApi.middleware,
       configsCommandApi.middleware,
-      userQueryApi.middleware
+      userQueryApi.middleware,
+      doctorServiceApi.middleware
     ),
 });
 

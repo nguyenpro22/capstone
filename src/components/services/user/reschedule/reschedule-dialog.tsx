@@ -269,21 +269,21 @@ export function RescheduleDialog({
       return;
     }
 
-    if (isSameDay(selectedDate, originalDate)) {
-      const timeInMinutes = parseTimeToMinutes(selectedTime);
-      const originalTimeMinutes = parseTimeToMinutes(originalTime);
+    // if (isSameDay(selectedDate, originalDate)) {
+    //   const timeInMinutes = parseTimeToMinutes(selectedTime);
+    //   const originalTimeMinutes = parseTimeToMinutes(originalTime);
 
-      if (timeInMinutes <= originalTimeMinutes) {
-        toast.error(
-          "Không thể đặt lịch vào thời gian trước hoặc trùng với thời gian hiện tại"
-        );
-        return;
-      }
-    }
+    //   if (timeInMinutes <= originalTimeMinutes) {
+    //     toast.error(
+    //       "Không thể đặt lịch vào thời gian trước hoặc trùng với thời gian hiện tại"
+    //     );
+    //     return;
+    //   }
+    // }
 
     try {
       // Format date as DD/MM/YYYY
-      const formattedDate = format(selectedDate, "dd/MM/yyyy");
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
       await onReschedule(formattedDate, selectedTime, selectedDoctor.id);
 
