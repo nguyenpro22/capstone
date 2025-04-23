@@ -2,14 +2,15 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useCreatePackageMutation,
   useGetPackagesQuery,
 } from "@/features/package/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Package, X, AlertCircle, DollarSign, Clock } from "lucide-react";
-import { useTranslations } from "next-intl"; // Import useTranslations
+import { useTranslations } from "next-intl";
+import { toast } from "react-toastify";
 
 interface PackageFormProps {
   initialData?: any;
@@ -33,14 +34,33 @@ export default function PackageForm({
   const [priceBranchAddition, setPriceBranchAddition] = useState("");
   const [priceLiveStreamAddition, setPriceLiveStreamAddition] = useState("");
   const [enhancedView, setEnhancedView] = useState("0");
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Prevent mouse wheel from changing number input values
+  const preventWheelChange = (e: React.WheelEvent<HTMLInputElement>) => {
+    e.currentTarget.blur();
+  };
 
   const [createPackage, { isLoading }] = useCreatePackageMutation();
   const { refetch } = useGetPackagesQuery(undefined);
 
+  // Show toast when general error occurs
+  useEffect(() => {
+    if (errors.general) {
+      toast.error(errors.general, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [errors.general]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessages([]);
+    setErrors({});
 
     try {
       const response = await createPackage({
@@ -56,20 +76,65 @@ export default function PackageForm({
       }).unwrap();
 
       if (response.isSuccess) {
+        toast.success(t("notifications.packageCreated"), {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         onSaveSuccess();
         await refetch();
         onClose();
       } else {
-        setErrorMessages([t("notifications.unexpectedError")]);
+        setErrors({ general: t("notifications.unexpectedError") });
       }
     } catch (err: any) {
       console.error("API Error:", err);
 
       if (err?.data?.status === 422 && err?.data?.errors) {
-        const messages = err.data.errors.map((error: any) => error.message);
-        setErrorMessages(messages);
+        const newErrors: Record<string, string> = {};
+        let hasFieldErrors = false;
+
+        err.data.errors.forEach((error: any) => {
+          // Convert PascalCase to camelCase for field mapping
+          const convertToCamelCase = (str: string) => {
+            return str.charAt(0).toLowerCase() + str.slice(1);
+          };
+
+          // Get the field name from the error code and convert to camelCase
+          const fieldName = error.code
+            ? convertToCamelCase(error.code)
+            : "general";
+
+          if (fieldName !== "general") {
+            hasFieldErrors = true;
+          }
+
+          // If there's already an error for this field, append the new error message
+          if (newErrors[fieldName]) {
+            newErrors[fieldName] += "; " + error.message;
+          } else {
+            newErrors[fieldName] = error.message;
+          }
+        });
+
+        // If there are field-specific errors, also show a general toast
+        if (hasFieldErrors) {
+          toast.error(t("notifications.pleaseCheckFields"), {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }
+
+        setErrors(newErrors);
       } else {
-        setErrorMessages([t("notifications.unexpectedError")]);
+        setErrors({ general: t("notifications.unexpectedError") });
       }
     }
   };
@@ -109,28 +174,6 @@ export default function PackageForm({
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-
-            {/* Error Messages */}
-            <AnimatePresence>
-              {errorMessages.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="mb-6"
-                >
-                  {errorMessages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-4 rounded-lg bg-red-50 text-red-700 mb-2"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      <p className="text-sm">{msg}</p>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           {/* Form with scroll */}
@@ -149,11 +192,20 @@ export default function PackageForm({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                         focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    errors.name
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                      : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                  } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                   required
                   placeholder={t("placeholders.enterPackageName")}
                 />
+                {errors.name && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.name}</p>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -165,11 +217,20 @@ export default function PackageForm({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                         focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    errors.description
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                      : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                  } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                   required
                   placeholder={t("placeholders.enterDescription")}
                 />
+                {errors.description && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.description}</p>
+                  </div>
+                )}
               </div>
 
               {/* Price */}
@@ -182,13 +243,23 @@ export default function PackageForm({
                     type="number"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                           focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    onWheel={preventWheelChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      errors.price
+                        ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                     required
                     placeholder={t("placeholders.enterPrice")}
                   />
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
+                {errors.price && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.price}</p>
+                  </div>
+                )}
               </div>
 
               {/* Duration */}
@@ -201,13 +272,23 @@ export default function PackageForm({
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                           focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    onWheel={preventWheelChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      errors.duration
+                        ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                     required
                     placeholder={t("placeholders.enterDuration")}
                   />
                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
+                {errors.duration && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.duration}</p>
+                  </div>
+                )}
               </div>
 
               {/* Limit Branches */}
@@ -219,11 +300,21 @@ export default function PackageForm({
                   type="number"
                   value={limitBranches}
                   onChange={(e) => setLimitBranches(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                         focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  onWheel={preventWheelChange}
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    errors.limitBranches
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                      : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                  } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                   required
                   placeholder={t("placeholders.enterLimitBranches")}
                 />
+                {errors.limitBranches && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.limitBranches}</p>
+                  </div>
+                )}
               </div>
 
               {/* Limit Live Stream */}
@@ -235,11 +326,21 @@ export default function PackageForm({
                   type="number"
                   value={limitLiveStream}
                   onChange={(e) => setLimitLiveStream(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                         focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  onWheel={preventWheelChange}
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    errors.limitLiveStream
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                      : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                  } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                   required
                   placeholder={t("placeholders.enterLimitLiveStream")}
                 />
+                {errors.limitLiveStream && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.limitLiveStream}</p>
+                  </div>
+                )}
               </div>
 
               {/* Price More Branch */}
@@ -252,13 +353,23 @@ export default function PackageForm({
                     type="number"
                     value={priceBranchAddition}
                     onChange={(e) => setPriceBranchAddition(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                           focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    onWheel={preventWheelChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      errors.priceBranchAddition
+                        ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                     required
                     placeholder={t("placeholders.enterPriceBranchAddition")}
                   />
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
+                {errors.priceBranchAddition && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.priceBranchAddition}</p>
+                  </div>
+                )}
               </div>
 
               {/* Price More Livestream */}
@@ -271,13 +382,23 @@ export default function PackageForm({
                     type="number"
                     value={priceLiveStreamAddition}
                     onChange={(e) => setPriceLiveStreamAddition(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                           focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                    onWheel={preventWheelChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      errors.priceLiveStreamAddition
+                        ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                        : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                    } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                     required
                     placeholder={t("placeholders.enterPriceLiveStreamAddition")}
                   />
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
+                {errors.priceLiveStreamAddition && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.priceLiveStreamAddition}</p>
+                  </div>
+                )}
               </div>
 
               {/* Enhanced View */}
@@ -289,11 +410,21 @@ export default function PackageForm({
                   type="number"
                   value={enhancedView}
                   onChange={(e) => setEnhancedView(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-purple-300 
-                         focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-all duration-200"
+                  onWheel={preventWheelChange}
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    errors.enhancedView
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+                      : "border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                  } focus:ring focus:ring-opacity-50 transition-all duration-200`}
                   required
                   placeholder={t("placeholders.enterEnhancedView")}
                 />
+                {errors.enhancedView && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <p>{errors.enhancedView}</p>
+                  </div>
+                )}
               </div>
             </form>
           </div>
