@@ -36,6 +36,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Validation errors interface
 interface ValidationErrors {
@@ -179,6 +180,7 @@ export function RegisterClinicForm() {
   const t = useTranslations("registerClinic");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registerClinic] = useClinicRegistrationMutation();
+  const router = useRouter();
   const [fileErrors, setFileErrors] = useState<{
     operatingLicense?: string;
     businessLicense?: string;
@@ -795,6 +797,11 @@ export function RegisterClinicForm() {
     }
   };
 
+  const handleCloseSuccessDialog = () => {
+    setShowSuccessDialog(false);
+    router.push("/");
+  };
+
   return (
     <Card className="border-purple-200/30 shadow-lg">
       <CardContent className="p-6">
@@ -1221,25 +1228,37 @@ export function RegisterClinicForm() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-center justify-center text-xl">
                 <CheckCircle className="h-6 w-6 text-green-500" />
-                {t("form.success.title") || "Registration Successful"}
+                {t("dialog.success.title")}
               </DialogTitle>
               <DialogDescription className="text-center pt-2">
-                {t("form.success.emailSent") ||
-                  "We've sent a confirmation email to your inbox."}
+                {t("dialog.success.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col space-y-3 py-3">
               <p className="text-center text-muted-foreground">
-                {t("form.success.checkEmail") ||
-                  "Please check your email for further instructions."}
+                {t("dialog.success.emailSent")}
               </p>
+              <p className="text-center text-muted-foreground">
+                {t("dialog.success.checkEmail")}
+              </p>
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">
+                  {t("dialog.success.nextSteps")}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {t("dialog.success.processingTime")}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {t("dialog.success.contactSupport")}
+                </p>
+              </div>
             </div>
             <DialogFooter className="flex justify-center sm:justify-center">
               <Button
-                onClick={() => setShowSuccessDialog(false)}
+                onClick={() => handleCloseSuccessDialog()}
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >
-                {t("form.success.close") || "Close"}
+                {t("dialog.success.close")}
               </Button>
             </DialogFooter>
           </DialogContent>

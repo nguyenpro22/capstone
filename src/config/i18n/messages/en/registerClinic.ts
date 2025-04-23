@@ -98,8 +98,9 @@ export const registerClinic: Messages["registerClinic"] = {
     loading: "Loading application data...",
     loadError: "Failed to load application data. Please try again later.",
     rejectionReason: "Rejection Reason:",
-    rejectedInformation:"Your Clinic Registration Was Rejected",
-    updateInformation: "Please update your information and resubmit your application.",
+    rejectedInformation: "Your Clinic Registration Was Rejected",
+    updateInformation:
+      "Please update your information and resubmit your application.",
     logout: "Logout",
     success: {
       title: "Registration Submitted Successfully!",
@@ -185,7 +186,8 @@ export const registerClinic: Messages["registerClinic"] = {
         },
         error: {
           title: "Registration Failed",
-          description: "An error occurred while registering your clinic. Please try again.",
+          description:
+            "An error occurred while registering your clinic. Please try again.",
           pendingRequest: "Pending Request",
           duplicateInfo: "Duplicate Information",
           validation: "Please check the information you entered",
@@ -193,6 +195,20 @@ export const registerClinic: Messages["registerClinic"] = {
       },
       submit: "Re-Submit Application",
       submitting: "Submitting...",
+    },
+  },
+  dialog: {
+    success: {
+      title: "Registration Successful",
+      description: "Your clinic registration has been submitted successfully",
+      emailSent: "We've sent a confirmation email to your inbox",
+      checkEmail: "Please check your email for further instructions",
+      close: "Close",
+      nextSteps: "What happens next?",
+      processingTime:
+        "Your application will be reviewed within 2-5 business days",
+      contactSupport:
+        "If you have any questions, please contact our support team",
     },
   },
 };
