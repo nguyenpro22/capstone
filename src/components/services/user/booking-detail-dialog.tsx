@@ -328,12 +328,17 @@ export function BookingDetailDialog({
     time: string,
     doctorId: string
   ) => {
-    await rescheduleBooking({
-      customerScheduleId: booking.id,
-      date: date,
-      startTime: time,
-      // doctorId: doctorId, // Uncomment if API supports this
-    }).unwrap();
+    try {
+      await rescheduleBooking({
+        customerScheduleId: booking.id,
+        date: date,
+        startTime: time,
+        // doctorId: doctorId, // Uncomment if API supports this
+      }).unwrap();
+    } catch (error) {
+      console.error("Error rescheduling:", error);
+      toast.error("Không thể hủy lịch hẹn. Vui lòng thử lại sau.");
+    }
   };
 
   return (
