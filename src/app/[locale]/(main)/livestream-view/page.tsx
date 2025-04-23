@@ -3,18 +3,37 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import * as signalR from "@microsoft/signalr";
-import { Loader2, Sun, Moon, Users, Clock, Calendar, Play } from "lucide-react";
+import { Loader2, Users, Clock, Calendar, Play } from "lucide-react";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
 import Image from "next/image";
 
+// Updated interface to match the new API response format
 interface Room {
   id: string;
   name: string;
-  clinicName: string;
+  description: string;
+  image: string;
   startDate: string;
-  description?: string;
-  coverImage?: string;
+  clinicId: string;
+  clinicName: string;
+}
+
+interface RoomsResponse {
+  value: {
+    items: Room[];
+    pageIndex: number;
+    pageSize: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    message: string;
+  };
 }
 
 export default function LivestreamViewPage() {
@@ -52,13 +71,14 @@ export default function LivestreamViewPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          "https://api.beautify.asia/signaling-api/LiveStream/Rooms"
+          "https://api.beautify.asia/signaling-api/LiveStream/Rooms?pageIndex=1&pageSize=1000"
         );
-        const data = await response.json();
+        const data: RoomsResponse = await response.json();
 
-        if (data.isSuccess) {
-          setRooms(data.value);
-          if (data.value.length > 0) setRoomGuid(data.value[0].id);
+        if (data.isSuccess && data.value.items.length > 0) {
+          // Updated to use the new response format
+          setRooms(data.value.items);
+          if (data.value.items.length > 0) setRoomGuid(data.value.items[0].id);
         } else {
           setError(
             `Lỗi: ${data.error?.message || "Không thể tải danh sách phòng"}`
