@@ -138,4 +138,5 @@ export interface workingScheduleMessages {
   noShiftsSelected: string;
   shiftRemoved: string;
   shiftId: string;
+  shiftsAppliedToMultipleDates: string;
 }

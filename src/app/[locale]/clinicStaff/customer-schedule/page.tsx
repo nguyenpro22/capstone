@@ -230,7 +230,7 @@ export default function SchedulesPage() {
           </Badge>
         );
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge>{t("waitingApproval")}</Badge>;
     }
   };
 

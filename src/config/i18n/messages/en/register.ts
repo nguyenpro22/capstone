@@ -55,4 +55,28 @@ export const register: Messages["register"] = {
   pleaseEnterVerificationCode: "Please enter the verification code",
   verifying: "Verifying...",
   verificationSuccessful: "Verification successful!",
+  // Password validation messages
+  passwordNoSpaces: "Password cannot contain spaces or whitespace characters",
+  passwordRequirements: "Password must meet the following requirements:",
+  passwordRequiresUppercase: "Include at least one uppercase letter",
+  passwordRequiresLowercase: "Include at least one lowercase letter",
+  passwordRequiresNumber: "Include at least one number",
+  passwordRequiresSpecial: "Include at least one special character",
+  passwordsDoNotMatch: "Passwords do not match",
+  
+  // Email validation
+  invalidEmail: "Please enter a valid email address",
+  
+  // Phone validation
+  invalidPhoneNumber: "Please enter a valid phone number",
+  
+  // Verification code validation
+  invalidVerificationCode: "Invalid verification code. Please enter a 6-digit code",
+  
+  // Form submission
+  formSubmissionError: "There was an error submitting the form. Please try again.",
+  serverError: "Server error. Please try again later.",
+  
+  // Address validation
+  invalidAddress: "Please enter a valid address",
 };

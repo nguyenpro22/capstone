@@ -239,7 +239,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                 onClick={handleLogin}
                 className="h-9 px-4 font-medium rounded-full bg-primary hover:bg-primary/90 text-white"
               >
-                Đăng nhập
+                {t("login")}
               </Button>
             ) : (
               <DropdownMenu>
@@ -273,25 +273,26 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleProfile}>
                     <User className="mr-2 h-4 w-4" />
-                    <span>Hồ sơ</span>
+                    <span>{t("profile")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleBookings}>
                     <ShoppingBag className="mr-2 h-4 w-4" />
-                    <span>Lịch hẹn</span>
+                    <span>{t("appointments")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push("/inbox")}>
                     <Inbox className="mr-2 h-4 w-4" />
-                    <span>Hộp thoại</span>
+                    <span>{t("inbox")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={onLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Đăng xuất</span>
+                    <span>{t("logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
 
+            {/* Mobile menu button */}
             {/* Mobile menu button */}
             <Sheet>
               <SheetTrigger asChild>
@@ -301,7 +302,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                   className="rounded-full h-9 w-9 lg:hidden"
                 >
                   <Menu className="h-5 w-5" />
-                  <span className="sr-only">Menu</span>
+                  <span className="sr-only">{t("menu")}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0">
@@ -347,7 +348,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                             className="w-full"
                             onClick={handleLogin}
                           >
-                            Đăng nhập
+                            {t("login")}
                           </Button>
                         </SheetClose>
                       ) : (
@@ -376,7 +377,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                               onClick={handleProfile}
                             >
                               <User className="mr-2 h-4 w-4" />
-                              Hồ sơ
+                              {t("profile")}
                             </Button>
                           </SheetClose>
 
@@ -387,7 +388,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                               onClick={handleBookings}
                             >
                               <ShoppingBag className="mr-2 h-4 w-4" />
-                              Lịch hẹn
+                              {t("appointments")}
                             </Button>
                           </SheetClose>
 
@@ -398,7 +399,7 @@ export default function SiteHeader({ children }: SiteHeaderProps) {
                               onClick={onLogout}
                             >
                               <LogOut className="mr-2 h-4 w-4" />
-                              Đăng xuất
+                              {t("logout")}
                             </Button>
                           </SheetClose>
                         </div>

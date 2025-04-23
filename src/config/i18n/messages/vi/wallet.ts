@@ -164,7 +164,8 @@ export const walletMessages: Messages["wallet"] = {
       completed: "Hoàn thành",
       pending: "Đang chờ",
       rejected: "Từ chối",
-      waiting: "Chờ thanh toán"
+      waitingPayment: "Chờ thanh toán",
+      waitingApproval:"Chờ duyệt"
     },
     actions: {
       refresh: "Làm mới",

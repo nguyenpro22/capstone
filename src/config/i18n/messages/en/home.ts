@@ -308,4 +308,20 @@ export const homeMessages: Messages["home"] = {
     },
     copyright: "© 2025 Beauty Aesthetic. All rights reserved.",
   },
+  // Navigation items
+  home: "Home",
+  livestream: "Livestream",
+  clinicView: "Clinic View",
+  registerClinic: "Register Clinic",
+  
+  // User menu
+  login: "Login",
+  profile: "Profile",
+  appointments: "Appointments",
+  inbox: "Inbox",
+  logout: "Logout",
+  
+  // Mobile menu
+  menu: "Menu",
+  close: "Close",
 };
