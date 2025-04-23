@@ -32,7 +32,7 @@ export function useOrderBookingData(t: any) {
     serviceName: true,
     orderDate: true,
     finalAmount: true,
-    feedback: true,
+    // feedback: true,
     status: true,
     details: true,
   });

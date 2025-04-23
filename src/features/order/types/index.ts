@@ -8,14 +8,13 @@ export type OrderItem = {
   discount: number;
   depositAmount: number;
   finalAmount: number;
-  orderDate: string; // ISO format "YYYY-MM-DD"
-  status: OrderStatus;
+  orderDate: string; // You can use Date type if you want to parse it to a Date object
+  status: OrderStatus; // Use string literal types for predefined statuses
   customerPhone: string;
   customerEmail: string;
   isFromLivestream: boolean;
   livestreamName: string | null;
 };
-
 export type ServiceBooking = {
   id: string;
   serviceName: string;
@@ -44,11 +43,15 @@ export interface CustomerSchedule {
   id: string;
   doctorId: string;
   doctorName: string;
+  procedureName: string;
   profileUrl: string;
   status: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+  date: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  feedbackContent: string | null;
+  doctorFeedbackRating: number | null;
+  feedbackCreatedOnUtc: string | null;
 }
 
 export interface ScheduleDetail {
@@ -60,10 +63,14 @@ export interface ScheduleDetail {
   depositAmount: number;
   finalAmount: number;
   orderDate: string;
-  status: string;
+  status: OrderStatus;
   customerPhone: string;
   customerEmail: string;
   isFromLivestream: boolean;
+  isFinished: boolean;
   livestreamName: string | null;
+  feedbackContent: string | null;
+  feedbackRating: number | null;
+  feedbackImages: string | null;
   customerSchedules: CustomerSchedule[];
 }

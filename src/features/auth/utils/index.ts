@@ -313,7 +313,8 @@ export const handleLogout = async ({
     clearToken();
     localStorage.removeItem(AUTH_STATE_KEY);
     localStorage.removeItem(LOGIN_SUCCESS_SHOWN_KEY);
-
+    document.cookie =
+      "jwt-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
     // Hiển thị thông báo thành công
     try {
       showSuccess("Đăng xuất thành công");
@@ -321,8 +322,7 @@ export const handleLogout = async ({
       showSuccess("Đăng xuất thành công");
     }
 
-    // Chuyển hướng về trang đăng nhập
-    router.push("/login");
+    window.location.href = "/login";
 
     return { success: true };
   } catch (error) {
