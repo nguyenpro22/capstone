@@ -66,4 +66,8 @@ export type LoginTranslations = {
   enterConfirmPassword: string
   passwordMinLength: string
   passwordsDoNotMatch: string
+
+  logoutConfirmation: string
+  logoutConfirmationMessage: string
+  cancel: string
 }

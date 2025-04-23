@@ -19,6 +19,7 @@ import {
   Loader2,
   Eye,
   ChevronDown,
+  Clock,
 } from "lucide-react";
 import { useDelayedRefetch } from "@/hooks/use-delayed-refetch";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -234,14 +235,19 @@ const PartnershipRequest: React.FC = () => {
             <table className="w-full border-collapse table-auto text-left">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm">
-                  <th className="px-6 py-4 font-medium w-16">{t("stt")}</th>
-                  <th className="px-6 py-4 font-medium">{t("clinicName")}</th>
-                  <th className="px-6 py-4 font-medium">{t("email")}</th>
-                  <th className="px-6 py-4 font-medium">{t("address")}</th>
-                  <th className="px-6 py-4 font-medium w-24 text-center">
+                  <th className="px-4 py-4 font-medium w-12">{t("stt")}</th>
+                  <th className="px-4 py-4 font-medium w-40">
+                    {t("clinicName")}
+                  </th>
+                  <th className="px-4 py-4 font-medium w-48">{t("email")}</th>
+                  <th className="px-4 py-4 font-medium w-40">{t("address")}</th>
+                  <th className="px-4 py-4 font-medium w-28">
+                    {t("dateApplied")}
+                  </th>
+                  <th className="px-4 py-4 font-medium w-20 text-center">
                     {t("totalApply")}
                   </th>
-                  <th className="px-6 py-4 font-medium w-48 text-center">
+                  <th className="px-4 py-4 font-medium w-32 text-center">
                     {t("action")}
                   </th>
                 </tr>
@@ -250,8 +256,8 @@ const PartnershipRequest: React.FC = () => {
                 {requests.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
-                      className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                      colSpan={7}
+                      className="px-4 py-12 text-center text-gray-500 dark:text-gray-400"
                     >
                       {t("noPartnershipRequestsFound")}
                     </td>
@@ -262,59 +268,86 @@ const PartnershipRequest: React.FC = () => {
                       key={request.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
                     >
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 text-center">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 text-center">
                         {startIndex + index + 1}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div
-                          className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]"
+                          className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[120px]"
                           title={request.name}
                         >
                           {request.name}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div
-                          className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]"
+                          className="text-gray-600 dark:text-gray-300 truncate max-w-[140px]"
                           title={request.email}
                         >
                           {request.email}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div
-                          className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]"
+                          className="text-gray-600 dark:text-gray-300 truncate max-w-[120px]"
                           title={request.fullAddress}
                         >
                           {request.fullAddress}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                      <td className="px-4 py-4">
+                        <div className="text-gray-600 dark:text-gray-300">
+                          {request.dateApplied ? (
+                            <div className="flex flex-col items-center">
+                              <div>
+                                {new Date(
+                                  request.dateApplied
+                                ).toLocaleDateString("vi-VN", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                })}
+                              </div>
+                              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {new Date(
+                                  request.dateApplied
+                                ).toLocaleTimeString("vi-VN", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                           {request.totalApply}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center space-x-2">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-center space-x-1">
                           {/* View Detail Button */}
                           <Button
                             variant="outline"
                             size="sm"
-                            className="inline-flex items-center justify-center px-3 py-2 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                            className="inline-flex items-center justify-center h-8 px-2 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
                             onClick={() => handleViewDetail(request.id)}
                           >
-                            <Eye className="mr-2 h-4 w-4" />
-                            {t("viewDetail")}
+                            <Eye className="h-3.5 w-3.5" />
                           </Button>
 
                           {/* Action Dropdown Menu */}
                           {processingAction?.id === request.id ? (
                             <Button
                               disabled
-                              className="h-9 px-3 py-2 bg-gray-400 text-white rounded-lg"
+                              className="h-8 px-2 py-1 bg-gray-400 text-white rounded-lg"
                             >
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              {t("processing")}
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             </Button>
                           ) : (
                             <DropdownMenu>
@@ -322,10 +355,9 @@ const PartnershipRequest: React.FC = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-9 px-3"
+                                  className="h-8 px-2"
                                 >
-                                  {t("actions")}{" "}
-                                  <ChevronDown className="ml-2 h-4 w-4" />
+                                  <ChevronDown className="h-3.5 w-3.5" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-40">
