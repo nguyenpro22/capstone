@@ -493,8 +493,12 @@ export function ReRegisterClinicForm() {
   // Add this after the existing useEffects:
   useEffect(() => {
     const setAddressIds = async () => {
-      if (applicationData?.value && provinces?.data) {
-        // Find province ID
+      if (
+        applicationData?.value &&
+        provinces?.data &&
+        !addressDetail.provinceId
+      ) {
+        // Only set province if it hasn't been manually selected yet
         const province = provinces.data.find(
           (p) => p.name === applicationData.value.city
         );
@@ -503,44 +507,22 @@ export function ReRegisterClinicForm() {
             ...prev,
             provinceId: province.id,
           }));
-
-          // Wait for districts to load
-          if (districts?.data) {
-            // Find district ID
-            const district = districts.data.find(
-              (d) => d.name === applicationData.value.district
-            );
-            if (district) {
-              setAddressDetail((prev) => ({
-                ...prev,
-                districtId: district.id,
-              }));
-
-              // Wait for wards to load
-              if (wards?.data) {
-                // Find ward ID
-                const ward = wards.data.find(
-                  (w) => w.name === applicationData.value.ward
-                );
-                if (ward) {
-                  setAddressDetail((prev) => ({
-                    ...prev,
-                    wardId: ward.id,
-                  }));
-                }
-              }
-            }
-          }
         }
       }
     };
 
     setAddressIds();
-  }, [applicationData, provinces, districts, wards]);
+  }, [applicationData, provinces, addressDetail.provinceId]);
 
   // Load district data when province is selected or changed
   useEffect(() => {
-    if (addressDetail.provinceId && districts?.data && applicationData?.value) {
+    if (
+      addressDetail.provinceId &&
+      districts?.data &&
+      applicationData?.value &&
+      !addressDetail.districtId
+    ) {
+      // Only set district if it hasn't been manually selected yet
       const district = districts.data.find(
         (d) => d.name === applicationData.value.district
       );
@@ -551,11 +533,22 @@ export function ReRegisterClinicForm() {
         }));
       }
     }
-  }, [districts, addressDetail.provinceId, applicationData]);
+  }, [
+    districts,
+    addressDetail.provinceId,
+    applicationData,
+    addressDetail.districtId,
+  ]);
 
   // Load ward data when district is selected or changed
   useEffect(() => {
-    if (addressDetail.districtId && wards?.data && applicationData?.value) {
+    if (
+      addressDetail.districtId &&
+      wards?.data &&
+      applicationData?.value &&
+      !addressDetail.wardId
+    ) {
+      // Only set ward if it hasn't been manually selected yet
       const ward = wards.data.find(
         (w) => w.name === applicationData.value.ward
       );
@@ -566,7 +559,7 @@ export function ReRegisterClinicForm() {
         }));
       }
     }
-  }, [wards, addressDetail.districtId, applicationData]);
+  }, [wards, addressDetail.districtId, applicationData, addressDetail.wardId]);
 
   // Refs for input elements to handle autofill
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -693,22 +686,25 @@ export function ReRegisterClinicForm() {
         ...prev,
         provinceId: value,
         provinceName: province?.name || "",
-        districtId: "",
+        districtId: "", // Clear district when province changes
         districtName: "",
-        wardId: "",
+        wardId: "", // Clear ward when province changes
         wardName: "",
       }));
       setValue("city", province?.name || "");
+      setValue("district", ""); // Clear district value
+      setValue("ward", ""); // Clear ward value
     } else if (name === "districtId" && districts) {
       const district = districts.data.find((d) => d.id === value);
       setAddressDetail((prev) => ({
         ...prev,
         districtId: value,
         districtName: district?.name || "",
-        wardId: "",
+        wardId: "", // Clear ward when district changes
         wardName: "",
       }));
       setValue("district", district?.name || "");
+      setValue("ward", ""); // Clear ward value
     } else if (name === "wardId" && wards) {
       const ward = wards.data.find((w) => w.id === value);
       setAddressDetail((prev) => ({

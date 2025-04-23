@@ -139,4 +139,5 @@ export interface workingScheduleMessages {
   shiftRemoved: string;
   shiftId: string;
   shiftsAppliedToMultipleDates: string;
+  shiftsAppliedToDate: string;
 }

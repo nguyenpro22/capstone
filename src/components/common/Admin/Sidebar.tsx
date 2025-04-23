@@ -107,6 +107,11 @@ const menuItems = {
       path: "/clinicManager/dashboard",
       icon: LayoutDashboard,
     },
+    {
+      label: "buyPackage",
+      path: "/clinicManager/buy-package",
+      icon: ShoppingBag,
+    },
 
     {
       label: "branchManagement",
@@ -121,11 +126,7 @@ const menuItems = {
     },
     { label: "service", path: "/clinicManager/service", icon: Ticket },
     { label: "order", path: "/clinicManager/order", icon: ClipboardList },
-    {
-      label: "buyPackage",
-      path: "/clinicManager/buy-package",
-      icon: ShoppingBag,
-    },
+
     { label: "inbox", path: "/clinicManager/inbox", icon: Inbox },
     { label: "liveStream", path: "/clinicManager/live-stream", icon: Video },
     { label: "profile", path: "/clinicManager/profile", icon: UserCircle },
