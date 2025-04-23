@@ -54,7 +54,9 @@ export const serviceApi = createApi({
 
 export const doctorServiceApi = createApi({
   reducerPath: "doctorServiceApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://160.187.240.214:3000/api/v2/" }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: "https://api.beautify.asia/query-api/v2",
+  }),
   endpoints: (builder) => ({
     getDoctorByServiceId: builder.query<IResCommon<DoctorServiceData>, string>({
       query: (id) => ({
