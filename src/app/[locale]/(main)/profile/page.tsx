@@ -77,7 +77,9 @@ const initialProfile: IUser = {
 
 export default function ProfilePage() {
   // API Hooks
-  const { data: profileData, refetch } = useGetUserProfileQuery();
+  const { data: profileData, refetch } = useGetUserProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const [updateUserProfile] = useUpdateUserProfileMutation();
   const searchParams = useSearchParams();
   console.log(searchParams);

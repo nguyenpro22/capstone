@@ -27,6 +27,15 @@ import {
   useGetWardsQuery,
 } from "@/features/address/api";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { CheckCircle } from "lucide-react";
 
 // Validation errors interface
 interface ValidationErrors {
@@ -74,7 +83,7 @@ const FileUploadField = ({
           {file.type.startsWith("image/") && previewUrl ? (
             <div className="h-full w-full rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
               <Image
-                src={previewUrl}
+                src={previewUrl || "/placeholder.svg"}
                 alt={`Preview of ${label}`}
                 className="h-full w-full object-cover"
                 width={100}
@@ -182,6 +191,7 @@ export function RegisterClinicForm() {
   const [imageProfilePicturePreview, setimageProfilePicturePreview] = useState<
     string | null
   >(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   // Validation errors state
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
@@ -628,6 +638,9 @@ export function RegisterClinicForm() {
 
       // Show success message
       showSuccess(t("form.toast.success.title"));
+
+      // Show success dialog
+      setShowSuccessDialog(true);
 
       // Reset form
       clearErrors();
@@ -1202,6 +1215,35 @@ export function RegisterClinicForm() {
             </Button>
           </div>
         </form>
+        {/* Success Dialog */}
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-center justify-center text-xl">
+                <CheckCircle className="h-6 w-6 text-green-500" />
+                {t("form.success.title") || "Registration Successful"}
+              </DialogTitle>
+              <DialogDescription className="text-center pt-2">
+                {t("form.success.emailSent") ||
+                  "We've sent a confirmation email to your inbox."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col space-y-3 py-3">
+              <p className="text-center text-muted-foreground">
+                {t("form.success.checkEmail") ||
+                  "Please check your email for further instructions."}
+              </p>
+            </div>
+            <DialogFooter className="flex justify-center sm:justify-center">
+              <Button
+                onClick={() => setShowSuccessDialog(false)}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+              >
+                {t("form.success.close") || "Close"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
