@@ -313,4 +313,19 @@ export const homeMessages: Messages["home"] = {
     },
     copyright: "© 2025 Trung Tâm Thẩm Mỹ. Đã đăng ký bản quyền.",
   },
+  home: "Trang chủ",
+  livestream: "Trực tiếp",
+  clinicView: "Xem phòng khám",
+  registerClinic: "Đăng ký phòng khám",
+  
+  // User menu
+  login: "Đăng nhập",
+  profile: "Hồ sơ",
+  appointments: "Lịch hẹn",
+  inbox: "Hộp thoại",
+  logout: "Đăng xuất",
+  
+  // Mobile menu
+  menu: "Menu",
+  close: "Đóng",
 };

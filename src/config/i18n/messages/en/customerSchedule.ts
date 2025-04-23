@@ -54,6 +54,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   pending: "Pending",
   inProgress: "In Progress",
   uncompleted: "Uncompleted",
+  waitingApproval:"Waiting Approval",
   badRequest: "Bad Request",
   pleaseEnterNameOrPhone: "Please enter a name or phone number",
   serverError: "Server Error",

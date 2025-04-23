@@ -148,8 +148,10 @@ export default function BranchWalletPage() {
               : "income",
           status: item.status.toLowerCase().includes("completed")
             ? "completed"
-            : item.status.toLowerCase().includes("waiting")
-            ? "waiting"
+            : item.status.toLowerCase().includes("waiting for payment")
+            ? "waiting-payment"
+            : item.status.toLowerCase().includes("waiting approval")
+            ? "waiting-approval"
             : item.status.toLowerCase().includes("pending")
             ? "pending"
             : "rejected",
@@ -232,10 +234,16 @@ export default function BranchWalletPage() {
             {t("status.pending")}
           </Badge>
         );
-      case "waiting":
+      case "waiting-payment":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600">
-            {t("status.waiting") || "Waiting for Payment"}
+            {t("status.waitingPayment") || "Waiting for Payment"}
+          </Badge>
+        );
+      case "waiting-approval":
+        return (
+          <Badge className="bg-purple-500 hover:bg-purple-600">
+            {t("status.waitingApproval") || "Waiting Approval"}
           </Badge>
         );
       case "rejected":
@@ -569,6 +577,11 @@ export default function BranchWalletPage() {
                             ? t("status.completed")
                             : statusFilter === "pending"
                             ? t("status.pending")
+                            : statusFilter === "waiting-payment"
+                            ? t("status.waitingPayment") ||
+                              "Waiting for Payment"
+                            : statusFilter === "waiting-approval"
+                            ? t("status.waitingApproval") || "Waiting Approval"
                             : t("status.rejected")}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
@@ -592,6 +605,21 @@ export default function BranchWalletPage() {
                           onClick={() => setStatusFilter("pending")}
                         >
                           {t("status.pending")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("waiting-payment")}
+                        >
+                          {t("status.waitingPayment") || "Waiting for Payment"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("waiting-approval")}
+                        >
+                          {t("status.waitingApproval") || "Waiting Approval"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setStatusFilter("rejected")}
+                        >
+                          {t("status.rejected")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -823,7 +851,7 @@ export default function BranchWalletPage() {
                             ? t("status.completed")
                             : statusFilter === "pending"
                             ? t("status.pending")
-                            : t("status.rejected")}
+                            : statusFilter === "rejected"}
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>

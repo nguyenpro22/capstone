@@ -212,4 +212,19 @@ export interface homeMessages {
     };
     copyright: string;
   };
+  // Navigation items
+  home: string;
+  livestream: string;
+  clinicView: string;
+  registerClinic: string;
+  // User menu
+  login: string;
+  profile: string;
+  appointments: string;
+  inbox: string;
+  logout: string;
+  
+  // Mobile menu
+  menu: string;
+  close: string;
 }
