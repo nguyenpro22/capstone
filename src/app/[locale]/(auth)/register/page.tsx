@@ -176,9 +176,13 @@ interface ErrorResponse {
 }
 
 // Add this function after the imports
-function debounce(func: Function, wait: number) {
+// Replace with properly typed generic function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
-  return (...args: any[]) => {
+  return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
