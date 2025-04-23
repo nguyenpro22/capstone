@@ -291,9 +291,9 @@ export function RescheduleDialog({
       onClose();
 
       // Show success toast
-      toast.success(
-        `Lịch hẹn của bạn đã được đặt lại với bác sĩ ${selectedDoctor.fullName} vào ngày ${formattedDate} lúc ${selectedTime}`
-      );
+      // toast.success(
+      //   `Lịch hẹn của bạn đã được đặt lại với bác sĩ ${selectedDoctor.fullName} vào ngày ${formattedDate} lúc ${selectedTime}`
+      // );
 
       // Trigger success callback
       onSuccess();
