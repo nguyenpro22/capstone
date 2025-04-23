@@ -98,8 +98,9 @@ export const registerClinic: Messages["registerClinic"] = {
     loading: "Đang tải dữ liệu đăng ký...",
     loadError: "Không thể tải dữ liệu đăng ký. Vui lòng thử lại sau.",
     rejectionReason: "Lý Do Từ Chối:",
-    rejectedInformation:"Đăng ký phòng khám của bạn đã bị từ chối",
-    updateInformation:"Vui lòng cập nhật thông tin của bạn và nộp lại đơn đăng ký.",
+    rejectedInformation: "Đăng ký phòng khám của bạn đã bị từ chối",
+    updateInformation:
+      "Vui lòng cập nhật thông tin của bạn và nộp lại đơn đăng ký.",
     logout: "Đăng Xuất",
     success: {
       title: "Đăng Ký Đã Được Gửi Thành Công!",
@@ -185,7 +186,8 @@ export const registerClinic: Messages["registerClinic"] = {
         },
         error: {
           title: "Đăng ký thất bại",
-          description: "Đã xảy ra lỗi khi đăng ký phòng khám của bạn. Vui lòng thử lại.",
+          description:
+            "Đã xảy ra lỗi khi đăng ký phòng khám của bạn. Vui lòng thử lại.",
           pendingRequest: "Đang chờ yêu cầu",
           duplicateInfo: "Thông tin đã tồn tại",
           validation: "Vui lòng kiểm tra lại thông tin đã nhập",
@@ -193,6 +195,20 @@ export const registerClinic: Messages["registerClinic"] = {
       },
       submit: "Gửi Lại Đăng Ký",
       submitting: "Đang gửi...",
+    },
+  },
+  dialog: {
+    success: {
+      title: "Đăng Ký Thành Công",
+      description: "Đăng ký phòng khám của bạn đã được gửi thành công",
+      emailSent: "Chúng tôi đã gửi email xác nhận đến hộp thư của bạn",
+      checkEmail: "Vui lòng kiểm tra email để biết thêm hướng dẫn",
+      close: "Đóng",
+      nextSteps: "Các bước tiếp theo?",
+      processingTime:
+        "Đơn đăng ký của bạn sẽ được xem xét trong vòng 2-5 ngày làm việc",
+      contactSupport:
+        "Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ đội ngũ hỗ trợ",
     },
   },
 };
