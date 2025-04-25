@@ -5,7 +5,7 @@
 import React from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader } from "@/components/ui/card";
 
@@ -63,7 +63,7 @@ export default function UserOrdersPage() {
     setIsBookingsDialogOpen,
     handleDayClick,
   } = useOrderBookingData(t);
-
+  const locale = useLocale();
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-indigo-50 dark:from-purple-900/90 dark:to-indigo-900/80 py-12">
       <div className="container px-4 md:px-6">
@@ -207,7 +207,7 @@ export default function UserOrdersPage() {
         onClose={() => setIsBookingsDialogOpen(false)}
         bookings={selectedDayBookings}
         date={selectedDayFormatted}
-        getStatusBadge={getStatusBadge}
+        getStatusBadge={(status) => getStatusBadge(status, locale)}
         getStatusIcon={getStatusIcon}
         getStatusColor={getStatusColor}
         formatTime={formatTime}
