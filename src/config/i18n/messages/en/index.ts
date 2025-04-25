@@ -63,7 +63,7 @@ const en = {
   registerClinic,
   staffDoctor: doctorMessages,
   staff: staffMessages,
-  serviceMessage: service,
+  serviceMessages: service,
   clinicProfile: clinicProfileMessages,
   livestream,
   livestreamRoom,

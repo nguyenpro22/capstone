@@ -53,16 +53,7 @@ import {
 } from "@/components/ui/pagination";
 import { useGetAllcategoriesQuery } from "@/features/home/api";
 import { cn } from "@/lib/utils";
-
-// Utility functions
-const formatPrice = (
-  value: number,
-  currency = "đ",
-  locale = "vi-VN"
-): string => {
-  if (value === 0) return "Liên hệ";
-  return `${value.toLocaleString(locale)}${currency}`;
-};
+import { formatCurrency } from "@/utils";
 
 interface ErrorDisplayProps {
   onRetry: () => void;
@@ -80,6 +71,8 @@ interface Category {
 
 // Loading Overlay Component
 function LoadingIndicator(): JSX.Element {
+  const t = useTranslations("serviceMessages");
+
   return (
     <div className="flex flex-col items-center justify-center py-12">
       <div className="relative h-14 w-14">
@@ -88,12 +81,11 @@ function LoadingIndicator(): JSX.Element {
         <div className="absolute top-2 left-2 h-10 w-10 rounded-full border-4 border-t-purple-400 border-r-transparent border-b-transparent border-l-transparent animate-spin animation-delay-400"></div>
       </div>
       <p className="mt-4 text-purple-700 dark:text-purple-300 font-medium">
-        Đang tìm kiếm dịch vụ...
+        {t("searchingServices")}
       </p>
     </div>
   );
 }
-
 // Loading Skeleton Component
 function ServicesPageSkeleton(): JSX.Element {
   return (
@@ -155,7 +147,7 @@ function generateServiceKey(serviceId: string, index: number): string {
 
 // Error Component
 function ErrorDisplay({ onRetry }: ErrorDisplayProps): JSX.Element {
-  const t = useTranslations("serviceMessage.Services");
+  const t = useTranslations("serviceMessages");
 
   return (
     <div className="container mx-auto py-12 text-center">
@@ -189,6 +181,7 @@ function CategoryFilter({
   selectedCategory: string;
   onSelectCategory: (name: string) => void;
 }): JSX.Element {
+  const t = useTranslations("serviceMessages");
   const parentCategories = categories.filter((cat) => cat.isParent);
   const getSubcategories = (parentId: string) => {
     return categories.filter((cat) => cat.parentId === parentId);
@@ -197,11 +190,11 @@ function CategoryFilter({
   return (
     <Select value={selectedCategory} onValueChange={onSelectCategory}>
       <SelectTrigger className="w-full bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700 h-12 rounded-lg">
-        <SelectValue placeholder="Tất cả dịch vụ" />
+        <SelectValue placeholder={t("categories.allServices")} />
       </SelectTrigger>
       <SelectContent className="max-h-[300px] dark:bg-gray-800 dark:border-gray-700">
         <SelectItem value="all" className="dark:text-white">
-          Tất cả dịch vụ
+          {t("categories.allServices")}
         </SelectItem>
         {parentCategories.map((parent, index) => (
           <React.Fragment key={parent.id}>
@@ -235,11 +228,12 @@ function FeaturedServiceCard({
   service: ServiceItem;
 }): JSX.Element {
   const router = useRouter();
+  const t = useTranslations("serviceMessages");
   const hasDiscount =
     service.discountPercent && Number(service.discountPercent) > 0;
   const displayPrice = hasDiscount
-    ? service.discountMaxPrice
-    : service.maxPrice;
+    ? service.discountMinPrice
+    : service.minPrice;
 
   return (
     <motion.div
@@ -286,18 +280,18 @@ function FeaturedServiceCard({
           <div className="flex flex-col">
             {hasDiscount && (
               <span className="text-sm text-white/60 line-through">
-                {formatPrice(service.maxPrice)}
+                {formatCurrency(service.maxPrice)}
               </span>
             )}
             <span className="text-xl font-bold text-white">
-              {formatPrice(displayPrice)}
+              {formatCurrency(displayPrice)}
             </span>
           </div>
           <Button
             className="bg-white text-purple-700 hover:bg-white/90 rounded-full px-5 shadow-lg group-hover:shadow-xl transition-all"
             size="sm"
           >
-            Xem chi tiết
+            {t("featured.viewDetails")}
             <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </Button>
         </div>
@@ -306,14 +300,13 @@ function FeaturedServiceCard({
         <div className="absolute top-4 right-4">
           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 shadow-lg">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            Nổi bật
+            {t("featured.featured")}
           </Badge>
         </div>
       </div>
     </motion.div>
   );
 }
-
 // View Toggle Component
 function ViewToggle({
   viewMode,
@@ -322,6 +315,8 @@ function ViewToggle({
   viewMode: "grid" | "list";
   setViewMode: (mode: "grid" | "list") => void;
 }): JSX.Element {
+  const t = useTranslations("serviceMessages");
+
   return (
     <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm">
       <button
@@ -340,7 +335,7 @@ function ViewToggle({
             <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
             <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
           </div>
-          <span className="hidden sm:inline">Grid</span>
+          <span className="hidden sm:inline">{t("viewMode.grid")}</span>
         </div>
       </button>
       <button
@@ -358,33 +353,38 @@ function ViewToggle({
             <div className="w-4 h-1 bg-current rounded-sm"></div>
             <div className="w-4 h-1 bg-current rounded-sm"></div>
           </div>
-          <span className="hidden sm:inline">List</span>
+          <span className="hidden sm:inline">{t("viewMode.list")}</span>
         </div>
       </button>
     </div>
   );
 }
 
-// Footer Component
+// Footer Component with i18n
 function Footer(): JSX.Element {
+  const t = useTranslations("serviceMessages");
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white">
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-3">Đăng ký nhận thông tin</h3>
+            <h3 className="text-2xl font-bold mb-3">
+              {t("footer.newsletter.title")}
+            </h3>
             <p className="text-white/70 mb-6">
-              Nhận thông tin về các dịch vụ mới và ưu đãi đặc biệt từ chúng tôi.
+              {t("footer.newsletter.description")}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <Input
                 type="email"
-                placeholder="Email của bạn"
+                placeholder={t("footer.newsletter.emailPlaceholder")}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white"
               />
               <Button className="bg-white text-purple-900 hover:bg-white/90">
-                Đăng ký
+                {t("footer.newsletter.subscribe")}
               </Button>
             </div>
           </div>
@@ -399,9 +399,7 @@ function Footer(): JSX.Element {
             <div>
               <h3 className="text-xl font-bold mb-4">Beauty & Spa</h3>
               <p className="text-white/70 mb-6">
-                Dịch vụ làm đẹp và chăm sóc sức khỏe cao cấp được thiết kế riêng
-                cho nhu cầu của bạn. Trải nghiệm sự khác biệt với đội ngũ chuyên
-                gia của chúng tôi.
+                {t("footer.companyInfo.description")}
               </p>
               <div className="flex space-x-4">
                 <a
@@ -427,14 +425,16 @@ function Footer(): JSX.Element {
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Liên kết nhanh</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                {t("footer.quickLinks.title")}
+              </h3>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Trang chủ
+                    {t("footer.quickLinks.home")}
                   </Link>
                 </li>
                 <li>
@@ -442,7 +442,7 @@ function Footer(): JSX.Element {
                     href="/about"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Về chúng tôi
+                    {t("footer.quickLinks.about")}
                   </Link>
                 </li>
                 <li>
@@ -450,7 +450,7 @@ function Footer(): JSX.Element {
                     href="/services"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Dịch vụ
+                    {t("footer.quickLinks.services")}
                   </Link>
                 </li>
                 <li>
@@ -458,7 +458,7 @@ function Footer(): JSX.Element {
                     href="/pricing"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Bảng giá
+                    {t("footer.quickLinks.pricing")}
                   </Link>
                 </li>
                 <li>
@@ -466,7 +466,7 @@ function Footer(): JSX.Element {
                     href="/contact"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Liên hệ
+                    {t("footer.quickLinks.contact")}
                   </Link>
                 </li>
               </ul>
@@ -475,7 +475,7 @@ function Footer(): JSX.Element {
             {/* Services */}
             <div>
               <h3 className="text-lg font-semibold mb-4">
-                Dịch vụ của chúng tôi
+                {t("footer.ourServices.title")}
               </h3>
               <ul className="space-y-2">
                 <li>
@@ -483,7 +483,7 @@ function Footer(): JSX.Element {
                     href="/services"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Tất cả dịch vụ
+                    {t("footer.ourServices.allServices")}
                   </Link>
                 </li>
                 <li>
@@ -491,7 +491,7 @@ function Footer(): JSX.Element {
                     href="/services?category=11111111-1111-1111-1111-111111111111"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Phẫu Thuật Vùng Mặt
+                    {t("footer.ourServices.faceSurgery")}
                   </Link>
                 </li>
                 <li>
@@ -499,7 +499,7 @@ function Footer(): JSX.Element {
                     href="/services?category=10101010-1010-1010-1010-101010101010"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Phẫu Thuật Tạo Hình Tai
+                    {t("footer.ourServices.earSurgery")}
                   </Link>
                 </li>
                 <li>
@@ -507,7 +507,7 @@ function Footer(): JSX.Element {
                     href="/services?category=22222222-2222-2222-2222-222222222222"
                     className="text-white/70 hover:text-white transition-colors"
                   >
-                    Phẫu Thuật Ngực
+                    {t("footer.ourServices.breastSurgery")}
                   </Link>
                 </li>
               </ul>
@@ -516,22 +516,26 @@ function Footer(): JSX.Element {
             {/* Contact */}
             <div>
               <h3 className="text-lg font-semibold mb-4">
-                Liên hệ với chúng tôi
+                {t("footer.contactUs.title")}
               </h3>
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <MapPin className="h-5 w-5 mr-3 text-purple-300 mt-0.5" />
                   <span className="text-white/70">
-                    123 Beauty Street, Spa City, SC 12345
+                    {t("footer.contactUs.address")}
                   </span>
                 </li>
                 <li className="flex items-center">
                   <Phone className="h-5 w-5 mr-3 text-purple-300" />
-                  <span className="text-white/70">+1 (555) 123-4567</span>
+                  <span className="text-white/70">
+                    {t("footer.contactUs.phone")}
+                  </span>
                 </li>
                 <li className="flex items-center">
                   <Mail className="h-5 w-5 mr-3 text-purple-300" />
-                  <span className="text-white/70">info@beautyspa.com</span>
+                  <span className="text-white/70">
+                    {t("footer.contactUs.email")}
+                  </span>
                 </li>
               </ul>
             </div>
@@ -542,16 +546,15 @@ function Footer(): JSX.Element {
       {/* Copyright */}
       <div className="border-t border-white/10 py-6">
         <div className="container mx-auto px-4 text-center text-white/60 text-sm">
-          <p>© {new Date().getFullYear()} Beauty & Spa. All rights reserved.</p>
+          <p>{t("footer.copyright", { year: currentYear })}</p>
         </div>
       </div>
     </footer>
   );
 }
-
 // Main component
 export default function ServicesPage(): JSX.Element {
-  const t = useTranslations("serviceMessage.serviceMessage");
+  const t = useTranslations("serviceMessages");
   const router = useRouter();
   const [pageIndex, setPageIndex] = useState<number>(1);
   const pageSize: number = 6;

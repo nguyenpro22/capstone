@@ -59,7 +59,7 @@ const vi = {
   branch: branchMessages,
   staffDoctor: doctorMessages,
   staff: staffMessages,
-  serviceMessage: service,
+  serviceMessages: service,
   login: loginMessage,
   forgotPassword,
   register,
