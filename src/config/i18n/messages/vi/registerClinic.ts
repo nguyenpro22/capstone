@@ -71,6 +71,11 @@ export const registerClinic: Messages["registerClinic"] = {
       businessLicenseRequired: "Giấy phép kinh doanh là bắt buộc",
       operatingLicenseRequired: "Giấy phép hoạt động là bắt buộc",
     },
+    terms: {
+      text: "Tôi đồng ý với",
+      link: "Điều khoản và điều kiện",
+      required: "Bạn phải chấp thuận điều khoản và điều kiện để tiếp tục",
+    },
     toast: {
       missingFiles: {
         title: "Thiếu tài liệu",

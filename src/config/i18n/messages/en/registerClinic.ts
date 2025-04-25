@@ -71,6 +71,11 @@ export const registerClinic: Messages["registerClinic"] = {
       phoneInvalid: "Phone number is invalid",
       operatingLicenseRequired: "Operating license document is required",
     },
+    terms: {
+      text: "I agree to the",
+      link: "Terms and Services",
+      required: "You must accept the terms and services to continue",
+    },
     toast: {
       missingFiles: {
         title: "Missing files",
