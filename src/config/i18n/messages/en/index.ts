@@ -46,6 +46,7 @@ import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
 import { configs } from "./configs";
 import { livestreamMessages } from "./livestream-view";
+import { userProfileMessages } from "./user-profile";
 
 const en = {
   home: homeMessages,
@@ -96,6 +97,7 @@ const en = {
   profile: profileMessages,
   configs,
   livestreamMessages,
+  userProfileMessages,
 };
 
 export default en;

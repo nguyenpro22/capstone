@@ -46,6 +46,7 @@ import { profileMessages } from "./profile";
 import { Configuration } from "./configs";
 import { LivestreamViewMessages } from "./livestream-view";
 import { LivestreamRoomMessages } from "./livestream-room-view";
+import { UserProfileMessages } from "./user-profile";
 
 export type Messages = {
   home: homeMessages;
@@ -97,4 +98,5 @@ export type Messages = {
   registerSchedule: registerSchedule;
   profile: profileMessages;
   configs: Configuration;
+  userProfileMessages: UserProfileMessages;
 };
