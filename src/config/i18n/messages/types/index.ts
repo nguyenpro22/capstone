@@ -47,6 +47,7 @@ import { Configuration } from "./configs";
 import { LivestreamViewMessages } from "./livestream-view";
 import { LivestreamRoomMessages } from "./livestream-room-view";
 import { UserProfileMessages } from "./user-profile";
+import { PolicyMessages } from "./policy";
 
 export type Messages = {
   home: homeMessages;
@@ -99,4 +100,5 @@ export type Messages = {
   profile: profileMessages;
   configs: Configuration;
   userProfileMessages: UserProfileMessages;
+  policyMessages: PolicyMessages;
 };
