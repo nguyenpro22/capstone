@@ -63,7 +63,8 @@ export function BookingSummaryStep({
       return sum + (defaultPriceType?.price || 0);
     }
   }, 0);
-  const depositAmount = totalPrice * 0.1;
+  const depositPercent = service.depositPercent || 100;
+  const depositAmount = totalPrice * (depositPercent / 100);
 
   return (
     <div className="space-y-8">

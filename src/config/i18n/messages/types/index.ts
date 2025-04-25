@@ -44,6 +44,8 @@ import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
 import { Configuration } from "./configs";
+import { LivestreamViewMessages } from "./livestream-view";
+import { LivestreamRoomMessages } from "./livestream-room-view";
 
 export type Messages = {
   home: homeMessages;
@@ -67,6 +69,8 @@ export type Messages = {
   livestream: livestream;
   livestreamRoom: LivestreamRoomTranslations;
   clinicProfile: clinicProfileMessages; // Add this line
+  livestreamMessages: LivestreamViewMessages;
+  livestreamRoomMessages: LivestreamRoomMessages;
   package: packageMessages;
   bookingFlow: BookingFlowMessages;
   sidebar: sidebarMessages;

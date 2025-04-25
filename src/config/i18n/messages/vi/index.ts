@@ -46,6 +46,7 @@ import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
 import { configs } from "./configs";
+import { livestreamMessages } from "./livestream-view";
 
 const vi = {
   home: homeMessages,
@@ -95,6 +96,7 @@ const vi = {
   registerSchedule,
   profile: profileMessages,
   configs,
+  livestreamMessages,
 };
 
 export default vi;
