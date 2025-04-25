@@ -1,69 +1,116 @@
 import { Messages } from "../types";
 
 export const service: Messages["service"] = {
-  serviceMessage: {
-    // Banner section
-    ourServices: "Our Services",
-    discoverServices: "Discover our",
-    amazing: "amazing services",
-    serviceDescription:
-      "Experience premium beauty and wellness services tailored to your needs. Our expert team is dedicated to providing exceptional care and results.",
-    exploreNow: "Explore Now",
-    beautyServices: "Beauty Services",
+  // Service page messages
+  services: "Services",
+  ourServices: "Our Services",
+  discoverServices: "Discover our",
+  amazing: "amazing services",
+  serviceDescription:
+    "Explore our premium selection of beauty and health services designed to enhance your well-being and confidence.",
+  searchServices: "Search services...",
+  searchingServices: "Searching for services...",
+  sortBy: "Sort by",
+  mostPopular: "Most Popular",
+  priceLowToHigh: "Price: Low to High",
+  priceHighToLow: "Price: High to Low",
+  nameAZ: "Name: A-Z",
+  resultsCount: "{count} results",
+  noServicesFound: "No services found",
+  tryDifferentFilters: "Try different search criteria or browse all services",
+  clearFilters: "Clear Filters",
+  clear: "Clear",
+  errorLoading: "Error Loading Services",
+  errorMessage:
+    "We encountered an issue while loading services. Please try again.",
+  retry: "Retry",
+  noData: "No Data Available",
+  unableToLoadServices: "Unable to load services at this time",
 
-    // Search and filters
-    searchServices: "Search services...",
-    sortBy: "Sort by",
-    mostPopular: "Most Popular",
-    priceLowToHigh: "Price: Low to High",
-    priceHighToLow: "Price: High to Low",
-    nameAZ: "Name: A-Z",
-    clear: "Clear",
-    clearFilters: "Clear Filters",
-
-    // Results
-    services: "Services",
-    resultsCount: "{count} results found",
-    noServicesFound: "No services found",
-    tryDifferentFilters:
-      "Try different search terms or filters to find what you're looking for.",
-
-    // Error messages
-    noData: "No Data Available",
-    unableToLoadServices:
-      "Unable to load services at this time. Please try again later.",
-    retry: "Retry",
-    errorLoading: "Error Loading Data",
-    errorMessage: "There was a problem loading the services. Please try again.",
-
-    // Footer
-    readyToStart: "Ready to start?",
-    findPerfectService: "Find your perfect service today",
-    bookingDescription:
-      "Book your appointment today and experience our premium services with our expert team.",
-    bookNow: "Book Now",
-    satisfiedCustomers: "Satisfied Customers",
-    averageRating: "Average Rating",
-    yearsExperience: "Years Experience",
+  // Service card messages
+  serviceCard: {
+    book: "Book Now",
+    quickView: "Quick View",
+    premium: "Premium",
+    popular: "Popular",
+    locations: "Available at",
+    doctors: "Specialists",
+    duration: "Duration",
+    time: {
+      treatment: "{duration} min treatment",
+      recovery: "{duration} day recovery",
+    },
+    clinics: {
+      more: "more locations",
+    },
+    doctorsMore: "more specialists",
   },
 
-  // Category names
-  Categories: {
-    all: "All Services",
-    facialSurgery: "Facial Surgery",
-    earSurgery: "Ear Plastic Surgery",
-    breastSurgery: "Breast Surgery",
+  // Footer messages
+  footer: {
+    newsletter: {
+      title: "Subscribe to Our Newsletter",
+      description: "Receive updates about new services and special offers.",
+      emailPlaceholder: "Your email",
+      subscribe: "Subscribe",
+    },
+    companyInfo: {
+      description:
+        "Premium beauty and healthcare services tailored to your needs. Experience the difference with our team of experts.",
+    },
+    quickLinks: {
+      title: "Quick Links",
+      home: "Home",
+      about: "About Us",
+      services: "Services",
+      pricing: "Pricing",
+      contact: "Contact",
+    },
+    ourServices: {
+      title: "Our Services",
+      allServices: "All Services",
+      faceSurgery: "Facial Surgery",
+      earSurgery: "Ear Reconstruction Surgery",
+      breastSurgery: "Breast Surgery",
+    },
+    contactUs: {
+      title: "Contact Us",
+      address: "123 Beauty Street, Spa City, SC 12345",
+      phone: "+1 (555) 123-4567",
+      email: "info@beautyspa.com",
+    },
+    copyright: "© {year} Beauty & Spa. All rights reserved.",
   },
 
-  // Service card translations
-  Services: {
+  // Pagination
+  pagination: {
+    previous: "Previous",
+    next: "Next",
+  },
+
+  // Category
+  categories: {
+    allServices: "All Services",
+    category: "Category",
+  },
+
+  // View modes
+  viewMode: {
+    grid: "Grid",
+    list: "List",
+  },
+
+  // Filters
+  filters: {
+    serviceCategories: "Service Categories",
+    categories: "Categories",
+  },
+
+  // Featured service
+  featured: {
+    title: "Featured Service",
+    featured: "Featured",
     viewDetails: "View Details",
-    bookNow: "Book Now",
-    startingFrom: "Starting from",
-    contact: "Contact",
-    errorLoading: "Error Loading Data",
-    errorMessage: "There was a problem loading the services. Please try again.",
-    retry: "Retry",
   },
 };
 export const serviceMessages: Messages["serviceMessage"] = {
@@ -71,8 +118,8 @@ export const serviceMessages: Messages["serviceMessage"] = {
   servicesList: "Services List",
   no: "No.",
   addNewService: "Add new Service",
-  addFirstService:"Add First Service",
-  noServicesAvailable:"No Services Available",
+  addFirstService: "Add First Service",
+  noServicesAvailable: "No Services Available",
   serviceName: "Service Name",
   price: "Price",
   coverImage: "Cover Image",
@@ -87,27 +134,28 @@ export const serviceMessages: Messages["serviceMessage"] = {
   deleteService: "Delete service",
   addProcedure: "Add Procedure",
   description: "Description",
-  deleteServiceConfirmation: "Are you sure you want to delete this service? This action cannot be undone.",
+  deleteServiceConfirmation:
+    "Are you sure you want to delete this service? This action cannot be undone.",
   confirmDelete: "Confirm Delete",
   cancel: "Cancel",
   branches: "Branches",
   noAvailable: "No branches available. Please create a branch first.",
   image: "Images",
   save: "Save...",
-    // Success messages
-    success: {
-      serviceAdded: "Service added successfully!",
-      serviceDeleted: "Service has been deleted successfully!",
-      serviceUpdated: "Service updated successfully!",
-    },
-  
-    // Error messages
-    errors: {
-      fetchServiceFailed: "Failed to fetch service information!",
-      deleteServiceFailed: "Failed to delete service!",
-      refreshServiceFailed: "Failed to update service information!",
-      updateServiceFailed: "Failed to update service!"
-    },
+  // Success messages
+  success: {
+    serviceAdded: "Service added successfully!",
+    serviceDeleted: "Service has been deleted successfully!",
+    serviceUpdated: "Service updated successfully!",
+  },
+
+  // Error messages
+  errors: {
+    fetchServiceFailed: "Failed to fetch service information!",
+    deleteServiceFailed: "Failed to delete service!",
+    refreshServiceFailed: "Failed to update service information!",
+    updateServiceFailed: "Failed to update service!",
+  },
   // Modal tabs
   overview: "Overview",
   clinics: "Clinics",
@@ -155,7 +203,8 @@ export const serviceMessages: Messages["serviceMessage"] = {
 
   // Delete confirmation
   deleteConfirmTitle: "Confirm Delete",
-  deleteConfirmDescription: "Are you sure you want to delete this procedure? This action cannot be undone.",
+  deleteConfirmDescription:
+    "Are you sure you want to delete this procedure? This action cannot be undone.",
   deleting: "Deleting...",
   deleteProcedure: "Delete Procedure",
 
@@ -173,28 +222,29 @@ export const serviceMessages: Messages["serviceMessage"] = {
   procedureNameRequired: "Procedure name cannot be empty!",
   priceTypeRequired: "At least one price type is required!",
   defaultPriceTypeRequired: "At least one price type must be set as default!",
-    // Doctor tab
-    doctor: {
-      title: "Service Doctors",
-      add: "Add Doctor",
-      select: "Select Doctors",
-      search: "Search doctors...",
-      loading: "Loading doctors list...",
-      notFound: "No doctors found",
-      processing: "Processing...",
-      addButton: "Add Doctors",
-      requiredDoctor: "Please select at least one doctor",
-      addSuccess: "Doctors added successfully",
-      confirmRemove: "Are you sure you want to remove this doctor from the service?",
-      removeSuccess: "Doctor removed from service successfully",
-      removeError: "An error occurred while removing the doctor",
-      removeTooltip: "Remove doctor from service",
-      noDoctors: "No doctors have been assigned to this service yet",
-      addFirst: "Add your first doctor",
-      addError: "Failed to add doctors to the service",
-      alreadyHasService: "These doctors already have this service: {doctors}",
-    },
-     // Procedure form
+  // Doctor tab
+  doctor: {
+    title: "Service Doctors",
+    add: "Add Doctor",
+    select: "Select Doctors",
+    search: "Search doctors...",
+    loading: "Loading doctors list...",
+    notFound: "No doctors found",
+    processing: "Processing...",
+    addButton: "Add Doctors",
+    requiredDoctor: "Please select at least one doctor",
+    addSuccess: "Doctors added successfully",
+    confirmRemove:
+      "Are you sure you want to remove this doctor from the service?",
+    removeSuccess: "Doctor removed from service successfully",
+    removeError: "An error occurred while removing the doctor",
+    removeTooltip: "Remove doctor from service",
+    noDoctors: "No doctors have been assigned to this service yet",
+    addFirst: "Add your first doctor",
+    addError: "Failed to add doctors to the service",
+    alreadyHasService: "These doctors already have this service: {doctors}",
+  },
+  // Procedure form
   procedure: {
     addProcedure: "Add Procedure",
     adding: "Adding...",
@@ -220,14 +270,15 @@ export const serviceMessages: Messages["serviceMessage"] = {
       descriptionRequired: "Description cannot be empty!",
       descriptionMinLength: "Description must have at least 2 characters!",
       priceTypeRequired: "At least one price type is required!",
-      defaultPriceTypeRequired: "At least one price type must be set as default!",
+      defaultPriceTypeRequired:
+        "At least one price type must be set as default!",
       stepIndexExists: "This step order already exists!",
       addError: "Error adding procedure:",
       generalError: "Failed to add, please try again.",
     },
   },
-   // Add new service form
-   addService: {
+  // Add new service form
+  addService: {
     title: "Add New Service",
     subtitle: "Enter information and upload service images",
     serviceName: "Service Name",
@@ -252,7 +303,8 @@ export const serviceMessages: Messages["serviceMessage"] = {
     depositPercentInfo: "Amount customers must deposit when booking (0-100%)",
     isRefundable: "Allow Refunds",
     isRefundableInfo: "Whether customers can get a refund for this service",
-    requiredFields: "Please fill in all required fields, including at least one branch and one image"
+    requiredFields:
+      "Please fill in all required fields, including at least one branch and one image",
   },
   // Update service form
   updateService: {
@@ -283,5 +335,4 @@ export const serviceMessages: Messages["serviceMessage"] = {
     isRefundable: "Allow Refunds",
     isRefundableInfo: "Whether customers can get a refund for this service",
   },
-  
-}
+};

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
+import { useTranslations } from "next-intl";
 
 // Define CSS animation for floating reactions
 const reactionAnimationStyle = `
@@ -168,6 +169,8 @@ export default function LivestreamRoomPage() {
   const joinAttemptedRef = useRef<boolean>(false);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
+  const t = useTranslations("livestreamRoomMessages");
+
   // Define the reactions map
   const reactionsMap: Record<
     number,
@@ -175,21 +178,29 @@ export default function LivestreamRoomPage() {
   > = {
     1: {
       emoji: "👍",
-      text: "Looks great!",
+      text: t("chat.reactions.types.thumbsUp"),
       icon: <ThumbsUp className="h-4 w-4" />,
     },
-    2: { emoji: "❤️", text: "Love it!", icon: <Heart className="h-4 w-4" /> },
+    2: {
+      emoji: "❤️",
+      text: t("chat.reactions.types.heart"),
+      icon: <Heart className="h-4 w-4" />,
+    },
     3: {
       emoji: "🔥",
-      text: "That's fire!",
+      text: t("chat.reactions.types.fire"),
       icon: <Flame className="h-4 w-4" />,
     },
     4: {
       emoji: "👏",
-      text: "Amazing work!",
+      text: t("chat.reactions.types.amazing"),
       icon: <ClipboardCheck className="h-4 w-4" />,
     },
-    5: { emoji: "😍", text: "Beautiful!", icon: <Smile className="h-4 w-4" /> },
+    5: {
+      emoji: "😍",
+      text: t("chat.reactions.types.beautiful"),
+      icon: <Smile className="h-4 w-4" />,
+    },
   };
 
   // Check if we're in the browser environment
@@ -220,10 +231,10 @@ export default function LivestreamRoomPage() {
           // Fallback to simulated data if API fails
           setLivestreamInfo({
             id: id,
-            name: "Beauty Livestream",
-            clinicName: "Beauty Clinic",
+            name: t("livestreamInfo.name"),
+            clinicName: t("livestreamInfo.clinicName"),
             startDate: new Date().toISOString(),
-            description: "Join us for a live beauty session!",
+            description: t("livestreamInfo.description"),
           });
         }
       } catch (error) {
@@ -237,10 +248,10 @@ export default function LivestreamRoomPage() {
         // Fallback data
         setLivestreamInfo({
           id: id,
-          name: "Beauty Livestream",
-          clinicName: "Beauty Clinic",
+          name: t("livestreamInfo.name"),
+          clinicName: t("livestreamInfo.clinicName"),
           startDate: new Date().toISOString(),
-          description: "Join us for a live beauty session!",
+          description: t("livestreamInfo.description"),
         });
       }
     };
@@ -254,7 +265,7 @@ export default function LivestreamRoomPage() {
 
     let isComponentMounted = true;
     setIsLoading(true);
-    setConnectionStatus("connecting");
+    setConnectionStatus(t("connection.connecting"));
     console.log("Initializing SignalR connection...");
 
     // Check if we're using HTTPS
@@ -335,7 +346,7 @@ export default function LivestreamRoomPage() {
       .start()
       .then(() => {
         console.log("✅ Connected to SignalR");
-        setConnectionStatus("connected");
+        setConnectionStatus(t("connection.connected"));
 
         if (!isComponentMounted) {
           console.debug("Component unmounted during connection, stopping");
@@ -355,7 +366,7 @@ export default function LivestreamRoomPage() {
           console.log(`Joining room as listener: ${id}`);
           conn.invoke("JoinAsListener", id).catch((err) => {
             console.debug(`Error invoking JoinAsListener: ${err.message}`);
-            setConnectionStatus("error");
+            setConnectionStatus(t("connection.error"));
 
             // If we fail to join, try again after a delay
             if (isComponentMounted) {
@@ -547,7 +558,7 @@ export default function LivestreamRoomPage() {
                     error instanceof Error ? error.message : String(error)
                   }`
                 );
-                setConnectionStatus("error");
+                setConnectionStatus(t("connection.error"));
               }
             } else {
               console.debug("No JSEP in JoinRoomResponse");
@@ -609,7 +620,7 @@ export default function LivestreamRoomPage() {
           if (isComponentMounted) {
             setChatMessage([]);
             setIsJoinRoom(false);
-            alert("The livestream has ended");
+            alert(t("connection.error.message"));
             router.push(`/livestream-view`);
           }
         });
@@ -637,13 +648,13 @@ export default function LivestreamRoomPage() {
 
         conn.on("JanusError", async (message: string) => {
           console.debug(`Janus Error: ${message}`);
-          setConnectionStatus("error");
+          setConnectionStatus(t("connection.error"));
         });
       })
       .catch((err) => {
         console.error("Failed to connect to SignalR:", err);
         console.debug(`SignalR connection error: ${err.message}`);
-        setConnectionStatus("error");
+        setConnectionStatus(t("connection.error"));
         setIsLoading(false);
 
         // Check if this is a security-related error
@@ -860,17 +871,17 @@ export default function LivestreamRoomPage() {
           <div className="container mx-auto flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-rose-700">
-                {livestreamInfo?.name || "Beauty Livestream"}
+                {livestreamInfo?.name || t("livestreamInfo.name")}
               </h1>
               <p className="text-sm text-gray-600">
-                {livestreamInfo?.clinicName || "Loading..."}
+                {livestreamInfo?.clinicName || t("livestreamInfo.clinicName")}
               </p>
             </div>
             <div className="flex items-center space-x-2">
               <div className="flex items-center bg-rose-50 px-3 py-1 rounded-full">
                 <Users className="h-4 w-4 text-rose-600 mr-1" />
                 <span className="text-sm font-medium text-rose-600">
-                  {view} viewers
+                  {t("header.viewers", { count: view })}
                 </span>
               </div>
               <button
@@ -890,9 +901,9 @@ export default function LivestreamRoomPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-white">
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500 mb-4"></div>
-                  <p className="text-lg">Connecting to livestream...</p>
+                  <p className="text-lg">{t("connection.connecting")}</p>
                   <p className="text-sm mt-2 text-gray-300">
-                    Status: {connectionStatus}
+                    {t("connection.status", { status: connectionStatus })}
                   </p>
 
                   {securityError && (
@@ -900,16 +911,14 @@ export default function LivestreamRoomPage() {
                       <div className="flex items-center mb-2">
                         <AlertTriangle className="h-5 w-5 text-yellow-400 mr-2" />
                         <h3 className="text-yellow-400 font-medium">
-                          Security Error
+                          {t("connection.error.security.title")}
                         </h3>
                       </div>
                       <p className="text-sm text-gray-200 mb-2">
-                        The connection to the livestream server is being blocked
-                        because it&apos;s not secure (HTTP instead of HTTPS).
+                        {t("connection.error.security.message")}
                       </p>
                       <p className="text-sm text-gray-200">
-                        Please contact the administrator to enable HTTPS on the
-                        API server.
+                        {t("connection.error.security.backButton")}
                       </p>
                     </div>
                   )}
@@ -921,22 +930,21 @@ export default function LivestreamRoomPage() {
                   <div className="bg-red-500 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
                     <X className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Connection Error</h3>
-                  <p className="mb-4">
-                    Failed to connect to the livestream. Please try again later.
-                  </p>
+                  <h3 className="text-xl font-bold mb-2">
+                    {t("connection.error.title")}
+                  </h3>
+                  <p className="mb-4">{t("connection.error.message")}</p>
 
                   {securityError && (
                     <div className="mb-4 bg-red-900 bg-opacity-50 p-4 rounded-lg">
                       <div className="flex items-center mb-2">
                         <AlertTriangle className="h-5 w-5 text-yellow-400 mr-2" />
                         <h3 className="text-yellow-400 font-medium">
-                          Security Error
+                          {t("connection.error.security.title")}
                         </h3>
                       </div>
                       <p className="text-sm text-gray-200">
-                        The connection is being blocked because the API server
-                        is not using HTTPS.
+                        {t("connection.error.security.message")}
                       </p>
                     </div>
                   )}
@@ -945,7 +953,7 @@ export default function LivestreamRoomPage() {
                     onClick={() => router.push("/livestream-view")}
                     className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg transition"
                   >
-                    Back to Livestreams
+                    {t("connection.error.backButton")}
                   </button>
                 </div>
               </div>
@@ -968,7 +976,9 @@ export default function LivestreamRoomPage() {
                   </p>
                 )}
                 <p className="text-xs text-gray-300 mt-1">
-                  Started: {formatDate(livestreamInfo.startDate)}
+                  {t("livestreamInfo.startedAt", {
+                    date: formatDate(livestreamInfo.startDate),
+                  })}
                 </p>
               </div>
             )}
@@ -1000,7 +1010,7 @@ export default function LivestreamRoomPage() {
                         <button
                           onClick={() => hideService(service.id)}
                           className="absolute top-2 right-2 bg-white bg-opacity-70 p-1 rounded-full hover:bg-opacity-100 transition-all z-10"
-                          title="Hide this service"
+                          title={t("services.actions.hide")}
                         >
                           <EyeOff className="h-4 w-4 text-gray-600" />
                         </button>
@@ -1008,7 +1018,9 @@ export default function LivestreamRoomPage() {
                         {/* Discount Badge - Top Right */}
                         {service.discountPercent > 0 && (
                           <div className="absolute top-2 left-2 bg-red-100 text-red-600 px-2 py-1 rounded-lg text-xs font-bold discount-badge">
-                            -{service.discountPercent}%
+                            {t("services.discount", {
+                              percent: service.discountPercent,
+                            })}
                           </div>
                         )}
 
@@ -1047,20 +1059,20 @@ export default function LivestreamRoomPage() {
                             </div>
                             {service.minPrice !== service.maxPrice && (
                               <div className="text-xs text-gray-600 mt-1">
-                                Range:{" "}
-                                {formatPrice(
-                                  calculateDiscountedPrice(
-                                    service.minPrice,
-                                    service.discountPercent
-                                  )
-                                )}{" "}
-                                -{" "}
-                                {formatPrice(
-                                  calculateDiscountedPrice(
-                                    service.maxPrice,
-                                    service.discountPercent
-                                  )
-                                )}
+                                {t("services.price.range", {
+                                  min: formatPrice(
+                                    calculateDiscountedPrice(
+                                      service.minPrice,
+                                      service.discountPercent
+                                    )
+                                  ),
+                                  max: formatPrice(
+                                    calculateDiscountedPrice(
+                                      service.maxPrice,
+                                      service.discountPercent
+                                    )
+                                  ),
+                                })}
                               </div>
                             )}
                           </>
@@ -1071,8 +1083,10 @@ export default function LivestreamRoomPage() {
                             </div>
                             {service.minPrice !== service.maxPrice && (
                               <div className="text-xs text-gray-600 mt-1">
-                                Range: {formatPrice(service.minPrice)} -{" "}
-                                {formatPrice(service.maxPrice)}
+                                {t("services.price.range", {
+                                  min: formatPrice(service.minPrice),
+                                  max: formatPrice(service.maxPrice),
+                                })}
                               </div>
                             )}
                           </>
@@ -1090,7 +1104,7 @@ export default function LivestreamRoomPage() {
                           }
                           className="w-full bg-rose-500 text-white font-medium py-2 text-sm rounded-lg hover:bg-rose-600 transition shadow-sm"
                         >
-                          Book Now
+                          {t("services.actions.book")}
                         </button>
                       </div>
                     </div>
@@ -1102,8 +1116,11 @@ export default function LivestreamRoomPage() {
                       onClick={() => setShowHiddenServices(!showHiddenServices)}
                       className="bg-white bg-opacity-80 text-rose-600 text-xs px-3 py-1 rounded-full flex items-center hover:bg-opacity-100 transition-all shadow-sm"
                     >
-                      {showHiddenServices ? "Hide" : "Show"} hidden services (
-                      {hiddenServices.size})
+                      {showHiddenServices
+                        ? t("services.hidden.hide")
+                        : t("services.hidden.show", {
+                            count: hiddenServices.size,
+                          })}
                       {showHiddenServices ? (
                         <EyeOff className="h-3 w-3 ml-1" />
                       ) : (
@@ -1137,13 +1154,13 @@ export default function LivestreamRoomPage() {
                   <div className="mt-2 bg-white bg-opacity-90 rounded-lg p-3 shadow-lg">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="text-sm font-medium text-rose-700">
-                        Hidden Services
+                        {t("services.hidden.title")}
                       </h4>
                       <button
                         onClick={restoreAllServices}
                         className="text-xs text-rose-600 hover:text-rose-800"
                       >
-                        Restore All
+                        {t("services.hidden.restoreAll")}
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -1165,7 +1182,7 @@ export default function LivestreamRoomPage() {
                           <button
                             onClick={() => restoreService(service.id)}
                             className="text-rose-600 hover:text-rose-800"
-                            title="Restore service"
+                            title={t("services.actions.restore")}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1229,7 +1246,9 @@ export default function LivestreamRoomPage() {
               {/* Chat header */}
               <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-4 py-3 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <h2 className="font-semibold text-rose-800">Live Chat</h2>
+                  <h2 className="font-semibold text-rose-800">
+                    {t("chat.title")}
+                  </h2>
                   <button
                     onClick={() => setShowChat(false)}
                     className="text-gray-500 hover:text-gray-700 md:hidden"
@@ -1253,7 +1272,7 @@ export default function LivestreamRoomPage() {
                       </div>
                       <div className="bg-rose-50 px-4 py-2 rounded-lg break-words overflow-hidden max-w-[85%]">
                         <p className="text-xs text-rose-600 font-medium mb-1">
-                          {item.sender || "Guest"}
+                          {item.sender || t("chat.sender")}
                         </p>
                         {item.message}
                       </div>
@@ -1262,8 +1281,8 @@ export default function LivestreamRoomPage() {
                 ) : (
                   <div className="text-center text-gray-500 py-8">
                     <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p>No messages yet</p>
-                    <p className="text-sm">Be the first to send a message!</p>
+                    <p>{t("chat.noMessages.title")}</p>
+                    <p className="text-sm">{t("chat.noMessages.subtitle")}</p>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -1272,7 +1291,7 @@ export default function LivestreamRoomPage() {
               {/* Reaction buttons */}
               <div className="px-4 pt-3 pb-1 border-t border-gray-200">
                 <p className="text-xs text-rose-600 font-medium mb-2">
-                  Quick Reactions:
+                  {t("chat.reactions.title")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(reactionsMap).map(([id, reaction]) => (
@@ -1302,7 +1321,7 @@ export default function LivestreamRoomPage() {
                       value={text}
                       onChange={(e) => setText(e.target.value)}
                       className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-                      placeholder="Type your message..."
+                      placeholder={t("chat.input.placeholder")}
                     />
                     <button
                       type="submit"

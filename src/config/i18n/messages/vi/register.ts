@@ -1,82 +1,96 @@
 import { Messages } from "../types";
 
 export const register: Messages["register"] = {
-  createAccount: "Tạo tài khoản",
-  fillDetails: "Vui lòng điền thông tin bên dưới để đăng ký.",
-  email: "Email",
-  emailPlaceholder: "email@example.com",
-  password: "Mật khẩu",
-  passwordPlaceholder: "Nhập mật khẩu của bạn",
-  confirmPassword: "Xác nhận mật khẩu",
-  confirmPasswordPlaceholder: "Nhập lại mật khẩu của bạn",
-  firstName: "Tên",
-  firstNamePlaceholder: "Nguyễn",
-  lastName: "Họ",
-  lastNamePlaceholder: "Văn A",
-  phoneNumber: "Số điện thoại",
-  phoneNumberPlaceholder: "0901234567",
-  dateOfBirth: "Ngày sinh",
-  address: "Địa chỉ",
-  addressPlaceholder: "Nhập địa chỉ của bạn",
-  register: "Đăng ký",
-  registering: "Đang đăng ký...",
-  alreadyHaveAccount: "Bạn đã có tài khoản?",
-  signIn: "Đăng nhập",
-  registrationSuccess: "Đăng ký thành công!",
-  verificationCodeSent:
-    "Mã xác minh đã được gửi đến email của bạn. Vui lòng nhập mã để hoàn tất đăng ký.",
-  enterVerificationCode: "Nhập mã xác minh",
-  checkEmail: "Vui lòng kiểm tra email và nhập mã xác minh.",
-  verificationCodePlaceholder: "Nhập mã xác minh",
-  timeRemaining: "Thời gian còn lại",
-  confirm: "Xác nhận",
-  emailAlreadyExists:
-    "Email hoặc số điện thoại đã tồn tại. Vui lòng sử dụng một cái khác.",
-  // New translation fields
-  mustBe18YearsOld: "Bạn phải đủ 18 tuổi trở lên",
-  selectYourBirthday: "Chọn ngày sinh của bạn",
-  validationError: "Lỗi xác thực",
-  unexpectedError: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
-  verificationFailed: "Xác minh không thành công. Vui lòng thử lại.",
-  // Backend validation error messages
-  invalidEmailFormat: "Định dạng email không hợp lệ",
-  passwordTooShort: "Mật khẩu phải có ít nhất 8 ký tự",
-  passwordTooLong: "Mật khẩu không được vượt quá 20 ký tự",
-  firstNameOnlyLetters: "Tên chỉ được chứa chữ cái",
-  firstNameTooShort: "Tên phải có ít nhất 2 ký tự",
-  firstNameTooLong: "Tên không được vượt quá 30 ký tự",
-  lastNameOnlyLetters: "Họ chỉ được chứa chữ cái",
-  lastNameTooShort: "Họ phải có ít nhất 2 ký tự",
-  lastNameTooLong: "Họ không được vượt quá 30 ký tự",
-  mustBeAtLeast18: "Người dùng phải đủ 18 tuổi trở lên",
-  addressTooShort: "Địa chỉ phải có ít nhất 10 ký tự",
-  addressTooLong: "Địa chỉ không được vượt quá 100 ký tự",
-    // New verification messages
-    pleaseEnterVerificationCode: "Vui lòng nhập mã xác minh",
-    verifying: "Đang xác minh...",
-    verificationSuccessful: "Xác minh thành công!",
-    passwordNoSpaces: "Mật khẩu không được chứa khoảng trắng",
-  passwordRequirements: "Mật khẩu phải đáp ứng các yêu cầu sau:",
-  passwordRequiresUppercase: "Bao gồm ít nhất một chữ cái viết hoa",
-  passwordRequiresLowercase: "Bao gồm ít nhất một chữ cái viết thường",
-  passwordRequiresNumber: "Bao gồm ít nhất một số",
-  passwordRequiresSpecial: "Bao gồm ít nhất một ký tự đặc biệt",
-  passwordsDoNotMatch: "Mật khẩu không khớp",
-  
-  // Email validation
-  invalidEmail: "Vui lòng nhập địa chỉ email hợp lệ",
-  
-  // Phone validation
-  invalidPhoneNumber: "Vui lòng nhập số điện thoại hợp lệ",
-  
-  // Verification code validation
-  invalidVerificationCode: "Mã xác minh không hợp lệ. Vui lòng nhập mã 6 chữ số",
-  
-  // Form submission
-  formSubmissionError: "Đã xảy ra lỗi khi gửi biểu mẫu. Vui lòng thử lại.",
-  serverError: "Lỗi máy chủ. Vui lòng thử lại sau.",
-  
-  // Address validation
-  invalidAddress: "Vui lòng nhập địa chỉ hợp lệ",
+  form: {
+    title: {
+      createAccount: "Tạo Tài Khoản",
+      fillDetails: "Điền thông tin của bạn để bắt đầu",
+    },
+    labels: {
+      email: "Email",
+      password: "Mật khẩu",
+      confirmPassword: "Xác nhận mật khẩu",
+      firstName: "Tên",
+      lastName: "Họ",
+      phoneNumber: "Số điện thoại",
+      dateOfBirth: "Ngày sinh",
+      address: "Địa chỉ",
+    },
+    placeholders: {
+      email: "Nhập email của bạn",
+      password: "Nhập mật khẩu",
+      confirmPassword: "Xác nhận mật khẩu",
+      firstName: "Nhập tên của bạn",
+      lastName: "Nhập họ của bạn",
+      phoneNumber: "Nhập số điện thoại",
+      address: "Nhập địa chỉ của bạn",
+    },
+    buttons: {
+      register: "Đăng ký",
+      registering: "Đang đăng ký...",
+      signIn: "Đăng nhập",
+      confirm: "Xác nhận",
+      verifying: "Đang xác thực...",
+    },
+    validation: {
+      required: "Trường này là bắt buộc",
+      email: {
+        invalid: "Vui lòng nhập địa chỉ email hợp lệ",
+      },
+      password: {
+        min: "Mật khẩu phải có ít nhất 8 ký tự",
+        max: "Mật khẩu tối đa 20 ký tự",
+        uppercase: "Mật khẩu phải chứa ít nhất một chữ hoa",
+        lowercase: "Mật khẩu phải chứa ít nhất một chữ thường",
+        number: "Mật khẩu phải chứa ít nhất một số",
+        special: "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (@$!%*?&)",
+        noSpaces: "Mật khẩu không được chứa khoảng trắng",
+        strength:
+          "Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt",
+      },
+      confirmPassword: {
+        match: "Mật khẩu không khớp",
+      },
+      firstName: {
+        min: "Tên phải có ít nhất 2 ký tự",
+        lettersOnly: "Tên chỉ được chứa chữ cái",
+      },
+      lastName: {
+        required: "Họ là bắt buộc",
+        lettersOnly: "Họ chỉ được chứa chữ cái",
+      },
+      phoneNumber: {
+        format: "Số điện thoại phải có 10 chữ số",
+      },
+      dateOfBirth: {
+        invalid: "Định dạng ngày không hợp lệ",
+        age: "Bạn phải đủ 18 tuổi để đăng ký",
+        note: "Bạn phải đủ 18 tuổi",
+      },
+      address: {
+        min: "Địa chỉ phải có ít nhất 8 ký tự",
+      },
+    },
+    verification: {
+      title: "Nhập Mã Xác Thực",
+      success: "Đăng Ký Thành Công",
+      codeSent: "Mã xác thực đã được gửi đến email của bạn",
+      enterCode: "Nhập Mã Xác Thực",
+      checkEmail: "Vui lòng kiểm tra email của bạn để lấy mã xác thực",
+      codePlaceholder: "Nhập mã 5 chữ số",
+      timeRemaining: "Thời gian còn lại",
+      invalidCode: "Mã xác thực không hợp lệ",
+      pleaseEnter: "Vui lòng nhập mã xác thực",
+    },
+    messages: {
+      alreadyHaveAccount: "Đã có tài khoản?",
+      unexpectedError: "Đã xảy ra lỗi. Vui lòng thử lại.",
+      verificationSuccess: "Xác thực thành công",
+      verificationFailed: "Xác thực thất bại. Vui lòng thử lại.",
+    },
+    terms: {
+      text: "Tôi đồng ý với",
+      link: "Điều khoản và Dịch vụ",
+    },
+  },
 };
-

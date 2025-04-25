@@ -1,90 +1,107 @@
-"use client"
-import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
-import { useTranslations } from "next-intl"
-import { ArrowRight, ChevronRight, Loader2, Star } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { useRouter } from "next/navigation"
-import { formatCurrency } from "@/utils"
-import { useGetAllServicesQuery } from "@/features/services/api"
-import { AnimatedText } from "@/components/ui/animated-text"
-import { motion } from "framer-motion"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { ArrowRight, ChevronRight, Loader2, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { formatCurrency } from "@/utils";
+import { useGetAllServicesQuery } from "@/features/services/api";
+import { AnimatedText } from "@/components/ui/animated-text";
+import { motion } from "framer-motion";
+import { formatPrice } from "@/utils/format";
 
 export function ServicesSection() {
-  const t = useTranslations("home")
-  const router = useRouter()
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-  const sliderRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations("home");
+  const router = useRouter();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   // Sử dụng hook để fetch dữ liệu
   const { data, isLoading, error, refetch } = useGetAllServicesQuery({
     pageIndex: 1,
     pageSize: 10, // Increased to get more items for scrolling
-  })
+  });
 
   // Lấy danh sách dịch vụ từ response
-  const serviceList = data?.value?.items || []
+  const serviceList = data?.value?.items || [];
 
   // Calculate the maximum index based on the actual data
-  const maxIndex = Math.max(0, serviceList.length - 3)
+  const maxIndex = Math.max(0, serviceList.length - 3);
 
   const handleServiceClick = (serviceId: string) => {
-    router.push(`/services/${serviceId}`)
-  }
+    router.push(`/services/${serviceId}`);
+  };
 
   const handlePrevious = () => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1))
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
     // Pause auto-scrolling temporarily when user interacts
-    setIsPaused(true)
-    setTimeout(() => setIsPaused(false), 5000) // Resume after 5 seconds
-  }
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 5000); // Resume after 5 seconds
+  };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1))
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
     // Pause auto-scrolling temporarily when user interacts
-    setIsPaused(true)
-    setTimeout(() => setIsPaused(false), 5000) // Resume after 5 seconds
-  }
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 5000); // Resume after 5 seconds
+  };
 
   // Auto-scrolling effect
   useEffect(() => {
-    if (isPaused || maxIndex === 0 || isLoading || error || serviceList.length === 0) return
+    if (
+      isPaused ||
+      maxIndex === 0 ||
+      isLoading ||
+      error ||
+      serviceList.length === 0
+    )
+      return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => {
         // If we're at the end, go back to the beginning
         if (prevIndex >= maxIndex) {
-          return 0
+          return 0;
         }
         // Otherwise, go to the next slide
-        return prevIndex + 1
-      })
-    }, 3000) // Change slide every 5 seconds
+        return prevIndex + 1;
+      });
+    }, 3000); // Change slide every 5 seconds
 
-    return () => clearInterval(interval)
-  }, [maxIndex, isPaused, isLoading, error, serviceList.length])
+    return () => clearInterval(interval);
+  }, [maxIndex, isPaused, isLoading, error, serviceList.length]);
 
   // Handle mouse enter/leave to pause/resume auto-scrolling
   const handleMouseEnter = () => {
-    setIsPaused(true)
-  }
+    setIsPaused(true);
+  };
 
   const handleMouseLeave = () => {
-    setIsPaused(false)
-  }
+    setIsPaused(false);
+  };
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
       <div className="container px-4 mx-auto">
         <div className="text-center max-w-5xl mx-auto mb-12 md:mb-16">
-          <Badge variant="outline" className="mb-4 px-3 py-1 bg-white dark:bg-gray-800 border-primary/20 text-primary">
+          <Badge
+            variant="outline"
+            className="mb-4 px-3 py-1 bg-white dark:bg-gray-800 border-primary/20 text-primary"
+          >
             {t("services.badge")}
           </Badge>
-          <AnimatedText text={t("services.title")} className="font-bold mb-4" variant="h2" />
-          <p className="text-muted-foreground font-light leading-relaxed">{t("services.description")}</p>
+          <AnimatedText
+            text={t("services.title")}
+            className="font-bold mb-4"
+            variant="h2"
+          />
+          <p className="text-muted-foreground font-light leading-relaxed">
+            {t("services.description")}
+          </p>
         </div>
 
         {isLoading ? (
@@ -94,14 +111,22 @@ export function ServicesSection() {
           </div>
         ) : error ? (
           <div className="text-center py-12 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <p className="text-red-600 dark:text-red-400">Có lỗi xảy ra khi tải dịch vụ. Vui lòng thử lại sau.</p>
-            <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+            <p className="text-red-600 dark:text-red-400">
+              Có lỗi xảy ra khi tải dịch vụ. Vui lòng thử lại sau.
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => refetch()}
+            >
               Thử lại
             </Button>
           </div>
         ) : serviceList.length === 0 ? (
           <div className="text-center py-12 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground">Không có dịch vụ nào được tìm thấy.</p>
+            <p className="text-muted-foreground">
+              Không có dịch vụ nào được tìm thấy.
+            </p>
           </div>
         ) : (
           <div className="relative">
@@ -112,7 +137,9 @@ export function ServicesSection() {
                   onClick={handlePrevious}
                   disabled={currentIndex === 0}
                   className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md -ml-4 ${
-                    currentIndex === 0 ? "opacity-50 cursor-not-allowed" : "opacity-100 hover:bg-gray-100"
+                    currentIndex === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : "opacity-100 hover:bg-gray-100"
                   }`}
                   aria-label="Previous slide"
                 >
@@ -135,7 +162,9 @@ export function ServicesSection() {
                   onClick={handleNext}
                   disabled={currentIndex >= maxIndex}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md -mr-4 ${
-                    currentIndex >= maxIndex ? "opacity-50 cursor-not-allowed" : "opacity-100 hover:bg-gray-100"
+                    currentIndex >= maxIndex
+                      ? "opacity-50 cursor-not-allowed"
+                      : "opacity-100 hover:bg-gray-100"
                   }`}
                   aria-label="Next slide"
                 >
@@ -179,7 +208,10 @@ export function ServicesSection() {
                     <CardContent className="p-0">
                       <div className="relative h-64 overflow-hidden">
                         <Image
-                          src={service.coverImage?.[0]?.url || `https://placehold.co/600x400.png`}
+                          src={
+                            service.coverImage?.[0]?.url ||
+                            `https://placehold.co/600x400.png`
+                          }
                           alt={service.name}
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -222,11 +254,13 @@ export function ServicesSection() {
                             <div className="flex items-center gap-2">
                               {Number(service.discountPercent) > 0 && (
                                 <span className="text-sm text-muted-foreground line-through">
-                                  {formatCurrency(service.minPrice)}
+                                  {formatPrice(service.minPrice)}
                                 </span>
                               )}
                               <span className="text-primary font-semibold text-lg">
-                                {formatCurrency(service.discountMinPrice || service.minPrice)}
+                                {formatPrice(
+                                  service.discountMinPrice || service.minPrice
+                                )}
                               </span>
                             </div>
                           </div>
@@ -250,17 +284,21 @@ export function ServicesSection() {
             {/* Pagination dots */}
             <div className="flex justify-center mt-8">
               <div className="flex gap-2">
-                {Array.from({ length: Math.min(maxIndex + 1, serviceList.length) }).map((_, i) => (
+                {Array.from({
+                  length: Math.min(maxIndex + 1, serviceList.length),
+                }).map((_, i) => (
                   <button
                     key={i}
                     onClick={() => {
-                      setCurrentIndex(i)
+                      setCurrentIndex(i);
                       // Pause auto-scrolling temporarily when user interacts
-                      setIsPaused(true)
-                      setTimeout(() => setIsPaused(false), 5000)
+                      setIsPaused(true);
+                      setTimeout(() => setIsPaused(false), 5000);
                     }}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      i === currentIndex ? "bg-primary w-6" : "bg-primary/30 hover:bg-primary/50"
+                      i === currentIndex
+                        ? "bg-primary w-6"
+                        : "bg-primary/30 hover:bg-primary/50"
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   />
@@ -271,12 +309,17 @@ export function ServicesSection() {
         )}
 
         <div className="mt-12 text-center">
-          <Button variant="outline" size="lg" className="rounded-full px-8" onClick={() => router.push("/services")}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-full px-8"
+            onClick={() => router.push("/services")}
+          >
             {t("services.viewAll")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>
     </section>
-  )
+  );
 }

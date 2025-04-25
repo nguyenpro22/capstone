@@ -104,6 +104,7 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   doctor: "Doctor",
   time: "Time",
   depositRequired: "Deposit Required",
+  depositInfo: "Deposit required: {percent} ({amount})",
   customer: {
     customer: "Customer",
     name: "Customer Name",

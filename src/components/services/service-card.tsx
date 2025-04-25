@@ -28,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 interface ServiceCardProps {
   service: ServiceItem;
@@ -62,8 +63,8 @@ export default function ServiceCard({
   const hasDiscount =
     service.discountPercent && Number(service.discountPercent) > 0;
   const displayPrice = hasDiscount
-    ? service.discountMaxPrice
-    : service.maxPrice;
+    ? service.discountMinPrice
+    : service.minPrice;
   const averageRating = calculateAverageRating(service.feedbacks);
   const reviewCount = service.feedbacks?.length || 0; // Fallback to 120 if no feedbacks
 
@@ -73,6 +74,8 @@ export default function ServiceCard({
 
   // Check if service is popular (has many feedbacks)
   const isPopular = reviewCount > 100;
+
+  const t = useTranslations("serviceMessages");
 
   if (viewMode === "grid") {
     return (
@@ -138,7 +141,7 @@ export default function ServiceCard({
                   onClick={() => setShowDetails(!showDetails)}
                 >
                   <Eye className="h-4 w-4 mr-1.5" />
-                  Xem nhanh
+                  {t("serviceCard.quickView")}
                 </Button>
               </motion.div>
             )}
@@ -284,7 +287,7 @@ export default function ServiceCard({
                 onClick={() => onBookService(service)}
                 className="rounded-full px-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
               >
-                Đặt lịch
+                {t("serviceCard.book")}
                 <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform duration-300" />
               </Button>
             </motion.div>
@@ -301,7 +304,7 @@ export default function ServiceCard({
               transition={{ delay: 0.3, duration: 0.3 }}
             >
               <Shield className="h-3 w-3 inline-block mr-0.5" />
-              Premium
+              {t("serviceCard.premium")}
             </motion.div>
           )}
 
@@ -313,7 +316,7 @@ export default function ServiceCard({
               transition={{ delay: 0.4, duration: 0.3 }}
             >
               <ThumbsUp className="h-3 w-3 inline-block mr-0.5" />
-              Phổ biến
+              {t("serviceCard.popular")}
             </motion.div>
           )}
         </div>
@@ -414,7 +417,7 @@ export default function ServiceCard({
                         <MapPin className="h-5 w-5 text-purple-500 dark:text-purple-400 mt-0.5" />
                         <div>
                           <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                            Cơ sở
+                            {t("serviceCard.locations")}
                           </h4>
                           <div className="space-y-1">
                             {service.clinics.slice(0, 2).map((clinic) => (
@@ -427,7 +430,8 @@ export default function ServiceCard({
                             ))}
                             {service.clinics.length > 2 && (
                               <p className="text-sm text-purple-600 dark:text-purple-400">
-                                +{service.clinics.length - 2} cơ sở khác
+                                +{service.clinics.length - 2}{" "}
+                                {t("serviceCard.clinics.more")}
                               </p>
                             )}
                           </div>
@@ -442,7 +446,7 @@ export default function ServiceCard({
                           <Users className="h-5 w-5 text-purple-500 dark:text-purple-400 mt-0.5" />
                           <div>
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                              Bác sĩ
+                              {t("serviceCard.doctors")}
                             </h4>
                             <div className="space-y-1">
                               {service.doctorServices
@@ -457,8 +461,8 @@ export default function ServiceCard({
                                 ))}
                               {service.doctorServices.length > 2 && (
                                 <p className="text-sm text-purple-600 dark:text-purple-400">
-                                  +{service.doctorServices.length - 2} bác sĩ
-                                  khác
+                                  +{service.doctorServices.length - 2}{" "}
+                                  {t("serviceCard.doctors.more")}
                                 </p>
                               )}
                             </div>
@@ -471,13 +475,15 @@ export default function ServiceCard({
                       <Calendar className="h-5 w-5 text-purple-500 dark:text-purple-400 mt-0.5" />
                       <div>
                         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                          Thời gian
+                          {t("serviceCard.duration")}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Thời gian điều trị: khoảng 60 phút
+                          {t("serviceCard.time.treatment", { duration: 60 })}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Thời gian hồi phục: 1-2 ngày
+                          {t("serviceCard.time.recovery", { duration: 1 }) +
+                            " - " +
+                            t("serviceCard.time.recovery", { duration: 2 })}
                         </p>
                       </div>
                     </div>
@@ -494,7 +500,7 @@ export default function ServiceCard({
                         onBookService(service);
                       }}
                     >
-                      Đặt lịch
+                      {t("serviceCard.book")}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
@@ -569,7 +575,7 @@ export default function ServiceCard({
               transition={{ delay: 0.3, duration: 0.3 }}
             >
               <Shield className="h-2.5 w-2.5 inline-block mr-0.5" />
-              Premium
+              {t("serviceCard.premium")}
             </motion.div>
           )}
         </div>
@@ -584,7 +590,7 @@ export default function ServiceCard({
               transition={{ delay: 0.4, duration: 0.3 }}
             >
               <Award className="h-2.5 w-2.5 inline-block mr-0.5" />
-              Phổ biến
+              {t("serviceCard.popular")}
             </motion.div>
           </div>
         )}
@@ -729,21 +735,12 @@ export default function ServiceCard({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
           >
-            {/* <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowDetails(!showDetails)}
-              className="rounded-full border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 shadow-sm"
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              Chi tiết
-            </Button> */}
             <Button
               size="sm"
               onClick={() => onBookService(service)}
               className="rounded-full px-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
             >
-              Đặt lịch
+              {t("serviceCard.book")}
               <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform duration-300" />
             </Button>
           </motion.div>
@@ -851,7 +848,7 @@ export default function ServiceCard({
                         <MapPin className="h-5 w-5 text-purple-500 dark:text-purple-400 mt-0.5" />
                         <div>
                           <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                            Cơ sở
+                            {t("serviceCard.locations")}
                           </h4>
                           <div className="space-y-1">
                             {service.clinics.slice(0, 2).map((clinic) => (
@@ -864,7 +861,8 @@ export default function ServiceCard({
                             ))}
                             {service.clinics.length > 2 && (
                               <p className="text-sm text-purple-600 dark:text-purple-400">
-                                +{service.clinics.length - 2} cơ sở khác
+                                +{service.clinics.length - 2}{" "}
+                                {t("serviceCard.clinics.more")}
                               </p>
                             )}
                           </div>
@@ -879,7 +877,7 @@ export default function ServiceCard({
                           <Users className="h-5 w-5 text-purple-500 dark:text-purple-400 mt-0.5" />
                           <div>
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                              Bác sĩ
+                              {t("serviceCard.doctors")}
                             </h4>
                             <div className="space-y-1">
                               {service.doctorServices
@@ -894,8 +892,8 @@ export default function ServiceCard({
                                 ))}
                               {service.doctorServices.length > 2 && (
                                 <p className="text-sm text-purple-600 dark:text-purple-400">
-                                  +{service.doctorServices.length - 2} bác sĩ
-                                  khác
+                                  +{service.doctorServices.length - 2}{" "}
+                                  {t("serviceCard.doctors.more")}
                                 </p>
                               )}
                             </div>
@@ -908,13 +906,15 @@ export default function ServiceCard({
                       <Calendar className="h-5 w-5 text-purple-500 dark:text-purple-400 mt-0.5" />
                       <div>
                         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                          Thời gian
+                          {t("serviceCard.duration")}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Thời gian điều trị: khoảng 60 phút
+                          {t("serviceCard.time.treatment", { duration: 60 })}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Thời gian hồi phục: 1-2 ngày
+                          {t("serviceCard.time.recovery", { duration: 1 }) +
+                            " - " +
+                            t("serviceCard.time.recovery", { duration: 2 })}
                         </p>
                       </div>
                     </div>
@@ -931,7 +931,7 @@ export default function ServiceCard({
                         onBookService(service);
                       }}
                     >
-                      Đặt lịch
+                      {t("serviceCard.book")}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>

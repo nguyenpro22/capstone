@@ -45,6 +45,8 @@ import { orderDetail } from "./order-detail";
 import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
 import { configs } from "./configs";
+import { livestreamMessages } from "./livestream-view";
+import { userProfileMessages } from "./user-profile";
 
 const en = {
   home: homeMessages,
@@ -63,7 +65,7 @@ const en = {
   registerClinic,
   staffDoctor: doctorMessages,
   staff: staffMessages,
-  serviceMessage: service,
+  serviceMessages: service,
   clinicProfile: clinicProfileMessages,
   livestream,
   livestreamRoom,
@@ -94,6 +96,8 @@ const en = {
   registerSchedule,
   profile: profileMessages,
   configs,
+  livestreamMessages,
+  userProfileMessages,
 };
 
 export default en;

@@ -54,6 +54,7 @@ import { DepositFlow } from "@/components/home/profile/deposit/deposit-flow";
 import { WithdrawFlow } from "@/components/home/profile/withdraw/withdraw-flow";
 import TransactionHistory from "@/components/home/profile/transaction/transaction-history";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 // Types
 type TabType = "profile" | "wallet" | "deposit" | "withdraw" | "history";
@@ -120,6 +121,9 @@ export default function ProfilePage() {
   const { data: wards } = useGetWardsQuery(addressDetail.districtId, {
     skip: !addressDetail.districtId,
   });
+
+  // Thay đổi cách gọi useTranslations
+  const t = useTranslations("userProfileMessages");
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -270,7 +274,7 @@ export default function ProfilePage() {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setProfileImageError("Kích thước ảnh vượt quá 5MB.");
+      setProfileImageError(t("messages.imageSize"));
       return;
     }
 
@@ -334,7 +338,7 @@ export default function ProfilePage() {
 
       // Update UI and show success message
       if (response.isSuccess) {
-        toast.success("Cập nhật thông tin thành công");
+        toast.success(t("messages.success"));
         await refetch();
         setIsEditing(false);
       } else {
@@ -342,7 +346,7 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast.error("Cập nhật thông tin thất bại. Vui lòng thử lại sau.");
+      toast.error(t("messages.error"));
     } finally {
       setIsLoading(false);
     }
@@ -403,7 +407,7 @@ export default function ProfilePage() {
             {/* Wallet Balance */}
             <div className="bg-purple-50/70 dark:bg-purple-900/20 rounded-lg p-3 mb-6">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Số dư ví
+                {t("sidebar.balance")}
               </div>
               <div className="text-xl font-bold text-green-600 dark:text-green-400">
                 {new Intl.NumberFormat("vi-VN", {
@@ -427,7 +431,7 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab("profile")}
               >
                 <UserIcon className="h-5 w-5 mr-3" />
-                Thông tin cá nhân
+                {t("sidebar.navigation.profile")}
               </Button>
               <Button
                 variant="ghost"
@@ -440,7 +444,7 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab("wallet")}
               >
                 <WalletIcon className="h-5 w-5 mr-3" />
-                Ví của tôi
+                {t("sidebar.navigation.wallet")}
               </Button>
               <Button
                 variant="ghost"
@@ -453,7 +457,7 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab("deposit")}
               >
                 <ArrowDownIcon className="h-5 w-5 mr-3" />
-                Nạp tiền
+                {t("sidebar.navigation.deposit")}
               </Button>
               <Button
                 variant="ghost"
@@ -466,7 +470,7 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab("withdraw")}
               >
                 <ArrowUpIcon className="h-5 w-5 mr-3" />
-                Rút tiền
+                {t("sidebar.navigation.withdraw")}
               </Button>
               <Button
                 variant="ghost"
@@ -479,12 +483,12 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab("history")}
               >
                 <HistoryIcon className="h-5 w-5 mr-3" />
-                Lịch sử giao dịch
+                {t("sidebar.navigation.history")}
               </Button>
             </nav>
 
             {/* Home Button */}
-            <div className="">
+            {/* <div className="">
               <Button
                 variant="outline"
                 className="w-full border-purple-200 dark:border-purple-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-400"
@@ -492,7 +496,7 @@ export default function ProfilePage() {
                 <HomeIcon className="h-4 w-4 mr-2" />
                 Quay lại trang chủ
               </Button>
-            </div>
+            </div> */}
           </div>
 
           {/* Main Content */}
@@ -504,10 +508,10 @@ export default function ProfilePage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <CardTitle className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-indigo-700 dark:from-purple-400 dark:to-indigo-400">
-                        Thông tin cá nhân
+                        {t("header.profile.title")}
                       </CardTitle>
                       <CardDescription className="text-gray-600 dark:text-gray-400">
-                        Xem và quản lý thông tin cá nhân của bạn
+                        {t("header.profile.description")}
                       </CardDescription>
                     </div>
                     {!isEditing ? (
@@ -516,7 +520,7 @@ export default function ProfilePage() {
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-600 dark:hover:to-indigo-600"
                       >
                         <PencilIcon className="h-4 w-4 mr-2" />
-                        Chỉnh sửa
+                        {t("profile.actions.edit")}
                       </Button>
                     ) : (
                       <div className="flex gap-3">
@@ -525,7 +529,7 @@ export default function ProfilePage() {
                           variant="outline"
                           className="border-purple-200 dark:border-purple-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-400"
                         >
-                          Hủy
+                          {t("profile.actions.cancel")}
                         </Button>
                         <Button
                           onClick={handleSave}
@@ -535,7 +539,7 @@ export default function ProfilePage() {
                           {isLoading && (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           )}
-                          Lưu thay đổi
+                          {t("profile.actions.save")}
                         </Button>
                       </div>
                     )}
@@ -548,7 +552,7 @@ export default function ProfilePage() {
                     <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 shadow-sm">
                       <h2 className="text-base font-semibold text-purple-800 dark:text-purple-300 mb-3 flex items-center">
                         <UserIcon className="h-4 w-4 mr-2" />
-                        Thông tin cá nhân
+                        {t("profile.sections.personal.title")}
                       </h2>
 
                       {isEditing ? (
@@ -558,7 +562,7 @@ export default function ProfilePage() {
                               htmlFor="profile-picture"
                               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
-                              Ảnh đại diện
+                              {t("profile.sections.personal.avatar")}
                             </Label>
                             <div className="flex items-center gap-4">
                               <div className="relative">
@@ -607,7 +611,7 @@ export default function ProfilePage() {
                                 htmlFor="firstName"
                                 className="text-gray-700 dark:text-gray-300"
                               >
-                                Tên
+                                {t("profile.sections.personal.firstName")}
                               </Label>
                               <Input
                                 id="firstName"
@@ -622,7 +626,7 @@ export default function ProfilePage() {
                                 htmlFor="lastName"
                                 className="text-gray-700 dark:text-gray-300"
                               >
-                                Họ
+                                {t("profile.sections.personal.lastName")}
                               </Label>
                               <Input
                                 id="lastName"
@@ -637,7 +641,7 @@ export default function ProfilePage() {
                                 htmlFor="dateOfBirth"
                                 className="text-gray-700 dark:text-gray-300"
                               >
-                                Ngày sinh
+                                {t("profile.sections.personal.dateOfBirth")}
                               </Label>
                               <Input
                                 id="dateOfBirth"
@@ -660,7 +664,7 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Họ và tên
+                              {t("profile.sections.personal.fullName")}
                             </h3>
                             <p className="text-lg font-medium text-gray-800 dark:text-white">
                               {profile.fullName}
@@ -668,7 +672,7 @@ export default function ProfilePage() {
                           </div>
                           <div>
                             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Ngày sinh
+                              {t("profile.sections.personal.dateOfBirth")}
                             </h3>
                             <p className="text-gray-800 dark:text-white flex items-center gap-2">
                               <CalendarIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -683,7 +687,7 @@ export default function ProfilePage() {
                     <div className="bg-purple-50/70 dark:bg-purple-900/20 rounded-lg p-4 shadow-sm">
                       <h2 className="text-base font-semibold text-purple-800 dark:text-purple-300 mb-3 flex items-center">
                         <PhoneIcon className="h-4 w-4 mr-2" />
-                        Thông tin liên hệ
+                        {t("profile.sections.contact.title")}
                       </h2>
 
                       {isEditing ? (
@@ -693,7 +697,7 @@ export default function ProfilePage() {
                               htmlFor="email"
                               className="text-gray-700 dark:text-gray-300"
                             >
-                              Email
+                              {t("profile.sections.contact.email")}
                             </Label>
                             <Input
                               id="email"
@@ -709,7 +713,7 @@ export default function ProfilePage() {
                               htmlFor="phone"
                               className="text-gray-700 dark:text-gray-300"
                             >
-                              Số điện thoại
+                              {t("profile.sections.contact.phone")}
                             </Label>
                             <Input
                               id="phone"
@@ -728,7 +732,7 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <h3 className="font-medium text-gray-800 dark:text-white text-sm">
-                                Email
+                                {t("profile.sections.contact.email")}
                               </h3>
                               <p className="text-gray-600 dark:text-gray-400 text-sm break-all">
                                 {profile.email}
@@ -741,7 +745,7 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <h3 className="font-medium text-gray-800 dark:text-white text-sm">
-                                Số điện thoại
+                                {t("profile.sections.contact.phone")}
                               </h3>
                               <p className="text-gray-600 dark:text-gray-400 text-sm">
                                 {profile.phone}
@@ -756,7 +760,7 @@ export default function ProfilePage() {
                     <div className="bg-indigo-50/70 dark:bg-indigo-900/20 rounded-lg p-4 shadow-sm">
                       <h2 className="text-base font-semibold text-indigo-800 dark:text-indigo-300 mb-3 flex items-center">
                         <MapPinIcon className="h-4 w-4 mr-2" />
-                        Thông tin địa chỉ
+                        {t("profile.sections.address.title")}
                       </h2>
 
                       {isEditing ? (
@@ -767,7 +771,7 @@ export default function ProfilePage() {
                                 htmlFor="city"
                                 className="text-gray-700 dark:text-gray-300"
                               >
-                                Thành phố/Tỉnh
+                                {t("profile.sections.address.province")}
                               </Label>
                               <select
                                 id="city"
@@ -776,7 +780,9 @@ export default function ProfilePage() {
                                 onChange={(e) => handleAddressChange(e)}
                                 className="w-full h-10 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
                               >
-                                <option value="">Chọn Thành phố/Tỉnh</option>
+                                <option value="">
+                                  {t("profile.sections.address.selectProvince")}
+                                </option>
                                 {provinces?.data?.map((province) => (
                                   <option key={province.id} value={province.id}>
                                     {province.name}
@@ -789,7 +795,7 @@ export default function ProfilePage() {
                                 htmlFor="district"
                                 className="text-gray-700 dark:text-gray-300"
                               >
-                                Quận/Huyện
+                                {t("profile.sections.address.district")}
                               </Label>
                               <select
                                 id="district"
@@ -801,8 +807,12 @@ export default function ProfilePage() {
                               >
                                 <option value="">
                                   {!addressDetail.provinceId
-                                    ? "Vui lòng chọn Thành phố/Tỉnh trước"
-                                    : "Chọn Quận/Huyện"}
+                                    ? t(
+                                        "profile.sections.address.selectDistrictFirst"
+                                      )
+                                    : t(
+                                        "profile.sections.address.selectDistrict"
+                                      )}
                                 </option>
                                 {districts?.data?.map((district) => (
                                   <option key={district.id} value={district.id}>
@@ -816,7 +826,7 @@ export default function ProfilePage() {
                                 htmlFor="ward"
                                 className="text-gray-700 dark:text-gray-300"
                               >
-                                Phường/Xã
+                                {t("profile.sections.address.ward")}
                               </Label>
                               <select
                                 id="ward"
@@ -828,8 +838,10 @@ export default function ProfilePage() {
                               >
                                 <option value="">
                                   {!addressDetail.districtId
-                                    ? "Vui lòng chọn Quận/Huyện trước"
-                                    : "Chọn Phường/Xã"}
+                                    ? t(
+                                        "profile.sections.address.selectWardFirst"
+                                      )
+                                    : t("profile.sections.address.selectWard")}
                                 </option>
                                 {wards?.data?.map((ward) => (
                                   <option key={ward.id} value={ward.id}>
@@ -844,14 +856,16 @@ export default function ProfilePage() {
                               htmlFor="streetAddress"
                               className="text-gray-700 dark:text-gray-300"
                             >
-                              Địa chỉ chi tiết
+                              {t("profile.sections.address.detail")}
                             </Label>
                             <Input
                               id="streetAddress"
                               name="streetAddress"
                               value={addressDetail.streetAddress}
                               onChange={(e) => handleAddressChange(e)}
-                              placeholder="Số nhà, tên đường, khu vực..."
+                              placeholder={t(
+                                "profile.sections.address.placeholder"
+                              )}
                               className="bg-white/80 dark:bg-gray-800/50 border-indigo-200 dark:border-indigo-800/30 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400"
                             />
                           </div>
@@ -863,7 +877,7 @@ export default function ProfilePage() {
                             addressDetail.provinceName) && (
                             <div className="mt-2">
                               <Label className="text-gray-700 dark:text-gray-300">
-                                Địa chỉ đầy đủ
+                                {t("profile.sections.address.fullAddress")}
                               </Label>
                               <div className="p-3 mt-1 bg-white/80 dark:bg-gray-800/50 border border-indigo-100 dark:border-indigo-800/30 rounded-md">
                                 {[
@@ -886,7 +900,7 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <h3 className="font-medium text-gray-800 dark:text-white text-sm">
-                                Địa chỉ
+                                {t("profile.sections.address.detail")}
                               </h3>
                               <p className="text-gray-600 dark:text-gray-400 text-sm">
                                 {profile.address || ""}
@@ -895,7 +909,7 @@ export default function ProfilePage() {
                           </div>
                           <div className="md:ml-4">
                             <h3 className="font-medium text-gray-800 dark:text-white text-sm">
-                              Khu vực
+                              {t("profile.sections.address.area")}
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 text-sm">
                               {[profile.ward, profile.district, profile.city]
@@ -929,7 +943,7 @@ export default function ProfilePage() {
                     <div className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700 rounded-xl p-6 text-white shadow-lg">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-white/90">
-                          Số dư hiện tại
+                          {t("wallet.balance.title")}
                         </h3>
                         <WalletIcon className="h-6 w-6 text-white/80" />
                       </div>
@@ -941,8 +955,7 @@ export default function ProfilePage() {
                         }).format(profile.balance || 0)}
                       </div>
                       <p className="text-white/80 text-sm">
-                        Cập nhật lần cuối:{" "}
-                        {format(new Date(), "dd/MM/yyyy HH:mm")}
+                        {t("wallet.balance.lastUpdate")}
                       </p>
                     </div>
 
@@ -953,7 +966,7 @@ export default function ProfilePage() {
                         onClick={() => setActiveTab("deposit")}
                       >
                         <ArrowDownIcon className="h-5 w-5 mr-2" />
-                        Nạp tiền vào ví
+                        {t("wallet.actions.deposit")}
                       </Button>
                       <Button
                         className="h-16 bg-blue-500 hover:bg-blue-600 text-white shadow-md"

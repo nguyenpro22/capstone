@@ -12,7 +12,7 @@ import { doctorMessages } from "./staffDoctor";
 import { staffMessages } from "./staff";
 import { LoginTranslations } from "./login";
 import { PasswordResetTranslations } from "./forgot-password";
-import { RegistrationTranslations } from "./register";
+import { RegisterMessages } from "./register";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
 import { doctor } from "./doctor";
@@ -44,6 +44,9 @@ import { paginationMessages } from "./pagination";
 import { registerSchedule } from "./register-schedule";
 import { profileMessages } from "./profile";
 import { Configuration } from "./configs";
+import { LivestreamViewMessages } from "./livestream-view";
+import { LivestreamRoomMessages } from "./livestream-room-view";
+import { UserProfileMessages } from "./user-profile";
 
 export type Messages = {
   home: homeMessages;
@@ -59,7 +62,7 @@ export type Messages = {
   staff: staffMessages;
   login: LoginTranslations;
   forgotPassword: PasswordResetTranslations;
-  register: RegistrationTranslations;
+  register: RegisterMessages;
   serviceDetail: serviceDetail;
   registerClinic: registerClinic;
   doctorService: doctor;
@@ -67,6 +70,8 @@ export type Messages = {
   livestream: livestream;
   livestreamRoom: LivestreamRoomTranslations;
   clinicProfile: clinicProfileMessages; // Add this line
+  livestreamMessages: LivestreamViewMessages;
+  livestreamRoomMessages: LivestreamRoomMessages;
   package: packageMessages;
   bookingFlow: BookingFlowMessages;
   sidebar: sidebarMessages;
@@ -93,4 +98,5 @@ export type Messages = {
   registerSchedule: registerSchedule;
   profile: profileMessages;
   configs: Configuration;
+  userProfileMessages: UserProfileMessages;
 };

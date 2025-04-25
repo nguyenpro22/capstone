@@ -7,6 +7,7 @@ import { Loader2, Users, Clock, Calendar, Play } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 // Updated interface to match the new API response format
 interface Room {
@@ -53,6 +54,7 @@ export default function LivestreamViewPage() {
   const signalR_Connection = useRef<signalR.HubConnection | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const t = useTranslations("livestreamMessages");
 
   // Check if we're in the browser environment
   useEffect(() => {
@@ -80,13 +82,11 @@ export default function LivestreamViewPage() {
           setRooms(data.value.items);
           if (data.value.items.length > 0) setRoomGuid(data.value.items[0].id);
         } else {
-          setError(
-            `Lỗi: ${data.error?.message || "Không thể tải danh sách phòng"}`
-          );
+          setError(`${data.error?.message || "Không thể tải danh sách phòng"}`);
         }
       } catch (err) {
         setError(
-          `Lỗi: ${err instanceof Error ? err.message : "Lỗi không xác định"}`
+          `${err instanceof Error ? err.message : "Lỗi không xác định"}`
         );
       } finally {
         if (isMounted) {
@@ -490,7 +490,7 @@ export default function LivestreamViewPage() {
       <div className="flex items-center justify-center h-screen bg-gray-50 text-gray-900 dark:bg-[#1a1a1a] dark:text-white">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-rose-500 mx-auto mb-4" />
-          <div className="text-lg">Đang tải phòng phát trực tiếp...</div>
+          <div className="text-lg">{t("loading.text")}</div>
         </div>
       </div>
     );
@@ -517,14 +517,14 @@ export default function LivestreamViewPage() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Lỗi Khi Tải Phát Trực Tiếp
+              {t("error.title")}
             </h2>
             <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg transition"
             >
-              Thử Lại
+              {t("error.retry")}
             </button>
           </div>
         </div>
@@ -548,7 +548,7 @@ export default function LivestreamViewPage() {
       <header className="bg-white shadow-sm dark:bg-[#2a2a2a] dark:shadow-md dark:border-b dark:border-gray-800">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-rose-600 dark:text-rose-500">
-            Phát Trực Tiếp Beautify
+            {t("header.title")}
           </h1>
         </div>
       </header>
@@ -577,11 +577,10 @@ export default function LivestreamViewPage() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                  Không Có Phát Trực Tiếp Nào
+                  {t("noLivestreams.title")}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-5 max-w-md">
-                  Hiện tại không có phát trực tiếp nào. Vui lòng quay lại sau để
-                  xem các buổi làm đẹp thú vị từ các chuyên gia của chúng tôi.
+                  {t("noLivestreams.description")}
                 </p>
                 <button
                   onClick={() => window.location.reload()}
@@ -601,7 +600,7 @@ export default function LivestreamViewPage() {
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                     />
                   </svg>
-                  Làm Mới
+                  {t("noLivestreams.refresh")}
                 </button>
               </div>
             </div>
@@ -613,7 +612,7 @@ export default function LivestreamViewPage() {
                 {currentRoom && (
                   <div className="lg:w-2/3">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      Xem trước:{" "}
+                      {t("preview.title")}
                       <span className="text-rose-600 dark:text-rose-500">
                         {currentRoom.name}
                       </span>
@@ -643,7 +642,9 @@ export default function LivestreamViewPage() {
                               {currentRoom.name}
                             </h3>
                             <p className="text-sm text-gray-200">
-                              {formatViewerCount(view)} người xem
+                              {t("preview.viewers", {
+                                count: formatViewerCount(view),
+                              })}
                             </p>
                             {currentRoom.clinicName && (
                               <p className="text-xs text-gray-300">
@@ -656,7 +657,7 @@ export default function LivestreamViewPage() {
                           className="mr-5 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 flex items-center rounded-lg font-semibold transition duration-300"
                           onClick={() => joinRoom(currentRoom.id)}
                         >
-                          Tham Gia Phòng
+                          {t("preview.joinRoom")}
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -675,7 +676,7 @@ export default function LivestreamViewPage() {
                       </div>
                       <div className="absolute top-4 right-4 z-20 bg-red-500 px-2 py-1 rounded-full text-xs font-medium flex items-center">
                         <span className="h-1.5 w-1.5 bg-white rounded-full animate-pulse mr-1.5"></span>
-                        TRỰC TIẾP
+                        {t("preview.live")}
                       </div>
                     </div>
                   </div>
@@ -685,8 +686,8 @@ export default function LivestreamViewPage() {
                 <div className="lg:w-1/3">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                     {sidebarRooms.length > 0
-                      ? "Phát Trực Tiếp Khác"
-                      : "Không Có Phát Trực Tiếp Khác"}
+                      ? t("preview.otherStreams")
+                      : t("preview.noOtherStreams")}
                   </h2>
                   {sidebarRooms.length > 0 ? (
                     <div className="flex flex-col space-y-3">
@@ -712,7 +713,7 @@ export default function LivestreamViewPage() {
                             </div>
                             <div className="absolute top-1 right-1 bg-red-500 px-1 py-0.5 rounded-full text-[10px] font-medium flex items-center">
                               <span className="h-1 w-1 bg-white rounded-full animate-pulse mr-0.5"></span>
-                              TRỰC TIẾP
+                              {t("preview.live")}
                             </div>
                           </div>
 
@@ -745,7 +746,7 @@ export default function LivestreamViewPage() {
                                   changePreview(room.id);
                                 }}
                               >
-                                Xem Trước
+                                {t("preview.preview")}
                               </button>
                               <button
                                 className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded transition ml-2"
@@ -754,7 +755,7 @@ export default function LivestreamViewPage() {
                                   joinRoom(room.id);
                                 }}
                               >
-                                Tham Gia
+                                {t("preview.join")}
                               </button>
                             </div>
                           </div>
@@ -764,7 +765,7 @@ export default function LivestreamViewPage() {
                   ) : (
                     <div className="bg-white dark:bg-[#2a2a2a] rounded-lg p-4 text-center">
                       <p className="text-gray-600 dark:text-gray-400">
-                        Không có phát trực tiếp bổ sung nào.
+                        {t("preview.noOtherStreamsDesc")}
                       </p>
                     </div>
                   )}
@@ -774,7 +775,7 @@ export default function LivestreamViewPage() {
               {/* All Livestreams Section */}
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Tất Cả Phát Trực Tiếp
+                  {t("allStreams.title")}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {rooms.map((room) => (
@@ -802,7 +803,7 @@ export default function LivestreamViewPage() {
                         </div>
                         <div className="absolute top-2 right-2 bg-red-500 px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center">
                           <span className="h-1.5 w-1.5 bg-white rounded-full animate-pulse mr-1"></span>
-                          TRỰC TIẾP
+                          {t("preview.live")}
                         </div>
                       </div>
 
@@ -830,13 +831,13 @@ export default function LivestreamViewPage() {
                               className="text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded transition"
                               onClick={() => changePreview(room.id)}
                             >
-                              Xem Trước
+                              {t("preview.preview")}
                             </button>
                             <button
                               className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded transition"
                               onClick={() => joinRoom(room.id)}
                             >
-                              Tham Gia
+                              {t("preview.join")}
                             </button>
                           </div>
                         </div>
@@ -856,8 +857,7 @@ export default function LivestreamViewPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                &copy; {new Date().getFullYear()} Beautify. Đã đăng ký bản
-                quyền.
+                {t("footer.copyright", { year: new Date().getFullYear() })}
               </p>
             </div>
             <div className="flex space-x-4">
@@ -865,19 +865,19 @@ export default function LivestreamViewPage() {
                 href="#"
                 className="text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition"
               >
-                Điều Khoản Dịch Vụ
+                {t("footer.terms")}
               </a>
               <a
                 href="#"
                 className="text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition"
               >
-                Chính Sách Bảo Mật
+                {t("footer.privacy")}
               </a>
               <a
                 href="#"
                 className="text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition"
               >
-                Liên Hệ
+                {t("footer.contact")}
               </a>
             </div>
           </div>

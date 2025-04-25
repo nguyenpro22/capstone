@@ -80,6 +80,7 @@ export type BookingFlowMessages = {
   vatTax: string;
   total: string;
   depositRequired: string;
+  depositInfo: string;
   customer: {
     customer: string;
     name: string;
