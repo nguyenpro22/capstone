@@ -160,7 +160,7 @@ export const orderMessages: Messages["userOrder"] = {
         id: "ID",
         customer: "Customer",
         service: "Service",
-        date: "Date",
+        date: "Order Date",
         amount: "Amount",
         feedback: "Feedback",
         status: "Status",

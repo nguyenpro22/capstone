@@ -13,6 +13,8 @@ import type {
   WorkingSchedule,
 } from "@/features/doctor/types";
 import { useTranslations } from "next-intl";
+import { formatDate } from "@/utils/format";
+import { useDateTimeFormat } from "@/hooks/use-datetime-format";
 
 // Helper function to get initials from a name
 const getInitials = (name: string) => {
@@ -38,10 +40,10 @@ export function AppointmentSidebar({
   onSelectAppointment,
 }: AppointmentSidebarProps) {
   const t = useTranslations("doctor");
+  const dateTimeFormat = useDateTimeFormat();
 
   // Format dates
-  const formattedDate = format(selectedDate, "EEEE, dd MMMM yyyy");
-  const monthYear = format(selectedDate, "MMMM yyyy");
+  const formattedDate = dateTimeFormat.formatDate(selectedDate);
 
   // Get total appointments count
   const totalAppointments = shifts.reduce(
@@ -60,9 +62,6 @@ export function AppointmentSidebar({
             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
               {formattedDate}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              {monthYear}
-            </p>
           </div>
         </div>
 
@@ -109,7 +108,8 @@ export function AppointmentSidebar({
                     "dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800/50"
                   )}
                 >
-                  {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
+                  {dateTimeFormat.formatTime(shift.startTime)} -{" "}
+                  {dateTimeFormat.formatTime(shift.endTime)}
                 </Badge>
               </div>
 
@@ -153,8 +153,11 @@ export function AppointmentSidebar({
                             <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                               <Clock className="h-3.5 w-3.5 text-purple-400 dark:text-purple-500 flex-shrink-0" />
                               <span className="truncate">
-                                {formatTime(appointment.startTime)} -{" "}
-                                {formatTime(appointment.endTime)}
+                                {dateTimeFormat.formatTime(
+                                  appointment.startTime
+                                )}{" "}
+                                -{" "}
+                                {dateTimeFormat.formatTime(appointment.endTime)}
                               </span>
                             </div>
                             <div className="mt-3 flex items-center justify-between">
@@ -203,21 +206,4 @@ export function AppointmentSidebar({
       )}
     </div>
   );
-}
-
-// Helper function to format time
-function formatTime(timeString: string): string {
-  if (!timeString) return "";
-
-  // Handle format like "08:30:00"
-  const parts = timeString.split(":");
-  if (parts.length >= 2) {
-    const hour = Number.parseInt(parts[0]);
-    const minute = parts[1];
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minute} ${ampm}`;
-  }
-
-  return timeString;
 }
