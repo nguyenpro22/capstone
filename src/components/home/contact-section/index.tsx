@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // Validation errors interface
 interface ValidationErrors {
@@ -221,6 +222,11 @@ export function RegisterClinicForm() {
     wardName: "",
     streetAddress: "",
   });
+
+  // First, add the state for terms acceptance near the other states
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+
   useEffect(() => {
     let operatingLicenseURL: string | null = null;
     let businessLicenseURL: string | null = null;
@@ -563,6 +569,13 @@ export function RegisterClinicForm() {
       );
       hasFileError = true;
     }
+
+    // Add terms validation
+    if (!acceptTerms) {
+      setTermsError(true);
+      return false;
+    }
+    setTermsError(false);
 
     // Set validation errors
     if (hasValidationError) {
@@ -1204,12 +1217,50 @@ export function RegisterClinicForm() {
           <input type="hidden" {...register("district")} />
           <input type="hidden" {...register("ward")} />
 
-          {/* Submit Button */}
+          {/* Terms and Services - Add this before the Submit Button */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={acceptTerms}
+                onChange={(e) => {
+                  setAcceptTerms(e.target.checked);
+                  if (e.target.checked) {
+                    setTermsError(false);
+                  }
+                }}
+                className={`h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 ${
+                  termsError ? "border-red-500 dark:border-red-600" : ""
+                }`}
+              />
+              <label
+                htmlFor="terms"
+                className="text-sm text-gray-600 dark:text-gray-400"
+              >
+                {t("form.terms.text")}{" "}
+                <Link
+                  href="/policy"
+                  className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300"
+                  target="_blank"
+                >
+                  {t("form.terms.link")}
+                </Link>
+              </label>
+            </div>
+            {termsError && (
+              <p className="text-sm text-red-500 dark:text-red-400">
+                {t("form.terms.required")}
+              </p>
+            )}
+          </div>
+
+          {/* Submit Button - Update the disabled condition */}
           <div className="pt-2">
             <Button
               type="submit"
               className="w-full h-11 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !acceptTerms}
             >
               {isSubmitting ? (
                 <>

@@ -48,6 +48,7 @@ import { profileMessages } from "./profile";
 import { configs } from "./configs";
 import { livestreamMessages } from "./livestream-view";
 import { userProfileMessages } from "./user-profile";
+import { policy } from "./policy";
 
 const vi = {
   home: homeMessages,
@@ -99,6 +100,7 @@ const vi = {
   configs,
   livestreamMessages,
   userProfileMessages,
+  policy,
 };
 
 export default vi;

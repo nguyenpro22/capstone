@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
-
+import { useState, useMemo } from "react";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addMonths,
+  addWeeks,
+} from "date-fns";
 import { useShiftData } from "@/hooks/use-shift-data";
 import { useTranslations } from "next-intl";
 import type {
@@ -11,15 +18,59 @@ import type {
 import { CalendarView } from "./calendar-view";
 import { AppointmentSidebar } from "./appointment-sidebar";
 import { AppointmentDetails } from "./appointment-details";
+import { useLocale } from "next-intl";
+import { useDateTimeFormat } from "@/hooks/use-datetime-format";
 
 export default function CalendarPage() {
   const t = useTranslations("doctor");
-  const { shifts, isLoading } = useShiftData();
+  const locale = useLocale();
+  const dateTimeFormat = useDateTimeFormat();
+
+  // State for view type and current date
+  const [viewType, setViewType] = useState<"month" | "week">("month");
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedShift, setSelectedShift] =
     useState<DoctorWorkingSchedule | null>(null);
   const [selectedAppointment, setSelectedAppointment] =
     useState<WorkingSchedule | null>(null);
+
+  // Calculate date range based on view type
+  const dateRange = useMemo(() => {
+    if (viewType === "month") {
+      return {
+        start: startOfMonth(currentDate),
+        end: endOfMonth(currentDate),
+      };
+    } else {
+      return {
+        start: startOfWeek(currentDate, { weekStartsOn: 1 }),
+        end: endOfWeek(currentDate, { weekStartsOn: 1 }),
+      };
+    }
+  }, [currentDate, viewType]);
+
+  // Fetch data with calculated date range
+  const { shifts, isLoading } = useShiftData(dateRange.start, dateRange.end);
+
+  // Handle navigation
+  const handlePrevious = () => {
+    setCurrentDate((prev) =>
+      viewType === "month" ? addMonths(prev, -1) : addWeeks(prev, -1)
+    );
+  };
+
+  const handleNext = () => {
+    setCurrentDate((prev) =>
+      viewType === "month" ? addMonths(prev, 1) : addWeeks(prev, 1)
+    );
+  };
+
+  const handleViewTypeChange = (type: "month" | "week") => {
+    setViewType(type);
+    // Reset current date when changing view to avoid unexpected date ranges
+    setCurrentDate(new Date());
+  };
 
   // Get shifts for the selected date
   const shiftsForSelectedDate = selectedDate
@@ -34,7 +85,11 @@ export default function CalendarPage() {
       <header className="bg-gradient-to-r from-purple-900/90 to-indigo-900/80 text-white p-4 shadow-md flex-shrink-0">
         <div className="container mx-auto">
           <h1 className="text-2xl font-bold">{t("calendar.title")}</h1>
-          <p className="text-purple-100">{t("calendar.subtitle")}</p>
+          {selectedDate && (
+            <p className="text-purple-100">
+              {dateTimeFormat.formatDate(selectedDate)}
+            </p>
+          )}
         </div>
       </header>
 
@@ -44,9 +99,14 @@ export default function CalendarPage() {
             shifts={shifts}
             isLoading={isLoading}
             selectedDate={selectedDate}
+            currentDate={currentDate}
+            viewType={viewType}
             onSelectDate={setSelectedDate}
             onSelectShift={setSelectedShift}
             onSelectAppointment={setSelectedAppointment}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+            onViewTypeChange={handleViewTypeChange}
           />
         </div>
 

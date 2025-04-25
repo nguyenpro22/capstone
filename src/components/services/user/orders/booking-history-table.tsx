@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Eye, MessageSquare } from "lucide-react";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
@@ -35,7 +35,7 @@ interface BookingHistoryTableProps {
   orders: OrderItem[];
   loading: boolean;
   columnVisibility: {
-    id: boolean;
+    // id: boolean;
     customerName: boolean;
     serviceName: boolean;
     orderDate: boolean;
@@ -57,7 +57,7 @@ export function BookingHistoryTable({
   const [isCreateFeedbackModalOpen, setIsCreateFeedbackModalOpen] =
     useState(false);
   const [isViewFeedbackModalOpen, setIsViewFeedbackModalOpen] = useState(false);
-
+  const locale = useLocale();
   const { data: orderDetail, isLoading: orderDetailLoading } =
     useGetScheduleDetailQuery(selectedOrderId || "", {
       skip: !selectedOrderId,
@@ -125,11 +125,11 @@ export function BookingHistoryTable({
         <Table>
           <TableHeader className="bg-purple-50/80 dark:bg-indigo-900/30">
             <TableRow>
-              {columnVisibility.id && (
+              {/* {columnVisibility.id && (
                 <TableHead className="font-medium">
                   {t("table.columns.id")}
                 </TableHead>
-              )}
+              )} */}
               {columnVisibility.customerName && (
                 <TableHead className="font-medium">
                   {t("table.columns.customer")}
@@ -199,13 +199,13 @@ export function BookingHistoryTable({
                   variants={tableRowVariants}
                   className="border-b border-purple-100 dark:border-indigo-800/30 hover:bg-purple-50/50 dark:hover:bg-indigo-900/20 transition-colors"
                 >
-                  {columnVisibility.id && (
+                  {/* {columnVisibility.id && (
                     <TableCell className="font-medium">
                       <span className="font-mono text-xs bg-purple-50 dark:bg-indigo-900/30 px-2 py-1 rounded">
                         {order.id.substring(0, 8)}...
                       </span>
                     </TableCell>
-                  )}
+                  )} */}
                   {columnVisibility.customerName && (
                     <TableCell>{order.customerName}</TableCell>
                   )}
@@ -222,7 +222,9 @@ export function BookingHistoryTable({
                   )}
 
                   {columnVisibility.status && (
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell>
+                      {getStatusBadge(order.status, locale)}
+                    </TableCell>
                   )}
                   {columnVisibility.details && (
                     <TableCell className="text-right">

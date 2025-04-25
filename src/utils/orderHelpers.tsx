@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock3, AlertCircle, Star } from "lucide-react";
 
-export const getStatusBadge = (status: string) => {
+export const getStatusBadge = (status: string, locale: string) => {
   const base = "flex items-center gap-1.5";
   switch (status) {
     case "Completed":
@@ -10,7 +10,7 @@ export const getStatusBadge = (status: string) => {
         <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
           <span className={base}>
             <span className="h-2 w-2 rounded-full bg-green-500 dark:bg-green-400"></span>
-            Completed
+            {translateOrderStatus(status, locale)}
           </span>
         </Badge>
       );
@@ -19,7 +19,7 @@ export const getStatusBadge = (status: string) => {
         <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
           <span className={base}>
             <span className="h-2 w-2 rounded-full bg-amber-500 dark:bg-amber-400"></span>
-            Pending
+            {translateOrderStatus(status, locale)}
           </span>
         </Badge>
       );
@@ -28,14 +28,14 @@ export const getStatusBadge = (status: string) => {
         <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
           <span className={base}>
             <span className="h-2 w-2 rounded-full bg-blue-500 dark:bg-blue-400"></span>
-            In Progress
+            {translateOrderStatus(status, locale)}
           </span>
         </Badge>
       );
     default:
       return (
         <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
-          {status}
+          {translateOrderStatus(status, locale)}
         </Badge>
       );
   }
@@ -108,4 +108,51 @@ export const formatTime = (time: string | null) => {
 export const formatDate = (dateString: string | null) => {
   if (!dateString) return "-";
   return new Date(dateString).toLocaleDateString("vi-VN");
+};
+export const translateOrderStatus = (
+  status: string,
+  locale: string = "vi"
+): string => {
+  if (locale === "en") {
+    // Trả về text tiếng Anh gốc đã được format
+    switch (status) {
+      case "PENDING":
+        return "Pending";
+      case "IN_PROGRESS":
+        return "In Progress";
+      case "COMPLETED":
+        return "Completed";
+      case "UNCOMPLETED":
+        return "Uncompleted";
+      case "CANCELED":
+        return "Canceled";
+      case "Waiting Approval":
+        return "Waiting Approval";
+      default:
+        return status;
+    }
+  }
+
+  // Trả về text tiếng Việt
+  switch (status) {
+    case "Pending":
+    case "PENDING":
+      return "Đang chờ";
+    case "In Progress":
+    case "IN_PROGRESS":
+      return "Đang thực hiện";
+    case "Completed":
+    case "COMPLETED":
+      return "Hoàn thành";
+    case "Uncompleted":
+    case "UNCOMPLETED":
+      return "Chưa hoàn thành";
+    case "Canceled":
+    case "CANCELED":
+      return "Đã hủy";
+    case "Waiting Approval":
+      return "Chờ phê duyệt";
+    default:
+      return status;
+  }
 };

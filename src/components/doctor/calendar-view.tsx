@@ -39,32 +39,51 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type {
   DoctorWorkingSchedule,
   WorkingSchedule,
 } from "@/features/doctor/types";
+import {
+  formatDate,
+  formatShortWeekday,
+  formatShortMonth,
+  formatMonthYear,
+  formatWeek,
+} from "@/utils/format";
+import { useDateTimeFormat } from "@/hooks/use-datetime-format";
 
 interface CalendarViewProps {
   shifts: DoctorWorkingSchedule[];
   isLoading: boolean;
   selectedDate: Date | null;
+  currentDate: Date;
+  viewType: "month" | "week";
   onSelectDate: (date: Date) => void;
   onSelectShift: (shift: DoctorWorkingSchedule) => void;
   onSelectAppointment: (appointment: WorkingSchedule) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  onViewTypeChange: (type: "month" | "week") => void;
 }
 
 export function CalendarView({
   shifts,
   isLoading,
   selectedDate,
+  currentDate,
+  viewType,
   onSelectDate,
   onSelectShift,
   onSelectAppointment,
+  onPrevious,
+  onNext,
+  onViewTypeChange,
 }: CalendarViewProps) {
   const t = useTranslations("doctor");
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const locale = useLocale();
   const [view, setView] = useState<"month" | "week">("month");
+  const dateTimeFormat = useDateTimeFormat();
 
   // Group shifts by date
   const shiftsByDate = shifts.reduce((acc, shift) => {
@@ -78,44 +97,48 @@ export function CalendarView({
 
   // Navigation functions
   const navigate = (direction: "prev" | "next") => {
-    if (view === "month") {
-      setCurrentDate(
-        direction === "prev"
-          ? subMonths(currentDate, 1)
-          : addMonths(currentDate, 1)
-      );
+    if (direction === "prev") {
+      onPrevious();
     } else {
-      setCurrentDate(
-        direction === "prev"
-          ? subWeeks(currentDate, 1)
-          : addWeeks(currentDate, 1)
-      );
+      onNext();
     }
   };
 
   // Go to today
   const goToToday = () => {
-    setCurrentDate(new Date());
     onSelectDate(new Date());
   };
 
   // Get formatted title based on view
   const getViewTitle = () => {
     if (view === "month") {
-      return format(currentDate, "MMMM yyyy");
+      return formatMonthYear(currentDate, locale);
     } else {
-      const start = startOfWeek(currentDate, { weekStartsOn: 1 });
-      const end = endOfWeek(currentDate, { weekStartsOn: 1 });
-
-      if (format(start, "MMM") === format(end, "MMM")) {
-        return `${format(start, "d")} - ${format(end, "d")} ${format(
-          end,
-          "MMMM yyyy"
-        )}`;
-      } else {
-        return `${format(start, "d MMM")} - ${format(end, "d MMM yyyy")}`;
-      }
+      const formattedWeekRange = dateTimeFormat.formatWeekRange(currentDate);
+      return formattedWeekRange;
     }
+  };
+
+  // Sử dụng trong phần render calendar header
+  const renderWeekdayHeader = (date: Date) => {
+    return (
+      <div className="text-center py-2">{formatShortWeekday(date, locale)}</div>
+    );
+  };
+
+  // Sử dụng trong phần hiển thị ngày được chọn
+  const renderSelectedDate = (date: Date) => {
+    return (
+      <div className="text-lg font-semibold">{formatDate(date, locale)}</div>
+    );
+  };
+
+  // Sử dụng trong phần hiển thị tháng
+  const renderMonthHeader = (date: Date) => {
+    if (locale === "en") {
+      return `${formatShortMonth(date, locale)} ${date.getFullYear()}`;
+    }
+    return `${formatShortMonth(date, locale)} năm ${date.getFullYear()}`;
   };
 
   // Generate month view

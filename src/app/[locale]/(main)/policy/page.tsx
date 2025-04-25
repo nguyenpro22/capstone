@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import type { Metadata } from "next";
+import { useParams } from "next/navigation";
 import {
   ChevronRight,
   Shield,
@@ -15,14 +17,11 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-export const metadata: Metadata = {
-  title: "Policies | Beauty Service Platform",
-  description:
-    "Our platform policies for connecting clients and aesthetic clinics",
-};
+import { useTranslations } from "next-intl";
 
 export default function PolicyPage() {
+  const t = useTranslations("policy");
+
   return (
     <div className="bg-gradient-to-b from-purple-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 min-h-screen">
       {/* Decorative header */}
@@ -33,10 +32,10 @@ export default function PolicyPage() {
         <div className="max-w-5xl mx-auto px-4 py-16 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold text-white sm:text-5xl lg:text-6xl tracking-tight">
-              Platform Policies
+              {t("header.title")}
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-xl text-purple-100">
-              Our commitment to transparency, safety, and quality service
+              {t("header.subtitle")}
             </p>
           </div>
         </div>
@@ -51,39 +50,39 @@ export default function PolicyPage() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-purple-100 dark:border-gray-700">
                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-800 dark:to-pink-700 px-4 py-3">
                   <h2 className="text-lg font-bold text-white">
-                    Table of Contents
+                    {t("navigation.tableOfContents")}
                   </h2>
                 </div>
                 <nav className="p-4">
                   <div className="space-y-1">
                     {[
                       {
-                        name: "Privacy Policy",
+                        name: t("navigation.sections.privacy"),
                         href: "#privacy",
                         icon: Shield,
                       },
                       {
-                        name: "Terms of Service",
+                        name: t("navigation.sections.terms"),
                         href: "#terms",
                         icon: FileText,
                       },
                       {
-                        name: "User Guidelines",
+                        name: t("navigation.sections.guidelines"),
                         href: "#guidelines",
                         icon: UserCheck,
                       },
                       {
-                        name: "Clinic Standards",
+                        name: t("navigation.sections.standards"),
                         href: "#standards",
                         icon: HeartHandshake,
                       },
                       {
-                        name: "Dispute Resolution",
+                        name: t("navigation.sections.disputes"),
                         href: "#disputes",
                         icon: Scale,
                       },
                       {
-                        name: "Safety & Security",
+                        name: t("navigation.sections.safety"),
                         href: "#safety",
                         icon: AlertCircle,
                       },
@@ -105,21 +104,20 @@ export default function PolicyPage() {
                     className="flex items-center justify-center text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
                   >
                     <ArrowUp className="mr-2 h-4 w-4" />
-                    Back to top
+                    {t("navigation.backToTop")}
                   </a>
                 </div>
               </div>
 
               <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-purple-100 dark:border-gray-700">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                  Need Help?
+                  {t("navigation.needHelp.title")}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                  If you have questions about our policies, our support team is
-                  here to help.
+                  {t("navigation.needHelp.description")}
                 </p>
                 <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                  Contact Support
+                  {t("navigation.needHelp.contactButton")}
                 </Button>
               </div>
             </div>
@@ -130,21 +128,41 @@ export default function PolicyPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-purple-100 dark:border-gray-700">
               <div className="bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-800 dark:to-pink-700 px-4 py-3">
                 <h2 className="text-lg font-bold text-white">
-                  Quick Navigation
+                  {t("navigation.quickNavigation")}
                 </h2>
               </div>
               <div className="p-4 grid grid-cols-2 gap-2">
                 {[
-                  { name: "Privacy", href: "#privacy", icon: Shield },
-                  { name: "Terms", href: "#terms", icon: FileText },
-                  { name: "Guidelines", href: "#guidelines", icon: UserCheck },
                   {
-                    name: "Standards",
+                    name: t("navigation.sections.privacy").split(" ")[0],
+                    href: "#privacy",
+                    icon: Shield,
+                  },
+                  {
+                    name: t("navigation.sections.terms").split(" ")[0],
+                    href: "#terms",
+                    icon: FileText,
+                  },
+                  {
+                    name: t("navigation.sections.guidelines").split(" ")[0],
+                    href: "#guidelines",
+                    icon: UserCheck,
+                  },
+                  {
+                    name: t("navigation.sections.standards").split(" ")[0],
                     href: "#standards",
                     icon: HeartHandshake,
                   },
-                  { name: "Disputes", href: "#disputes", icon: Scale },
-                  { name: "Safety", href: "#safety", icon: AlertCircle },
+                  {
+                    name: t("navigation.sections.disputes").split(" ")[0],
+                    href: "#disputes",
+                    icon: Scale,
+                  },
+                  {
+                    name: t("navigation.sections.safety").split(" ")[0],
+                    href: "#safety",
+                    icon: AlertCircle,
+                  },
                 ].map((item) => (
                   <a
                     key={item.name}
@@ -165,23 +183,15 @@ export default function PolicyPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-purple-100 dark:border-gray-700">
               <div className="px-6 py-5">
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Welcome to our platform's policy center. These policies govern
-                  your use of our beauty service platform that connects clients
-                  with aesthetic clinics. We've designed these policies to
-                  ensure a
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {" "}
-                    safe, transparent, and high-quality experience{" "}
-                  </span>
-                  for all users. Please take the time to familiarize yourself
-                  with these important guidelines.
+                  {t("introduction.welcome")}
                 </p>
 
                 <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 rounded">
                   <p className="text-sm text-purple-800 dark:text-purple-200">
-                    <span className="font-bold">Last Updated:</span> April 19,
-                    2025. These policies are regularly reviewed and updated to
-                    ensure compliance with regulations and best practices.
+                    <span className="font-bold">
+                      {t("introduction.lastUpdated")}
+                    </span>{" "}
+                    {t("introduction.date")}
                   </p>
                 </div>
               </div>
@@ -194,71 +204,101 @@ export default function PolicyPage() {
                   <div className="flex items-center">
                     <Shield className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Privacy Policy
+                      {t("privacyPolicy.title")}
                     </h2>
                   </div>
                 </div>
                 <div className="px-6 py-5">
                   <div className="prose dark:prose-invert max-w-none">
-                    <p>
-                      Our platform is committed to protecting your privacy and
-                      ensuring the security of your personal information. This
-                      Privacy Policy outlines how we collect, use, disclose, and
-                      safeguard your data when you use our beauty service
-                      platform.
-                    </p>
+                    <p>{t("privacyPolicy.introduction")}</p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Information We Collect
+                      {t("privacyPolicy.informationWeCollect.title")}
                     </h3>
                     <p className="mb-2">
-                      We collect information that you provide directly to us,
-                      including:
+                      {t("privacyPolicy.informationWeCollect.introduction")}
                     </p>
                     <ul className="space-y-2 mb-4">
                       <li className="flex items-start">
                         <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                         <span>
                           <strong className="text-gray-900 dark:text-white">
-                            Personal identification information
+                            {
+                              t(
+                                "privacyPolicy.informationWeCollect.items.personal"
+                              ).split("(")[0]
+                            }
                           </strong>{" "}
-                          (name, email address, phone number)
+                          (
+                          {t(
+                            "privacyPolicy.informationWeCollect.items.personal"
+                          )
+                            .split("(")[1]
+                            ?.replace(")", "")}
+                          )
                         </span>
                       </li>
                       <li className="flex items-start">
                         <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                         <span>
                           <strong className="text-gray-900 dark:text-white">
-                            Profile information
+                            {
+                              t(
+                                "privacyPolicy.informationWeCollect.items.profile"
+                              ).split("(")[0]
+                            }
                           </strong>{" "}
-                          (profile picture, beauty preferences)
+                          (
+                          {t("privacyPolicy.informationWeCollect.items.profile")
+                            .split("(")[1]
+                            ?.replace(")", "")}
+                          )
                         </span>
                       </li>
                       <li className="flex items-start">
                         <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                         <span>
                           <strong className="text-gray-900 dark:text-white">
-                            Payment information
+                            {
+                              t(
+                                "privacyPolicy.informationWeCollect.items.payment"
+                              ).split("(")[0]
+                            }
                           </strong>{" "}
-                          (processed through secure third-party payment
-                          processors)
+                          (
+                          {t("privacyPolicy.informationWeCollect.items.payment")
+                            .split("(")[1]
+                            ?.replace(")", "")}
+                          )
                         </span>
                       </li>
                       <li className="flex items-start">
                         <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                         <span>
                           <strong className="text-gray-900 dark:text-white">
-                            Communication data
+                            {
+                              t(
+                                "privacyPolicy.informationWeCollect.items.communication"
+                              ).split("(")[0]
+                            }
                           </strong>{" "}
-                          (messages between clients and clinics)
+                          (
+                          {t(
+                            "privacyPolicy.informationWeCollect.items.communication"
+                          )
+                            .split("(")[1]
+                            ?.replace(")", "")}
+                          )
                         </span>
                       </li>
                       <li className="flex items-start">
                         <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                         <span>
                           <strong className="text-gray-900 dark:text-white">
-                            Service history and appointment details
+                            {t(
+                              "privacyPolicy.informationWeCollect.items.serviceHistory"
+                            )}
                           </strong>
                         </span>
                       </li>
@@ -266,112 +306,75 @@ export default function PolicyPage() {
 
                     <div className="border-l-4 border-purple-500 pl-4 py-2 my-6 bg-purple-50 dark:bg-purple-900/20 rounded-r">
                       <p className="text-purple-800 dark:text-purple-200 font-medium">
-                        We prioritize data minimization and only collect
-                        information necessary to provide our services.
+                        {t("privacyPolicy.informationWeCollect.priorityNote")}
                       </p>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      How We Use Your Information
+                      {t("privacyPolicy.howWeUse.title")}
                     </h3>
                     <p className="mb-2">
-                      We use the information we collect to:
+                      {t("privacyPolicy.howWeUse.introduction")}
                     </p>
                     <ul className="space-y-2 mb-4">
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          Provide, maintain, and improve our platform services
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          Process transactions and send related information
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Connect clients with appropriate aesthetic clinics
-                          </strong>
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          Send notifications, updates, and support messages
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          Personalize your experience and provide tailored
-                          content
-                        </span>
-                      </li>
+                      {t
+                        .raw("privacyPolicy.howWeUse.items")
+                        .map((item: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
                     </ul>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Data Sharing and Disclosure
+                      {t("privacyPolicy.dataSharing.title")}
                     </h3>
-                    <p>
-                      We may share your information with aesthetic clinics you
-                      choose to connect with through our platform.{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        We do not sell your personal information to third
-                        parties.
-                      </strong>{" "}
-                      We may share data with service providers who help us
-                      operate our platform, always under strict confidentiality
-                      agreements.
-                    </p>
+                    <p>{t("privacyPolicy.dataSharing.content")}</p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Your Rights and Choices
+                      {t("privacyPolicy.yourRights.title")}
                     </h3>
-                    <p>
-                      You have the right to access, correct, or delete your
-                      personal information. You can manage your communication
-                      preferences and opt out of marketing communications at any
-                      time.
-                    </p>
+                    <p>{t("privacyPolicy.yourRights.content")}</p>
 
                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mt-6">
                       <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                        Important Privacy Rights:
+                        {t("privacyPolicy.yourRights.importantRights.title")}
                       </h4>
                       <ul className="space-y-1 text-sm">
                         <li className="flex items-start">
                           <ChevronRight className="h-4 w-4 text-purple-500 mr-1 flex-shrink-0 mt-0.5" />
                           <span>
-                            <strong>Right to Access:</strong> You can request a
-                            copy of your personal data
+                            {t(
+                              "privacyPolicy.yourRights.importantRights.access"
+                            )}
                           </span>
                         </li>
                         <li className="flex items-start">
                           <ChevronRight className="h-4 w-4 text-purple-500 mr-1 flex-shrink-0 mt-0.5" />
                           <span>
-                            <strong>Right to Rectification:</strong> You can
-                            correct inaccurate information
+                            {t(
+                              "privacyPolicy.yourRights.importantRights.rectification"
+                            )}
                           </span>
                         </li>
                         <li className="flex items-start">
                           <ChevronRight className="h-4 w-4 text-purple-500 mr-1 flex-shrink-0 mt-0.5" />
                           <span>
-                            <strong>Right to Erasure:</strong> You can request
-                            deletion of your data
+                            {t(
+                              "privacyPolicy.yourRights.importantRights.erasure"
+                            )}
                           </span>
                         </li>
                         <li className="flex items-start">
                           <ChevronRight className="h-4 w-4 text-purple-500 mr-1 flex-shrink-0 mt-0.5" />
                           <span>
-                            <strong>Right to Restrict Processing:</strong> You
-                            can limit how we use your data
+                            {t(
+                              "privacyPolicy.yourRights.importantRights.restrictProcessing"
+                            )}
                           </span>
                         </li>
                       </ul>
@@ -388,120 +391,81 @@ export default function PolicyPage() {
                   <div className="flex items-center">
                     <FileText className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Terms of Service
+                      {t("termsOfService.title")}
                     </h2>
                   </div>
                 </div>
                 <div className="px-6 py-5">
                   <div className="prose dark:prose-invert max-w-none">
-                    <p>
-                      These Terms of Service govern your use of our beauty
-                      service platform. By accessing or using our platform, you
-                      agree to be bound by these terms.
-                    </p>
+                    <p>{t("termsOfService.introduction")}</p>
 
                     <div className="border-l-4 border-yellow-500 pl-4 py-2 my-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-r">
                       <p className="text-yellow-800 dark:text-yellow-200 font-medium">
-                        <strong>Important:</strong> By using our platform, you
-                        acknowledge that you have read, understood, and agree to
-                        be bound by these Terms of Service.
+                        <strong>
+                          {t("termsOfService.importantNote").split(":")[0]}:
+                        </strong>{" "}
+                        {t("termsOfService.importantNote").split(":")[1]}
                       </p>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Platform Description
+                      {t("termsOfService.platformDescription.title")}
                     </h3>
-                    <p>
-                      Our platform connects clients seeking aesthetic services
-                      with qualified clinics. We facilitate the discovery,
-                      booking, and management of beauty services but{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        are not directly responsible for the services provided
-                        by the clinics.
-                      </strong>
-                    </p>
+                    <p>{t("termsOfService.platformDescription.content")}</p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      User Accounts
+                      {t("termsOfService.userAccounts.title")}
                     </h3>
-                    <p>
-                      You must create an account to use certain features of our
-                      platform.{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        You are responsible for maintaining the confidentiality
-                        of your account credentials
-                      </strong>{" "}
-                      and for all activities that occur under your account.
-                    </p>
+                    <p>{t("termsOfService.userAccounts.content")}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
                       <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                         <h4 className="font-semibold text-green-800 dark:text-green-300 flex items-center mb-2">
                           <CheckCircle2 className="h-5 w-5 mr-2" />
-                          Acceptable Use
+                          {t("termsOfService.usage.acceptable.title")}
                         </h4>
                         <ul className="space-y-1 text-sm text-green-800 dark:text-green-300">
-                          <li>• Providing accurate information</li>
-                          <li>• Respecting other users</li>
-                          <li>• Following booking procedures</li>
-                          <li>• Maintaining account security</li>
+                          {t
+                            .raw("termsOfService.usage.acceptable.items")
+                            .map((item: string, index: number) => (
+                              <li key={index}>• {item}</li>
+                            ))}
                         </ul>
                       </div>
                       <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
                         <h4 className="font-semibold text-red-800 dark:text-red-300 flex items-center mb-2">
                           <XCircle className="h-5 w-5 mr-2" />
-                          Prohibited Activities
+                          {t("termsOfService.usage.prohibited.title")}
                         </h4>
                         <ul className="space-y-1 text-sm text-red-800 dark:text-red-300">
-                          <li>• Creating false accounts</li>
-                          <li>• Sharing account credentials</li>
-                          <li>• Unauthorized access attempts</li>
-                          <li>• Misrepresenting identity</li>
+                          {t
+                            .raw("termsOfService.usage.prohibited.items")
+                            .map((item: string, index: number) => (
+                              <li key={index}>• {item}</li>
+                            ))}
                         </ul>
                       </div>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Service Bookings and Payments
+                      {t("termsOfService.bookingsAndPayments.title")}
                     </h3>
-                    <p>
-                      When you book a service through our platform, you enter
-                      into a direct agreement with the clinic.
-                      <strong className="text-gray-900 dark:text-white">
-                        {" "}
-                        Payment terms, cancellation policies, and service
-                        details are set by individual clinics
-                      </strong>{" "}
-                      and should be reviewed before booking.
-                    </p>
+                    <p>{t("termsOfService.bookingsAndPayments.content")}</p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Intellectual Property
+                      {t("termsOfService.intellectualProperty.title")}
                     </h3>
-                    <p>
-                      All content, features, and functionality of our platform,
-                      including but not limited to text, graphics, logos, and
-                      software, are owned by our company and protected by
-                      intellectual property laws.
-                    </p>
+                    <p>{t("termsOfService.intellectualProperty.content")}</p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Limitation of Liability
+                      {t("termsOfService.limitationOfLiability.title")}
                     </h3>
-                    <p>
-                      We strive to provide a reliable platform but cannot
-                      guarantee uninterrupted access or the accuracy of
-                      information provided by clinics.{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        We are not liable for any damages arising from your use
-                        of, or inability to use, our platform.
-                      </strong>
-                    </p>
+                    <p>{t("termsOfService.limitationOfLiability.content")}</p>
                   </div>
                 </div>
               </div>
@@ -514,28 +478,20 @@ export default function PolicyPage() {
                   <div className="flex items-center">
                     <UserCheck className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      User Guidelines
+                      {t("userGuidelines.title")}
                     </h2>
                   </div>
                 </div>
                 <div className="px-6 py-5">
                   <div className="prose dark:prose-invert max-w-none">
-                    <p>
-                      Our user guidelines are designed to ensure a positive,
-                      respectful, and safe experience for all platform users.
-                      Following these guidelines is essential for maintaining
-                      the integrity of our community.
-                    </p>
+                    <p>{t("userGuidelines.introduction")}</p>
 
                     <div className="my-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                       <h4 className="font-semibold text-purple-800 dark:text-purple-300 mb-2">
-                        Community Values
+                        {t("userGuidelines.communityValues.title")}
                       </h4>
                       <p className="text-purple-700 dark:text-purple-300 text-sm">
-                        Our platform is built on <strong>trust</strong>,{" "}
-                        <strong>respect</strong>, and{" "}
-                        <strong>professionalism</strong>. We expect all users to
-                        uphold these values in every interaction.
+                        {t("userGuidelines.communityValues.content")}
                       </p>
                     </div>
 
@@ -543,146 +499,87 @@ export default function PolicyPage() {
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                           <Info className="h-5 w-5 text-purple-500 mr-2" />
-                          Client Responsibilities
+                          {t("userGuidelines.clientResponsibilities.title")}
                         </h3>
                         <ul className="space-y-3">
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              <strong className="text-gray-900 dark:text-white">
-                                Provide accurate personal information
-                              </strong>
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              <strong className="text-gray-900 dark:text-white">
-                                Attend scheduled appointments
-                              </strong>{" "}
-                              or cancel within the clinic's cancellation window
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>Communicate respectfully with clinics</span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              Provide honest and constructive feedback
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>Report any concerns or issues promptly</span>
-                          </li>
+                          {t
+                            .raw("userGuidelines.clientResponsibilities.items")
+                            .map((item: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
+                                <span>
+                                  <strong className="text-gray-900 dark:text-white">
+                                    {index === 0 || index === 1
+                                      ? item.split(" ").slice(0, 3).join(" ")
+                                      : ""}
+                                  </strong>{" "}
+                                  {index === 0 || index === 1
+                                    ? item.split(" ").slice(3).join(" ")
+                                    : item}
+                                </span>
+                              </li>
+                            ))}
                         </ul>
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                           <Info className="h-5 w-5 text-purple-500 mr-2" />
-                          Clinic Responsibilities
+                          {t("userGuidelines.clinicResponsibilities.title")}
                         </h3>
                         <ul className="space-y-3">
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              <strong className="text-gray-900 dark:text-white">
-                                Maintain accurate service listings and
-                                availability
-                              </strong>
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              <strong className="text-gray-900 dark:text-white">
-                                Provide services as described
-                              </strong>
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              Maintain appropriate licensing and qualifications
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              Respond to client inquiries in a timely manner
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>
-                              Handle client information with confidentiality
-                            </span>
-                          </li>
+                          {t
+                            .raw("userGuidelines.clinicResponsibilities.items")
+                            .map((item: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
+                                <span>
+                                  <strong className="text-gray-900 dark:text-white">
+                                    {index === 0 || index === 1
+                                      ? item.split(" ").slice(0, 3).join(" ")
+                                      : ""}
+                                  </strong>{" "}
+                                  {index === 0 || index === 1
+                                    ? item.split(" ").slice(3).join(" ")
+                                    : item}
+                                </span>
+                              </li>
+                            ))}
                         </ul>
                       </div>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Prohibited Activities
+                      {t("userGuidelines.prohibitedActivities.title")}
                     </h3>
                     <p className="mb-3">
-                      The following activities are{" "}
-                      <strong className="text-red-600 dark:text-red-400">
-                        strictly prohibited
-                      </strong>{" "}
-                      on our platform:
+                      {t("userGuidelines.prohibitedActivities.introduction")}
                     </p>
                     <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-6">
                       <ul className="space-y-2 text-red-800 dark:text-red-300">
-                        <li className="flex items-start">
-                          <XCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>
-                            <strong>
-                              Harassment or discriminatory behavior
-                            </strong>{" "}
-                            of any kind
-                          </span>
-                        </li>
-                        <li className="flex items-start">
-                          <XCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>
-                            <strong>
-                              Fraudulent activities or misrepresentation
-                            </strong>{" "}
-                            of credentials or services
-                          </span>
-                        </li>
-                        <li className="flex items-start">
-                          <XCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>
-                            Sharing inappropriate or offensive content
-                          </span>
-                        </li>
-                        <li className="flex items-start">
-                          <XCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>
-                            Creating multiple accounts for deceptive purposes
-                          </span>
-                        </li>
-                        <li className="flex items-start">
-                          <XCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>
-                            Any illegal activities or promotion of illegal
-                            services
-                          </span>
-                        </li>
+                        {t
+                          .raw("userGuidelines.prohibitedActivities.items")
+                          .map((item: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <XCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                              <span>
+                                <strong>
+                                  {index === 0 || index === 1
+                                    ? item.split(" ").slice(0, 3).join(" ")
+                                    : ""}
+                                </strong>{" "}
+                                {index === 0 || index === 1
+                                  ? item.split(" ").slice(3).join(" ")
+                                  : item}
+                              </span>
+                            </li>
+                          ))}
                       </ul>
                     </div>
 
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Violation of these guidelines may result in account
-                        suspension or termination. We regularly review user
-                        activity to ensure compliance with our community
-                        standards.
+                        {t("userGuidelines.violationNote")}
                       </p>
                     </div>
                   </div>
@@ -697,75 +594,59 @@ export default function PolicyPage() {
                   <div className="flex items-center">
                     <HeartHandshake className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Clinic Standards
+                      {t("clinicStandards.title")}
                     </h2>
                   </div>
                 </div>
                 <div className="px-6 py-5">
                   <div className="prose dark:prose-invert max-w-none">
-                    <p>
-                      We maintain{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        high standards for the aesthetic clinics
-                      </strong>{" "}
-                      on our platform to ensure quality, safety, and
-                      professionalism. All clinics must meet these standards to
-                      participate in our network.
-                    </p>
+                    <p>{t("clinicStandards.introduction")}</p>
 
                     <div className="my-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                       <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center">
                         <Info className="h-5 w-5 mr-2" />
-                        Quality Assurance
+                        {t("clinicStandards.qualityAssurance.title")}
                       </h4>
                       <p className="text-blue-700 dark:text-blue-300 text-sm">
-                        Every clinic on our platform undergoes a thorough
-                        verification process before being approved. We
-                        continuously monitor service quality through client
-                        feedback and regular reviews.
+                        {t("clinicStandards.qualityAssurance.content")}
                       </p>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Qualification Requirements
+                      {t("clinicStandards.qualificationRequirements.title")}
                     </h3>
-                    <p className="mb-3">All clinics on our platform must:</p>
+                    <p className="mb-3">
+                      {t(
+                        "clinicStandards.qualificationRequirements.introduction"
+                      )}
+                    </p>
                     <ul className="space-y-2 mb-6">
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Hold valid licenses and permits
-                          </strong>{" "}
-                          required by local regulations
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Employ qualified professionals
-                          </strong>{" "}
-                          with appropriate certifications
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Maintain proper insurance coverage</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Demonstrate a history of safe practice</span>
-                      </li>
+                      {t
+                        .raw("clinicStandards.qualificationRequirements.items")
+                        .map((item: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <span>
+                              <strong className="text-gray-900 dark:text-white">
+                                {index === 0 || index === 1
+                                  ? item.split(" ").slice(0, 3).join(" ")
+                                  : ""}
+                              </strong>{" "}
+                              {index === 0 || index === 1
+                                ? item.split(" ").slice(3).join(" ")
+                                : item}
+                            </span>
+                          </li>
+                        ))}
                     </ul>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Facility Standards
+                      {t("clinicStandards.facilityStandards.title")}
                     </h3>
                     <p className="mb-3">
-                      Clinics must maintain facilities that:
+                      {t("clinicStandards.facilityStandards.introduction")}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
@@ -774,13 +655,19 @@ export default function PolicyPage() {
                             <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                             <span>
                               <strong className="text-gray-900 dark:text-white">
-                                Meet health and safety regulations
+                                {t(
+                                  "clinicStandards.facilityStandards.items.regulations"
+                                )}
                               </strong>
                             </span>
                           </li>
                           <li className="flex items-start">
                             <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>Use approved equipment and products</span>
+                            <span>
+                              {t(
+                                "clinicStandards.facilityStandards.items.equipment"
+                              )}
+                            </span>
                           </li>
                         </ul>
                       </div>
@@ -790,14 +677,18 @@ export default function PolicyPage() {
                             <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                             <span>
                               <strong className="text-gray-900 dark:text-white">
-                                Implement proper sanitation protocols
+                                {t(
+                                  "clinicStandards.facilityStandards.items.sanitation"
+                                )}
                               </strong>
                             </span>
                           </li>
                           <li className="flex items-start">
                             <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                             <span>
-                              Provide comfortable and accessible environments
+                              {t(
+                                "clinicStandards.facilityStandards.items.environment"
+                              )}
                             </span>
                           </li>
                         </ul>
@@ -806,53 +697,36 @@ export default function PolicyPage() {
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Service Quality
+                      {t("clinicStandards.serviceQuality.title")}
                     </h3>
-                    <p className="mb-3">We expect clinics to:</p>
+                    <p className="mb-3">
+                      {t("clinicStandards.serviceQuality.introduction")}
+                    </p>
                     <ul className="space-y-2 mb-6">
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Provide accurate descriptions of services
-                          </strong>
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Deliver consistent quality of care</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Conduct thorough consultations before treatments
-                          </strong>
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Offer appropriate aftercare instructions</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Maintain high customer satisfaction ratings</span>
-                      </li>
+                      {t
+                        .raw("clinicStandards.serviceQuality.items")
+                        .map((item: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <span>
+                              <strong className="text-gray-900 dark:text-white">
+                                {index === 0 || index === 1 || index === 2
+                                  ? item.split(" ").slice(0, 3).join(" ")
+                                  : ""}
+                              </strong>{" "}
+                              {index === 0 || index === 1 || index === 2
+                                ? item.split(" ").slice(3).join(" ")
+                                : item}
+                            </span>
+                          </li>
+                        ))}
                     </ul>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Verification Process
+                      {t("clinicStandards.verificationProcess.title")}
                     </h3>
-                    <p>
-                      All clinics undergo a{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        verification process before joining our platform
-                      </strong>
-                      , which includes document review, background checks, and
-                      potentially in-person inspections. We also conduct
-                      periodic reviews to ensure ongoing compliance.
-                    </p>
+                    <p>{t("clinicStandards.verificationProcess.content")}</p>
                   </div>
                 </div>
               </div>
@@ -865,73 +739,55 @@ export default function PolicyPage() {
                   <div className="flex items-center">
                     <Scale className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Dispute Resolution
+                      {t("disputeResolution.title")}
                     </h2>
                   </div>
                 </div>
                 <div className="px-6 py-5">
                   <div className="prose dark:prose-invert max-w-none">
-                    <p>
-                      We understand that disagreements may arise between clients
-                      and clinics. Our dispute resolution process is designed to
-                      address concerns fairly and efficiently.
-                    </p>
+                    <p>{t("disputeResolution.introduction")}</p>
 
                     <div className="my-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                       <h4 className="font-semibold text-purple-800 dark:text-purple-300 mb-2">
-                        Our Commitment
+                        {t("disputeResolution.commitment.title")}
                       </h4>
                       <p className="text-purple-700 dark:text-purple-300 text-sm">
-                        We are committed to fair and transparent dispute
-                        resolution. Our goal is to ensure both clients and
-                        clinics are treated equitably and that all concerns are
-                        addressed promptly.
+                        {t("disputeResolution.commitment.content")}
                       </p>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Reporting a Dispute
+                      {t("disputeResolution.reportingDispute.title")}
                     </h3>
                     <p className="mb-3">
-                      If you encounter an issue with a service or user, you
-                      should:
+                      {t("disputeResolution.reportingDispute.introduction")}
                     </p>
                     <ol className="space-y-2 mb-6 list-decimal pl-5">
-                      <li className="pl-2">
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            First attempt to resolve the issue directly
-                          </strong>{" "}
-                          with the other party
-                        </span>
-                      </li>
-                      <li className="pl-2">
-                        <span>
-                          If unsuccessful, report the issue through our
-                          platform's support system
-                        </span>
-                      </li>
-                      <li className="pl-2">
-                        <span>
-                          Provide all relevant details, including dates,
-                          communications, and specific concerns
-                        </span>
-                      </li>
-                      <li className="pl-2">
-                        <span>
-                          Submit any supporting documentation or evidence
-                        </span>
-                      </li>
+                      {t
+                        .raw("disputeResolution.reportingDispute.steps")
+                        .map((step: string, index: number) => (
+                          <li key={index} className="pl-2">
+                            <span>
+                              <strong className="text-gray-900 dark:text-white">
+                                {index === 0
+                                  ? step.split(" ").slice(0, 3).join(" ")
+                                  : ""}
+                              </strong>{" "}
+                              {index === 0
+                                ? step.split(" ").slice(3).join(" ")
+                                : step}
+                            </span>
+                          </li>
+                        ))}
                     </ol>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Resolution Process
+                      {t("disputeResolution.resolutionProcess.title")}
                     </h3>
                     <p className="mb-3">
-                      Our dispute resolution process typically follows these
-                      steps:
+                      {t("disputeResolution.resolutionProcess.introduction")}
                     </p>
                     <div className="relative mb-6">
                       <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-purple-200 dark:bg-purple-800"></div>
@@ -941,11 +797,14 @@ export default function PolicyPage() {
                             1
                           </div>
                           <h4 className="font-medium text-gray-900 dark:text-white">
-                            Initial Review
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.initialReview.title"
+                            )}
                           </h4>
                           <p className="text-gray-600 dark:text-gray-400 text-sm">
-                            Our support team reviews the reported issue and
-                            determines the appropriate next steps.
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.initialReview.description"
+                            )}
                           </p>
                         </li>
                         <li className="pl-10 relative">
@@ -953,11 +812,14 @@ export default function PolicyPage() {
                             2
                           </div>
                           <h4 className="font-medium text-gray-900 dark:text-white">
-                            Information Gathering
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.informationGathering.title"
+                            )}
                           </h4>
                           <p className="text-gray-600 dark:text-gray-400 text-sm">
-                            We collect information from all involved parties to
-                            understand the full context of the dispute.
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.informationGathering.description"
+                            )}
                           </p>
                         </li>
                         <li className="pl-10 relative">
@@ -965,11 +827,14 @@ export default function PolicyPage() {
                             3
                           </div>
                           <h4 className="font-medium text-gray-900 dark:text-white">
-                            Mediation
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.mediation.title"
+                            )}
                           </h4>
                           <p className="text-gray-600 dark:text-gray-400 text-sm">
-                            We facilitate communication between parties to reach
-                            a mutually acceptable solution.
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.mediation.description"
+                            )}
                           </p>
                         </li>
                         <li className="pl-10 relative">
@@ -977,11 +842,14 @@ export default function PolicyPage() {
                             4
                           </div>
                           <h4 className="font-medium text-gray-900 dark:text-white">
-                            Final Determination
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.finalDetermination.title"
+                            )}
                           </h4>
                           <p className="text-gray-600 dark:text-gray-400 text-sm">
-                            If necessary, we make a final determination based on
-                            our policies and the evidence provided.
+                            {t(
+                              "disputeResolution.resolutionProcess.steps.finalDetermination.description"
+                            )}
                           </p>
                         </li>
                       </ol>
@@ -989,31 +857,17 @@ export default function PolicyPage() {
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Refunds and Compensation
+                      {t("disputeResolution.refundsAndCompensation.title")}
                     </h3>
                     <p>
-                      <strong className="text-gray-900 dark:text-white">
-                        Refund policies are set by individual clinics
-                      </strong>{" "}
-                      and should be reviewed before booking. In cases where a
-                      clinic has clearly violated our policies or failed to
-                      provide the agreed-upon service, we may facilitate refunds
-                      or other appropriate remedies.
+                      {t("disputeResolution.refundsAndCompensation.content")}
                     </p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Appeals
+                      {t("disputeResolution.appeals.title")}
                     </h3>
-                    <p>
-                      If you disagree with the outcome of a dispute resolution,
-                      you may submit an appeal for review by a senior member of
-                      our team.{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        Appeals must be submitted within 14 days
-                      </strong>{" "}
-                      of the initial decision.
-                    </p>
+                    <p>{t("disputeResolution.appeals.content")}</p>
                   </div>
                 </div>
               </div>
@@ -1026,154 +880,120 @@ export default function PolicyPage() {
                   <div className="flex items-center">
                     <AlertCircle className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Safety & Security
+                      {t("safetyAndSecurity.title")}
                     </h2>
                   </div>
                 </div>
                 <div className="px-6 py-5">
                   <div className="prose dark:prose-invert max-w-none">
-                    <p>
-                      Your safety and security are our top priorities. We
-                      implement various measures to protect our users and
-                      maintain the integrity of our platform.
-                    </p>
+                    <p>{t("safetyAndSecurity.introduction")}</p>
 
                     <div className="border-l-4 border-red-500 pl-4 py-2 my-6 bg-red-50 dark:bg-red-900/20 rounded-r">
                       <p className="text-red-800 dark:text-red-200 font-medium">
-                        <strong>Important Safety Notice:</strong> In case of a
-                        medical emergency related to a treatment, seek immediate
-                        medical attention first, then report the incident to our
-                        support team.
+                        <strong>
+                          {t("safetyAndSecurity.importantNotice").split(":")[0]}
+                          :
+                        </strong>{" "}
+                        {t("safetyAndSecurity.importantNotice").split(":")[1]}
                       </p>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Data Security
+                      {t("safetyAndSecurity.dataSecurity.title")}
                     </h3>
-                    <p className="mb-3">We protect your data through:</p>
+                    <p className="mb-3">
+                      {t("safetyAndSecurity.dataSecurity.introduction")}
+                    </p>
                     <ul className="space-y-2 mb-6">
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Encryption of sensitive information
-                          </strong>
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-gray-900 dark:text-white">
-                            Secure payment processing
-                          </strong>
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Regular security audits and updates</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Strict access controls for our staff</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>Compliance with data protection regulations</span>
-                      </li>
+                      {t
+                        .raw("safetyAndSecurity.dataSecurity.items")
+                        .map((item: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <CheckCircle2 className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <span>
+                              <strong className="text-gray-900 dark:text-white">
+                                {index === 0 || index === 1
+                                  ? item.split(" ").slice(0, 2).join(" ")
+                                  : ""}
+                              </strong>{" "}
+                              {index === 0 || index === 1
+                                ? item.split(" ").slice(2).join(" ")
+                                : item}
+                            </span>
+                          </li>
+                        ))}
                     </ul>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      User Verification
+                      {t("safetyAndSecurity.userVerification.title")}
                     </h3>
-                    <p>
-                      We implement{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        verification processes for both clients and clinics
-                      </strong>{" "}
-                      to reduce the risk of fraudulent activities and ensure the
-                      authenticity of platform users.
-                    </p>
+                    <p>{t("safetyAndSecurity.userVerification.content")}</p>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Treatment Safety
+                      {t("safetyAndSecurity.treatmentSafety.title")}
                     </h3>
-                    <p>
-                      While we cannot guarantee the safety of every treatment,
-                      we require clinics to follow industry best practices,
-                      maintain proper qualifications, and provide appropriate
-                      consultations before procedures.
-                    </p>
+                    <p>{t("safetyAndSecurity.treatmentSafety.content")}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
                       <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                         <h4 className="font-semibold text-green-800 dark:text-green-300 flex items-center mb-2">
                           <CheckCircle2 className="h-5 w-5 mr-2" />
-                          Safety Measures
+                          {t("safetyAndSecurity.measures.safetyMeasures.title")}
                         </h4>
                         <ul className="space-y-1 text-sm text-green-800 dark:text-green-300">
-                          <li>• Clinic verification process</li>
-                          <li>• Professional qualification checks</li>
-                          <li>• Regular safety audits</li>
-                          <li>• Client feedback monitoring</li>
+                          {t
+                            .raw(
+                              "safetyAndSecurity.measures.safetyMeasures.items"
+                            )
+                            .map((item: string, index: number) => (
+                              <li key={index}>• {item}</li>
+                            ))}
                         </ul>
                       </div>
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                         <h4 className="font-semibold text-blue-800 dark:text-blue-300 flex items-center mb-2">
                           <Info className="h-5 w-5 mr-2" />
-                          Client Resources
+                          {t(
+                            "safetyAndSecurity.measures.clientResources.title"
+                          )}
                         </h4>
                         <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-300">
-                          <li>• Treatment safety guides</li>
-                          <li>• Pre-treatment checklists</li>
-                          <li>• Aftercare instructions</li>
-                          <li>• Emergency contact information</li>
+                          {t
+                            .raw(
+                              "safetyAndSecurity.measures.clientResources.items"
+                            )
+                            .map((item: string, index: number) => (
+                              <li key={index}>• {item}</li>
+                            ))}
                         </ul>
                       </div>
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3 flex items-center">
                       <Info className="h-5 w-5 text-purple-500 mr-2" />
-                      Reporting Safety Concerns
+                      {t("safetyAndSecurity.reportingConcerns.title")}
                     </h3>
-                    <p>
-                      If you encounter any safety concerns or suspicious
-                      activities on our platform, please report them immediately
-                      through our support system.{" "}
-                      <strong className="text-gray-900 dark:text-white">
-                        We investigate all reports promptly
-                      </strong>{" "}
-                      and take appropriate action to maintain a safe
-                      environment.
-                    </p>
+                    <p>{t("safetyAndSecurity.reportingConcerns.content")}</p>
 
                     <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                       <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        How to Report a Safety Concern:
+                        {t(
+                          "safetyAndSecurity.reportingConcerns.howToReport.title"
+                        )}
                       </h4>
                       <ol className="space-y-1 text-sm text-gray-700 dark:text-gray-300 list-decimal pl-5">
-                        <li className="pl-1">
-                          Use the "Report" button on the clinic profile or
-                          service page
-                        </li>
-                        <li className="pl-1">
-                          Contact our support team through the Help Center
-                        </li>
-                        <li className="pl-1">
-                          Email us at{" "}
-                          <a
-                            href="mailto:safety@beautyplatform.com"
-                            className="text-purple-600 dark:text-purple-400 hover:underline"
-                          >
-                            safety@beautyplatform.com
-                          </a>
-                        </li>
-                        <li className="pl-1">
-                          For emergencies, use the emergency contact feature in
-                          our app
-                        </li>
+                        {t
+                          .raw(
+                            "safetyAndSecurity.reportingConcerns.howToReport.steps"
+                          )
+                          .map((step: string, index: number) => (
+                            <li key={index} className="pl-1">
+                              {step}
+                            </li>
+                          ))}
                       </ol>
                     </div>
                   </div>
@@ -1185,16 +1005,34 @@ export default function PolicyPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-purple-100 dark:border-gray-700 mt-8">
               <div className="px-6 py-5">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Download Policy Documents
+                  {t("downloadDocuments.title")}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {[
-                    { name: "Privacy Policy", icon: Shield },
-                    { name: "Terms of Service", icon: FileText },
-                    { name: "User Guidelines", icon: UserCheck },
-                    { name: "Clinic Standards", icon: HeartHandshake },
-                    { name: "Dispute Resolution", icon: Scale },
-                    { name: "Safety & Security", icon: AlertCircle },
+                    {
+                      name: t("downloadDocuments.documents.privacy"),
+                      icon: Shield,
+                    },
+                    {
+                      name: t("downloadDocuments.documents.terms"),
+                      icon: FileText,
+                    },
+                    {
+                      name: t("downloadDocuments.documents.guidelines"),
+                      icon: UserCheck,
+                    },
+                    {
+                      name: t("downloadDocuments.documents.standards"),
+                      icon: HeartHandshake,
+                    },
+                    {
+                      name: t("downloadDocuments.documents.disputes"),
+                      icon: Scale,
+                    },
+                    {
+                      name: t("downloadDocuments.documents.safety"),
+                      icon: AlertCircle,
+                    },
                   ].map((item) => (
                     <a
                       key={item.name}
@@ -1216,13 +1054,12 @@ export default function PolicyPage() {
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="text-center">
             <p className="text-gray-500 dark:text-gray-400">
-              Last updated: April 19, 2025. For questions about our policies,
-              please{" "}
+              {t("footer.lastUpdated")} {t("footer.date")}{" "}
               <Link
                 href="/contact"
                 className="text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
               >
-                contact us
+                {t("footer.contactUs")}
               </Link>
               .
             </p>
@@ -1231,25 +1068,25 @@ export default function PolicyPage() {
                 href="/terms"
                 className="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
               >
-                Terms
+                {t("footer.links.terms")}
               </Link>
               <Link
                 href="/privacy"
                 className="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
               >
-                Privacy
+                {t("footer.links.privacy")}
               </Link>
               <Link
                 href="/cookies"
                 className="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
               >
-                Cookies
+                {t("footer.links.cookies")}
               </Link>
               <Link
                 href="/legal"
                 className="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
               >
-                Legal
+                {t("footer.links.legal")}
               </Link>
             </div>
           </div>

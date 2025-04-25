@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Calendar,
   Clock,
@@ -32,6 +32,7 @@ import {
   formatCurrency,
   formatTime,
   getStatusIcon,
+  translateOrderStatus,
 } from "@/utils/orderHelpers";
 import type { ScheduleDetail } from "@/features/order/types";
 
@@ -52,7 +53,7 @@ export function OrderDetailModal({
 }: OrderDetailModalProps) {
   const t = useTranslations("orderMessages.bookingHistory");
   const [activeSection, setActiveSection] = useState<string>("all");
-
+  const locale = useLocale();
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("vi-VN");
@@ -84,7 +85,7 @@ export function OrderDetailModal({
               >
                 <div className="flex items-center gap-1.5">
                   {getStatusIcon(order.status)}
-                  <span>{order.status}</span>
+                  <span>{translateOrderStatus(order.status, locale)}</span>
                 </div>
               </Badge>
             </div>

@@ -68,6 +68,11 @@ export type registerClinic = {
       businessLicenseRequired: string;
       operatingLicenseRequired: string;
     };
+    terms: {
+      text: string;
+      link: string;
+      required: string;
+    };
     toast: {
       missingFiles: {
         title: string;

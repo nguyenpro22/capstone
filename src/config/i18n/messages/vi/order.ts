@@ -160,7 +160,7 @@ export const orderMessages: Messages["userOrder"] = {
         id: "Mã",
         customer: "Khách hàng",
         service: "Dịch vụ",
-        date: "Ngày",
+        date: "Ngày mua",
         amount: "Số tiền",
         feedback: "Đánh giá",
         status: "Trạng thái",

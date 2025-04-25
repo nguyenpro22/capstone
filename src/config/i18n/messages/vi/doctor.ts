@@ -112,4 +112,72 @@ export const doctor: Messages["doctorService"] = {
       },
     },
   },
+
+  datetime: {
+    weekdays: {
+      long: {
+        sunday: "Chủ nhật",
+        monday: "Thứ hai",
+        tuesday: "Thứ ba",
+        wednesday: "Thứ tư",
+        thursday: "Thứ năm",
+        friday: "Thứ sáu",
+        saturday: "Thứ bảy",
+      },
+      short: {
+        sunday: "CN",
+        monday: "T2",
+        tuesday: "T3",
+        wednesday: "T4",
+        thursday: "T5",
+        friday: "T6",
+        saturday: "T7",
+      },
+    },
+    months: {
+      long: {
+        january: "Tháng 1",
+        february: "Tháng 2",
+        march: "Tháng 3",
+        april: "Tháng 4",
+        may: "Tháng 5",
+        june: "Tháng 6",
+        july: "Tháng 7",
+        august: "Tháng 8",
+        september: "Tháng 9",
+        october: "Tháng 10",
+        november: "Tháng 11",
+        december: "Tháng 12",
+      },
+      short: {
+        january: "Th1",
+        february: "Th2",
+        march: "Th3",
+        april: "Th4",
+        may: "Th5",
+        june: "Th6",
+        july: "Th7",
+        august: "Th8",
+        september: "Th9",
+        october: "Th10",
+        november: "Th11",
+        december: "Th12",
+      },
+    },
+    formats: {
+      date: "{weekday}, {day} {month} {year}",
+      monthYear: "{month} năm {year}",
+      week: "{startDay} - {endDay} {month} {year}",
+      weekDifferentMonths:
+        "{startDay} {startMonth} - {endDay} {endMonth} {year}",
+    },
+    timeFormats: {
+      week: "Tuần",
+      weekWithMonth: "{startDay} - {endDay} {month} {year}",
+      weekWithDifferentMonths:
+        "{startDay} {startMonth} - {endDay} {endMonth} {year}",
+      time12h: "{hour}:{minute} {ampm}",
+      time24h: "{hour}:{minute}",
+    },
+  },
 };
