@@ -12,7 +12,7 @@ import { doctorMessages } from "./staffDoctor";
 import { staffMessages } from "./staff";
 import { LoginTranslations } from "./login";
 import { PasswordResetTranslations } from "./forgot-password";
-import { RegistrationTranslations } from "./register";
+import { RegisterMessages } from "./register";
 import { serviceDetail } from "./serivceDetail";
 import { registerClinic } from "./registerClinic";
 import { doctor } from "./doctor";
@@ -62,7 +62,7 @@ export type Messages = {
   staff: staffMessages;
   login: LoginTranslations;
   forgotPassword: PasswordResetTranslations;
-  register: RegistrationTranslations;
+  register: RegisterMessages;
   serviceDetail: serviceDetail;
   registerClinic: registerClinic;
   doctorService: doctor;

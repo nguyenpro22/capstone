@@ -36,130 +36,131 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { toast } from "react-toastify";
 
-type RegisterFormValues = z.infer<typeof createRegisterSchema>;
+type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
 
 // Enhanced validation schema with more comprehensive checks
-const enhancedRegisterSchema = createRegisterSchema
-  .refine(
-    (data) => {
-      // Email format validation (more comprehensive than basic Zod email)
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      return emailRegex.test(data.Email);
-    },
-    {
-      message: "Please enter a valid email address",
-      path: ["Email"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Check for whitespace in password
-      return !/\s/.test(data.Password);
-    },
-    {
-      message: "Password cannot contain spaces or whitespace characters",
-      path: ["Password"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Password strength validation
-      const hasUpperCase = /[A-Z]/.test(data.Password);
-      const hasLowerCase = /[a-z]/.test(data.Password);
-      const hasNumber = /[0-9]/.test(data.Password);
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.Password);
-      return (
-        hasUpperCase &&
-        hasLowerCase &&
-        hasNumber &&
-        hasSpecialChar &&
-        data.Password.length >= 8
-      );
-    },
-    {
-      message:
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
-      path: ["Password"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Confirm password matches password
-      return data.Password === data.ConfirmPassword;
-    },
-    {
-      message: "Passwords do not match",
-      path: ["ConfirmPassword"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Name validation - no numbers or special characters
-      const nameRegex = /^[a-zA-Z\s]+$/;
-      return nameRegex.test(data.FirstName);
-    },
-    {
-      message: "First name should only contain letters",
-      path: ["FirstName"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Name validation - no numbers or special characters
-      const nameRegex = /^[a-zA-Z\s]+$/;
-      return nameRegex.test(data.LastName);
-    },
-    {
-      message: "Last name should only contain letters",
-      path: ["LastName"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Phone number validation
-      const phoneRegex = /^[0-9+\-\s()]{8,15}$/;
-      return phoneRegex.test(data.PhoneNumber);
-    },
-    {
-      message: "Please enter a valid phone number",
-      path: ["PhoneNumber"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Date of birth validation - must be at least 18 years old
-      if (!data.DateOfBirth) return false;
-
-      const dob = new Date(data.DateOfBirth);
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-
-      // If birth month is later in the year or same month but birth day is later
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < dob.getDate())
-      ) {
-        return age - 1 >= 18; // Not yet had birthday this year
+const enhancedRegisterSchema = (t: any) => {
+  const baseSchema = createRegisterSchema(t);
+  return baseSchema
+    .refine(
+      (data: RegisterFormValues) => {
+        // Email format validation (more comprehensive than basic Zod email)
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailRegex.test(data.Email);
+      },
+      {
+        message: t("form.validation.email.invalid"),
+        path: ["Email"],
       }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Check for whitespace in password
+        return !/\s/.test(data.Password);
+      },
+      {
+        message: t("form.validation.password.noSpaces"),
+        path: ["Password"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Password strength validation
+        const hasUpperCase = /[A-Z]/.test(data.Password);
+        const hasLowerCase = /[a-z]/.test(data.Password);
+        const hasNumber = /[0-9]/.test(data.Password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.Password);
+        return (
+          hasUpperCase &&
+          hasLowerCase &&
+          hasNumber &&
+          hasSpecialChar &&
+          data.Password.length >= 8
+        );
+      },
+      {
+        message: t("form.validation.password.strength"),
+        path: ["Password"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Confirm password matches password
+        return data.Password === data.ConfirmPassword;
+      },
+      {
+        message: t("form.validation.password.mismatch"),
+        path: ["ConfirmPassword"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Name validation - no numbers or special characters
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        return nameRegex.test(data.FirstName);
+      },
+      {
+        message: t("form.validation.firstName.invalid"),
+        path: ["FirstName"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Name validation - no numbers or special characters
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        return nameRegex.test(data.LastName);
+      },
+      {
+        message: t("form.validation.lastName.invalid"),
+        path: ["LastName"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Phone number validation
+        const phoneRegex = /^[0-9+\-\s()]{8,15}$/;
+        return phoneRegex.test(data.PhoneNumber);
+      },
+      {
+        message: t("form.validation.phoneNumber.invalid"),
+        path: ["PhoneNumber"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Date of birth validation - must be at least 18 years old
+        if (!data.DateOfBirth) return false;
 
-      return age >= 18;
-    },
-    {
-      message: "You must be at least 18 years old to register",
-      path: ["DateOfBirth"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Address validation - minimum length
-      return data.Address.length >= 5;
-    },
-    {
-      message: "Address must be at least 5 characters long",
-      path: ["Address"],
-    }
-  );
+        const dob = new Date(data.DateOfBirth);
+        const today = new Date();
+        const age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < dob.getDate())
+        ) {
+          return age - 1 >= 18;
+        }
+
+        return age >= 18;
+      },
+      {
+        message: t("form.validation.dateOfBirth.age"),
+        path: ["DateOfBirth"],
+      }
+    )
+    .refine(
+      (data: RegisterFormValues) => {
+        // Address validation - minimum length
+        return data.Address.length >= 5;
+      },
+      {
+        message: t("form.validation.address.length"),
+        path: ["Address"],
+      }
+    );
+};
 
 // Define the error response type
 interface ValidationError {
@@ -199,6 +200,7 @@ export default function RegisterPage() {
   const [verifyCode, setVerifyCode] = useState("");
   const [countdown, setCountdown] = useState(60);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
 
   const {
@@ -209,8 +211,8 @@ export default function RegisterPage() {
     setError,
     watch,
   } = useForm<RegisterFormValues>({
-    resolver: zodResolver(enhancedRegisterSchema),
-    mode: "onChange", // Changed from onSubmit to provide real-time validation feedback
+    resolver: zodResolver(enhancedRegisterSchema(t)),
+    mode: "onChange",
   });
 
   // Add this function after the onInvalidSubmit function
@@ -341,11 +343,11 @@ export default function RegisterPage() {
           toast.error(errorData.detail);
         } else {
           // Generic error
-          toast.error(t("unexpectedError"));
+          toast.error(t("form.messages.unexpectedError"));
         }
       } else {
         // Handle other errors
-        toast.error(t("unexpectedError"));
+        toast.error(t("form.messages.unexpectedError"));
       }
     }
   };
@@ -399,12 +401,12 @@ export default function RegisterPage() {
   // Updated verification handler with loading state and success toast
   const handleVerifyCodeSubmit = async () => {
     if (!verifyCode.trim()) {
-      toast.error(t("pleaseEnterVerificationCode"));
+      toast.error(t("form.verification.pleaseEnter"));
       return;
     }
 
     if (!validateVerificationCode(verifyCode)) {
-      toast.error(t("invalidVerificationCode"));
+      toast.error(t("form.verification.invalidCode"));
       return;
     }
 
@@ -421,13 +423,13 @@ export default function RegisterPage() {
       console.log(response);
 
       // Show success toast
-      toast.success(t("verificationSuccessful"));
+      toast.success(t("form.verification.success"));
       router.push("/login");
     } catch (error) {
       console.error(error);
 
       // Show error toast
-      toast.error(t("verificationFailed"));
+      toast.error(t("form.verification.failed"));
     } finally {
       setIsVerifying(false); // Reset loading state regardless of outcome
     }
@@ -439,12 +441,10 @@ export default function RegisterPage() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
-          {t("createAccount")}
+        <h2 className="text-4xl font-semibold">
+          {t("form.title.createAccount")}
         </h2>
-        <p className="mt-2 text-gray-600 dark:text-gray-400 text-lg">
-          {t("fillDetails")}
-        </p>
+        <p className="mt-2 text-gray-600">{t("form.title.fillDetails")}</p>
       </div>
 
       <form
@@ -454,14 +454,14 @@ export default function RegisterPage() {
         {/* Email */}
         <div className="space-y-2">
           <Label htmlFor="Email" className="text-gray-700 dark:text-gray-300">
-            {t("email")}
+            {t("form.labels.email")}
           </Label>
           <div className="relative">
             <Input
               {...formRegister("Email")}
               id="Email"
               type="email"
-              placeholder={t("emailPlaceholder")}
+              placeholder={t("form.placeholders.email")}
               className={`h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 ${
                 !isEmailValid && getValues("Email")?.length > 0
                   ? "border-red-500 dark:border-red-500"
@@ -491,14 +491,14 @@ export default function RegisterPage() {
             htmlFor="Password"
             className="text-gray-700 dark:text-gray-300"
           >
-            {t("password")}
+            {t("form.labels.password")}
           </Label>
           <div className="relative">
             <Input
               {...formRegister("Password")}
               id="Password"
               type={showPassword ? "text" : "password"}
-              placeholder={t("passwordPlaceholder")}
+              placeholder={t("form.placeholders.password")}
               className={`h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 ${
                 hasWhitespace
                   ? "border-red-500 dark:border-red-500"
@@ -519,8 +519,7 @@ export default function RegisterPage() {
           </div>
           {hasWhitespace && (
             <p className="text-red-500 dark:text-red-400 text-sm">
-              {t("passwordNoSpaces") ||
-                "Password cannot contain spaces or whitespace characters"}
+              {t("form.validation.password.noSpaces")}
             </p>
           )}
           {errors.Password && (
@@ -536,14 +535,14 @@ export default function RegisterPage() {
             htmlFor="ConfirmPassword"
             className="text-gray-700 dark:text-gray-300"
           >
-            {t("confirmPassword")}
+            {t("form.labels.confirmPassword")}
           </Label>
           <div className="relative">
             <Input
               {...formRegister("ConfirmPassword")}
               id="ConfirmPassword"
               type={showConfirmPassword ? "text" : "password"}
-              placeholder={t("confirmPasswordPlaceholder")}
+              placeholder={t("form.placeholders.confirmPassword")}
               className="h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
             />
             <button
@@ -572,13 +571,13 @@ export default function RegisterPage() {
               htmlFor="FirstName"
               className="text-gray-700 dark:text-gray-300"
             >
-              {t("firstName")}
+              {t("form.labels.firstName")}
             </Label>
             <Input
               {...formRegister("FirstName")}
               id="FirstName"
               type="text"
-              placeholder={t("firstNamePlaceholder")}
+              placeholder={t("form.placeholders.firstName")}
               className="h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
             />
             {errors.FirstName && (
@@ -592,13 +591,13 @@ export default function RegisterPage() {
               htmlFor="LastName"
               className="text-gray-700 dark:text-gray-300"
             >
-              {t("lastName")}
+              {t("form.labels.lastName")}
             </Label>
             <Input
               {...formRegister("LastName")}
               id="LastName"
               type="text"
-              placeholder={t("lastNamePlaceholder")}
+              placeholder={t("form.placeholders.lastName")}
               className="h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
             />
             {errors.LastName && (
@@ -615,13 +614,13 @@ export default function RegisterPage() {
             htmlFor="PhoneNumber"
             className="text-gray-700 dark:text-gray-300"
           >
-            {t("phoneNumber")}
+            {t("form.labels.phoneNumber")}
           </Label>
           <Input
             {...formRegister("PhoneNumber")}
             id="PhoneNumber"
             type="tel"
-            placeholder={t("phoneNumberPlaceholder")}
+            placeholder={t("form.placeholders.phoneNumber")}
             className="h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
           />
           {errors.PhoneNumber && (
@@ -637,7 +636,7 @@ export default function RegisterPage() {
             htmlFor="DateOfBirth"
             className="text-gray-700 dark:text-gray-300"
           >
-            {t("dateOfBirth")}
+            {t("form.labels.dateOfBirth")}
           </Label>
           <Input
             {...formRegister("DateOfBirth")}
@@ -652,20 +651,20 @@ export default function RegisterPage() {
             </p>
           )}
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t("mustBe18YearsOld")}
+            {t("form.validation.dateOfBirth.note")}
           </p>
         </div>
 
         {/* Address */}
         <div className="space-y-2">
           <Label htmlFor="Address" className="text-gray-700 dark:text-gray-300">
-            {t("address")}
+            {t("form.labels.address")}
           </Label>
           <Input
             {...formRegister("Address")}
             id="Address"
             type="text"
-            placeholder={t("addressPlaceholder")}
+            placeholder={t("form.placeholders.address")}
             className="h-11 px-4 text-base bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-300 rounded-xl"
           />
           {errors.Address && (
@@ -675,24 +674,50 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {/* Terms and Services Checkbox */}
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={acceptTerms}
+            onChange={(e) => setAcceptTerms(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label
+            htmlFor="terms"
+            className="text-sm text-gray-600 dark:text-gray-400"
+          >
+            {t("form.terms.text")}{" "}
+            <Link
+              href="/policy"
+              className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              target="_blank"
+            >
+              {t("form.terms.link")}
+            </Link>
+          </label>
+        </div>
+
         {/* Submit Button */}
         <Button
           type="submit"
           className={`w-full h-14 text-lg font-medium bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition-all duration-300 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 ${
             isSubmitting ? "animate-pulse" : ""
           }`}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !acceptTerms}
         >
-          {isSubmitting ? t("registering") : t("register")}
+          {isSubmitting
+            ? t("form.buttons.registering")
+            : t("form.buttons.register")}
         </Button>
       </form>
       <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-        {t("alreadyHaveAccount")}{" "}
+        {t("form.messages.alreadyHaveAccount")}{" "}
         <Link
           href="/login"
           className="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-300"
         >
-          {t("signIn")}
+          {t("form.buttons.signIn")}
           <ArrowRight className="inline-block ml-1 h-4 w-4" />
         </Link>
       </p>
@@ -710,10 +735,10 @@ export default function RegisterPage() {
                 <div className="rounded-full bg-green-100 dark:bg-green-900/50 p-2">
                   <CheckCircle className="h-8 w-8" />
                 </div>
-                {t("registrationSuccess")}
+                {t("form.verification.success")}
               </DialogTitle>
               <DialogDescription className="pt-4 text-base text-gray-600 dark:text-gray-400">
-                {t("verificationCodeSent")}
+                {t("form.verification.codeSent")}
               </DialogDescription>
             </DialogHeader>
             <div className="mt-6 flex items-center justify-center">
@@ -733,7 +758,7 @@ export default function RegisterPage() {
                 }}
                 className="w-full bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
               >
-                {t("enterVerificationCode")}
+                {t("form.verification.enterCode")}
               </Button>
             </DialogFooter>
           </motion.div>
@@ -753,16 +778,16 @@ export default function RegisterPage() {
                 <div className="rounded-full bg-blue-100 dark:bg-blue-900/50 p-2">
                   <Key className="h-8 w-8" />
                 </div>
-                {t("enterVerificationCode")}
+                {t("form.verification.enterCode")}
               </DialogTitle>
               <DialogDescription className="pt-4 text-base text-gray-600 dark:text-gray-400">
-                {t("checkEmail")}
+                {t("form.verification.checkEmail")}
               </DialogDescription>
             </DialogHeader>
             <div className="mt-6">
               <Input
                 type="text"
-                placeholder={t("verificationCodePlaceholder")}
+                placeholder={t("form.verification.codePlaceholder")}
                 value={verifyCode}
                 onChange={handleVerifyCodeChange}
                 className={`text-center text-2xl tracking-widest h-16 px-4 bg-white dark:bg-gray-800 border-2 ${
@@ -775,14 +800,14 @@ export default function RegisterPage() {
               />
               {!isCodeValid && verifyCode.length > 0 && (
                 <p className="text-red-500 dark:text-red-400 text-sm mt-1">
-                  {t("invalidVerificationCode")}
+                  {t("form.verification.invalidCode")}
                 </p>
               )}
             </div>
 
             <div className="text-center text-sm mt-4">
               <span className="text-gray-600 dark:text-gray-400">
-                {t("timeRemaining")}:{" "}
+                {t("form.verification.timeRemaining")}:{" "}
               </span>
               <span className="font-medium text-indigo-600 dark:text-indigo-400">
                 {formatTime(countdown)}
@@ -797,10 +822,10 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{t("verifying")}</span>
+                    <span>{t("form.verification.verifying")}</span>
                   </div>
                 ) : (
-                  t("confirm")
+                  t("form.buttons.confirm")
                 )}
               </Button>
             </DialogFooter>

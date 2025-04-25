@@ -1,79 +1,93 @@
-export type RegistrationTranslations = {
-  createAccount: string;
-  fillDetails: string;
-  email: string;
-  emailPlaceholder: string;
-  password: string;
-  passwordPlaceholder: string;
-  confirmPassword: string;
-  confirmPasswordPlaceholder: string;
-  firstName: string;
-  firstNamePlaceholder: string;
-  lastName: string;
-  lastNamePlaceholder: string;
-  phoneNumber: string;
-  phoneNumberPlaceholder: string;
-  dateOfBirth: string;
-  address: string;
-  addressPlaceholder: string;
-  register: string;
-  registering: string;
-  alreadyHaveAccount: string;
-  signIn: string;
-  registrationSuccess: string;
-  verificationCodeSent: string;
-  enterVerificationCode: string;
-  checkEmail: string;
-  verificationCodePlaceholder: string;
-  timeRemaining: string;
-  confirm: string;
-  emailAlreadyExists: string;
-  // New translation fields
-  mustBe18YearsOld: string;
-  selectYourBirthday: string;
-  validationError: string;
-  unexpectedError: string;
-  verificationFailed: string;
-  // Backend validation error messages
-  invalidEmailFormat: string;
-  passwordTooShort: string;
-  passwordTooLong: string;
-  firstNameOnlyLetters: string;
-  firstNameTooShort: string;
-  firstNameTooLong: string;
-  lastNameOnlyLetters: string;
-  lastNameTooShort: string;
-  lastNameTooLong: string;
-  mustBeAtLeast18: string;
-  addressTooShort: string;
-  addressTooLong: string;
-
-  // New verification messages
-  pleaseEnterVerificationCode: string
-  verifying: string
-  verificationSuccessful: string
-  // Password validation messages
-  passwordNoSpaces: string;
-  passwordRequirements: string;
-  passwordRequiresUppercase: string;
-  passwordRequiresLowercase: string;
-  passwordRequiresNumber: string;
-  passwordRequiresSpecial: string;
-  passwordsDoNotMatch: string;
-  
-  // Email validation
-  invalidEmail: string;
-  
-  // Phone validation
-  invalidPhoneNumber: string;
-  
-  // Verification code validation
-  invalidVerificationCode: string;
-  
-  // Form submission
-  formSubmissionError: string;
-  serverError: string;
-  
-  // Address validation
-  invalidAddress: string;
-};
+export interface RegisterMessages {
+  form: {
+    title: {
+      createAccount: string;
+      fillDetails: string;
+    };
+    labels: {
+      email: string;
+      password: string;
+      confirmPassword: string;
+      firstName: string;
+      lastName: string;
+      phoneNumber: string;
+      dateOfBirth: string;
+      address: string;
+    };
+    placeholders: {
+      email: string;
+      password: string;
+      confirmPassword: string;
+      firstName: string;
+      lastName: string;
+      phoneNumber: string;
+      address: string;
+    };
+    buttons: {
+      register: string;
+      registering: string;
+      signIn: string;
+      confirm: string;
+      verifying: string;
+    };
+    validation: {
+      required: string;
+      email: {
+        invalid: string;
+      };
+      password: {
+        min: string;
+        max: string;
+        uppercase: string;
+        lowercase: string;
+        number: string;
+        special: string;
+        noSpaces: string;
+        strength: string;
+      };
+      confirmPassword: {
+        match: string;
+      };
+      firstName: {
+        min: string;
+        lettersOnly: string;
+      };
+      lastName: {
+        required: string;
+        lettersOnly: string;
+      };
+      phoneNumber: {
+        format: string;
+      };
+      dateOfBirth: {
+        invalid: string;
+        age: string;
+        note: string;
+      };
+      address: {
+        min: string;
+      };
+    };
+    verification: {
+      title: string;
+      success: string;
+      codeSent: string;
+      enterCode: string;
+      checkEmail: string;
+      codePlaceholder: string;
+      timeRemaining: string;
+      invalidCode: string;
+      pleaseEnter: string;
+    };
+    messages: {
+      alreadyHaveAccount: string;
+      unexpectedError: string;
+      verificationSuccess: string;
+      verificationFailed: string;
+    };
+    terms: {
+      text: string;
+      link: string;
+    };
+  };
+}
