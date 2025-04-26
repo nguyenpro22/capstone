@@ -21,18 +21,7 @@ Dự án này là một nền tảng toàn diện cho ngành thẩm mỹ, kết 
   - Xác minh chứng chỉ chuyên môn
   - Đánh giá tiêu chuẩn cơ sở vật chất
 
-### 2. Công nghệ AI phân tích khuôn mặt
-
-- **Tích hợp Google Cloud Vision API**:
-  - Phân tích cảm xúc khuôn mặt
-  - Đánh giá độ sáng và tình trạng da
-  - Nhận diện đặc điểm khuôn mặt
-- **Đề xuất dịch vụ thông minh**:
-  - Gợi ý dịch vụ phù hợp với trạng thái cảm xúc
-  - Đề xuất liệu trình chăm sóc da
-  - Tư vấn kiểu tóc và trang điểm
-
-### 3. Dịch vụ làm đẹp đa dạng
+### 2. Dịch vụ làm đẹp đa dạng
 
 - **Chăm sóc da**:
   - Liệu trình chăm sóc da mặt
@@ -46,7 +35,7 @@ Dự án này là một nền tảng toàn diện cho ngành thẩm mỹ, kết 
   - Trang điểm cô dâu
   - Tư vấn phong cách
 
-### 4. Tương tác trực tuyến
+### 3. Tương tác trực tuyến
 
 - **Livestream làm đẹp**:
   - Chia sẻ mẹo làm đẹp
@@ -57,7 +46,7 @@ Dự án này là một nền tảng toàn diện cho ngành thẩm mỹ, kết 
   - Chia sẻ trải nghiệm khách hàng
   - Quản lý phản hồi
 
-### 5. Tiêu chuẩn và chính sách
+### 4. Tiêu chuẩn và chính sách
 
 - **Tiêu chuẩn phòng khám**:
   - Yêu cầu về trình độ chuyên môn
@@ -68,7 +57,7 @@ Dự án này là một nền tảng toàn diện cho ngành thẩm mỹ, kết 
   - Đánh giá định kỳ
   - Xử lý khiếu nại
 
-### 6. Hệ thống quản trị
+### 5. Hệ thống quản trị
 
 - **Quản lý doanh thu**:
   - Theo dõi doanh thu theo thời gian
