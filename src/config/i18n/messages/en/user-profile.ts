@@ -78,14 +78,14 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
     deposit: {
       title: "Deposit to Wallet",
       description: "Deposit money to your wallet to use services",
-      success: "The amount {{amount}} has been added to your wallet",
+      success: "The amount has been added to your wallet",
       failed: "We did not receive your payment. Please try again.",
       invalidAmount: "Please enter a valid amount.",
       createFailed:
         "Failed to create deposit transaction. Please try again later.",
       error:
         "An error occurred while creating the transaction. Please try again later.",
-      copied: "Copied {{label}} to clipboard",
+      copied: "Copied to clipboard",
       enterAmount: "Enter the amount to deposit",
       amountLabel: "Amount (VND)",
       amountPlaceholder: "₫3.000",
@@ -109,7 +109,7 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
       result: {
         success: "Transaction completed",
         failed: "Transaction failed",
-        successDesc: "The amount {{amount}} has been added to your wallet",
+        successDesc: "The amount  has been added to your wallet",
         failedDesc: "Please check your payment information and try again",
       },
       transactionId: "Transaction ID",
@@ -128,7 +128,7 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
       errorDesc:
         "An error occurred while processing the withdrawal request. Please try again later.",
       successTitle: "Withdrawal successful",
-      successDesc: "The amount {{amount}} has been withdrawn from your wallet",
+      successDesc: "The amount  has been withdrawn from your wallet",
       successNote:
         "Your withdrawal request has been processed successfully. The amount will be transferred to your bank account within 24 hours of working time.",
       withdrawAnother: "Withdraw another",
@@ -168,7 +168,7 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
     deposit: "Deposit to wallet",
     withdrawal: "Withdraw from wallet",
     transfer: "Transfer",
-    paymentTo: "Payment to {{clinic}}",
+    paymentTo: "Payment to ",
     default: "Transaction",
     code: "Transaction ID",
     amount: "Amount:",

@@ -78,12 +78,12 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
     deposit: {
       title: "Nạp tiền vào ví",
       description: "Nạp tiền vào ví của bạn để sử dụng các dịch vụ",
-      success: "Số tiền {{amount}} đã được thêm vào ví của bạn",
+      success: "Số tiền đã được thêm vào ví của bạn",
       failed: "Chúng tôi không nhận được thanh toán của bạn. Vui lòng thử lại.",
       invalidAmount: "Vui lòng nhập số tiền hợp lệ.",
       createFailed: "Không thể tạo giao dịch nạp tiền. Vui lòng thử lại sau.",
       error: "Đã xảy ra lỗi khi tạo giao dịch. Vui lòng thử lại sau.",
-      copied: "Đã sao chép {{label}} vào clipboard",
+      copied: "Đã sao chép  vào clipboard",
       enterAmount: "Nhập số tiền cần nạp",
       amountLabel: "Số tiền (VND)",
       amountPlaceholder: "₫3.000",
@@ -107,7 +107,7 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
       result: {
         success: "Giao dịch hoàn tất",
         failed: "Giao dịch thất bại",
-        successDesc: "Số tiền {{amount}} đã được thêm vào ví của bạn",
+        successDesc: "Số tiền đã được thêm vào ví của bạn",
         failedDesc: "Vui lòng kiểm tra lại thông tin thanh toán và thử lại",
       },
       transactionId: "Mã giao dịch",
@@ -126,7 +126,7 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
       errorDesc:
         "Đã xảy ra lỗi khi xử lý yêu cầu rút tiền. Vui lòng thử lại sau.",
       successTitle: "Rút tiền thành công",
-      successDesc: "Số tiền {{amount}} đã được rút khỏi ví của bạn",
+      successDesc: "Số tiền đã được rút khỏi ví của bạn",
       successNote:
         "Yêu cầu rút tiền của bạn đã được xử lý thành công. Số tiền sẽ được chuyển vào tài khoản ngân hàng của bạn trong vòng 24 giờ làm việc.",
       withdrawAnother: "Rút tiền khác",
@@ -166,7 +166,7 @@ export const userProfileMessages: Messages["userProfileMessages"] = {
     deposit: "Nạp tiền vào ví",
     withdrawal: "Rút tiền từ ví",
     transfer: "Chuyển khoản",
-    paymentTo: "Thanh toán cho {{clinic}}",
+    paymentTo: "Thanh toán Thành công",
     default: "Giao dịch",
     code: "Mã GD",
     amount: "Số tiền:",

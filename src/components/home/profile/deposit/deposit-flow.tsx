@@ -29,6 +29,7 @@ import PaymentService from "@/hooks/usePaymentStatus";
 import type { Transaction as TransactionResponse } from "@/features/customer-wallet/types";
 import { BOOKING_RETRY_URL_KEY } from "@/constants";
 import { useTranslations } from "next-intl";
+import { formatCurrency } from "@/utils";
 
 type DepositStep = "amount" | "payment" | "result";
 type TransactionStatus = "pending" | "completed" | "failed" | "expired";
@@ -47,15 +48,6 @@ export function DepositFlow({
   defaultAmount,
 }: DepositFlowProps) {
   const t = useTranslations("userProfileMessages");
-
-  // Helper function for consistent currency formatting
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const [topUp] = useTopUpMutation();
 
