@@ -6,6 +6,7 @@ export type WorkingSchedule = {
   endTime: string;
   status: OrderStatus;
   stepIndex: string;
+  note: string | null;
   customerName: string;
   customerId: string;
   serviceId: string;

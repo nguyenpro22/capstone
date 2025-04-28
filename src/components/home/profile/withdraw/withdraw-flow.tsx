@@ -20,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { ArrowUpIcon, RefreshCwIcon, CheckCircleIcon } from "lucide-react";
 import { numberToWords } from "@/utils/vietnamese-text";
+import { useTranslations } from "next-intl";
+import { toast } from "react-toastify";
 
 interface WithdrawFlowProps {
   currentBalance: number;
@@ -35,7 +36,7 @@ export function WithdrawFlow({
   onBalanceUpdate,
   onComplete,
 }: WithdrawFlowProps) {
-  const { toast } = useToast();
+  const t = useTranslations("userProfileMessages");
 
   // Withdraw state
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
@@ -64,38 +65,42 @@ export function WithdrawFlow({
   const processWithdrawal = async () => {
     const amount = Number.parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0 || amount > currentBalance) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập số tiền hợp lệ.",
-        variant: "destructive",
-      });
+      toast.error(
+        <>
+          <b>{t("wallet.withdraw.errorTitle")}</b>
+          <div>{t("wallet.withdraw.invalidAmount")}</div>
+        </>
+      );
       return;
     }
 
     if (!selectedBank) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn ngân hàng.",
-        variant: "destructive",
-      });
+      toast.error(
+        <>
+          <b>{t("wallet.withdraw.errorTitle")}</b>
+          <div>{t("wallet.withdraw.selectBank")}</div>
+        </>
+      );
       return;
     }
 
     if (!accountNumber) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập số tài khoản.",
-        variant: "destructive",
-      });
+      toast.error(
+        <>
+          <b>{t("wallet.withdraw.errorTitle")}</b>
+          <div>{t("wallet.withdraw.enterAccountNumber")}</div>
+        </>
+      );
       return;
     }
 
     if (!accountName) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập tên chủ tài khoản.",
-        variant: "destructive",
-      });
+      toast.error(
+        <>
+          <b>{t("wallet.withdraw.errorTitle")}</b>
+          <div>{t("wallet.withdraw.enterAccountName")}</div>
+        </>
+      );
       return;
     }
 
@@ -111,24 +116,27 @@ export function WithdrawFlow({
 
       setIsSuccess(true);
 
-      toast({
-        title: "Rút tiền thành công",
-        description: `Số tiền ${new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-          minimumFractionDigits: 0,
-        }).format(amount)} đã được rút khỏi ví của bạn`,
-        variant: "default",
-        className:
-          "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800/30",
-      });
+      toast.success(
+        <>
+          <b>{t("wallet.withdraw.successTitle")}</b>
+          <div>
+            {t("wallet.withdraw.successDesc", {
+              amount: new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+                minimumFractionDigits: 0,
+              }).format(amount),
+            })}
+          </div>
+        </>
+      );
     } catch (error) {
-      toast({
-        title: "Lỗi",
-        description:
-          "Đã xảy ra lỗi khi xử lý yêu cầu rút tiền. Vui lòng thử lại sau.",
-        variant: "destructive",
-      });
+      toast.error(
+        <>
+          <b>{t("wallet.withdraw.errorTitle")}</b>
+          <div>{t("wallet.withdraw.errorDesc")}</div>
+        </>
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -149,10 +157,10 @@ export function WithdrawFlow({
       <Card className="h-full border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl dark:shadow-purple-900/20 rounded-xl overflow-hidden flex flex-col">
         <CardHeader className="pb-2 px-6">
           <CardTitle className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            Rút tiền từ ví
+            {t("wallet.withdraw.title")}
           </CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
-            Rút tiền từ ví của bạn về tài khoản ngân hàng
+            {t("wallet.withdraw.description")}
           </CardDescription>
         </CardHeader>
 
@@ -163,24 +171,23 @@ export function WithdrawFlow({
             </div>
 
             <h3 className="text-xl font-medium text-gray-800 dark:text-white mb-2">
-              Rút tiền thành công
+              {t("wallet.withdraw.successTitle")}
             </h3>
 
             <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-8">
-              Yêu cầu rút tiền của bạn đã được xử lý thành công. Số tiền sẽ được
-              chuyển vào tài khoản ngân hàng của bạn trong vòng 24 giờ làm việc.
+              {t("wallet.withdraw.successNote")}
             </p>
 
             <div className="flex gap-4 w-full max-w-xs">
               <Button variant="outline" className="flex-1" onClick={resetForm}>
-                Rút tiền khác
+                {t("wallet.withdraw.withdrawAnother")}
               </Button>
 
               <Button
                 className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 onClick={onComplete}
               >
-                Hoàn tất
+                {t("wallet.withdraw.done")}
               </Button>
             </div>
           </div>
@@ -194,10 +201,10 @@ export function WithdrawFlow({
     <Card className="h-full border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl dark:shadow-purple-900/20 rounded-xl overflow-hidden flex flex-col">
       <CardHeader className="pb-2 px-6">
         <CardTitle className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-          Rút tiền từ ví
+          {t("wallet.withdraw.title")}
         </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-400">
-          Rút tiền từ ví của bạn về tài khoản ngân hàng
+          {t("wallet.withdraw.description")}
         </CardDescription>
       </CardHeader>
 
@@ -206,7 +213,7 @@ export function WithdrawFlow({
           {/* Withdraw Form */}
           <div className="bg-blue-50/70 dark:bg-blue-900/20 rounded-lg p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4">
-              Nhập số tiền cần rút
+              {t("wallet.withdraw.enterAmount")}
             </h3>
 
             <div className="space-y-4">
@@ -215,13 +222,13 @@ export function WithdrawFlow({
                   htmlFor="withdrawAmount"
                   className="text-gray-700 dark:text-gray-300"
                 >
-                  Số tiền (VND)
+                  {t("wallet.withdraw.amountLabel")}
                 </Label>
                 <div className="relative">
                   <Input
                     id="withdrawAmount"
                     type="text"
-                    placeholder="Nhập số tiền"
+                    placeholder={t("wallet.withdraw.amountPlaceholder")}
                     value={withdrawAmount}
                     onChange={handleWithdrawAmountChange}
                     className="pl-12 bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800/30 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400"
@@ -255,7 +262,9 @@ export function WithdrawFlow({
 
               {withdrawAmount && (
                 <div className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">Bằng chữ:</span>{" "}
+                  <span className="font-medium">
+                    {t("wallet.withdraw.inWords")}:
+                  </span>{" "}
                   {numberToWords(withdrawAmount)}
                 </div>
               )}
@@ -265,7 +274,7 @@ export function WithdrawFlow({
           {/* Bank Account Information */}
           <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-300 mb-4">
-              Thông tin tài khoản nhận tiền
+              {t("wallet.withdraw.bankInfoTitle")}
             </h3>
 
             <div className="space-y-4">
@@ -274,22 +283,36 @@ export function WithdrawFlow({
                   htmlFor="bank"
                   className="text-gray-700 dark:text-gray-300"
                 >
-                  Ngân hàng
+                  {t("wallet.withdraw.bankLabel")}
                 </Label>
                 <Select value={selectedBank} onValueChange={setSelectedBank}>
                   <SelectTrigger
                     id="bank"
                     className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800/30 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400"
                   >
-                    <SelectValue placeholder="Chọn ngân hàng" />
+                    <SelectValue
+                      placeholder={t("wallet.withdraw.bankPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="vcb">Vietcombank</SelectItem>
-                    <SelectItem value="tcb">Techcombank</SelectItem>
-                    <SelectItem value="bidv">BIDV</SelectItem>
-                    <SelectItem value="vtb">VietinBank</SelectItem>
-                    <SelectItem value="mb">MB Bank</SelectItem>
-                    <SelectItem value="acb">ACB</SelectItem>
+                    <SelectItem value="vcb">
+                      {t("wallet.withdraw.banks.vcb")}
+                    </SelectItem>
+                    <SelectItem value="tcb">
+                      {t("wallet.withdraw.banks.tcb")}
+                    </SelectItem>
+                    <SelectItem value="bidv">
+                      {t("wallet.withdraw.banks.bidv")}
+                    </SelectItem>
+                    <SelectItem value="vtb">
+                      {t("wallet.withdraw.banks.vtb")}
+                    </SelectItem>
+                    <SelectItem value="mb">
+                      {t("wallet.withdraw.banks.mb")}
+                    </SelectItem>
+                    <SelectItem value="acb">
+                      {t("wallet.withdraw.banks.acb")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -299,12 +322,12 @@ export function WithdrawFlow({
                   htmlFor="accountNumber"
                   className="text-gray-700 dark:text-gray-300"
                 >
-                  Số tài khoản
+                  {t("wallet.withdraw.accountNumberLabel")}
                 </Label>
                 <Input
                   id="accountNumber"
                   type="text"
-                  placeholder="Nhập số tài khoản"
+                  placeholder={t("wallet.withdraw.accountNumberPlaceholder")}
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
                   className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800/30 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400"
@@ -316,12 +339,12 @@ export function WithdrawFlow({
                   htmlFor="accountName"
                   className="text-gray-700 dark:text-gray-300"
                 >
-                  Tên chủ tài khoản
+                  {t("wallet.withdraw.accountNameLabel")}
                 </Label>
                 <Input
                   id="accountName"
                   type="text"
-                  placeholder="Nhập tên chủ tài khoản"
+                  placeholder={t("wallet.withdraw.accountNamePlaceholder")}
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
                   className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800/30 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400"
@@ -347,12 +370,12 @@ export function WithdrawFlow({
             {isProcessing ? (
               <>
                 <RefreshCwIcon className="mr-2 h-4 w-4 animate-spin" />
-                Đang xử lý
+                {t("wallet.withdraw.processing")}
               </>
             ) : (
               <>
                 <ArrowUpIcon className="h-5 w-5 mr-2" />
-                Rút tiền
+                {t("wallet.withdraw.submit")}
               </>
             )}
           </Button>
@@ -360,8 +383,10 @@ export function WithdrawFlow({
           {/* Information Note */}
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800/30">
             <p className="text-sm text-blue-800 dark:text-blue-300">
-              <span className="font-medium">Lưu ý:</span> Yêu cầu rút tiền sẽ
-              được xử lý trong vòng 24 giờ làm việc. Phí rút tiền: 0 VND.
+              <span className="font-medium">
+                {t("wallet.withdraw.noteTitle")}
+              </span>{" "}
+              {t("wallet.withdraw.noteContent")}
             </p>
           </div>
         </div>

@@ -37,23 +37,25 @@ interface AppointmentDetailsProps {
   appointment: WorkingSchedule;
   shift?: DoctorWorkingSchedule | null;
   onClose: () => void;
+  handleNote: (note: string) => void;
 }
 
 export function AppointmentDetails({
   appointment,
   shift,
   onClose,
+  handleNote,
 }: AppointmentDetailsProps) {
   const t = useTranslations("doctor");
   const [isEditingNote, setIsEditingNote] = useState(false);
-  const [noteText, setNoteText] = useState("");
+  const [noteText, setNoteText] = useState(appointment.note || "");
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("details");
 
   const handleSaveNote = async () => {
     setIsSavingNote(true);
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await handleNote(noteText);
     setIsSavingNote(false);
     setIsEditingNote(false);
     // In a real app, you would update the appointment notes via API

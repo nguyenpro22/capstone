@@ -94,6 +94,11 @@ import { useRouter } from "next/navigation";
 import { handleProtectedAction } from "@/features/auth/utils";
 import ModalConfirmLogin from "@/components/services/loginModal";
 import { motion } from "framer-motion";
+import {
+  BOOKING_DATA_STORAGE_KEY,
+  BOOKING_DATA_TIMESTAMP_KEY,
+} from "@/constants/booking.constant";
+import { BOOKING_RETRY_URL_KEY } from "@/constants/booking.constant";
 
 // Loading Skeleton Component
 function ServiceDetailSkeleton() {
@@ -396,6 +401,11 @@ export default function ServiceDetail() {
   useEffect(() => {
     if (livestreamId || booking) {
       setShowBookingFlow(true);
+    }
+    if (!booking) {
+      localStorage.removeItem(BOOKING_DATA_STORAGE_KEY);
+      localStorage.removeItem(BOOKING_DATA_TIMESTAMP_KEY);
+      localStorage.removeItem(BOOKING_RETRY_URL_KEY);
     }
   }, [livestreamId, booking]);
 
