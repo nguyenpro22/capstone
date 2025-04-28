@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 import type { WalletTransaction } from "@/features/customer-wallet/types";
+import { useTranslations } from "next-intl";
 
 interface TransactionCardProps {
   transaction: WalletTransaction;
@@ -23,6 +24,8 @@ export function TransactionCard({
   transaction,
   compact = false,
 }: TransactionCardProps) {
+  const t = useTranslations("userProfileMessages");
+
   // Get transaction icon based on type
   const getTransactionIcon = () => {
     switch (transaction.transactionType) {
@@ -57,15 +60,17 @@ export function TransactionCard({
   const getTransactionTitle = () => {
     switch (transaction.transactionType) {
       case "Deposit":
-        return "Nạp tiền vào ví";
+        return t("transaction.deposit");
       case "Withdrawal":
-        return "Rút tiền từ ví";
+        return t("transaction.withdrawal");
       case "Transfer":
         return transaction.clinicName
-          ? `Thanh toán cho ${transaction.clinicName}`
-          : "Chuyển khoản";
+          ? t("transaction.paymentTo", {
+              clinic: transaction.clinicName,
+            })
+          : t("transaction.transfer");
       default:
-        return "Giao dịch";
+        return t("transaction.default");
     }
   };
 
@@ -76,25 +81,25 @@ export function TransactionCard({
         color:
           "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/30",
         icon: <CheckCircleIcon className="h-3.5 w-3.5 mr-1" />,
-        text: "Hoàn thành",
+        text: t("transaction.status.completed"),
       },
       Pending: {
         color:
           "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800/30",
         icon: <ClockIcon className="h-3.5 w-3.5 mr-1" />,
-        text: "Đang xử lý",
+        text: t("transaction.status.pending"),
       },
       Failed: {
         color:
           "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/30",
         icon: <XCircleIcon className="h-3.5 w-3.5 mr-1" />,
-        text: "Thất bại",
+        text: t("transaction.status.failed"),
       },
       Cancelled: {
         color:
           "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-400 border-gray-200 dark:border-gray-700/30",
         icon: <AlertCircleIcon className="h-3.5 w-3.5 mr-1" />,
-        text: "Đã hủy",
+        text: t("transaction.status.cancelled"),
       },
     };
 
@@ -158,7 +163,9 @@ export function TransactionCard({
         <div>
           <p className="text-right">{getFormattedAmount()}</p>
           <p className="text-xs text-right text-gray-500 dark:text-gray-400">
-            {transaction.status === "Completed" ? "Hoàn thành" : "Đang xử lý"}
+            {transaction.status === "Completed"
+              ? t("transaction.status.completed")
+              : t("transaction.status.pending")}
           </p>
         </div>
       </div>
@@ -177,7 +184,8 @@ export function TransactionCard({
               {getTransactionTitle()}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              Mã GD: {transaction.id.substring(0, 8)}...
+              {t("transaction.code")}: {transaction.id.substring(0, 8)}
+              ...
             </p>
           </div>
         </div>
@@ -185,7 +193,7 @@ export function TransactionCard({
         {/* Amount */}
         <div className="md:col-span-2 flex md:block items-center justify-between w-full md:w-auto">
           <span className="md:hidden text-sm text-gray-500 dark:text-gray-400">
-            Số tiền:
+            {t("transaction.amount")}
           </span>
           {getFormattedAmount()}
         </div>
@@ -193,7 +201,7 @@ export function TransactionCard({
         {/* Date */}
         <div className="md:col-span-3 flex md:block items-center justify-between w-full md:w-auto">
           <span className="md:hidden text-sm text-gray-500 dark:text-gray-400">
-            Thời gian:
+            {t("transaction.time")}
           </span>
           <div>
             <p className="text-gray-800 dark:text-gray-200">
@@ -208,7 +216,7 @@ export function TransactionCard({
         {/* Status */}
         <div className="md:col-span-2 md:text-right flex md:block items-center justify-between w-full md:w-auto">
           <span className="md:hidden text-sm text-gray-500 dark:text-gray-400">
-            Trạng thái:
+            {t("transaction.status.label")}
           </span>
           {getStatusBadge()}
         </div>

@@ -373,7 +373,7 @@ export default function ProfilePage() {
 
   // Handle balance update from deposit or withdraw
   const handleBalanceUpdate = (newBalance: number) => {
-    setProfile((prev) => ({ ...prev, balance: newBalance }));
+    // setProfile((prev) => ({ ...prev, balance: newBalance }));
   };
 
   return (
@@ -930,10 +930,10 @@ export default function ProfilePage() {
               <Card className="h-full border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl dark:shadow-purple-900/20 rounded-xl overflow-hidden flex flex-col">
                 <CardHeader className="pb-2 px-6">
                   <CardTitle className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-indigo-700 dark:from-purple-400 dark:to-indigo-400">
-                    Ví của tôi
+                    {t("header.wallet.title")}
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-400">
-                    Quản lý ví và xem số dư của bạn
+                    {t("header.wallet.description")}
                   </CardDescription>
                 </CardHeader>
 
@@ -973,7 +973,7 @@ export default function ProfilePage() {
                         onClick={() => setActiveTab("withdraw")}
                       >
                         <ArrowUpIcon className="h-5 w-5 mr-2" />
-                        Rút tiền từ ví
+                        {t("wallet.actions.withdraw")}
                       </Button>
                     </div>
 

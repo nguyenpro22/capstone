@@ -20,7 +20,8 @@ import { AppointmentSidebar } from "./appointment-sidebar";
 import { AppointmentDetails } from "./appointment-details";
 import { useLocale } from "next-intl";
 import { useDateTimeFormat } from "@/hooks/use-datetime-format";
-
+import { useAddAppointmentNoteMutation } from "@/features/doctor/api";
+import { toast } from "react-toastify";
 export default function CalendarPage() {
   const t = useTranslations("doctor");
   const locale = useLocale();
@@ -34,7 +35,7 @@ export default function CalendarPage() {
     useState<DoctorWorkingSchedule | null>(null);
   const [selectedAppointment, setSelectedAppointment] =
     useState<WorkingSchedule | null>(null);
-
+  const [addAppointmentNote] = useAddAppointmentNoteMutation();
   // Calculate date range based on view type
   const dateRange = useMemo(() => {
     if (viewType === "month") {
@@ -79,6 +80,21 @@ export default function CalendarPage() {
         return shiftDate.toDateString() === selectedDate.toDateString();
       })
     : [];
+
+  const handleNote = async (note: string) => {
+    if (selectedAppointment) {
+      try {
+        await addAppointmentNote({
+          customerScheduleId: selectedAppointment.customerScheduleId,
+          note,
+        }).unwrap();
+        toast.success(t("calendar.noteAdded"));
+      } catch (error) {
+        console.error(error);
+        toast.error(t("calendar.noteNotAdded"));
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-900/20 dark:to-indigo-900/30">
@@ -125,6 +141,7 @@ export default function CalendarPage() {
       {selectedAppointment && (
         <AppointmentDetails
           appointment={selectedAppointment}
+          handleNote={handleNote}
           shift={selectedShift}
           onClose={() => setSelectedAppointment(null)}
         />

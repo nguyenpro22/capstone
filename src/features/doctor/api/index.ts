@@ -94,8 +94,11 @@ export const doctorCommandApi = createApi({
     >({
       query: ({ customerScheduleId, note }) => ({
         url: `/customer-schedules/doctor/${customerScheduleId}`,
-        method: "POST",
-        body: note.toString(),
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(note),
       }),
     }),
     registerSchedule: builder.mutation<IResCommon<null>, DoctorScheduleRequest>(
