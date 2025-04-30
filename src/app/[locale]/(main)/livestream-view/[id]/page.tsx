@@ -22,6 +22,7 @@ import {
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { useTranslations } from "next-intl";
+import { getAccessToken } from "@/utils";
 
 // Define CSS animation for floating reactions
 const reactionAnimationStyle = `
@@ -135,7 +136,7 @@ export default function LivestreamRoomPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-
+  const token = getAccessToken() as string;
   const [view, setView] = useState<number>(0);
   const signalR_Connection = useRef<signalR.HubConnection | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -170,7 +171,6 @@ export default function LivestreamRoomPage() {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
   const t = useTranslations("livestreamRoomMessages");
-
   // Define the reactions map
   const reactionsMap: Record<
     number,
@@ -220,23 +220,16 @@ export default function LivestreamRoomPage() {
     const fetchLivestreamInfo = async () => {
       try {
         // In a real app, you would fetch this from your API
-        const response = await fetch(
-          `https://api.beautify.asia/signaling-api/LiveStream/Rooms/${id}`
-        );
-        const data = await response.json();
+        const roomJson = localStorage.getItem("selectedRoom");
+        const room = roomJson ? JSON.parse(roomJson) : null;
 
-        if (data.isSuccess) {
-          setLivestreamInfo(data.value);
-        } else {
-          // Fallback to simulated data if API fails
-          setLivestreamInfo({
-            id: id,
-            name: t("livestreamInfo.name"),
-            clinicName: t("livestreamInfo.clinicName"),
-            startDate: new Date().toISOString(),
-            description: t("livestreamInfo.description"),
-          });
-        }
+        setLivestreamInfo({
+          id: room?.id,
+          name: room?.name,
+          clinicName: room?.clinicName,
+          startDate: room?.startDate,
+          description: room?.description,
+        });
       } catch (error) {
         console.error("Error fetching livestream info:", error);
         console.debug(
@@ -246,13 +239,15 @@ export default function LivestreamRoomPage() {
         );
 
         // Fallback data
-        setLivestreamInfo({
-          id: id,
-          name: t("livestreamInfo.name"),
-          clinicName: t("livestreamInfo.clinicName"),
-          startDate: new Date().toISOString(),
-          description: t("livestreamInfo.description"),
-        });
+        // setLivestreamInfo({
+        //   id: id,
+        //   name: t("livestreamInfo.name", {
+        //     name: t("livestreamInfo.defaultName"),
+        //   }),
+        //   clinicName: t("livestreamInfo.clinicName"),
+        //   startDate: new Date().toISOString(),
+        //   description: t("livestreamInfo.description"),
+        // });
       }
     };
 
@@ -871,10 +866,15 @@ export default function LivestreamRoomPage() {
           <div className="container mx-auto flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-rose-700">
-                {livestreamInfo?.name || t("livestreamInfo.name")}
+                {livestreamInfo?.name
+                  ? t("livestreamInfo.name", { name: livestreamInfo.name })
+                  : t("livestreamInfo.defaultName")}
               </h1>
               <p className="text-sm text-gray-600">
-                {livestreamInfo?.clinicName || t("livestreamInfo.clinicName")}
+                {livestreamInfo?.clinicName ||
+                  t("livestreamInfo.clinicName", {
+                    clinicName: livestreamInfo?.clinicName,
+                  })}
               </p>
             </div>
             <div className="flex items-center space-x-2">

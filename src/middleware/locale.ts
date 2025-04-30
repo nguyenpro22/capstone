@@ -10,18 +10,19 @@ export interface LocaleInfo {
 export function getLocaleInfo(request: NextRequest): LocaleInfo {
   const pathname = request.nextUrl.pathname;
 
-  // Kiểm tra xem có phải là root path
+  // Đọc locale từ cookie trước
+  const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value;
+
+  // Nếu không có cookie, fallback từ pathname
+  const localeMatch = pathname.match(/^\/(vi|en)(\/|$)/);
+  const locale = cookieLocale || localeMatch?.[1] || "vi";
+
+  const cleanedPathname = localeMatch
+    ? pathname.replace(`/${localeMatch[1]}`, "") || "/"
+    : pathname;
+
   const isRootPath =
     pathname === "/" || pathname === "/vi" || pathname === "/en";
-
-  // Phân tích locale
-  const localeMatch = pathname.match(/^\/(vi|en)(\/|$)/);
-  const locale = localeMatch?.[1] || "vi"; // Mặc định locale là vi
-
-  // Làm sạch đường dẫn
-  const cleanedPathname = localeMatch
-    ? pathname.replace(`/${locale}`, "") || "/"
-    : pathname;
 
   return { locale, cleanedPathname, isRootPath };
 }

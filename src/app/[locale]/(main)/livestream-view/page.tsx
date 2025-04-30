@@ -453,6 +453,11 @@ export default function LivestreamViewPage() {
       return;
     }
 
+    localStorage.setItem(
+      "selectedRoom",
+      JSON.stringify(rooms.find((room) => room.id === roomId) || null)
+    );
+
     console.log(`Đang tham gia phòng: ${roomId}`);
 
     // Navigate to the livestream view page

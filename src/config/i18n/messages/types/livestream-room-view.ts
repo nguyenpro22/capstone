@@ -17,6 +17,9 @@ export interface LivestreamRoomMessages {
   };
   livestreamInfo: {
     startedAt: string;
+    name: string;
+    clinic: string;
+    description: string;
   };
   chat: {
     title: string;
