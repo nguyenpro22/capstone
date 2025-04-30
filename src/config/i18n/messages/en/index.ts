@@ -48,6 +48,7 @@ import { configs } from "./configs";
 import { livestreamMessages } from "./livestream-view";
 import { userProfileMessages } from "./user-profile";
 import { policy } from "./policy";
+import { livestreamRoomMessages } from "./livestream-room-view";
 
 const en = {
   home: homeMessages,
@@ -100,6 +101,7 @@ const en = {
   livestreamMessages,
   userProfileMessages,
   policy,
+  livestreamRoomMessages,
 };
 
 export default en;

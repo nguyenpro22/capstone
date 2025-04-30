@@ -384,7 +384,9 @@ export default function ServiceSection({
                 min="0"
                 max="100"
                 value={promotionValue}
-                onChange={(e) => setPromotionValue(Number(e.target.value))}
+                onChange={(e) => {
+                  setPromotionValue(Number(e.target.value));
+                }}
                 className="w-16 border border-gray-200 rounded-md px-2 py-1 text-sm text-center"
               />
               <span className="text-sm">%</span>

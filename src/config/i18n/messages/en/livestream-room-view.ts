@@ -20,6 +20,9 @@ export const livestreamRoomMessages: Messages["livestreamRoomMessages"] = {
   },
   livestreamInfo: {
     startedAt: "Started: {date}",
+    name: "Name: {name}",
+    clinic: "Clinic: {clinic}",
+    description: "Description: {description}",
   },
   chat: {
     title: "Live Chat",

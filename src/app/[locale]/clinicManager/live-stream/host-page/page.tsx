@@ -504,7 +504,7 @@ export default function HostPage() {
           "SetPromotionService",
           serviceId,
           roomGuidRef.current,
-          typeof percent === "string" ? Number.parseInt(percent, 10) : percent
+          typeof percent === "string" ? Number.parseInt(percent) : percent
         );
       }
     }

@@ -19,6 +19,9 @@ export const livestreamRoomMessages: Messages["livestreamRoomMessages"] = {
   },
   livestreamInfo: {
     startedAt: "Bắt đầu: {date}",
+    name: "Tên phát trực tiếp: {name}",
+    clinic: "Phòng khám: {clinic}",
+    description: "Mô tả: {description}",
   },
   chat: {
     title: "Trò Chuyện Trực Tiếp",
