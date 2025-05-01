@@ -19,6 +19,16 @@ const nextConfig = {
       "picsum.photos",
       "vietqr.net",
     ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
   },
   reactStrictMode: false,
   env: {

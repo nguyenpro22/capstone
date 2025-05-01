@@ -58,7 +58,7 @@ export const loginMessage: Messages["login"] = {
   processing: "Processing...",
   updateSuccess: "Information updated successfully!",
   updateError: "An error occurred while updating information",
-  
+
   // Validation error messages
   requiredField: "This field is required",
   enterWorkingTimeStart: "Please enter working start time",
@@ -72,4 +72,25 @@ export const loginMessage: Messages["login"] = {
   logoutConfirmation: "Logout Confirmation",
   logoutConfirmationMessage: "Do you want to logout?",
   cancel: "Cancel",
+
+  // New fields for success dialog and auto-redirect
+  setupCompleteTitle: "Account Setup Complete",
+  setupCompleteMessage:
+    "Your account setup has been completed successfully. Please log in again with your new password.",
+  autoRedirectMessage: "Automatically redirecting in {seconds} seconds...",
+  login: "Login",
+  redirectingIn: "Redirecting in",
+  seconds: "seconds",
+
+  // Confirmation dialog common translations
+  confirmAction: "Confirm Action",
+  confirmActionMessage: "Are you sure you want to perform this action?",
+  confirmDelete: "Confirm Delete",
+  confirmDeleteMessage: "Are you sure you want to delete this item? This action cannot be undone.",
+  confirmWarning: "Warning",
+  confirmWarningMessage: "Are you sure you want to proceed?",
+  confirmInfo: "Information",
+  confirmInfoMessage: "Please confirm to continue.",
+  confirmSuccess: "Success",
+  confirmSuccessMessage: "The operation was completed successfully.",
 }

@@ -75,6 +75,9 @@ export const clinicStaffServicePageMessages: Messages["clinicStaffService"] = {
   certificate: "Chứng chỉ",
   noServiceDetailsTitle:"không có Chi tiết dịch vụ",
   description: "Mô tả",
-  certificates: "Chứng chỉ"
-  
+  certificates: "Chứng chỉ",
+  off:"Giảm giá",
+  noDoctorsTitle:"Không có bác sĩ",
+  phone: "SĐT",
+  noProceduresTitle: "Không có giai đoạn"
 }

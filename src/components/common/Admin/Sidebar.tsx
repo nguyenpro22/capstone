@@ -77,7 +77,6 @@ const menuItems = {
       icon: LayoutDashboard,
     },
     { label: "user", path: "/systemAdmin/user", icon: User },
-    { label: "voucher", path: "/systemAdmin/voucher", icon: Ticket },
     { label: "package", path: "/systemAdmin/package", icon: Archive },
     {
       label: "withdrawalApproval",

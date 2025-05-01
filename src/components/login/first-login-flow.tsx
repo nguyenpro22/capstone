@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,16 +30,10 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Stepper } from "./stepper";
-import {
-  clearCookieStorage,
-  getAccessToken,
-  GetDataByToken,
-  type TokenData,
-} from "@/utils";
-import { processAuthSuccess } from "@/features/auth/utils";
+import { clearCookieStorage } from "@/utils";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import ConfirmationDialog from "@/components/ui/confirmation-dialog";
+import ConfirmationDialog from "@/components/ui/confirmation-dialogv2";
 
 interface FirstLoginFlowProps {
   onComplete: () => void;
@@ -54,8 +48,47 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  // Add countdown timer state
+  const [countdown, setCountdown] = useState(5);
+  // Add ref to track if component is mounted
+  const isMounted = useRef(true);
 
   const [changePasswordStaff] = useChangePasswordStaffMutation();
+
+  // Set up countdown timer when success dialog is shown
+  useEffect(() => {
+    if (showSuccessDialog) {
+      // Reset countdown when dialog opens
+      setCountdown(5);
+
+      // Set up interval to decrement countdown
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          // If countdown reaches 0, redirect
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleSuccessConfirm();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Clean up interval on unmount or when dialog closes
+      return () => {
+        clearInterval(timer);
+      };
+    }
+  }, [showSuccessDialog]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   // Handle logout
   const handleLogoutClick = () => {
     setShowLogoutConfirmation(true);
@@ -66,6 +99,18 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
     clearCookieStorage();
     router.push("/login");
   };
+
+  // Handle success dialog confirmation
+  const handleSuccessConfirm = () => {
+    // Only proceed if component is still mounted
+    if (isMounted.current) {
+      setShowSuccessDialog(false);
+      if (onComplete) onComplete();
+      clearCookieStorage();
+      router.push("/login");
+    }
+  };
+
   // Create schemas with translated error messages
   const clinicHoursSchema = z.object({
     workingTimeStart: z.string().min(1, t("enterWorkingTimeStart")),
@@ -138,41 +183,14 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
       // Call the API to change password
       const response = await changePasswordStaff(changePasswordData).unwrap();
 
+      // Show success toast
       toast.success(t("updateSuccess"), {
         position: "top-right",
         autoClose: 3000,
       });
 
-      // Get current user data from token
-      const token = getAccessToken();
-      // Add null check for token
-      const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
-      const isFirstLogin = tokenData?.isFirstLogin || "";
-      if (token) {
-        try {
-          // Use processAuthSuccess to handle redirection based on user role
-          await processAuthSuccess({
-            loginResponse: { accessToken: token },
-            t,
-            dispatch,
-            router,
-            isFirstLogin,
-            // Don't skip redirection this time - we want to redirect properly
-          });
-
-          // If onComplete callback is provided, call it as well
-          if (onComplete) {
-            onComplete();
-          }
-        } catch (error) {
-          console.error("Error processing auth success:", error);
-          // Fallback to manual redirection if processAuthSuccess fails
-          router.push("/login");
-        }
-      } else {
-        // Fallback to manual redirection if token is not available
-        router.push("/login");
-      }
+      // Show success dialog
+      setShowSuccessDialog(true);
     } catch (error) {
       console.error("Password change error:", error);
 
@@ -192,8 +210,6 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
       setIsSubmitting(false);
     }
   };
-
-  // Handle logout
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-sky-50 to-white dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
@@ -417,6 +433,8 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
           </CardFooter>
         </Card>
       </div>
+
+      {/* Logout Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={showLogoutConfirmation}
         onClose={() => setShowLogoutConfirmation(false)}
@@ -428,6 +446,30 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
         confirmButtonText={t("logout") || "Đăng xuất"}
         cancelButtonText={t("cancel") || "Hủy"}
         type="warning"
+      />
+
+      {/* Success Dialog with Countdown */}
+      <ConfirmationDialog
+        isOpen={showSuccessDialog}
+        onClose={handleSuccessConfirm}
+        onConfirm={handleSuccessConfirm}
+        title={t("setupCompleteTitle")}
+        message={
+          <>
+            {t("setupCompleteMessage")}
+            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              {t("redirectingIn")}{" "}
+              <span className="font-medium text-blue-600 dark:text-blue-400">
+                {countdown}
+              </span>{" "}
+              {t("seconds")}...
+            </div>
+          </>
+        }
+        confirmButtonText={`${t("login")} (${countdown})`}
+        cancelButtonText={null}
+        type="success"
+        icon={<CheckCircle2 className="w-6 h-6 text-green-600" />}
       />
     </div>
   );

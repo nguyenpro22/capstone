@@ -124,7 +124,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   proceedToCheckout: "Tiến hành thanh toán",
   // Next schedule notification translations
   followUpRequired: "Yêu cầu theo dõi",
-  multipleFollowUpsNeeded: "{count} bệnh nhân cần lên lịch cho cuộc hẹn tiếp theo.",
+  multipleFollowUpsNeeded: "{count} khách hàng cần lên lịch cho cuộc hẹn tiếp theo.",
   singleFollowUpNeeded: "{name} cần lên lịch cho cuộc hẹn tiếp theo.",
   // Follow-up selection modal translations
   selectAppointmentForFollowUp: "Chọn cuộc hẹn để theo dõi",
@@ -162,4 +162,6 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
     "{walletAmount} sẽ được trừ từ ví của bạn. Vui lòng chọn phương thức thanh toán cho số tiền còn lại {remainingAmount}.",
   confirmPayment: "Xác nhận thanh toán",
   back: "Quay lại",
+
+  rescheduleSuccess: "Đặt lại lịch thành công",
 }

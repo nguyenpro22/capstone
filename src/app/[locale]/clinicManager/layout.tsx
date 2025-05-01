@@ -107,7 +107,9 @@ export default function ClinicManagerLayout({
 
   // Handle completion of first login flow
   const handleFirstLoginComplete = () => {
-    setShowFirstLoginFlow(false);
+    // IMPORTANT: We're not immediately hiding the FirstLoginFlow component anymore
+    // The component itself will handle the redirection after showing the success dialog
+    // setShowFirstLoginFlow(false) - This line is removed
   };
 
   // Handle completion of re-registration
@@ -117,7 +119,7 @@ export default function ClinicManagerLayout({
 
   // Show the first login flow if needed
   if (showFirstLoginFlow) {
-    return <FirstLoginFlow onComplete={handleFirstLoginComplete} />;
+    return <FirstLoginFlow onComplete={() => setShowFirstLoginFlow(false)} />;
   }
 
   // Show the re-register form if the clinic is rejected

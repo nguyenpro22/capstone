@@ -157,4 +157,5 @@ export type customerScheduleTranslations = {
   partialWalletPaymentInfo: string
   confirmPayment: string
   back: string
+  rescheduleSuccess: string
 }

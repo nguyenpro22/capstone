@@ -91,6 +91,7 @@ export const systemStaffRoutes = {
   CLINICS: `${privateSystemStaffPath}/clinic`,
   PROFILES: `${privateSystemStaffPath}/profile`,
   BRANCHES: `${privateSystemStaffPath}/branch-request`,
+  POLICIES: `${privateSystemStaffPath}/policy`,
 };
 
 export const publicRoutes = {

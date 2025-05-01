@@ -73,5 +73,9 @@ export const clinicStaffServicePageMessages: Messages["clinicStaffService"] = {
   certificate: "Certificate",
   noServiceDetailsTitle: "No Service Details Title",
   description:"Description",
-  certificates: "Certificates"
+  certificates: "Certificates",
+  off: "Off",
+  noDoctorsTitle: "No Doctors Available",
+  phone:"Phone Number",
+  noProceduresTitle: "No Procedures available"
 }

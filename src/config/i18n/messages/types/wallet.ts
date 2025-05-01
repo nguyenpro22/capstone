@@ -77,6 +77,7 @@ export type walletMessages = {
       pending: string
       rejected: string
       waitingForPayment: string
+      waitingApproval: string
     }
     transactionDetails: {
       title: string
