@@ -70,4 +70,25 @@ export type LoginTranslations = {
   logoutConfirmation: string
   logoutConfirmationMessage: string
   cancel: string
+
+  // New fields for success dialog and auto-redirect
+  setupCompleteTitle: string
+  setupCompleteMessage: string
+  autoRedirectMessage: string
+  login: string
+  redirectingIn: string
+  seconds: string
+
+  // Confirmation dialog common translations
+  confirmAction: string
+  confirmActionMessage: string
+  confirmDelete: string
+  confirmDeleteMessage: string
+  confirmWarning: string
+  confirmWarningMessage: string
+  confirmInfo: string
+  confirmInfoMessage: string
+  confirmSuccess: string
+  confirmSuccessMessage: string
+
 }

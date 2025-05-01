@@ -82,7 +82,7 @@ const BranchesList: React.FC = () => {
   const currentBranchCount = allBranches.length;
 
   // Check if branch limit is reached
-  const isBranchLimitReached = currentBranchCount >= branchLimit;
+  const isBranchLimitReached = branchLimit <= 0;
 
   // Filter branches based on search term
   const filteredBranches = useMemo(() => {
@@ -279,15 +279,15 @@ const BranchesList: React.FC = () => {
           </span>
           <span
             className={`font-bold ${
-              isBranchLimitReached
+              branchLimit <= 0
                 ? "text-red-500 dark:text-red-400"
                 : "text-green-500 dark:text-green-400"
             }`}
           >
-            {currentBranchCount} / {branchLimit}
+            {branchLimit > 0 ? branchLimit : 0}
           </span>
         </div>
-        {isBranchLimitReached && (
+        {branchLimit <= 0 && (
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm font-medium">

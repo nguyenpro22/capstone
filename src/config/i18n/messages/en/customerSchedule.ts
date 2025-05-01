@@ -171,4 +171,5 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
     "{walletAmount} will be deducted from your wallet. Please select a payment method for the remaining {remainingAmount}.",
   confirmPayment: "Confirm Payment",
   back: "Back",
+  rescheduleSuccess: "Reschedule successful",
 };

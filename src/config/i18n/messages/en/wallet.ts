@@ -79,6 +79,7 @@ export const walletMessages: Messages["wallet"] = {
     pending: "Pending",
     rejected: "Rejected",
     waitingForPayment: "Waiting For Payment",
+    waitingApproval:"Waiting Approval"
   },
   transactionDetails: {
     title: "Transaction Details",

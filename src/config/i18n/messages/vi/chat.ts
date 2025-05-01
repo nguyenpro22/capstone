@@ -23,4 +23,23 @@ export const chatMessages: Messages["chat"] = {
     enabled: "Đã bật thông báo",
     disabled: "Đã tắt thông báo",
   },
+  actions: {
+    voiceCall: "Gọi thoại",
+    videoCall: "Gọi video",
+    moreOptions: "Tùy chọn khác",
+    attachFile: "Đính kèm tệp",
+    sendImage: "Gửi hình ảnh",
+  },
+  fileUpload: {
+    imageSuccess: "Hình ảnh đã được gửi thành công",
+    fileSuccess: "Tệp tin đã được gửi thành công",
+    imageError: "Không thể gửi hình ảnh",
+    fileError: "Không thể gửi tệp tin",
+  },
+  fileTypes: {
+    image: "Hình ảnh",
+    file: "Tệp tin",
+    document: "Tài liệu",
+  },
+  uploading: "Đang tải lên...",
 }

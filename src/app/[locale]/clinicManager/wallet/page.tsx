@@ -18,7 +18,6 @@ import {
   Clock,
   FileText,
   User,
-  Globe,
 } from "lucide-react";
 import {
   Card,
@@ -209,15 +208,12 @@ function ClinicWalletPage() {
 
   // Get the selected clinic
   const selectedClinic = useMemo(() => {
-    if (!clinicId && mainClinic) {
-      // If no clinicId is provided and we have a main clinic, use that
-      return mainClinic;
+    // If no clinicId is provided, don't auto-select any clinic
+    if (!clinicId) {
+      return null;
     }
-    return (
-      clinics.find((clinic) => clinic.id === clinicId) ||
-      (clinics.length > 0 ? clinics[0] : null)
-    );
-  }, [clinicId, clinics, mainClinic]);
+    return clinics.find((clinic) => clinic.id === clinicId) || null;
+  }, [clinicId, clinics]);
 
   // We'll use the actual API data instead of mock data
   const filteredWithdrawals = [];
@@ -285,7 +281,15 @@ function ClinicWalletPage() {
             {t("status.pending")}
           </Badge>
         );
+      case "waiting approval":
+      case "waitingapproval":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600 px-3 py-1 flex items-center justify-center">
+            {t("status.waitingApproval")}
+          </Badge>
+        );
       case "rejected":
+      case "rejected by system":
         return (
           <Badge className="bg-rose-500 hover:bg-rose-600 px-3 py-1 flex items-center justify-center">
             {t("status.rejected")}
@@ -314,6 +318,20 @@ function ClinicWalletPage() {
 
   // Handle withdrawal request
   const handleWithdrawalRequest = () => {
+    if (!selectedClinic) {
+      toast.error(
+        t("notifications.selectClinicFirst") || "Please select a clinic first",
+        {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+      return;
+    }
     setIsWithdrawalModalOpen(true);
   };
 
@@ -468,6 +486,24 @@ function ClinicWalletPage() {
       return false;
     }
 
+    // Filter by status
+    if (statusFilter !== "all") {
+      const status = transaction.status.toLowerCase();
+      if (
+        statusFilter === "pending" &&
+        status !== "pending" &&
+        status !== "waiting approval" &&
+        status !== "waitingapproval"
+      ) {
+        return false;
+      } else if (
+        statusFilter !== "pending" &&
+        !status.includes(statusFilter.toLowerCase())
+      ) {
+        return false;
+      }
+    }
+
     // Filter by date range
     if (dateRange.from || dateRange.to) {
       const transactionDate = new Date(transaction.transactionDate);
@@ -603,6 +639,7 @@ function ClinicWalletPage() {
             <Button
               onClick={handleWithdrawalRequest}
               disabled={isLoadingBranches || !selectedClinic}
+              className={!selectedClinic ? "opacity-50 cursor-not-allowed" : ""}
             >
               <Plus className="h-4 w-4 mr-1" />
               {t("actions.requestWithdrawal")}
@@ -1066,6 +1103,7 @@ function ClinicWalletPage() {
                                 </Tooltip>
                               </TooltipProvider>
                             </TableCell>
+
                             <TableCell className="text-center">
                               <div className="flex justify-center gap-2">
                                 {transaction.status.toLowerCase() ===
@@ -1217,7 +1255,10 @@ function ClinicWalletPage() {
         <WithdrawalRequestModal
           isOpen={isWithdrawalModalOpen}
           onClose={() => setIsWithdrawalModalOpen(false)}
-          onSuccess={handleWithdrawalSuccess} // Pass the success callback
+          onSuccess={() => {
+            handleWithdrawalSuccess(); // Existing callback
+            refetchTransactions(); // Add this to refresh the transactions table
+          }}
           clinic={{
             id: selectedClinic.id,
             name: selectedClinic.name,

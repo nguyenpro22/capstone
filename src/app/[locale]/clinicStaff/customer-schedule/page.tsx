@@ -793,7 +793,7 @@ export default function SchedulesPage() {
     } else {
       fetchClinicSchedules();
     }
-    toast.success(t("rescheduleSuccess"));
+    // toast.success(t("rescheduleSuccess"));
   };
 
   const handleCheckIn = async (schedule: CustomerSchedule) => {
@@ -935,10 +935,6 @@ export default function SchedulesPage() {
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <CardTitle>{t("allSchedules")}</CardTitle>
-            <Button className="gap-2 w-full md:w-auto">
-              <Plus size={16} />
-              {t("newSchedule")}
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -1154,13 +1150,13 @@ export default function SchedulesPage() {
               </div>
 
               {/* Error message for customer search */}
-              {errorResponse && (
+              {/* {errorResponse && (
                 <Alert variant="destructive" className="mt-2">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>{errorResponse.title}</AlertTitle>
                   <AlertDescription>{errorResponse.detail}</AlertDescription>
                 </Alert>
-              )}
+              )} */}
 
               {/* Filter description */}
               <div className="text-sm text-muted-foreground">

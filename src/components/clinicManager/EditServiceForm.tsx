@@ -45,6 +45,7 @@ import {
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
+import { el } from "date-fns/locale";
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
@@ -226,9 +227,15 @@ const UpdateServiceForm: React.FC<UpdateServiceFormProps> = ({
       await updateService({ id: formData.id, data: updatedFormData }).unwrap();
       toast.success(t("success.serviceUpdated"));
       onSaveSuccess();
-    } catch (error) {
-      console.error("Update failed:", error);
-      toast.error(t("errors.updateServiceFailed"));
+    } catch (error: any) {
+      console.log("error: ", error);
+      if (error.data?.errors?.message) {
+        console.log("haha");
+        toast.error(error?.data?.errors?.message);
+      } else {
+        console.log("hihi");
+        toast.error(t("errors.updateServiceFailed"));
+      }
     }
   };
 

@@ -110,7 +110,7 @@ export const packageMessages: Messages["package"] = {
     packageName: "Tên Gói dịch vụ",
     description: "Mô tả",
     price: "Giá (VND)",
-    duration: "Thời hạn (Tháng)",
+    duration: "Thời hạn (Ngày)",
     limitBranches: "Giới hạn Chi nhánh",
     limitLiveStream: "Giới hạn Live Stream",
     priceBranchAddition: "Giá cho mỗi Chi nhánh bổ sung",

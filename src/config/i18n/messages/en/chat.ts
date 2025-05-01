@@ -23,4 +23,23 @@ export const chatMessages: Messages["chat"] = {
     enabled: "Notifications enabled",
     disabled: "Notifications disabled",
   },
+  actions: {
+    voiceCall: "Voice call",
+    videoCall: "Video call",
+    moreOptions: "More options",
+    attachFile: "Attach file",
+    sendImage: "Send image",
+  },
+  fileUpload: {
+    imageSuccess: "Image sent successfully",
+    fileSuccess: "File sent successfully",
+    imageError: "Could not send image",
+    fileError: "Could not send file",
+  },
+  fileTypes: {
+    image: "Image",
+    file: "File",
+    document: "Document",
+  },
+  uploading: "Uploading...",
 }

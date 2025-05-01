@@ -43,7 +43,6 @@ export default function WithdrawalRequestModal({
     useCreateWalletWithdrawMutation();
   const token = getAccessToken() as string;
   const { roleName } = GetDataByToken(token) as TokenData;
-  console.log("log xem: ", roleName.toLowerCase.toString());
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [amountError, setAmountError] = useState("");
@@ -129,7 +128,7 @@ export default function WithdrawalRequestModal({
         onSuccess();
       }
     } catch (error: any) {
-      console.error("Failed to submit withdrawal request:", error);
+      // console.error("Failed to submit withdrawal request:", error);
       toast.error(error.data.detail);
     }
   };

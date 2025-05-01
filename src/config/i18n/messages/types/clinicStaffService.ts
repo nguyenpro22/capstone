@@ -73,6 +73,9 @@ export type clinicStaffServicePageMessages = {
     noServiceDetailsTitle: string
     description: string
     certificates: string
-
+    off: string
+    noDoctorsTitle: string
+    phone: string
+    noProceduresTitle: string
   }
   

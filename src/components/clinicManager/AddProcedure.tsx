@@ -1,36 +1,46 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useAddProcedureMutation } from "@/features/clinic-service/api"
-import { toast } from "react-toastify"
-import { X, Plus, Clock, DollarSign, Trash2, AlertCircle, FileText } from "lucide-react"
-import { motion } from "framer-motion"
-import dynamic from "next/dynamic"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { useTheme } from "next-themes"
-import { useTranslations } from "next-intl"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useAddProcedureMutation } from "@/features/clinic-service/api";
+import { toast } from "react-toastify";
+import {
+  X,
+  Plus,
+  Clock,
+  DollarSign,
+  Trash2,
+  AlertCircle,
+  FileText,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 // Dynamically import QuillEditor to avoid SSR issues
 const QuillEditor = dynamic(() => import("@/components/ui/quill-editor"), {
   ssr: false,
-  loading: () => <div className="h-40 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />,
-})
+  loading: () => (
+    <div className="h-40 w-full border rounded-md bg-muted/20 dark:bg-muted/40 animate-pulse" />
+  ),
+});
 
 // Define error types based on the API response
 interface ValidationError {
-  code: string
-  message: string
+  code: string;
+  message: string;
 }
 
 // Update the ApiError interface to handle cases where errors might be null
 interface ApiError {
-  type: string
-  title: string
-  status: number
-  detail: string
-  errors: ValidationError[] | null
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  errors: ValidationError[] | null;
 }
 
 const AddProcedure = ({
@@ -38,111 +48,119 @@ const AddProcedure = ({
   clinicServiceId,
   onSuccess,
 }: {
-  onClose: () => void
-  clinicServiceId: string
-  onSuccess?: () => void
+  onClose: () => void;
+  clinicServiceId: string;
+  onSuccess?: () => void;
 }) => {
-  const t = useTranslations("service") 
-  const { theme } = useTheme()
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [stepIndex, setStepIndex] = useState(0)
-  const [priceTypes, setPriceTypes] = useState([{ name: "", duration: 0, price: 0, isDefault: true }])
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-  const [editorLoaded, setEditorLoaded] = useState(false)
+  const t = useTranslations("service");
+  const { theme } = useTheme();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [stepIndex, setStepIndex] = useState(0);
+  const [priceTypes, setPriceTypes] = useState([
+    { name: "", duration: 0, price: 0, isDefault: true },
+  ]);
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [editorLoaded, setEditorLoaded] = useState(false);
 
-  const [addProcedure, { isLoading }] = useAddProcedureMutation()
+  const [addProcedure, { isLoading }] = useAddProcedureMutation();
 
   // Ensure editor is loaded
   useEffect(() => {
-    setEditorLoaded(true)
-  }, [])
+    setEditorLoaded(true);
+  }, []);
 
   const handleAddPriceType = () => {
-    setPriceTypes([...priceTypes, { name: "", duration: 0, price: 0, isDefault: false }])
-  }
+    setPriceTypes([
+      ...priceTypes,
+      { name: "", duration: 0, price: 0, isDefault: false },
+    ]);
+  };
 
   const handleRemovePriceType = (index: number) => {
-    const updatedPriceTypes = priceTypes.filter((_, i) => i !== index)
+    const updatedPriceTypes = priceTypes.filter((_, i) => i !== index);
 
     // If we removed the default price type and there are other price types, set the first one as default
     if (priceTypes[index].isDefault && updatedPriceTypes.length > 0) {
-      updatedPriceTypes[0].isDefault = true
+      updatedPriceTypes[0].isDefault = true;
     }
 
-    setPriceTypes(updatedPriceTypes)
-  }
+    setPriceTypes(updatedPriceTypes);
+  };
 
   const handlePriceTypeChange = (index: number, field: string, value: any) => {
-    const updatedPriceTypes = [...priceTypes]
+    const updatedPriceTypes = [...priceTypes];
 
     if (field === "isDefault" && value === true) {
       // If setting this one as default, unset others
       updatedPriceTypes.forEach((pt, i) => {
-        pt.isDefault = i === index
-      })
+        pt.isDefault = i === index;
+      });
     } else {
       updatedPriceTypes[index] = {
         ...updatedPriceTypes[index],
-        [field]: field === "price" || field === "duration" ? Number(value) : value,
-      }
+        [field]:
+          field === "price" || field === "duration" ? Number(value) : value,
+      };
     }
 
-    setPriceTypes(updatedPriceTypes)
-  }
+    setPriceTypes(updatedPriceTypes);
+  };
 
   const handleDescriptionChange = (value: string) => {
-    setDescription(value)
+    setDescription(value);
     if (value.trim().length >= 2) {
       setValidationErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors.Description
-        return newErrors
-      })
+        const newErrors = { ...prev };
+        delete newErrors.Description;
+        return newErrors;
+      });
     }
-  }
+  };
 
   // Helper function to display field error
   const getFieldError = (fieldName: string) => {
-    return validationErrors[fieldName] || ""
-  }
+    return validationErrors[fieldName] || "";
+  };
 
   // Update the handleSubmit function to use JSON request body instead of FormData
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Clear previous validation errors
-    setValidationErrors({})
+    setValidationErrors({});
 
     // Client-side validation
-    const errors: Record<string, string> = {}
+    const errors: Record<string, string> = {};
 
     if (!name.trim()) {
-      errors.Name = t("procedure.errors.nameRequired")
+      errors.Name = t("procedure.errors.nameRequired");
     } else if (name.trim().length < 2) {
-      errors.Name = t("procedure.errors.nameMinLength")
+      errors.Name = t("procedure.errors.nameMinLength");
     }
 
     if (!description.trim()) {
-      errors.Description = t("procedure.errors.descriptionRequired")
+      errors.Description = t("procedure.errors.descriptionRequired");
     } else if (description.trim().length < 2) {
-      errors.Description = t("procedure.errors.descriptionMinLength")
+      errors.Description = t("procedure.errors.descriptionMinLength");
     }
 
     if (priceTypes.length === 0) {
-      errors.PriceTypes = t("procedure.errors.priceTypeRequired")
+      errors.PriceTypes = t("procedure.errors.priceTypeRequired");
     }
 
     // Ensure at least one price type is set as default
     if (priceTypes.length > 0 && !priceTypes.some((pt) => pt.isDefault)) {
-      errors.DefaultPriceType = t("procedure.errors.defaultPriceTypeRequired")
+      errors.DefaultPriceType = t("procedure.errors.defaultPriceTypeRequired");
     }
 
     if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors)
+      setValidationErrors(errors);
       // Show the first error as a toast
-      const firstError = Object.values(errors)[0]
-      toast.error(firstError)
-      return
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+      return;
     }
 
     // Format the data according to the API requirements
@@ -151,7 +169,7 @@ const AddProcedure = ({
       duration: item.duration,
       price: item.price,
       isDefault: item.isDefault,
-    }))
+    }));
 
     // Create the request body as a JSON object
     const requestBody = {
@@ -160,42 +178,42 @@ const AddProcedure = ({
       description: description,
       stepIndex: stepIndex,
       procedurePriceTypes: procedurePriceTypes,
-    }
+    };
 
     try {
-      await addProcedure({ data: requestBody }).unwrap()
-      toast.success(t("procedure.success.added"))
+      await addProcedure({ data: requestBody }).unwrap();
+      toast.success(t("procedure.success.added"));
       // Reset form data instead of closing
-      setName("")
-      setDescription("")
-      setStepIndex(0)
-      setPriceTypes([{ name: "", duration: 0, price: 0, isDefault: true }])
-      setValidationErrors({})
+      setName("");
+      setDescription("");
+      setStepIndex(0);
+      setPriceTypes([{ name: "", duration: 0, price: 0, isDefault: true }]);
+      setValidationErrors({});
       // Call onSuccess callback if provided
       if (onSuccess) {
-        onSuccess()
+        onSuccess();
       }
     } catch (error: any) {
-      console.error(t("procedure.errors.addError"), error)
+      console.error(t("procedure.errors.addError"), error);
 
       if (error.data) {
-        const apiError = error.data as ApiError
+        const apiError = error.data as ApiError;
 
         // Handle case where there are specific field errors
         if (apiError.errors) {
-          const newErrors: Record<string, string> = {}
+          const newErrors: Record<string, string> = {};
 
           apiError.errors.forEach((err) => {
-            newErrors[err.code] = err.message
-          })
+            newErrors[err.code] = err.message;
+          });
 
-          setValidationErrors(newErrors)
+          setValidationErrors(newErrors);
 
           // Show the first error as a toast
           if (apiError.errors.length > 0) {
-            toast.error(apiError.errors[0].message)
+            toast.error(apiError.errors[0].message);
           } else {
-            toast.error(t("procedure.errors.generalError"))
+            toast.error(t("procedure.errors.generalError"));
           }
         }
         // Handle case where there's a general error message but no specific field errors
@@ -205,30 +223,32 @@ const AddProcedure = ({
             setValidationErrors((prev) => ({
               ...prev,
               StepIndex: t("procedure.errors.stepIndexExists"),
-            }))
-            toast.error(t("procedure.errors.stepIndexExists"))
+            }));
+            toast.error(t("procedure.errors.stepIndexExists"));
           } else {
-            toast.error(apiError.detail)
+            toast.error(apiError.detail);
           }
         } else {
-          toast.error(t("procedure.errors.generalError"))
+          toast.error(t("procedure.errors.generalError"));
         }
       } else {
-        toast.error(t("procedure.errors.generalError"))
+        toast.error(t("procedure.errors.generalError"));
       }
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden"
       >
         {/* Header with gradient - Fixed at top */}
         <div className="relative bg-gradient-to-r from-purple-500 to-pink-600 p-5 rounded-t-xl top-0 z-10">
-          <h2 className="text-2xl font-bold text-white">{t("procedure.addProcedure")}</h2>
+          <h2 className="text-2xl font-bold text-white">
+            {t("procedure.addProcedure")}
+          </h2>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
@@ -238,7 +258,7 @@ const AddProcedure = ({
         </div>
 
         {/* Scrollable content */}
-        <div className="overflow-y-auto flex-1 dark:bg-gray-800">
+        <div className="overflow-y-auto flex-1 dark:bg-gray-800 rounded-b-xl">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -253,13 +273,13 @@ const AddProcedure = ({
                 }`}
                 value={name}
                 onChange={(e) => {
-                  setName(e.target.value)
+                  setName(e.target.value);
                   if (e.target.value.trim().length >= 2) {
                     setValidationErrors((prev) => {
-                      const newErrors = { ...prev }
-                      delete newErrors.Name
-                      return newErrors
-                    })
+                      const newErrors = { ...prev };
+                      delete newErrors.Name;
+                      return newErrors;
+                    });
                   }
                 }}
                 placeholder={t("procedure.namePlaceholder")}
@@ -283,7 +303,9 @@ const AddProcedure = ({
                 {editorLoaded && (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className={getFieldError("Description") ? "quill-error" : ""}
+                    className={
+                      getFieldError("Description") ? "quill-error" : ""
+                    }
                   >
                     <QuillEditor
                       value={description}
@@ -319,14 +341,14 @@ const AddProcedure = ({
                 }`}
                 value={stepIndex}
                 onChange={(e) => {
-                  setStepIndex(Number(e.target.value))
+                  setStepIndex(Number(e.target.value));
                   // Clear the step index error when the user changes the value
                   if (getFieldError("StepIndex")) {
                     setValidationErrors((prev) => {
-                      const newErrors = { ...prev }
-                      delete newErrors.StepIndex
-                      return newErrors
-                    })
+                      const newErrors = { ...prev };
+                      delete newErrors.StepIndex;
+                      return newErrors;
+                    });
                   }
                 }}
                 min="0"
@@ -378,7 +400,9 @@ const AddProcedure = ({
                         placeholder={t("procedure.priceTypeNamePlaceholder")}
                         className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.name}
-                        onChange={(e) => handlePriceTypeChange(index, "name", e.target.value)}
+                        onChange={(e) =>
+                          handlePriceTypeChange(index, "name", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -393,7 +417,13 @@ const AddProcedure = ({
                         placeholder="30"
                         className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.duration}
-                        onChange={(e) => handlePriceTypeChange(index, "duration", e.target.value)}
+                        onChange={(e) =>
+                          handlePriceTypeChange(
+                            index,
+                            "duration",
+                            e.target.value
+                          )
+                        }
                         min="0"
                         required
                       />
@@ -409,7 +439,9 @@ const AddProcedure = ({
                         placeholder="100,000"
                         className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg w-full focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all dark:bg-gray-800 dark:text-gray-100"
                         value={item.price}
-                        onChange={(e) => handlePriceTypeChange(index, "price", e.target.value)}
+                        onChange={(e) =>
+                          handlePriceTypeChange(index, "price", e.target.value)
+                        }
                         min="0"
                         required
                       />
@@ -420,9 +452,14 @@ const AddProcedure = ({
                         <Checkbox
                           id={`default-${index}`}
                           checked={item.isDefault}
-                          onCheckedChange={(checked) => handlePriceTypeChange(index, "isDefault", checked)}
+                          onCheckedChange={(checked) =>
+                            handlePriceTypeChange(index, "isDefault", checked)
+                          }
                         />
-                        <Label htmlFor={`default-${index}`} className="text-xs text-gray-500 dark:text-gray-400">
+                        <Label
+                          htmlFor={`default-${index}`}
+                          className="text-xs text-gray-500 dark:text-gray-400"
+                        >
                           {t("procedure.setAsDefault")}
                         </Label>
                       </div>
@@ -461,7 +498,9 @@ const AddProcedure = ({
                 disabled={isLoading}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isLoading ? t("procedure.adding") : t("procedure.addProcedure")}
+                {isLoading
+                  ? t("procedure.adding")
+                  : t("procedure.addProcedure")}
               </button>
             </div>
           </form>
@@ -475,14 +514,14 @@ const AddProcedure = ({
           z-index: 10;
           margin-bottom: 60px; /* Add extra space below the editor */
         }
-        
+
         .ql-toolbar.ql-snow,
         .ql-container.ql-snow {
           position: relative;
           z-index: 10;
           background-color: white;
         }
-        
+
         /* Fix for the Quill editor to not extend beyond its bounds */
         .ql-editor {
           max-height: 150px;
@@ -490,40 +529,40 @@ const AddProcedure = ({
           background-color: white;
           color: #1e293b;
         }
-        
+
         /* Dark mode styles for Quill */
-        [data-theme='dark'] .ql-toolbar.ql-snow,
-        [data-theme='dark'] .ql-container.ql-snow {
+        [data-theme="dark"] .ql-toolbar.ql-snow,
+        [data-theme="dark"] .ql-container.ql-snow {
           background-color: #1f2937;
           border-color: #4b5563;
         }
-        
-        [data-theme='dark'] .ql-editor {
+
+        [data-theme="dark"] .ql-editor {
           background-color: #1f2937;
           color: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-picker-label {
+
+        [data-theme="dark"] .ql-picker-label {
           color: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-stroke {
+
+        [data-theme="dark"] .ql-stroke {
           stroke: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-fill {
+
+        [data-theme="dark"] .ql-fill {
           fill: #d1d5db;
         }
-        
-        [data-theme='dark'] .ql-picker-options {
+
+        [data-theme="dark"] .ql-picker-options {
           background-color: #1f2937;
           border-color: #4b5563;
         }
-        
-        [data-theme='dark'] .ql-picker-item {
+
+        [data-theme="dark"] .ql-picker-item {
           color: #d1d5db;
         }
-        
+
         /* Clear float to prevent overlap */
         .clear-both {
           clear: both;
@@ -532,7 +571,7 @@ const AddProcedure = ({
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default AddProcedure
+export default AddProcedure;

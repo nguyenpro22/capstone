@@ -110,7 +110,7 @@ export const packageMessages: Messages["package"] = {
     packageName: "Package Name",
     description: "Description",
     price: "Price (USD)",
-    duration: "Duration (Months)",
+    duration: "Duration (Days)",
     limitBranches: "Branch Limit",
     limitLiveStream: "Live Stream Limit",
     priceBranchAddition: "Price Per Additional Branch",

@@ -72,4 +72,24 @@ export const loginMessage: Messages["login"] = {
   logoutConfirmation: "Xác nhận đăng xuất",
   logoutConfirmationMessage: "Bạn có chắc chắn muốn đăng xuất?",
   cancel: "Hủy",
+
+  // New fields for success dialog and auto-redirect
+  setupCompleteTitle: "Thiết lập tài khoản thành công",
+  setupCompleteMessage: "Các bước thiết lập tài khoản đã hoàn tất. Vui lòng đăng nhập lại với mật khẩu mới của bạn.",
+  autoRedirectMessage: "Tự động chuyển hướng sau {seconds} giây...",
+  login: "Đăng nhập",
+  redirectingIn: "Tự động chuyển hướng sau",
+  seconds: "giây",
+
+  // Confirmation dialog common translations
+  confirmAction: "Xác nhận",
+  confirmActionMessage: "Bạn có chắc chắn muốn thực hiện hành động này?",
+  confirmDelete: "Xác nhận xóa",
+  confirmDeleteMessage: "Bạn có chắc chắn muốn xóa mục này? Hành động này không thể hoàn tác.",
+  confirmWarning: "Cảnh báo",
+  confirmWarningMessage: "Bạn có chắc chắn muốn tiếp tục?",
+  confirmInfo: "Thông báo",
+  confirmInfoMessage: "Vui lòng xác nhận để tiếp tục.",
+  confirmSuccess: "Thành công",
+  confirmSuccessMessage: "Thao tác đã được thực hiện thành công.",
 }

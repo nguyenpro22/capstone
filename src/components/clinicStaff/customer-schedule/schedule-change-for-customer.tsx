@@ -439,7 +439,7 @@ export default function ScheduleFollowUpModal({
         isNext: false,
       }).unwrap();
 
-      toast.success("Follow-up appointment scheduled successfully");
+      toast.success(t("rescheduleSuccess"));
       onSuccess?.();
       onClose();
     } catch (error: any) {

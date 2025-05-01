@@ -79,6 +79,7 @@ export const walletMessages: Messages["wallet"] = {
       pending: "Đang chờ",
       rejected: "Từ chối",
       waitingForPayment: "Đang chờ thanh toán",
+      waitingApproval: "Chờ phê duyệt"
     },
     transactionDetails: {
       title: "Chi tiết Giao dịch",

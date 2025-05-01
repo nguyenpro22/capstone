@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type React from "react";
 
 import {
@@ -132,6 +132,8 @@ export default function OrderPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState("");
   const [sortOrder, setSortOrder] = useState("");
+  // Add a state to track if we should show pagination
+  const [showPagination, setShowPagination] = useState(false);
 
   // State for order detail dialog
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
@@ -166,6 +168,13 @@ export default function OrderPage() {
   const totalCount = data?.value?.totalCount || 0;
   const hasNextPage = data?.value?.hasNextPage || false;
   const hasPreviousPage = data?.value?.hasPreviousPage || false;
+
+  // Determine if pagination should be shown based on total count
+  useEffect(() => {
+    if (totalCount > 0) {
+      setShowPagination(true);
+    }
+  }, [totalCount]);
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -207,6 +216,17 @@ export default function OrderPage() {
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
     setPageIndex(1); // Reset to first page when page size changes
+  };
+
+  // Modified page change handler to prevent pagination from disappearing
+  const handlePageChange = (newPage: number) => {
+    // If we're going to the last page, make sure we don't lose pagination
+    if (newPage === Math.ceil(totalCount / pageSize)) {
+      // We're going to the last page
+      setPageIndex(newPage);
+    } else {
+      setPageIndex(newPage);
+    }
   };
 
   // Reset all filters and sorting
@@ -606,8 +626,9 @@ export default function OrderPage() {
                 </Table>
               </div>
 
-              {/* Pagination and page size selector */}
-              {orders.length > 0 && (
+              {/* Pagination and page size selector - IMPORTANT CHANGE HERE */}
+              {/* Use showPagination instead of orders.length > 0 */}
+              {(showPagination || orders.length > 0) && (
                 <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
@@ -627,21 +648,24 @@ export default function OrderPage() {
                     </select>
                     <span className="text-sm text-muted-foreground ml-4">
                       {t.rich("showingResults", {
-                        start: (pageIndex - 1) * pageSize + 1,
+                        start:
+                          orders.length > 0
+                            ? (pageIndex - 1) * pageSize + 1
+                            : 0,
                         end: Math.min(pageIndex * pageSize, totalCount),
                         total: totalCount,
                       })}
                     </span>
                   </div>
 
-                  {/* Using your existing Pagination component */}
+                  {/* Use our custom handlePageChange instead of setPageIndex directly */}
                   <Pagination
                     pageIndex={pageIndex}
                     pageSize={pageSize}
                     totalCount={totalCount}
                     hasNextPage={hasNextPage}
                     hasPreviousPage={hasPreviousPage}
-                    onPageChange={setPageIndex}
+                    onPageChange={handlePageChange}
                   />
                 </div>
               )}

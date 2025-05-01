@@ -25,6 +25,13 @@ export default function ConfigsContent() {
       className="w-full"
     >
       <TabsList className="bg-purple-100/50 dark:bg-purple-900/10 p-1 rounded-xl">
+        <TabsTrigger
+          value="shifts"
+          className="data-[state=active]:bg-white dark:data-[state=active]:bg-purple-800/10 data-[state=active]:text-purple-800 dark:data-[state=active]:text-purple-300"
+        >
+          <Clock className="h-4 w-4 mr-2" />
+          {t("shifts.title")}
+        </TabsTrigger>
         {/* Additional tabs can be added here */}
       </TabsList>
       <TabsContent value="shifts" className="mt-6">

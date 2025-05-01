@@ -238,7 +238,7 @@ export function OrderDetailDialog({
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  {/* <div className="flex justify-between items-center">
                     <div className="flex items-center gap-1">
                       <Wallet className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">
@@ -248,7 +248,7 @@ export function OrderDetailDialog({
                     <span className="font-medium">
                       {formatCurrency(remainingAmount)} đ
                     </span>
-                  </div>
+                  </div> */}
 
                   <Separator className="my-1" />
 
