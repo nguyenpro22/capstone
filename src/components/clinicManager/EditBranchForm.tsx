@@ -373,7 +373,7 @@ export default function EditBranchForm({
 
   const handleBankSelect = (bank: Bank) => {
     setSelectedBank(bank);
-    setFormData((prev: any) => ({ ...prev, bankName: bank.name }));
+    setFormData((prev: any) => ({ ...prev, bankName: bank.shortName }));
     setBankSearchTerm("");
     setShowBankDropdown(false);
   };
@@ -774,6 +774,7 @@ export default function EditBranchForm({
                         src={
                           previewUrl ||
                           formData.profilePictureUrl ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt="Profile"

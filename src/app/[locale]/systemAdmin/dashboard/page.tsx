@@ -301,8 +301,20 @@ export default function AdminDashboard() {
   // Handle date range change
   const handleDateRangeChange = (range: DateRange | undefined) => {
     if (range?.from && range?.to) {
-      setStartDate(format(range.from, "yyyy-MM-dd"));
-      setEndDate(format(range.to, "yyyy-MM-dd"));
+      const newStartDate = format(range.from, "yyyy-MM-dd");
+      const newEndDate = format(range.to, "yyyy-MM-dd");
+
+      // Only update if dates actually changed
+      if (newStartDate !== startDate || newEndDate !== endDate) {
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
+
+        // Force refresh of chart data
+        if (dashboardData) {
+          // Create a shallow copy to trigger re-render
+          setDashboardData({ ...dashboardData });
+        }
+      }
     }
   };
 
@@ -338,6 +350,9 @@ export default function AdminDashboard() {
       (a, b) =>
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
     );
+
+    // Log data refresh for debugging
+    console.log("Chart data refreshed with date range:", startDate, endDate);
 
     return sortedData.map((item) => ({
       name: formatDateRange(item.startDate, item.endDate),
@@ -628,6 +643,19 @@ export default function AdminDashboard() {
 
   const chartData = prepareChartData();
 
+  // Add this useEffect after the other useEffect hooks
+  useEffect(() => {
+    // This will ensure chart data is refreshed when date range changes
+    if (dashboardData && startDate && endDate) {
+      const chartData = prepareChartData();
+      console.log(
+        "Date range changed, chart data refreshed:",
+        chartData.length,
+        "data points"
+      );
+    }
+  }, [startDate, endDate, dashboardData]);
+
   if (loading || isApiLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -885,7 +913,10 @@ export default function AdminDashboard() {
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                <LineChart
+                  data={chartData}
+                  key={`revenue-chart-${startDate}-${endDate}`}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis
@@ -934,7 +965,10 @@ export default function AdminDashboard() {
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
+                <BarChart
+                  data={chartData}
+                  key={`subscription-chart-${startDate}-${endDate}`}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -971,7 +1005,10 @@ export default function AdminDashboard() {
           </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart
+                data={chartData}
+                key={`growth-chart-${startDate}-${endDate}`}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />

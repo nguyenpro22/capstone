@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Filter,
-  Plus,
   MoreHorizontal,
   Search,
   Loader2,
@@ -48,6 +47,7 @@ import {
   useLazyGetClinicSchedulesQuery,
   useUpdateScheduleStatusMutation,
   useLazyGetNextScheduleAvailabilityQuery,
+  useLazyGetScheduleByIdQuery,
 } from "@/features/customer-schedule/api";
 import {
   Popover,
@@ -110,6 +110,8 @@ export default function SchedulesPage() {
     useUpdateScheduleStatusMutation();
   const [getNextScheduleAvailability, { isLoading: isCheckingNextSchedule }] =
     useLazyGetNextScheduleAvailabilityQuery();
+  const [getScheduleById, { isLoading: isLoadingNextSchedule }] =
+    useLazyGetScheduleByIdQuery();
 
   // Delayed refetch functions
   const delayedGetCustomerSchedules = useDelayedRefetch(getCustomerSchedules);
@@ -190,7 +192,7 @@ export default function SchedulesPage() {
 
   const getDefaultDateRange = () => {
     const today = new Date();
-    const futureDate = addDays(today, 90);
+    const futureDate = addDays(today, 180); // Thay đổi từ 90 ngày thành 180 ngày (6 tháng)
     return { from: today, to: futureDate };
   };
 
@@ -354,13 +356,16 @@ export default function SchedulesPage() {
 
   // Data fetching functions
   const fetchClinicSchedules = async () => {
-    let searchTerm;
+    let searchTerm = "";
 
-    if (!fromDate && !toDate) {
+    // Chỉ tạo searchTerm có khoảng thời gian khi người dùng đã chọn tab hoặc đã chọn ngày
+    if (fromDate && toDate) {
+      searchTerm = createDateRangeSearchTerm(fromDate, toDate);
+    } else if (activeTab !== "all" || fromDate || toDate) {
       const today = new Date();
 
       if (activeTab === "upcoming") {
-        const futureDate = addDays(today, 90);
+        const futureDate = addDays(today, 180);
         searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(
           futureDate
         )}`;
@@ -368,25 +373,16 @@ export default function SchedulesPage() {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        const sixMonthsAgo = new Date(today);
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
+        searchTerm = `${formatDateForApi(sixMonthsAgo)} to ${formatDateForApi(
           yesterday
         )}`;
-      } else {
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-        const threeMonthsAhead = new Date(today);
-        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3);
-
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
-          threeMonthsAhead
-        )}`;
+      } else if (fromDate || toDate) {
+        // Nếu người dùng đã chọn ít nhất một ngày
+        searchTerm = createDateRangeSearchTerm(fromDate, toDate);
       }
-    } else {
-      searchTerm = createDateRangeSearchTerm(fromDate, toDate);
     }
 
     try {
@@ -409,14 +405,18 @@ export default function SchedulesPage() {
     }
   };
 
+  // Tương tự, sửa hàm fetchClinicSchedulesWithTab
   const fetchClinicSchedulesWithTab = async (tabValue: string) => {
-    let searchTerm;
+    let searchTerm = "";
 
-    if (!fromDate && !toDate) {
+    // Chỉ tạo searchTerm có khoảng thời gian khi người dùng đã chọn tab khác "all" hoặc đã chọn ngày
+    if (fromDate && toDate) {
+      searchTerm = createDateRangeSearchTerm(fromDate, toDate);
+    } else if (tabValue !== "all" || fromDate || toDate) {
       const today = new Date();
 
       if (tabValue === "upcoming") {
-        const futureDate = addDays(today, 90);
+        const futureDate = addDays(today, 180);
         searchTerm = `${formatDateForApi(today)} to ${formatDateForApi(
           futureDate
         )}`;
@@ -424,25 +424,16 @@ export default function SchedulesPage() {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        const sixMonthsAgo = new Date(today);
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
+        searchTerm = `${formatDateForApi(sixMonthsAgo)} to ${formatDateForApi(
           yesterday
         )}`;
-      } else {
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-        const threeMonthsAhead = new Date(today);
-        threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3);
-
-        searchTerm = `${formatDateForApi(threeMonthsAgo)} to ${formatDateForApi(
-          threeMonthsAhead
-        )}`;
+      } else if (fromDate || toDate) {
+        // Nếu người dùng đã chọn ít nhất một ngày
+        searchTerm = createDateRangeSearchTerm(fromDate, toDate);
       }
-    } else {
-      searchTerm = createDateRangeSearchTerm(fromDate, toDate);
     }
 
     try {
@@ -872,8 +863,60 @@ export default function SchedulesPage() {
     }
   };
 
-  const handleViewNextAppointment = (schedule: CustomerSchedule) => {
-    toast.info(`${t("viewingNextAppointment")} ${schedule.customerName}`);
+  const handleViewNextAppointment = async (schedule: CustomerSchedule) => {
+    try {
+      // Show loading state
+      toast.info(t("loadingNextAppointment"), {
+        autoClose: 2000,
+      });
+
+      // Call the API with isNextSchedule = true
+      const result = await getScheduleById({
+        id: schedule.id,
+        isNextSchedule: true,
+      }).unwrap();
+
+      if (result.isSuccess && result.value) {
+        const nextScheduleId = result.value.id;
+
+        // Use the ID as searchTerm parameter
+        const searchResult = await getCustomerSchedules({
+          customerName: " ",
+          customerPhone: " ",
+          searchTerm: nextScheduleId,
+        });
+
+        if (
+          searchResult.data?.value?.items &&
+          searchResult.data.value.items.length > 0
+        ) {
+          // Set search performed to true to display the search results
+          setSearchPerformed(true);
+          toast.success(t("nextAppointmentFound"));
+
+          // Highlight the row with the next schedule
+          setTimeout(() => {
+            const element = document.getElementById(
+              `schedule-row-${nextScheduleId}`
+            );
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+              element.classList.add("bg-blue-50", "dark:bg-blue-900/20");
+              setTimeout(() => {
+                element.classList.remove("bg-blue-50", "dark:bg-blue-900/20");
+              }, 3000);
+            }
+          }, 500);
+        } else {
+          toast.warning(t("nextAppointmentNotFound"));
+        }
+      } else {
+        toast.error(t("failedToFindNextAppointment"));
+      }
+    } catch (error) {
+      console.error("Failed to get next appointment:", error);
+      toast.error(t("errorFetchingNextAppointment"));
+    }
   };
 
   const clearSearch = () => {
@@ -885,18 +928,47 @@ export default function SchedulesPage() {
     fetchClinicSchedulesWithTab(activeTab);
   };
 
+  // Sửa hàm handleSort để giữ nguyên searchTerm="" khi đang ở tab "all" và chưa chọn ngày
   const handleSort = () => {
     const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
     setSortOrder(newSortOrder);
 
     if (searchPerformed) {
-      // If in search mode, we need to handle sorting differently
-      // This depends on your API implementation
+      // Nếu đang trong chế độ tìm kiếm, không cần thay đổi gì
     } else {
+      // Sử dụng khoảng thời gian hiện tại, không tạo mới
+      let currentSearchTerm = "";
+
+      if (fromDate && toDate) {
+        currentSearchTerm = `${formatDateForApi(
+          fromDate
+        )} to ${formatDateForApi(toDate)}`;
+      } else if (activeTab !== "all") {
+        // Nếu không có fromDate và toDate, nhưng đang ở tab khác "all"
+        const today = new Date();
+
+        if (activeTab === "upcoming") {
+          const futureDate = addDays(today, 180);
+          currentSearchTerm = `${formatDateForApi(today)} to ${formatDateForApi(
+            futureDate
+          )}`;
+        } else if (activeTab === "past") {
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+
+          const sixMonthsAgo = new Date(today);
+          sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+          currentSearchTerm = `${formatDateForApi(
+            sixMonthsAgo
+          )} to ${formatDateForApi(yesterday)}`;
+        }
+      }
+
       delayedGetClinicSchedules({
         pageIndex: currentPage,
         pageSize,
-        searchTerm: createDateRangeSearchTerm(fromDate, toDate),
+        searchTerm: currentSearchTerm,
         sortColumn: "bookingDate",
         sortOrder: newSortOrder,
       });
@@ -1187,7 +1259,8 @@ export default function SchedulesPage() {
                       ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t(
                           "to"
                         )} ${format(toDate, "MMM d, yyyy")}`
-                      : t("forTheNext90Days")}
+                      : t("forTheNext180Days")}{" "}
+                    {/* Thay đổi từ 90 ngày thành 180 ngày */}
                   </p>
                 ) : (
                   <p>
@@ -1196,7 +1269,8 @@ export default function SchedulesPage() {
                       ? `${t("from")} ${format(fromDate, "MMM d, yyyy")} ${t(
                           "to"
                         )} ${format(toDate, "MMM d, yyyy")}`
-                      : t("fromTheLast90Days")}
+                      : t("fromTheLast180Days")}{" "}
+                    {/* Thay đổi từ 90 ngày thành 180 ngày */}
                   </p>
                 )}
               </div>
@@ -1257,7 +1331,10 @@ export default function SchedulesPage() {
                         const scheduleWithStatus =
                           getScheduleWithStatus(schedule);
                         return (
-                          <TableRow key={schedule.id}>
+                          <TableRow
+                            key={schedule.id}
+                            id={`schedule-row-${schedule.id}`}
+                          >
                             <TableCell className="text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <Avatar className="h-8 w-8 flex-shrink-0">
@@ -1476,7 +1553,10 @@ export default function SchedulesPage() {
                         const scheduleWithStatus =
                           getScheduleWithStatus(schedule);
                         return (
-                          <TableRow key={schedule.id}>
+                          <TableRow
+                            key={schedule.id}
+                            id={`schedule-row-${schedule.id}`}
+                          >
                             <TableCell className="text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <Avatar className="h-8 w-8 flex-shrink-0">

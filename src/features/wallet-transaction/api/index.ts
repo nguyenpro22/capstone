@@ -175,7 +175,17 @@ export const walletTransactionCommandApi = createApi({
         body: { amount, bankId, accountNumber, accountName },
       }),
     }),
-  }),
+    updateWithdrawalRequestStatus: builder.mutation<
+      any,
+      { id: string }
+        >({
+          query: ({ id }) => ({
+            url: `wallets/withdrawal-requests/${id}/status`,
+            method: "PATCH",
+            body: {},
+          }),
+        }),
+      }),
 });
 
 export const {
@@ -189,4 +199,5 @@ export const {
   useUpdateWithdrawalStatusMutation,
   useUpdateWithdrawalStatusForClinicMutation,
   useCustomerWithdrawMutation,
+  useUpdateWithdrawalRequestStatusMutation,
 } = walletTransactionCommandApi;

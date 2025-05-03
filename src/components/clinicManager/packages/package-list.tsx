@@ -1,6 +1,7 @@
 "use client";
-import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import React from "react";
+
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
@@ -16,7 +17,12 @@ import {
   CheckCircle,
   AlertCircle,
   ArrowRight,
-  PlusCircle,
+  Building2,
+  Users,
+  Calendar,
+  Video,
+  DollarSign,
+  Wallet,
 } from "lucide-react";
 import { useGetPackagesQuery } from "@/features/package/api";
 import { useCreatePaymentMutation } from "@/features/payment/api";
@@ -48,9 +54,9 @@ import {
   type TokenData,
 } from "@/utils";
 import { useRefreshTokenMutation } from "@/features/auth/api";
-import { setAccessToken, setRefreshToken } from "@/utils";
 import { useGetPackagesByIdQuery } from "@/features/package/api";
 import { useCreateSubscriptionOverPaymentMutation } from "@/features/payment/api";
+import { setAccessToken, setRefreshToken } from "@/utils";
 
 export default function SubscriptionManagement() {
   const t = useTranslations("buyPackage");
@@ -118,7 +124,7 @@ export default function SubscriptionManagement() {
     });
 
   // Add useEffect to set current package when data is loaded
-  useEffect(() => {
+  React.useEffect(() => {
     if (packageData?.value) {
       setCurrentPackage(packageData.value);
     }
@@ -184,7 +190,7 @@ export default function SubscriptionManagement() {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!transactionId) return;
 
     const hasNotified = false; // Add this flag to prevent multiple notifications
@@ -235,6 +241,7 @@ export default function SubscriptionManagement() {
 
                   if (result.isSuccess) {
                     // Save the new tokens
+
                     setAccessToken(result.value.accessToken);
                     setRefreshToken(result.value.refreshToken);
                     console.log("Tokens refreshed successfully after payment");
@@ -294,7 +301,7 @@ export default function SubscriptionManagement() {
     };
   }, [transactionId, router, selectedPackage, t, refreshToken]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!addonTransactionId) return;
 
     const hasNotified = false; // Add this flag to prevent multiple notifications
@@ -345,6 +352,7 @@ export default function SubscriptionManagement() {
 
                   if (result.isSuccess) {
                     // Save the new tokens
+
                     setAccessToken(result.value.accessToken);
                     setRefreshToken(result.value.refreshToken);
                     console.log("Tokens refreshed successfully after payment");
@@ -536,7 +544,7 @@ export default function SubscriptionManagement() {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     setPageIndex(1); // Reset to first page when search term changes
   }, [debouncedSearchTerm]);
 
@@ -937,25 +945,27 @@ export default function SubscriptionManagement() {
                     <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       {pkg.description}
                     </p>
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                      <Clock className="h-4 w-4" />
-                      <span>
-                        {t("durationDays", { duration: pkg.duration })}
-                      </span>
-                    </div>
+
+                    {/* Features with unique icons */}
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                        <Zap className="h-4 w-4" />
+                        <Calendar className="h-4 w-4 text-purple-500" />
+                        <span>
+                          {t("durationDays", { duration: pkg.duration })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                        <Video className="h-4 w-4 text-blue-500" />
                         <span>
                           {t("liveStreams", { count: pkg.limitLiveStream })}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                        <ShieldCheck className="h-4 w-4" />
+                        <Building2 className="h-4 w-4 text-green-500" />
                         <span>{t("branches", { count: pkg.limitBranch })}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                        <Sparkles className="h-4 w-4" />
+                        <Users className="h-4 w-4 text-amber-500" />
                         <span>
                           {t("enhancedViewers", { count: pkg.enhancedViewer })}
                         </span>
@@ -963,7 +973,7 @@ export default function SubscriptionManagement() {
 
                       {/* Additional pricing information */}
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                        <PlusCircle className="h-4 w-4" />
+                        <DollarSign className="h-4 w-4 text-pink-500" />
                         <span>
                           {t("additionalBranchPrice", {
                             price: formatPrice(pkg.priceBranchAddition),
@@ -971,7 +981,7 @@ export default function SubscriptionManagement() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-                        <PlusCircle className="h-4 w-4" />
+                        <Wallet className="h-4 w-4 text-indigo-500" />
                         <span>
                           {t("additionalLivestreamPrice", {
                             price: formatPrice(pkg.priceLiveStreamAddition),
@@ -981,8 +991,8 @@ export default function SubscriptionManagement() {
                     </div>
                   </div>
 
-                  {/* Price and Action */}
-                  <div className="mt-auto">
+                  {/* Price and Action - Centered */}
+                  <div className="mt-auto text-center">
                     <div className="mb-4">
                       <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                         {formatPrice(pkg.price)}

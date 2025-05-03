@@ -44,7 +44,7 @@ export default function SystemAdminLayout({
   }, [isSidebarOpen]);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-[#FFF5F7] dark:bg-gray-950">
       {/* Sidebar - Only use fixed positioning on desktop */}
       <div
         className={`${
@@ -96,7 +96,7 @@ export default function SystemAdminLayout({
         </div>
 
         {/* Content */}
-        <main className="p-4 md:p-6 dark:bg-gray-950 dark:text-white">
+        <main className="p-4 md:p-3 bg-[#FFF5F7] dark:bg-gray-950 dark:text-white">
           {children}
         </main>
       </div>

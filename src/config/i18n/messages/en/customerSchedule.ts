@@ -25,9 +25,9 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   from: "from",
   to: "to",
   showingUpcomingAppointments: "Showing upcoming appointments",
-  forTheNext90Days: "for the next 90 days",
+  forTheNext180Days: "for the next 180 days",
   showingPastAppointments: "Showing past appointments",
-  fromTheLast90Days: "from the last 90 days",
+  fromTheLast180Days: "from the last 180 days",
   customer: "Customer",
   service: "Service",
   doctor: "Doctor",
@@ -128,7 +128,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   // Next schedule notification translations
   followUpRequired: "Follow-up Required",
   multipleFollowUpsNeeded:
-    "{count} patients need to schedule their next appointment.",
+    "{count} clients need to schedule their next appointment.",
   singleFollowUpNeeded: "{name} needs to schedule their next appointment.",
   // Follow-up selection modal translations
   selectAppointmentForFollowUp: "Select Appointment for Follow-up",
@@ -172,4 +172,10 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   confirmPayment: "Confirm Payment",
   back: "Back",
   rescheduleSuccess: "Reschedule successful",
+  // Additional fields needed for schedules-page.tsx
+  loadingNextAppointment: "Loading next appointment...",
+  nextAppointmentFound: "Next appointment found",
+  nextAppointmentNotFound: "Next appointment not found",
+  failedToFindNextAppointment: "Failed to find next appointment",
+  errorFetchingNextAppointment: "Error fetching next appointment",
 };

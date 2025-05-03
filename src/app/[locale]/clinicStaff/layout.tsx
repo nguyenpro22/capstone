@@ -18,7 +18,7 @@ export default function ClinicStaffLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-[#FFF5F7] dark:bg-gray-950">
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-950 shadow-md dark:shadow-gray-900 transform transition-transform duration-300 ${
@@ -58,7 +58,9 @@ export default function ClinicStaffLayout({
         </div>
 
         {/* Content */}
-        <main className="p-6 dark:bg-gray-950 dark:text-white">{children}</main>
+        <main className="p-6 bg-[#FFF5F7] dark:bg-gray-950 dark:text-white">
+          {children}
+        </main>
       </div>
     </div>
   );

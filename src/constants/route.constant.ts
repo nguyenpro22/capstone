@@ -13,14 +13,17 @@ const privateSystemStaffPath = "/systemStaff";
 export const systemAdminRoutes = {
   DEFAULT: `${privateSystemAdminPath}/dashboard`,
   DASHBOARD: `${privateSystemAdminPath}/dashboard`,
+  CLINICS: `${privateSystemAdminPath}/clinic`,
+  PARTNERSHIP: `${privateSystemAdminPath}/partnership`,
+  BRANCHES: `${privateSystemAdminPath}/branch-request`,
   PACKAGE: `${privateSystemAdminPath}/package`,
   CATEGORIES: `${privateSystemAdminPath}/category-service`,
   SETTINGS: `${privateSystemAdminPath}/settings`,
-  VOUCHER: `${privateSystemAdminPath}/voucher`,
   USERS: `${privateSystemAdminPath}/user`, // Sửa lỗi đường dẫn
   WITHDRAWS: `${privateSystemAdminPath}/withdrawal-approval`, // Sửa lỗi đường dẫn
   POLICIES: `${privateSystemAdminPath}/policy`, // Sửa lỗi đường dẫn
   PROFILE: `${privateSystemAdminPath}/profile`, // Sửa lỗi đường dẫn
+
 };
 
 // CLINIC ADMIN ROUTES

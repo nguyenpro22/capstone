@@ -22,9 +22,9 @@ export type customerScheduleTranslations = {
   from: string
   to: string
   showingUpcomingAppointments: string
-  forTheNext90Days: string
+  forTheNext180Days: string
   showingPastAppointments: string
-  fromTheLast90Days: string
+  fromTheLast180Days: string
   customer: string
   service: string
   doctor: string
@@ -158,4 +158,9 @@ export type customerScheduleTranslations = {
   confirmPayment: string
   back: string
   rescheduleSuccess: string
+  loadingNextAppointment: string
+  nextAppointmentFound: string
+  nextAppointmentNotFound: string
+  failedToFindNextAppointment: string
+  errorFetchingNextAppointment: string
 }
