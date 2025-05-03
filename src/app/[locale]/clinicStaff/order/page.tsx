@@ -21,11 +21,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Filter,
   ChevronDown,
   MoreHorizontal,
   Loader2,
   Columns,
+  Clock,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -155,11 +155,25 @@ export default function OrderPage() {
   // Format date function
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+
+    // Format date as DD/MM/YYYY
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+
+    // Format time as HH:MM
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return (
+      <div className="flex flex-col">
+        <div className="font-medium">{`${day}/${month}/${year}`}</div>
+        <div className="text-muted-foreground flex items-center gap-1 text-sm">
+          <Clock className="h-3 w-3 text-muted-foreground" />
+          {`${hours}:${minutes}`}
+        </div>
+      </div>
+    );
   };
 
   // Handle search input change
@@ -249,7 +263,9 @@ export default function OrderPage() {
                 <TableHeader>
                   <TableRow>
                     {visibleColumns.map((column) => (
-                      <TableHead key={column.id}>{column.label}</TableHead>
+                      <TableHead key={column.id} className="text-center">
+                        {column.label}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -267,32 +283,43 @@ export default function OrderPage() {
                     orders.map((order: OrderItem) => (
                       <TableRow key={order.id}>
                         {columnVisibility.orderId && (
-                          <TableCell className="font-medium">
-                            {order.id}
+                          <TableCell className="font-medium text-center">
+                            <div
+                              className="max-w-[100px] truncate"
+                              title={order.id}
+                            >
+                              {order.id}
+                            </div>
                           </TableCell>
                         )}
                         {columnVisibility.customerName && (
-                          <TableCell>{order.customerName}</TableCell>
+                          <TableCell className="text-center">
+                            {order.customerName}
+                          </TableCell>
                         )}
                         {columnVisibility.service && (
-                          <TableCell>{order.serviceName}</TableCell>
+                          <TableCell className="text-center">
+                            {order.serviceName}
+                          </TableCell>
                         )}
                         {columnVisibility.date && (
-                          <TableCell>{formatDate(order.orderDate)}</TableCell>
+                          <TableCell className="text-center">
+                            {formatDate(order.orderDate)}
+                          </TableCell>
                         )}
                         {columnVisibility.finalAmount && (
-                          <TableCell>
+                          <TableCell className="text-center">
                             {formatCurrency(order.finalAmount)} đ
                           </TableCell>
                         )}
                         {columnVisibility.status && (
-                          <TableCell>
+                          <TableCell className="text-center">
                             {getStatusBadge(order.status, t)}
                           </TableCell>
                         )}
                         {columnVisibility.actions && (
-                          <TableCell>
-                            <div className="flex gap-2">
+                          <TableCell className="text-center">
+                            <div className="flex justify-center gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"

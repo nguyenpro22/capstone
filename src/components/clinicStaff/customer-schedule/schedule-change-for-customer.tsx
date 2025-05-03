@@ -207,9 +207,15 @@ export default function ScheduleFollowUpModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, schedule]);
 
-  const fetchScheduleDetails = async (scheduleId: string) => {
+  const fetchScheduleDetails = async (
+    scheduleId: string,
+    isNextSchedule = false
+  ) => {
     try {
-      const result = await getScheduleById(scheduleId).unwrap();
+      const result = await getScheduleById({
+        id: scheduleId,
+        isNextSchedule,
+      }).unwrap();
       if (result.isSuccess && result.value) {
         setScheduleDetail(result.value);
         const tomorrow = new Date();

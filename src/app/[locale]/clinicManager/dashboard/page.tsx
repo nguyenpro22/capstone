@@ -77,23 +77,32 @@ const formatApiDate = (dateStr: string): string => {
   return dateStr;
 };
 
-const formatDisplayDate = (dateStr: string): string => {
+const formatDisplayDate = (dateStr: string, locale: string): string => {
   const date = new Date(dateStr);
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  return `${months[date.getMonth()]} ${date.getDate()}`;
+
+  if (locale === "vi") {
+    // Vietnamese format: "DD Thg M"
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    return `${day} Thg ${month}`;
+  } else {
+    // English format: "MMM DD"
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${months[date.getMonth()]} ${date.getDate()}`;
+  }
 };
 
 // Define PieChart props interface
@@ -113,7 +122,7 @@ const PieChart: React.FC<PieChartProps> = ({
   canceledCount,
   totalCount,
 }) => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const t = useTranslations("dashboard.clinicManager");
 
   React.useEffect(() => {
@@ -428,8 +437,39 @@ const TimeSeriesBarChart: React.FC<{
   icon: React.ReactNode;
 }> = ({ data, isWeekly, fields, title, icon }) => {
   const t = useTranslations("dashboard.clinicManager");
+  const locale = useLocale();
 
-  // Prepare data for the chart
+  // Check if data is empty or invalid
+  const hasValidData =
+    data &&
+    data.length > 0 &&
+    data.some((item) =>
+      fields.some((field) => {
+        // Check if this field has any non-zero value in any data point
+        if (field === "OrderCustomers")
+          return item.information.totalCountOrderCustomer > 0;
+        if (field === "ScheduleCustomers")
+          return item.information.totalCountScheduleCustomer > 0;
+        if (field === "CustomerSchedules")
+          return item.information.totalCountCustomerSchedule > 0;
+        if (field === "Pending")
+          return item.information.totalCountCustomerSchedulePending > 0;
+        if (field === "InProgress")
+          return item.information.totalCountCustomerScheduleInProgress > 0;
+        if (field === "Completed")
+          return item.information.totalCountCustomerScheduleCompleted > 0;
+        if (field === "OrderPending")
+          return item.information.totalCountOrderPending > 0;
+        if (field === "Revenue") return item.information.totalSumRevenue > 0;
+        if (field === "NormalRevenue")
+          return item.information.totalSumRevenueNormal > 0;
+        if (field === "LiveStreamRevenue")
+          return item.information.totalSumRevenueLiveStream > 0;
+        return false;
+      })
+    );
+
+  // Prepare data for the chart with proper date formatting
   const chartData = data.map((item) => {
     // Format the label based on whether it's weekly or monthly
     const startDate = new Date(item.startDate);
@@ -437,26 +477,47 @@ const TimeSeriesBarChart: React.FC<{
 
     let label = "";
     if (isWeekly) {
-      label = `${formatDisplayDate(item.startDate)} - ${formatDisplayDate(
-        item.endDate
-      )}`;
+      label = `${formatDisplayDate(
+        item.startDate,
+        locale
+      )} - ${formatDisplayDate(item.endDate, locale)}`;
     } else {
-      // For monthly view, just show the month name
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      label = monthNames[startDate.getMonth()];
+      // For monthly view, show the month name based on locale
+      if (locale === "vi") {
+        // Vietnamese month names
+        const monthNames = [
+          "Tháng 1",
+          "Tháng 2",
+          "Tháng 3",
+          "Tháng 4",
+          "Tháng 5",
+          "Tháng 6",
+          "Tháng 7",
+          "Tháng 8",
+          "Tháng 9",
+          "Tháng 10",
+          "Tháng 11",
+          "Tháng 12",
+        ];
+        label = monthNames[startDate.getMonth()];
+      } else {
+        // English month names
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        label = monthNames[startDate.getMonth()];
+      }
     }
 
     return {
@@ -539,45 +600,73 @@ const TimeSeriesBarChart: React.FC<{
       </div>
 
       <div className="w-full h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <RechartsBarChart
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis
-              dataKey="name"
-              angle={-45}
-              textAnchor="end"
-              height={70}
-              tick={{ fontSize: 12, fill: "#6b7280" }}
-              axisLine={{ stroke: "#e5e7eb" }}
-              tickLine={{ stroke: "#e5e7eb" }}
-            />
-            <YAxis
-              tick={{ fontSize: 12, fill: "#6b7280" }}
-              axisLine={{ stroke: "#e5e7eb" }}
-              tickLine={{ stroke: "#e5e7eb" }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend
-              wrapperStyle={{ paddingTop: 10 }}
-              iconType="circle"
-              iconSize={8}
-            />
-            {visibleMetrics.map((metric) => (
-              <Bar
-                key={metric}
-                dataKey={metric}
-                fill={colorMap[metric as keyof typeof colorMap]}
-                name={getFieldLabel(metric)}
-                radius={[4, 4, 0, 0]}
-                animationDuration={1500}
-                animationEasing="ease-in-out"
+        {hasValidData ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsBarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="name"
+                angle={0}
+                textAnchor="middle"
+                height={40}
+                tick={{ fontSize: 12, fill: "#6b7280" }}
+                axisLine={{ stroke: "#e5e7eb" }}
+                tickLine={{ stroke: "#e5e7eb" }}
               />
-            ))}
-          </RechartsBarChart>
-        </ResponsiveContainer>
+              <YAxis
+                tick={{ fontSize: 12, fill: "#6b7280" }}
+                axisLine={{ stroke: "#e5e7eb" }}
+                tickLine={{ stroke: "#e5e7eb" }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                wrapperStyle={{ paddingTop: 10 }}
+                iconType="circle"
+                iconSize={8}
+              />
+              {visibleMetrics.map((metric) => (
+                <Bar
+                  key={metric}
+                  dataKey={metric}
+                  fill={colorMap[metric as keyof typeof colorMap]}
+                  name={getFieldLabel(metric)}
+                  radius={[4, 4, 0, 0]}
+                  animationDuration={1500}
+                  animationEasing="ease-in-out"
+                />
+              ))}
+            </RechartsBarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center">
+            <div className="text-amber-500 mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              {t("charts.noData.title")}
+            </h4>
+            <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
+              {t("charts.noData.message")}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -635,11 +724,7 @@ const Dashboard: React.FC = () => {
     startDate: startDate,
     endDate: endDate,
     isDisplayWeek: timeRange === "week",
-  }) as {
-    data?: DashboardResponse;
-    error?: any;
-    isLoading: boolean;
-  };
+  });
 
   // Daily view API call
   const {
@@ -651,11 +736,7 @@ const Dashboard: React.FC = () => {
     startDate: undefined,
     endDate: undefined,
     isDisplayWeek: undefined,
-  }) as {
-    data?: DashboardResponse;
-    error?: any;
-    isLoading: boolean;
-  };
+  });
 
   // Also get yesterday's data for comparison (for daily view)
   const yesterday = new Date(today);
@@ -671,16 +752,22 @@ const Dashboard: React.FC = () => {
     startDate: undefined,
     endDate: undefined,
     isDisplayWeek: undefined,
-  }) as {
-    data?: DashboardResponse;
-    error?: any;
-    isLoading: boolean;
-  };
+  });
 
   // Process API response data
   const todayInfo = dailyData?.value?.datetimeInformation;
-  const dateRangeList = rangeData?.value?.datetimeInformationList;
+  const dateRangeList = rangeData?.value?.datetimeInformationList || [];
   const yesterdayInfo = yesterdayData?.value?.datetimeInformation;
+
+  // Check if daily view has valid data
+  const hasDailyData =
+    todayInfo &&
+    (todayInfo.totalCountOrderCustomer > 0 ||
+      todayInfo.totalCountScheduleCustomer > 0 ||
+      todayInfo.totalCountCustomerSchedule > 0 ||
+      todayInfo.totalCountCustomerSchedulePending > 0 ||
+      todayInfo.totalCountCustomerScheduleInProgress > 0 ||
+      todayInfo.totalCountCustomerScheduleCompleted > 0);
 
   // Calculate percentage changes vs yesterday (for daily view)
   const percentChanges: PercentChanges | null =
@@ -712,7 +799,12 @@ const Dashboard: React.FC = () => {
     } else if (type === "end") {
       setEndDate(value);
     } else {
-      setSelectedDate(value);
+      // Force re-render by setting to empty string first
+      setSelectedDate("");
+      // Then set the actual value in the next tick
+      setTimeout(() => {
+        setSelectedDate(value);
+      }, 0);
     }
   };
 
@@ -898,9 +990,10 @@ const Dashboard: React.FC = () => {
 
           {/* Daily View Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {todayInfo ? (
+            {hasDailyData ? (
               <>
                 <CustomerMetricsChart
+                  key={`metrics-chart-${selectedDate}`}
                   orderCustomers={todayInfo.totalCountOrderCustomer || 0}
                   scheduleCustomers={todayInfo.totalCountScheduleCustomer || 0}
                   customerSchedules={todayInfo.totalCountCustomerSchedule || 0}
@@ -914,159 +1007,194 @@ const Dashboard: React.FC = () => {
                     {t("charts.scheduleStatusDistribution")}
                   </h3>
 
-                  <div className="flex flex-col md:flex-row items-center justify-between">
-                    <div className="w-full md:w-1/2 flex justify-center">
-                      <div className="relative w-64 h-64">
-                        <PieChart
-                          pendingCount={
-                            todayInfo.totalCountCustomerSchedulePending || 0
-                          }
-                          inProgressCount={
-                            todayInfo.totalCountCustomerScheduleInProgress || 0
-                          }
-                          completedCount={
-                            todayInfo.totalCountCustomerScheduleCompleted || 0
-                          }
-                          canceledCount={Math.max(
-                            0,
-                            (todayInfo.totalCountCustomerSchedule || 0) -
-                              ((todayInfo.totalCountCustomerSchedulePending ||
-                                0) +
-                                (todayInfo.totalCountCustomerScheduleInProgress ||
+                  {todayInfo.totalCountCustomerSchedule > 0 ? (
+                    <div className="flex flex-col md:flex-row items-center justify-between">
+                      <div className="w-full md:w-1/2 flex justify-center">
+                        <div
+                          className="relative w-64 h-64"
+                          key={`pie-chart-${selectedDate}`}
+                        >
+                          <PieChart
+                            pendingCount={
+                              todayInfo.totalCountCustomerSchedulePending || 0
+                            }
+                            inProgressCount={
+                              todayInfo.totalCountCustomerScheduleInProgress ||
+                              0
+                            }
+                            completedCount={
+                              todayInfo.totalCountCustomerScheduleCompleted || 0
+                            }
+                            canceledCount={Math.max(
+                              0,
+                              (todayInfo.totalCountCustomerSchedule || 0) -
+                                ((todayInfo.totalCountCustomerSchedulePending ||
                                   0) +
-                                (todayInfo.totalCountCustomerScheduleCompleted ||
-                                  0))
-                          )}
-                          totalCount={todayInfo.totalCountCustomerSchedule || 0}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="w-full md:w-1/2 mt-8 md:mt-0">
-                      <div className="space-y-5">
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                          <div className="flex items-center">
-                            <div className="w-4 h-4 bg-amber-500 dark:bg-amber-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {t("status.pending")}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
-                              {todayInfo.totalCountCustomerSchedulePending || 0}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              (
-                              {todayInfo.totalCountCustomerSchedule
-                                ? Math.round(
-                                    (todayInfo.totalCountCustomerSchedulePending /
-                                      todayInfo.totalCountCustomerSchedule) *
-                                      100
-                                  )
-                                : 0}
-                              %)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                          <div className="flex items-center">
-                            <div className="w-4 h-4 bg-blue-500 dark:bg-blue-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {t("status.inProgress")}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
-                              {todayInfo.totalCountCustomerScheduleInProgress ||
-                                0}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              (
-                              {todayInfo.totalCountCustomerSchedule
-                                ? Math.round(
-                                    (todayInfo.totalCountCustomerScheduleInProgress /
-                                      todayInfo.totalCountCustomerSchedule) *
-                                      100
-                                  )
-                                : 0}
-                              %)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
-                          <div className="flex items-center">
-                            <div className="w-4 h-4 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {t("status.completed")}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
-                              {todayInfo.totalCountCustomerScheduleCompleted ||
-                                0}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              (
-                              {todayInfo.totalCountCustomerSchedule
-                                ? Math.round(
-                                    (todayInfo.totalCountCustomerScheduleCompleted /
-                                      todayInfo.totalCountCustomerSchedule) *
-                                      100
-                                  )
-                                : 0}
-                              %)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
-                          <div className="flex items-center">
-                            <div className="w-4 h-4 bg-red-500 dark:bg-red-400 rounded-full mr-3"></div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {t("status.canceled")}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
-                              {Math.max(
-                                0,
-                                (todayInfo.totalCountCustomerSchedule || 0) -
-                                  ((todayInfo.totalCountCustomerSchedulePending ||
+                                  (todayInfo.totalCountCustomerScheduleInProgress ||
                                     0) +
-                                    (todayInfo.totalCountCustomerScheduleInProgress ||
+                                  (todayInfo.totalCountCustomerScheduleCompleted ||
+                                    0))
+                            )}
+                            totalCount={
+                              todayInfo.totalCountCustomerSchedule || 0
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div className="w-full md:w-1/2 mt-8 md:mt-0">
+                        <div className="space-y-5">
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-amber-500 dark:bg-amber-400 rounded-full mr-3"></div>
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t("status.pending")}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
+                                {todayInfo.totalCountCustomerSchedulePending ||
+                                  0}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                (
+                                {todayInfo.totalCountCustomerSchedule
+                                  ? Math.round(
+                                      (todayInfo.totalCountCustomerSchedulePending /
+                                        todayInfo.totalCountCustomerSchedule) *
+                                        100
+                                    )
+                                  : 0}
+                                %)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-blue-500 dark:bg-blue-400 rounded-full mr-3"></div>
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t("status.inProgress")}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
+                                {todayInfo.totalCountCustomerScheduleInProgress ||
+                                  0}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                (
+                                {todayInfo.totalCountCustomerSchedule
+                                  ? Math.round(
+                                      (todayInfo.totalCountCustomerScheduleInProgress /
+                                        todayInfo.totalCountCustomerSchedule) *
+                                        100
+                                    )
+                                  : 0}
+                                %)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-3"></div>
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t("status.completed")}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
+                                {todayInfo.totalCountCustomerScheduleCompleted ||
+                                  0}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                (
+                                {todayInfo.totalCountCustomerSchedule
+                                  ? Math.round(
+                                      (todayInfo.totalCountCustomerScheduleCompleted /
+                                        todayInfo.totalCountCustomerSchedule) *
+                                        100
+                                    )
+                                  : 0}
+                                %)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-red-500 dark:bg-red-400 rounded-full mr-3"></div>
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t("status.canceled")}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white mr-2">
+                                {Math.max(
+                                  0,
+                                  (todayInfo.totalCountCustomerSchedule || 0) -
+                                    ((todayInfo.totalCountCustomerSchedulePending ||
                                       0) +
-                                    (todayInfo.totalCountCustomerScheduleCompleted ||
-                                      0))
-                              )}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              (
-                              {todayInfo.totalCountCustomerSchedule
-                                ? Math.round(
-                                    (Math.max(
-                                      0,
-                                      (todayInfo.totalCountCustomerSchedule ||
-                                        0) -
-                                        ((todayInfo.totalCountCustomerSchedulePending ||
-                                          0) +
-                                          (todayInfo.totalCountCustomerScheduleInProgress ||
+                                      (todayInfo.totalCountCustomerScheduleInProgress ||
+                                        0) +
+                                      (todayInfo.totalCountCustomerScheduleCompleted ||
+                                        0))
+                                )}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                (
+                                {todayInfo.totalCountCustomerSchedule
+                                  ? Math.round(
+                                      (Math.max(
+                                        0,
+                                        (todayInfo.totalCountCustomerSchedule ||
+                                          0) -
+                                          ((todayInfo.totalCountCustomerSchedulePending ||
                                             0) +
-                                          (todayInfo.totalCountCustomerScheduleCompleted ||
-                                            0))
-                                    ) /
-                                      todayInfo.totalCountCustomerSchedule) *
-                                      100
-                                  )
-                                : 0}
-                              %)
-                            </span>
+                                            (todayInfo.totalCountCustomerScheduleInProgress ||
+                                              0) +
+                                            (todayInfo.totalCountCustomerScheduleCompleted ||
+                                              0))
+                                      ) /
+                                        todayInfo.totalCountCustomerSchedule) *
+                                        100
+                                    )
+                                  : 0}
+                                %)
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="h-64 flex flex-col items-center justify-center">
+                      <div className="text-amber-500 mb-4">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="64"
+                          height="64"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="8" x2="12" y2="12"></line>
+                          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        {t("charts.noData.title")}
+                      </h4>
+                      <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
+                        {t("charts.noData.message")}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (

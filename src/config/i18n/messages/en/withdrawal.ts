@@ -85,6 +85,7 @@ export const withdrawalMessages: Messages["withdrawal"] = {
   // Toast messages
   processingApproval: "Processing approval...",
   processingRejection: "Processing rejection...",
+  processingConfirmation: "Processing confirmation...",
   withdrawalApprovedCompletePayment: "Withdrawal approved. Please complete the payment.",
   withdrawalRequestApproved: "Withdrawal request approved successfully",
   withdrawalRequestRejected: "Withdrawal request rejected successfully",
@@ -94,8 +95,13 @@ export const withdrawalMessages: Messages["withdrawal"] = {
   failedToConnectPaymentTryAgain: "Failed to connect to payment service. Please try again.",
   qrCodeNotAvailable: "QR code not available for this transaction",
   paymentFailedTryAgain: "Payment failed. Please try again.",
+  transferConfirmed: "Transfer confirmed successfully",
+  failedToConfirmTransfer: "Failed to confirm transfer",
+  confirming: "Confirming...",
+  qrCodeInvalid: "QR code is invalid",
 
   // Misc
   viewQR: "View QR",
   exportFunctionalityMessage: "Export functionality would be implemented here",
+  confirmTransfer: "Confirm Transfer",
 }

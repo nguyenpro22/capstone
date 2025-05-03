@@ -286,7 +286,7 @@ export default function ClinicEditForm({
 
   const handleBankSelect = (bank: Bank) => {
     setSelectedBank(bank);
-    setFormData((prev: any) => ({ ...prev, bankName: bank.name }));
+    setFormData((prev: any) => ({ ...prev, bankName: bank.shortName }));
     setBankSearchTerm("");
     setShowBankDropdown(false);
   };

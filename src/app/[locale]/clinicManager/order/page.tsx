@@ -28,6 +28,7 @@ import {
   ArrowUp,
   ArrowDown,
   Phone,
+  Clock,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -79,6 +80,7 @@ interface SortableTableHeadProps {
   currentSortOrder: string;
   onSort: (column: string) => void;
   children: React.ReactNode;
+  className?: string;
 }
 
 function SortableTableHead({
@@ -87,15 +89,16 @@ function SortableTableHead({
   currentSortOrder,
   onSort,
   children,
+  className = "",
 }: SortableTableHeadProps) {
   const isActive = currentSortColumn === column;
 
   return (
     <TableHead
-      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      className={`cursor-pointer hover:bg-muted/50 transition-colors ${className}`}
       onClick={() => onSort(column)}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center justify-center gap-1">
         {children}
         {isActive && (
           <span className="ml-1">
@@ -179,11 +182,25 @@ export default function OrderPage() {
   // Format date function
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+
+    // Format date as DD/MM/YYYY
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+
+    // Format time as HH:MM
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return (
+      <div className="flex flex-col">
+        <div className="font-medium">{`${day}/${month}/${year}`}</div>
+        <div className="text-muted-foreground flex items-center gap-1 text-sm">
+          <Clock className="h-3 w-3 text-muted-foreground" />
+          {`${hours}:${minutes}`}
+        </div>
+      </div>
+    );
   };
 
   // Handle search input change
@@ -462,6 +479,7 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
                           {t("orderId")}
                         </SortableTableHead>
@@ -472,6 +490,7 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
                           {t("customerName")}
                         </SortableTableHead>
@@ -482,8 +501,9 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
                             <Phone className="h-4 w-4" />
                             {t("customerPhone")}
                           </div>
@@ -495,6 +515,7 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
                           {t("service")}
                         </SortableTableHead>
@@ -505,6 +526,7 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
                           {t("orderDate")}
                         </SortableTableHead>
@@ -515,6 +537,7 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
                           {t("finalAmount")}
                         </SortableTableHead>
@@ -525,12 +548,15 @@ export default function OrderPage() {
                           currentSortColumn={sortColumn}
                           currentSortOrder={sortOrder}
                           onSort={handleSort}
+                          className="text-center"
                         >
                           {t("status")}
                         </SortableTableHead>
                       )}
                       {columnVisibility.actions && (
-                        <TableHead>{t("actions") || "Actions"}</TableHead>
+                        <TableHead className="text-center">
+                          {t("actions") || "Actions"}
+                        </TableHead>
                       )}
                     </TableRow>
                   </TableHeader>
@@ -552,16 +578,23 @@ export default function OrderPage() {
                       orders.map((order: OrderItem) => (
                         <TableRow key={order.id}>
                           {columnVisibility.id && (
-                            <TableCell className="font-medium">
-                              {order.id}
+                            <TableCell className="font-medium text-center">
+                              <div
+                                className="max-w-[100px] truncate mx-auto"
+                                title={order.id}
+                              >
+                                {order.id}
+                              </div>
                             </TableCell>
                           )}
                           {columnVisibility.customerName && (
-                            <TableCell>{order.customerName}</TableCell>
+                            <TableCell className="text-center">
+                              {order.customerName}
+                            </TableCell>
                           )}
                           {columnVisibility.customerPhone && (
-                            <TableCell>
-                              <div className="flex items-center">
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center">
                                 <a
                                   href={`tel:${order.customerPhone}`}
                                   className="text-blue-500 hover:text-blue-600 hover:underline flex items-center gap-1"
@@ -572,24 +605,28 @@ export default function OrderPage() {
                             </TableCell>
                           )}
                           {columnVisibility.serviceName && (
-                            <TableCell>{order.serviceName}</TableCell>
+                            <TableCell className="text-center">
+                              {order.serviceName}
+                            </TableCell>
                           )}
                           {columnVisibility.orderDate && (
-                            <TableCell>{formatDate(order.orderDate)}</TableCell>
+                            <TableCell className="text-center">
+                              {formatDate(order.orderDate)}
+                            </TableCell>
                           )}
                           {columnVisibility.finalAmount && (
-                            <TableCell>
+                            <TableCell className="text-center">
                               {formatCurrency(order.finalAmount)} đ
                             </TableCell>
                           )}
                           {columnVisibility.status && (
-                            <TableCell>
+                            <TableCell className="text-center">
                               {getStatusBadge(order.status, t)}
                             </TableCell>
                           )}
                           {columnVisibility.actions && (
-                            <TableCell>
-                              <div className="flex gap-2">
+                            <TableCell className="text-center">
+                              <div className="flex justify-center gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
