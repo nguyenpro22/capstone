@@ -76,7 +76,7 @@ interface ErrorResponse {
   title: string;
   status: number;
   detail: string;
-  errors: any | null;
+  errors: any;
 }
 
 interface ScheduleWithFollowUpStatus extends CustomerSchedule {
@@ -162,8 +162,16 @@ export default function SchedulesPage() {
   // Dropdown state
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
+  // Thêm biến để theo dõi kết quả tìm kiếm hiện tại
+  const [searchResults, setSearchResults] = useState<CustomerSchedule[]>([]);
+
   // Extract data from responses
-  const scheduleItems = scheduleResponse?.value?.items || [];
+  // Thay thế dòng:
+  // const scheduleItems = scheduleResponse?.value?.items || []
+  // Bằng:
+  const scheduleItems = searchPerformed
+    ? searchResults
+    : scheduleResponse?.value?.items || [];
   const searchTotalCount = scheduleResponse?.value?.totalCount || 0;
   const searchTotalPages = Math.ceil(searchTotalCount / pageSize);
   const clinicSchedules = clinicSchedulesResponse?.value?.items || [];
@@ -174,6 +182,9 @@ export default function SchedulesPage() {
       ? (clinicError.error as string)
       : t("error")
     : null;
+
+  // Kiểm tra xem có lỗi máy chủ hay không
+  const hasServerError = errorResponse && errorResponse.status >= 500;
 
   // Helper functions
   const formatDateForApi = (date: Date | undefined) => {
@@ -456,6 +467,7 @@ export default function SchedulesPage() {
     }
   };
 
+  // Sửa hàm searchSchedules để cập nhật searchResults
   const searchSchedules = async () => {
     if (!customerName && !customerPhone) {
       setErrorResponse({
@@ -465,12 +477,19 @@ export default function SchedulesPage() {
         detail: t("pleaseEnterNameOrPhone"),
         errors: null,
       });
+      // Đặt kết quả tìm kiếm về mảng rỗng khi có lỗi
+      setSearchResults([]);
       return;
     }
 
     setErrorResponse(null);
 
     try {
+      // Set searchPerformed to true BEFORE making the API call to prevent clinic schedules fetch
+      setSearchPerformed(true);
+      // Đặt kết quả tìm kiếm về mảng rỗng trước khi tìm kiếm mới
+      setSearchResults([]);
+
       // Remove pageIndex and pageSize from the search parameters
       const result = await getCustomerSchedules({
         customerName,
@@ -481,6 +500,28 @@ export default function SchedulesPage() {
         const errorData = result.error as any;
         if (errorData?.data) {
           setErrorResponse(errorData.data as ErrorResponse);
+
+          // Clear previous search results when error occurs
+          if (
+            errorData?.data?.detail === "No customer schedules found" ||
+            errorData?.data?.detail === "No matching users found" ||
+            errorData?.data?.status === 404
+          ) {
+            // Đặt kết quả tìm kiếm về mảng rỗng khi không tìm thấy
+            setSearchResults([]);
+            // Show a toast notification
+            toast.warning(
+              t("noSchedulesFound") + " " + (customerName || customerPhone)
+            );
+          } else if (errorData?.data?.status >= 500) {
+            // Đặt kết quả tìm kiếm về mảng rỗng khi có lỗi máy chủ
+            setSearchResults([]);
+            // Hiển thị thông báo lỗi máy chủ
+            toast.error(
+              t("serverError") + ": " + errorData?.data?.detail ||
+                t("unexpectedError")
+            );
+          }
         } else {
           setErrorResponse({
             type: "500",
@@ -489,15 +530,22 @@ export default function SchedulesPage() {
             detail: t("unexpectedError"),
             errors: null,
           });
+          // Đặt kết quả tìm kiếm về mảng rỗng khi có lỗi máy chủ
+          setSearchResults([]);
+          toast.error(t("serverError") + ": " + t("unexpectedError"));
         }
       } else if (result.data) {
+        // Clear any previous error
+        setErrorResponse(null);
+
         const schedules = result.data.value?.items || [];
+        // Cập nhật kết quả tìm kiếm mới
+        setSearchResults(schedules);
+
         if (Array.isArray(schedules)) {
           await checkAllSchedulesFollowUpStatus(schedules);
         }
       }
-
-      setSearchPerformed(true);
     } catch (err) {
       console.error("Failed to fetch schedules:", err);
       setErrorResponse({
@@ -507,6 +555,9 @@ export default function SchedulesPage() {
         detail: t("unexpectedError"),
         errors: null,
       });
+      // Đặt kết quả tìm kiếm về mảng rỗng khi có lỗi
+      setSearchResults([]);
+      toast.error(t("serverError") + ": " + t("unexpectedError"));
     }
   };
 
@@ -892,7 +943,41 @@ export default function SchedulesPage() {
         ) {
           // Set search performed to true to display the search results
           setSearchPerformed(true);
+          // Cập nhật searchResults với kết quả tìm kiếm mới
+          setSearchResults(searchResult.data.value.items);
           toast.success(t("nextAppointmentFound"));
+
+          // Kiểm tra trạng thái follow-up cho lịch hẹn tiếp theo
+          const nextSchedule = searchResult.data.value.items[0];
+          if (nextSchedule) {
+            // Kiểm tra trạng thái follow-up cho lịch hẹn tiếp theo
+            const nextScheduleStatus = await getNextScheduleAvailability(
+              nextSchedule.id
+            ).unwrap();
+            console.log(
+              `Follow-up check result for next schedule ${nextSchedule.id}:`,
+              nextScheduleStatus
+            );
+
+            // Cập nhật trạng thái follow-up cho lịch hẹn tiếp theo
+            const needsFollowUp =
+              nextScheduleStatus.isSuccess &&
+              nextScheduleStatus.value === "Need to schedule for next step";
+            const followUpStatus = nextScheduleStatus.isSuccess
+              ? nextScheduleStatus.value
+              : null;
+
+            setSchedulesWithFollowUpStatus((prev) => [
+              ...prev.filter((s) => s.id !== nextSchedule.id),
+              {
+                ...nextSchedule,
+                needsFollowUp,
+                isCheckingFollowUp: false,
+                checkCompleted: true,
+                followUpStatus,
+              },
+            ]);
+          }
 
           // Highlight the row with the next schedule
           setTimeout(() => {
@@ -919,11 +1004,13 @@ export default function SchedulesPage() {
     }
   };
 
+  // Sửa hàm clearSearch để xóa kết quả tìm kiếm
   const clearSearch = () => {
     setCustomerName("");
     setCustomerPhone("");
     setSearchPerformed(false);
     setErrorResponse(null);
+    setSearchResults([]);
     setCurrentPage(1);
     fetchClinicSchedulesWithTab(activeTab);
   };
@@ -978,14 +1065,16 @@ export default function SchedulesPage() {
   // Effects
   useEffect(() => {
     if (searchPerformed) {
+      // Only fetch customer schedules if search was performed
       getCustomerSchedules({
         customerName,
         customerPhone,
       });
     } else {
+      // Only fetch clinic schedules if no search was performed
       fetchClinicSchedulesWithTab(activeTab);
     }
-  }, [currentPage, activeTab]);
+  }, [currentPage, activeTab, customerName, customerPhone, searchPerformed]);
 
   useEffect(() => {
     setActiveTab("all");
@@ -1154,7 +1243,6 @@ export default function SchedulesPage() {
                   </Button>
                 </div>
               </div>
-
               {/* Bottom row with customer search */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
@@ -1220,23 +1308,20 @@ export default function SchedulesPage() {
                   )}
                 </div>
               </div>
-
-              {/* Error message for customer search */}
-              {/* {errorResponse && (
-                <Alert variant="destructive" className="mt-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{errorResponse.title}</AlertTitle>
-                  <AlertDescription>{errorResponse.detail}</AlertDescription>
-                </Alert>
-              )} */}
-
               {/* Filter description */}
               <div className="text-sm text-muted-foreground">
                 {searchPerformed ? (
-                  scheduleItems.length > 0 ? (
+                  hasServerError ? (
+                    <p className="text-red-600 dark:text-red-400">
+                      {t("searchError") || "Đã xảy ra lỗi khi tìm kiếm"}
+                    </p>
+                  ) : errorResponse ? (
+                    <p className="text-amber-600 dark:text-amber-400">
+                      {t("noSchedulesFound")} {customerName || customerPhone}
+                    </p>
+                  ) : searchResults.length > 0 ? (
                     <p className="text-purple-600 dark:text-purple-400">
-                      {t("found")} {searchTotalCount} {t("scheduleFor")}{" "}
-                      {customerName || customerPhone}
+                      {t("found")} {searchTotalCount} {t("scheduleFor")}
                     </p>
                   ) : (
                     <p className="text-amber-600 dark:text-amber-400">
@@ -1260,7 +1345,6 @@ export default function SchedulesPage() {
                           "to"
                         )} ${format(toDate, "MMM d, yyyy")}`
                       : t("forTheNext180Days")}{" "}
-                    {/* Thay đổi từ 90 ngày thành 180 ngày */}
                   </p>
                 ) : (
                   <p>
@@ -1270,7 +1354,6 @@ export default function SchedulesPage() {
                           "to"
                         )} ${format(toDate, "MMM d, yyyy")}`
                       : t("fromTheLast180Days")}{" "}
-                    {/* Thay đổi từ 90 ngày thành 180 ngày */}
                   </p>
                 )}
               </div>
@@ -1289,6 +1372,12 @@ export default function SchedulesPage() {
               <div className="flex justify-center items-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-pink-500 dark:text-pink-400" />
               </div>
+            ) : errorResponse && searchPerformed ? (
+              <Alert variant="destructive" className="mx-6 my-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{errorResponse.title}</AlertTitle>
+                <AlertDescription>{errorResponse.detail}</AlertDescription>
+              </Alert>
             ) : (
               <>
                 <Table>
@@ -1325,9 +1414,30 @@ export default function SchedulesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* Show search results if search was performed and has results */}
-                    {searchPerformed && scheduleItems.length > 0 ? (
-                      scheduleItems.map((schedule: CustomerSchedule) => {
+                    {searchPerformed && hasServerError ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="text-center py-8 text-red-600 dark:text-red-400"
+                        >
+                          {t("serverErrorMessage") ||
+                            "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau."}
+                        </TableCell>
+                      </TableRow>
+                    ) : searchPerformed && errorResponse ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="text-center py-8 text-muted-foreground dark:text-gray-400"
+                        >
+                          {t("noSchedulesFoundForCustomer")}{" "}
+                          {customerName || customerPhone}
+                        </TableCell>
+                      </TableRow>
+                    ) : searchPerformed &&
+                      !hasServerError &&
+                      searchResults.length > 0 ? (
+                      searchResults.map((schedule: CustomerSchedule) => {
                         const scheduleWithStatus =
                           getScheduleWithStatus(schedule);
                         return (

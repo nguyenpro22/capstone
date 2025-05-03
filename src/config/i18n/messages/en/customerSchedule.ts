@@ -19,7 +19,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   search: "Search",
   clear: "Clear",
   found: "Found",
-  scheduleFor: "schedules for",
+  scheduleFor: "schedules",
   noSchedulesFound: "No schedules found for",
   showingAllAppointments: "Showing all appointments",
   from: "from",
