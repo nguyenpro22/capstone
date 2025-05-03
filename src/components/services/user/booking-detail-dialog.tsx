@@ -50,6 +50,7 @@ import type { RootState } from "@/store";
 import { useLazyGetDoctorByServiceIdQuery } from "@/features/services/api";
 import type { Doctor } from "@/features/services/types";
 import { RescheduleDialog } from "./reschedule/reschedule-dialog";
+import { useTranslations } from "next-intl";
 
 interface BookingDetailDialogProps {
   booking: Booking;
@@ -79,8 +80,7 @@ export function BookingDetailDialog({
   const [getBusyTime] = useLazyGetBusyTimesQuery();
   const [rescheduleBooking, { isLoading: isRescheduling }] =
     useUpdateBookingMutation();
-  // Remove the useToast hook
-  // const { toast } = useToast()
+  const t = useTranslations("bookingDetailDialog");
 
   useEffect(() => {
     if (isOpen && booking.id) {
@@ -93,7 +93,7 @@ export function BookingDetailDialog({
 
   // Format time
   const formatTime = (time: string | null | undefined) => {
-    if (!time) return "N/A";
+    if (!time) return t("notAvailable");
     return time.substring(0, 5);
   };
 
@@ -102,7 +102,7 @@ export function BookingDetailDialog({
     if (!status)
       return (
         <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200 border-0 dark:bg-gray-800 dark:text-gray-300 text-sm px-3 py-1">
-          Không xác định
+          {t("unknown")}
         </Badge>
       );
 
@@ -112,7 +112,7 @@ export function BookingDetailDialog({
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-0 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/40 text-sm px-3 py-1">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-green-500 dark:bg-green-400"></span>
-              Hoàn thành
+              {t("completed")}
             </div>
           </Badge>
         );
@@ -121,7 +121,7 @@ export function BookingDetailDialog({
           <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-0 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/40 text-sm px-3 py-1">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
-              Chờ xử lý
+              {t("pending")}
             </div>
           </Badge>
         );
@@ -130,7 +130,7 @@ export function BookingDetailDialog({
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-0 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/40 text-sm px-3 py-1">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
-              Đang xử lý
+              {t("inProgress")}
             </div>
           </Badge>
         );
@@ -139,7 +139,7 @@ export function BookingDetailDialog({
           <Badge className="bg-red-100 text-red-800 hover:bg-red-200 border-0 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/40 text-sm px-3 py-1">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-red-500 dark:bg-red-400"></span>
-              Chưa hoàn thành
+              {t("uncompleted")}
             </div>
           </Badge>
         );
@@ -148,14 +148,14 @@ export function BookingDetailDialog({
           <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 border-0 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/40 text-sm px-3 py-1">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-purple-500 dark:bg-purple-400"></span>
-              Chờ duyệt
+              {t("waitingApproval")}
             </div>
           </Badge>
         );
       default:
         return (
           <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200 border-0 dark:bg-gray-800 dark:text-gray-300 text-sm px-3 py-1">
-            {status}
+            {t(status)}
           </Badge>
         );
     }
@@ -291,7 +291,7 @@ export function BookingDetailDialog({
       }
     } catch (error) {
       console.error("Error loading doctors:", error);
-      toast.error("Không thể tải danh sách bác sĩ. Vui lòng thử lại sau.");
+      toast.error(t("fetchDoctorsError"));
     }
   };
 
@@ -337,7 +337,7 @@ export function BookingDetailDialog({
       }).unwrap();
     } catch (error) {
       console.error("Error rescheduling:", error);
-      toast.error("Không thể hủy lịch hẹn. Vui lòng thử lại sau.");
+      toast.error(t("rescheduleError"));
     }
   };
 
@@ -355,20 +355,19 @@ export function BookingDetailDialog({
                 onClick={() => setIsOpen(false)}
               >
                 <X className="h-4 w-4 text-white" />
-                <span className="sr-only">Đóng</span>
+                <span className="sr-only">{t("close")}</span>
               </Button>
             </div>
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700 h-20 flex items-center p-5">
-              <div className="w-full relative z-10">
+              <div className="w-[90%] relative z-10">
                 <DialogTitle className="text-lg font-bold text-white flex items-center gap-2 mb-1.5">
                   <CalendarClock className="h-6 w-6" />
-                  Chi tiết lịch hẹn
+                  {t("bookingDetail")}
                 </DialogTitle>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center">
                   <p className="text-white text-opacity-90 text-base">
-                    Mã lịch hẹn: {booking.id.substring(0, 8)}...
+                    {t("bookingId")}: {booking.id.substring(0, 8)}...
                   </p>
-                  {getStatusBadge(booking.status)}
                 </div>
               </div>
             </div>
@@ -385,28 +384,28 @@ export function BookingDetailDialog({
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:border-b-2 data-[state=active]:border-purple-600 dark:data-[state=active]:border-purple-400 rounded-none px-2 h-full"
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Tổng quan
+                    {t("overview")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="timeline"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:border-b-2 data-[state=active]:border-purple-600 dark:data-[state=active]:border-purple-400 rounded-none px-2 h-full"
                   >
                     <CalendarRange className="h-4 w-4 mr-2" />
-                    Quy trình
+                    {t("timeline")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="doctor"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:border-b-2 data-[state=active]:border-purple-600 dark:data-[state=active]:border-purple-400 rounded-none px-2 h-full"
                   >
                     <Stethoscope className="h-4 w-4 mr-2" />
-                    Bác sĩ & Phòng khám
+                    {t("doctorAndClinic")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="notes"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:border-b-2 data-[state=active]:border-purple-600 dark:data-[state=active]:border-purple-400 rounded-none px-2 h-full"
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    Ghi chú
+                    {t("notes")}
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -416,7 +415,7 @@ export function BookingDetailDialog({
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="h-8 w-8 animate-spin text-purple-500 dark:text-purple-400" />
                     <p className="text-sm text-gray-500 dark:text-indigo-300/70">
-                      Đang tải thông tin...
+                      {t("loading")}
                     </p>
                   </div>
                 </div>
@@ -424,7 +423,7 @@ export function BookingDetailDialog({
                 <div className="p-6 flex flex-col justify-center items-center h-64">
                   <AlertCircle className="h-10 w-10 text-red-500 dark:text-red-400 mb-4" />
                   <p className="text-center text-base text-red-500 dark:text-red-400 font-medium">
-                    Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại.
+                    {t("error")}
                   </p>
                   <Button
                     variant="outline"
@@ -433,7 +432,7 @@ export function BookingDetailDialog({
                     onClick={() => refetch()}
                   >
                     <RefreshCcw className="h-4 w-4 mr-2" />
-                    Thử lại
+                    {t("retry")}
                   </Button>
                 </div>
               ) : !displayBooking ? (
@@ -443,7 +442,6 @@ export function BookingDetailDialog({
                       <h3 className="font-semibold text-lg mb-4 dark:text-indigo-200">
                         {booking.serviceName}
                       </h3>
-
                       {/* Current Step Card - Highlighted */}
                       <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/30 rounded-lg p-5 mb-5 shadow-sm">
                         <div className="flex items-center gap-3 mb-2">
@@ -452,29 +450,26 @@ export function BookingDetailDialog({
                           </div>
                           <div>
                             <p className="text-base text-purple-700 dark:text-purple-300 font-medium">
-                              Bước hiện tại
+                              {t("currentStep")}
                             </p>
                             <h4 className="text-lg font-semibold text-purple-800 dark:text-purple-200">
-                              {booking.stepIndex}: {booking.name}
+                              {t("step")} {booking.stepIndex}: {booking.name}
                             </h4>
                           </div>
                         </div>
                       </div>
-
                       <div className="bg-gray-50 dark:bg-indigo-900/30 rounded-lg p-4 mb-4 shadow-sm border border-gray-100 dark:border-indigo-800/20">
                         <div className="flex justify-between items-center mb-2">
                           <div className="flex items-center gap-2">
                             {getStatusIcon(booking.status)}
                             <span className="font-medium text-lg dark:text-indigo-200">
-                              {booking.status.toString() === "Completed"
-                                ? "Lịch hẹn đã hoàn thành"
-                                : booking.status.toString() === "In Progress"
-                                ? "Lịch hẹn đang được thực hiện"
-                                : "Lịch hẹn đang chờ xác nhận"}
+                              {getStatusBadge(booking.status)}
                             </span>
                           </div>
                           <span className="text-sm text-gray-500 dark:text-indigo-300/70">
-                            {getStatusProgress(booking.status)}%
+                            {t("percentCompleted", {
+                              percent: getStatusProgress(booking.status),
+                            })}
                           </span>
                         </div>
                         <Progress
@@ -482,7 +477,6 @@ export function BookingDetailDialog({
                           className="h-2.5 bg-gray-200 dark:bg-indigo-900/50"
                         />
                       </div>
-
                       <div className="space-y-4 mt-4">
                         {booking.date && (
                           <div className="flex items-start">
@@ -491,7 +485,7 @@ export function BookingDetailDialog({
                             </div>
                             <div>
                               <p className="text-sm text-gray-500 dark:text-indigo-300/70">
-                                Ngày hẹn
+                                {t("date")}
                               </p>
                               <p className="font-medium text-base dark:text-indigo-200">
                                 {format(
@@ -505,7 +499,6 @@ export function BookingDetailDialog({
                             </div>
                           </div>
                         )}
-
                         {booking.start && booking.end && (
                           <div className="flex items-start">
                             <div className="bg-purple-500/20 dark:bg-purple-500/10 rounded-full p-2 mr-3 flex-shrink-0">
@@ -513,7 +506,7 @@ export function BookingDetailDialog({
                             </div>
                             <div>
                               <p className="text-sm text-gray-500 dark:text-indigo-300/70">
-                                Thời gian
+                                {t("time")}
                               </p>
                               <p className="font-medium text-base dark:text-indigo-200">
                                 {formatTime(booking.start)} -{" "}
@@ -522,14 +515,13 @@ export function BookingDetailDialog({
                             </div>
                           </div>
                         )}
-
                         <div className="flex items-start">
                           <div className="bg-purple-500/20 dark:bg-purple-500/10 rounded-full p-2 mr-3 flex-shrink-0">
                             <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div>
                             <p className="text-sm text-gray-500 dark:text-indigo-300/70">
-                              Dịch vụ
+                              {t("service")}
                             </p>
                             <p className="font-medium text-base dark:text-indigo-200">
                               {booking.serviceName}
@@ -538,19 +530,18 @@ export function BookingDetailDialog({
                         </div>
                       </div>
                     </div>
-
                     <div>
                       <div className="bg-gray-50 dark:bg-indigo-900/20 rounded-lg p-5 h-full flex flex-col justify-center items-center">
                         <CalendarClock className="h-16 w-16 text-purple-400 dark:text-purple-500 mb-4 opacity-50" />
                         <p className="text-base text-center text-gray-500 dark:text-indigo-300/70 mb-5">
-                          Tải thông tin chi tiết để xem lịch hẹn đầy đủ
+                          {t("loadDetails")}
                         </p>
                         <Button
                           className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-600/90 hover:to-indigo-600/90 text-white font-medium shadow-sm text-base h-10"
                           onClick={() => refetch()}
                         >
                           <RefreshCcw className="h-5 w-5 mr-2" />
-                          Tải thông tin chi tiết
+                          {t("fetchDetails")}
                         </Button>
                       </div>
                     </div>
@@ -572,49 +563,6 @@ export function BookingDetailDialog({
                           </h3>
                         </div>
 
-                        {/* Status Card */}
-                        <div className="bg-white dark:bg-indigo-950/40 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-indigo-800/20">
-                          <div className="flex justify-between items-center mb-3">
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(displayBooking.status)}
-                              <span className="font-medium text-lg dark:text-indigo-200">
-                                {displayBooking.status === "Completed"
-                                  ? "Lịch hẹn đã hoàn thành"
-                                  : displayBooking.status === "In Progress"
-                                  ? "Lịch hẹn đang được thực hiện"
-                                  : "Lịch hẹn đang chờ xác nhận"}
-                              </span>
-                            </div>
-                            <Badge
-                              className={`${
-                                displayBooking.status === "Completed"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                                  : displayBooking.status === "In Progress"
-                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-                              } px-3 py-1`}
-                            >
-                              {displayBooking.status === "Completed"
-                                ? "Hoàn thành"
-                                : displayBooking.status === "In Progress"
-                                ? "Đang thực hiện"
-                                : "Chờ xác nhận"}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-600 dark:text-indigo-300/80">
-                              Tiến độ
-                            </span>
-                            <span className="text-sm font-medium dark:text-indigo-300">
-                              {getStatusProgress(displayBooking.status)}%
-                            </span>
-                          </div>
-                          <Progress
-                            value={getStatusProgress(displayBooking.status)}
-                            className="h-2.5 bg-gray-100 dark:bg-indigo-900/50"
-                          />
-                        </div>
-
                         {/* Current Step Card - Highlighted */}
                         <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-800/30 rounded-xl p-5 shadow-sm">
                           <div className="flex items-start gap-4 mb-4">
@@ -623,10 +571,10 @@ export function BookingDetailDialog({
                             </div>
                             <div>
                               <p className="text-base text-purple-700 dark:text-purple-300 font-medium mb-1">
-                                Bước hiện tại
+                                {t("currentStep")}
                               </p>
                               <h4 className="text-xl font-semibold text-purple-800 dark:text-purple-200">
-                                Bước {booking.stepIndex}: {booking.name}
+                                {t("step")} {booking.stepIndex}: {booking.name}
                               </h4>
                             </div>
                           </div>
@@ -636,17 +584,21 @@ export function BookingDetailDialog({
                               <div className="mt-4 pt-4 border-t border-purple-200/70 dark:border-purple-800/30">
                                 <div className="flex items-center justify-between text-sm mb-2">
                                   <span className="font-medium text-purple-700 dark:text-purple-300">
-                                    Bước {booking.stepIndex} /{" "}
-                                    {displayBooking.procedureHistory.length}
+                                    {t("stepOf", {
+                                      current: booking.stepIndex,
+                                      total:
+                                        displayBooking.procedureHistory.length,
+                                    })}
                                   </span>
                                   <span className="font-medium text-purple-700 dark:text-purple-300">
-                                    {Math.round(
-                                      (booking.stepIndex /
-                                        displayBooking.procedureHistory
-                                          .length) *
-                                        100
-                                    )}
-                                    % hoàn thành
+                                    {t("percentCompleted", {
+                                      percent: Math.round(
+                                        (booking.stepIndex /
+                                          displayBooking.procedureHistory
+                                            .length) *
+                                          100
+                                      ),
+                                    })}
                                   </span>
                                 </div>
                                 <Progress
@@ -669,7 +621,7 @@ export function BookingDetailDialog({
                             onClick={() => setIsOpen(false)}
                           >
                             <X className="h-5 w-5 mr-2" />
-                            Đóng
+                            {t("close")}
                           </Button>
 
                           <Button
@@ -680,7 +632,7 @@ export function BookingDetailDialog({
                             )}
                           >
                             <CalendarClock className="h-5 w-5 mr-2" />
-                            Đặt lại lịch
+                            {t("reschedule")}
                           </Button>
                         </div>
                       </div>
@@ -694,6 +646,7 @@ export function BookingDetailDialog({
                               <Image
                                 src={
                                   displayBooking.service.imageUrls[0] ||
+                                  "/placeholder.svg" ||
                                   "/placeholder.svg"
                                 }
                                 alt={
@@ -711,7 +664,7 @@ export function BookingDetailDialog({
                         <div className="bg-white dark:bg-indigo-950/40 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-indigo-800/20">
                           <h4 className="font-medium text-base text-gray-800 dark:text-indigo-200 mb-4 flex items-center">
                             <ClipboardList className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                            Thông tin chi tiết
+                            {t("details")}
                           </h4>
 
                           <div className="grid grid-cols-1 gap-4">
@@ -721,11 +674,10 @@ export function BookingDetailDialog({
                               </div>
                               <div>
                                 <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-0.5">
-                                  Khách hàng
+                                  {t("customer")}
                                 </p>
                                 <p className="font-medium text-base dark:text-indigo-200">
-                                  {displayBooking.customerName ||
-                                    "Không xác định"}
+                                  {displayBooking.customerName || t("unknown")}
                                 </p>
                               </div>
                             </div>
@@ -737,7 +689,7 @@ export function BookingDetailDialog({
                                 </div>
                                 <div>
                                   <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-0.5">
-                                    Ngày hẹn
+                                    {t("date")}
                                   </p>
                                   <p className="font-medium text-base dark:text-indigo-200">
                                     {format(
@@ -760,7 +712,7 @@ export function BookingDetailDialog({
                                   </div>
                                   <div>
                                     <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-0.5">
-                                      Thời gian
+                                      {t("time")}
                                     </p>
                                     <p className="font-medium text-base dark:text-indigo-200">
                                       {formatTime(displayBooking.startTime)} -{" "}
@@ -776,11 +728,11 @@ export function BookingDetailDialog({
                               </div>
                               <div>
                                 <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-0.5">
-                                  Địa điểm
+                                  {t("location")}
                                 </p>
                                 <p className="font-medium text-base dark:text-indigo-200">
                                   {displayBooking.clinic.name ||
-                                    "Tại cửa hàng chính"}
+                                    t("notAvailable")}
                                 </p>
                               </div>
                             </div>
@@ -792,7 +744,7 @@ export function BookingDetailDialog({
                                 </div>
                                 <div>
                                   <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-0.5">
-                                    Ghi chú
+                                    {t("doctorNote")}
                                   </p>
                                   <p className="font-medium text-base dark:text-indigo-200">
                                     {displayBooking.doctorNote}
@@ -806,8 +758,339 @@ export function BookingDetailDialog({
                     </div>
                   </TabsContent>
 
-                  {/* Other tab contents remain the same */}
-                  {/* ... */}
+                  {/* Timeline Tab Content */}
+                  <TabsContent value="timeline" className="p-5 m-0">
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                          <CalendarRange className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <h3 className="font-semibold text-xl dark:text-indigo-200">
+                          {t("timeline")}
+                        </h3>
+                      </div>
+
+                      {displayBooking.procedureHistory &&
+                      displayBooking.procedureHistory.length > 0 ? (
+                        <div className="relative">
+                          {/* Progress line */}
+                          <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gray-200 dark:bg-indigo-800/30"></div>
+
+                          {/* Steps */}
+                          <div className="space-y-6">
+                            {displayBooking.procedureHistory.map(
+                              (step, index) => {
+                                const isCompleted = step.status === "Completed";
+                                const isCurrent =
+                                  parseInt(step.stepIndex) ===
+                                  booking.stepIndex;
+
+                                return (
+                                  <div
+                                    key={index}
+                                    className={`relative flex items-start p-4 rounded-xl border ${
+                                      isCurrent
+                                        ? "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/30"
+                                        : isCompleted
+                                        ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30"
+                                        : "bg-white dark:bg-indigo-950/40 border-gray-100 dark:border-indigo-800/20"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`z-10 h-12 w-12 rounded-full flex items-center justify-center mr-4 ${
+                                        isCurrent
+                                          ? "bg-purple-100 dark:bg-purple-800/30"
+                                          : isCompleted
+                                          ? "bg-green-100 dark:bg-green-800/30"
+                                          : "bg-gray-100 dark:bg-indigo-900/30"
+                                      }`}
+                                    >
+                                      {isCompleted ? (
+                                        <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                      ) : isCurrent ? (
+                                        <Milestone className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                      ) : (
+                                        <Clock3 className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                                      )}
+                                    </div>
+
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <h4
+                                          className={`font-medium text-lg ${
+                                            isCurrent
+                                              ? "text-purple-800 dark:text-purple-300"
+                                              : isCompleted
+                                              ? "text-green-800 dark:text-green-300"
+                                              : "text-gray-800 dark:text-indigo-200"
+                                          }`}
+                                        >
+                                          {t("step")} {step.stepIndex}:{" "}
+                                          {step.procedureName || t("unknown")}
+                                        </h4>
+                                        <Badge
+                                          className={`${
+                                            isCompleted
+                                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                              : isCurrent
+                                              ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                                          }`}
+                                        >
+                                          {isCompleted
+                                            ? t("completed")
+                                            : isCurrent
+                                            ? t("inProgress")
+                                            : t("pending")}
+                                        </Badge>
+                                      </div>
+
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                        <div className="flex items-center">
+                                          <Clock className="h-4 w-4 text-gray-500 dark:text-indigo-400 mr-2" />
+                                          <span className="text-sm text-gray-600 dark:text-indigo-300">
+                                            {t("duration")}:{" "}
+                                            {step.duration || 0} {t("minutes")}
+                                          </span>
+                                        </div>
+
+                                        {step.dateCompleted && (
+                                          <div className="flex items-center">
+                                            <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-indigo-400 mr-2" />
+                                            <span className="text-sm text-gray-600 dark:text-indigo-300">
+                                              {t("completedAt")}:{" "}
+                                              {format(
+                                                parseISO(step.dateCompleted),
+                                                "dd/MM/yyyy",
+                                                { locale: vi }
+                                              )}
+                                            </span>
+                                          </div>
+                                        )}
+
+                                        {step.timeCompleted && (
+                                          <div className="flex items-center">
+                                            <Clock3 className="h-4 w-4 text-gray-500 dark:text-indigo-400 mr-2" />
+                                            <span className="text-sm text-gray-600 dark:text-indigo-300">
+                                              {t("atTime")}:{" "}
+                                              {formatTime(step.timeCompleted)}
+                                            </span>
+                                          </div>
+                                        )}
+
+                                        <div className="flex items-center">
+                                          <Package className="h-4 w-4 text-gray-500 dark:text-indigo-400 mr-2" />
+                                          <span className="text-sm text-gray-600 dark:text-indigo-300">
+                                            {t("procedureType")}:{" "}
+                                            {step.procedurePriceType ||
+                                              t("standard")}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-indigo-900/20 rounded-xl p-8 text-center">
+                          <CalendarRange className="h-12 w-12 text-gray-400 dark:text-indigo-500/50 mx-auto mb-4" />
+                          <p className="text-gray-600 dark:text-indigo-300">
+                            {t("noProcedure")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Doctor & Clinic Tab Content */}
+                  <TabsContent value="doctor" className="p-5 m-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Doctor Information */}
+                      <div className="space-y-5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                            <Stethoscope className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <h3 className="font-semibold text-xl dark:text-indigo-200">
+                            {t("doctorAndClinic")}
+                          </h3>
+                        </div>
+
+                        <div className="bg-white dark:bg-indigo-950/40 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-indigo-800/20">
+                          {displayBooking.doctor ? (
+                            <div className="flex flex-col items-center text-center p-4">
+                              <div className="relative h-24 w-24 rounded-full overflow-hidden mb-4 border-2 border-purple-200 dark:border-purple-800/50">
+                                <Image
+                                  src={
+                                    displayBooking.doctor.imageUrl ||
+                                    "/placeholder.svg?height=96&width=96&query=doctor"
+                                  }
+                                  alt={displayBooking.doctor.name}
+                                  className="object-cover"
+                                  fill
+                                />
+                              </div>
+                              <h4 className="font-semibold text-lg dark:text-indigo-200 mb-1">
+                                {displayBooking.doctor.name}
+                              </h4>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center text-center p-6">
+                              <Stethoscope className="h-16 w-16 text-gray-300 dark:text-indigo-800/50 mb-4" />
+                              <p className="text-gray-600 dark:text-indigo-300/70">
+                                {t("noDoctorInfo")}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Clinic Information */}
+                      <div className="space-y-5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                            <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <h3 className="font-semibold text-xl dark:text-indigo-200">
+                            {t("clinic")}
+                          </h3>
+                        </div>
+
+                        <div className="bg-white dark:bg-indigo-950/40 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-indigo-800/20">
+                          {displayBooking.clinic ? (
+                            <div>
+                              {displayBooking.clinic.imageUrl && (
+                                <div className="w-full h-40 rounded-lg overflow-hidden mb-4">
+                                  <Image
+                                    src={
+                                      displayBooking.clinic.imageUrl ||
+                                      "/placeholder.svg"
+                                    }
+                                    alt={displayBooking.clinic.name}
+                                    className="w-full h-full object-cover"
+                                    width={400}
+                                    height={160}
+                                  />
+                                </div>
+                              )}
+
+                              <h4 className="font-semibold text-lg dark:text-indigo-200 mb-2">
+                                {displayBooking.clinic.name}
+                              </h4>
+
+                              <div className="space-y-3 mt-4">
+                                <div className="flex items-start">
+                                  <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-3 mt-0.5" />
+                                  <div>
+                                    <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-1">
+                                      {t("clinicAddress")}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start">
+                                  <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-3 mt-0.5" />
+                                  <div>
+                                    <p className="text-sm text-gray-500 dark:text-indigo-300/70 mb-1">
+                                      {t("clinicWorkingHours")}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center text-center p-6">
+                              <MapPin className="h-16 w-16 text-gray-300 dark:text-indigo-800/50 mb-4" />
+                              <p className="text-gray-600 dark:text-indigo-300/70">
+                                {t("noClinicInfo")}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Notes Tab Content */}
+                  <TabsContent value="notes" className="p-5 m-0">
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                          <MessageSquare className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <h3 className="font-semibold text-xl dark:text-indigo-200">
+                          {t("notes")}
+                        </h3>
+                      </div>
+
+                      <div className="bg-white dark:bg-indigo-950/40 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-indigo-800/20">
+                        {displayBooking.doctorNote ? (
+                          <div className="space-y-4">
+                            <div className="flex items-start">
+                              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-2 mr-3 flex-shrink-0">
+                                <Stethoscope className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-base text-gray-800 dark:text-indigo-200 mb-1">
+                                  {t("doctorNote")}
+                                </h4>
+                                <div className="p-4 bg-gray-50 dark:bg-indigo-900/20 rounded-lg border border-gray-100 dark:border-indigo-800/20">
+                                  <p className="text-gray-700 dark:text-indigo-200 whitespace-pre-line">
+                                    {displayBooking.doctorNote}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-100 dark:border-indigo-800/20">
+                              <h4 className="font-medium text-base text-gray-800 dark:text-indigo-200 mb-3">
+                                {t("doctorInstructions")}
+                              </h4>
+                              <ul className="space-y-2">
+                                <li className="flex items-start">
+                                  <div className="h-5 w-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-2 mt-0.5">
+                                    <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-gray-700 dark:text-indigo-200">
+                                    {t("takeMedicine")}
+                                  </span>
+                                </li>
+                                <li className="flex items-start">
+                                  <div className="h-5 w-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-2 mt-0.5">
+                                    <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-gray-700 dark:text-indigo-200">
+                                    {t("avoidSpicy")}
+                                  </span>
+                                </li>
+                                <li className="flex items-start">
+                                  <div className="h-5 w-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-2 mt-0.5">
+                                    <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-gray-700 dark:text-indigo-200">
+                                    {t("revisit")}
+                                  </span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-center p-6">
+                            <MessageSquare className="h-16 w-16 text-gray-300 dark:text-indigo-800/50 mb-4" />
+                            <p className="text-gray-600 dark:text-indigo-300/70">
+                              {t("noNotes")}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-indigo-300/50 mt-2">
+                              {t("doctorWillAddNotes")}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
                 </div>
               )}
             </Tabs>

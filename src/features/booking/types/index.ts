@@ -127,12 +127,13 @@ export interface Appointment {
 }
 
 type ProcedureStepDetail = {
+  procedureName: string | null;
   stepIndex: string;
-  name: string;
+  procedurePriceType: string;
   duration: number;
   dateCompleted: string | null;
   timeCompleted: string | null;
-  status: "Pending" | "Completed" | string; // bạn có thể giới hạn thêm nếu cần
+  status: string;
 };
 
 type ServiceDetail = {
@@ -161,13 +162,7 @@ export type AppointmentDetail = {
   endTime: string;
   duration: number | null;
   doctorNote: string | null;
-  status:
-    | "Completed"
-    | "Pending"
-    | "In Progress"
-    | "Uncompleted"
-    | "Waiting Approval"
-    | string;
+  status: OrderStatus;
   service: ServiceDetail;
   doctor: DoctorDetail;
   clinic: ClinicDetail;

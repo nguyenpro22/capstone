@@ -48,6 +48,7 @@ import { LivestreamViewMessages } from "./livestream-view";
 import { LivestreamRoomMessages } from "./livestream-room-view";
 import { UserProfileMessages } from "./user-profile";
 import { PolicyMessages } from "./policy";
+import { BookingDetailDialogProps } from "./bookingDetailDialog";
 
 export type Messages = {
   home: homeMessages;
@@ -101,4 +102,5 @@ export type Messages = {
   configs: Configuration;
   userProfileMessages: UserProfileMessages;
   policyMessages: PolicyMessages;
+  bookingDetailDialog: BookingDetailDialogProps;
 };
