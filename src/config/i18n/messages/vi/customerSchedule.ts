@@ -19,7 +19,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   search: "Tìm kiếm",
   clear: "Xóa",
   found: "Tìm thấy",
-  scheduleFor: "lịch hẹn cho",
+  scheduleFor: "lịch hẹn",
   noSchedulesFound: "Không tìm thấy lịch hẹn cho",
   showingAllAppointments: "Hiển thị tất cả các cuộc hẹn",
   from: "từ",
