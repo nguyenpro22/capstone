@@ -515,7 +515,7 @@ export default function AppointmentsPage() {
                             </Button>
                             <Button
                               size="sm"
-                              className="bg-green-500 hover:bg-green-600"
+                              className="bg-yellow-500 hover:bg-yellow-600"
                               onClick={() =>
                                 handleConfirmAppointment(appointment.id)
                               }

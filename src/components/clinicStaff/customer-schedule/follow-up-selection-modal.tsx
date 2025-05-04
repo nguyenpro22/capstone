@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,20 +8,19 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Calendar, CheckCircle2, Clock, User } from "lucide-react"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import type { CustomerSchedule } from "@/features/customer-schedule/types"
-// Add the useTranslations import
-import { useTranslations } from "next-intl"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar, CheckCircle2, Clock, User } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import type { CustomerSchedule } from "@/features/customer-schedule/types";
+import { useTranslations } from "next-intl";
 
 interface FollowUpSelectionModalProps {
-  isOpen: boolean
-  onClose: () => void
-  schedules: CustomerSchedule[]
-  onScheduleSelected: (schedule: CustomerSchedule) => void
+  isOpen: boolean;
+  onClose: () => void;
+  schedules: CustomerSchedule[];
+  onScheduleSelected: (schedule: CustomerSchedule) => void;
 }
 
 export default function FollowUpSelectionModal({
@@ -30,33 +29,42 @@ export default function FollowUpSelectionModal({
   schedules,
   onScheduleSelected,
 }: FollowUpSelectionModalProps) {
-  // Add the translation hook
-  const t = useTranslations("customerSchedule")
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null)
+  const t = useTranslations("customerSchedule");
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(
+    null
+  );
 
   const handleSubmit = () => {
-    const selectedSchedule = schedules.find((schedule) => schedule.id === selectedScheduleId)
+    const selectedSchedule = schedules.find(
+      (schedule) => schedule.id === selectedScheduleId
+    );
     if (selectedSchedule) {
-      onScheduleSelected(selectedSchedule)
-      onClose()
+      onScheduleSelected(selectedSchedule);
+      onClose();
     }
-  }
+  };
 
   // Format time range
   const formatTimeRange = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`
-  }
+    return `${startTime} - ${endTime}`;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{t("selectAppointmentForFollowUp")}</DialogTitle>
-          <DialogDescription>{t("multipleAppointmentsNeedFollowUps")}</DialogDescription>
+          <DialogDescription>
+            {t("multipleAppointmentsNeedFollowUps")}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
-          <RadioGroup value={selectedScheduleId || ""} onValueChange={setSelectedScheduleId}>
+        {/* Added max-h-[60vh] and overflow-y-auto to fix height overflow */}
+        <div className="py-4 max-h-[60vh] overflow-y-auto pr-1">
+          <RadioGroup
+            value={selectedScheduleId || ""}
+            onValueChange={setSelectedScheduleId}
+          >
             {schedules.map((schedule) => (
               <div
                 key={schedule.id}
@@ -68,7 +76,11 @@ export default function FollowUpSelectionModal({
                 onClick={() => setSelectedScheduleId(schedule.id)}
               >
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value={schedule.id} id={schedule.id} className="mt-1" />
+                  <RadioGroupItem
+                    value={schedule.id}
+                    id={schedule.id}
+                    className="mt-1"
+                  />
                   <div className="flex-1">
                     <Label
                       htmlFor={schedule.id}
@@ -88,7 +100,12 @@ export default function FollowUpSelectionModal({
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4 text-amber-500" />
-                        <span>{formatTimeRange(schedule.startTime, schedule.endTime)}</span>
+                        <span>
+                          {formatTimeRange(
+                            schedule.startTime,
+                            schedule.endTime
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -108,5 +125,5 @@ export default function FollowUpSelectionModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
