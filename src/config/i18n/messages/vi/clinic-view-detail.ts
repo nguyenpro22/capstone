@@ -49,4 +49,15 @@ export const clinicViewDetail: Messages["clinicViewDetail"] = {
   pendingDesc: "Phòng khám này đang chờ xác minh và kích hoạt.",
   pendingNote:
     "Sau khi được xác minh, phòng khám sẽ hoạt động đầy đủ trên nền tảng của chúng tôi.",
+  follow: "Theo dõi",
+  unfollow: "Bỏ theo dõi",
+  followers: "Người theo dõi",
+  following: "Người đang theo dõi",
+  followStatus: "Trạng thái theo dõi",
+  followStatusDesc:
+    "Theo dõi phòng khám để nhận thông báo khi họ có bài viết mới.",
+  followSuccess: "Theo dõi thành công",
+  unfollowSuccess: "Bỏ theo dõi thành công",
+  followError: "Không thể theo dõi phòng khám",
+  unfollowError: "Không thể bỏ theo dõi phòng khám",
 };

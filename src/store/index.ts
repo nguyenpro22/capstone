@@ -73,7 +73,7 @@ import {
 import { livestreamQueryApi } from "@/features/livestream/api";
 import { configsCommandApi, configsQueryApi } from "@/features/configs/api";
 import { userQueryApi } from "@/features/user/api";
-
+import { followQueryApi, followCommandApi } from "@/features/follows/api";
 // Redux Persist config
 const persistConfig = {
   key: "root",
@@ -139,6 +139,8 @@ const rootReducer = combineReducers({
   [userQueryApi.reducerPath]: userQueryApi.reducer,
   [doctorServiceApi.reducerPath]: doctorServiceApi.reducer,
   [landingQueryApi.reducerPath]: landingQueryApi.reducer,
+  [followQueryApi.reducerPath]: followQueryApi.reducer,
+  [followCommandApi.reducerPath]: followCommandApi.reducer,
 });
 
 // Persisted reducer
@@ -200,7 +202,9 @@ const store = configureStore({
       configsCommandApi.middleware,
       userQueryApi.middleware,
       doctorServiceApi.middleware,
-      landingQueryApi.middleware
+      landingQueryApi.middleware,
+      followQueryApi.middleware,
+      followCommandApi.middleware
     ),
 });
 

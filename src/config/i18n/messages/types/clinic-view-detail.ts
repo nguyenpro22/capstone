@@ -46,4 +46,14 @@ export interface ClinicDetailTranslation {
   activeDesc: string;
   pendingDesc: string;
   pendingNote: string;
+  follow: string;
+  unfollow: string;
+  followers: string;
+  following: string;
+  followStatus: string;
+  followStatusDesc: string;
+  followSuccess: string;
+  unfollowSuccess: string;
+  followError: string;
+  unfollowError: string;
 }

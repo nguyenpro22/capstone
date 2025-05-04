@@ -50,4 +50,15 @@ export const clinicViewDetail: Messages["clinicViewDetail"] = {
   pendingDesc: "This clinic is awaiting verification and activation.",
   pendingNote:
     "Once verified by our team, this clinic will be fully operational on our platform.",
+  follow: "Follow",
+  unfollow: "Unfollow",
+  followers: "Followers",
+  following: "Following",
+  followStatus: "Follow Status",
+  followStatusDesc:
+    "Follow this clinic to get notified when they have new posts.",
+  followSuccess: "Followed successfully",
+  unfollowSuccess: "Unfollowed successfully",
+  followError: "Failed to follow clinic",
+  unfollowError: "Failed to unfollow clinic",
 };
