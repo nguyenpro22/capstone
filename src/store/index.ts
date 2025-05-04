@@ -18,6 +18,7 @@ import authReducer from "@/features/auth/slice";
 // APIs
 import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
+import { landingQueryApi } from "@/features/landing/api";
 import { addressApi } from "@/features/address/api";
 import { paymentsApi } from "@/features/payment/api";
 import {
@@ -137,6 +138,7 @@ const rootReducer = combineReducers({
   [configsCommandApi.reducerPath]: configsCommandApi.reducer,
   [userQueryApi.reducerPath]: userQueryApi.reducer,
   [doctorServiceApi.reducerPath]: doctorServiceApi.reducer,
+  [landingQueryApi.reducerPath]: landingQueryApi.reducer,
 });
 
 // Persisted reducer
@@ -197,7 +199,8 @@ const store = configureStore({
       configsQueryApi.middleware,
       configsCommandApi.middleware,
       userQueryApi.middleware,
-      doctorServiceApi.middleware
+      doctorServiceApi.middleware,
+      landingQueryApi.middleware
     ),
 });
 

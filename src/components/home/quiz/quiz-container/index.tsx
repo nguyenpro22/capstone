@@ -35,8 +35,12 @@ export function QuizContainer({ quizzes }: QuizContainerProps) {
 
   // Handle quiz completion
   const handleQuizComplete = () => {
-    setQuestionModalOpen(false);
-    setResultsModalOpen(true);
+    try {
+      setQuestionModalOpen(false);
+      setResultsModalOpen(true);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // Handle closing the results and going back to the quiz selection
