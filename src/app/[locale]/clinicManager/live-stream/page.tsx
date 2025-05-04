@@ -2,31 +2,45 @@
 
 import type React from "react";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Upload, History, ArrowRight, Loader2 } from "lucide-react";
+import {
+  Camera,
+  Upload,
+  History,
+  ArrowRight,
+  Loader2,
+  Calendar,
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import Image from "next/image";
-import { useGetLiveStreamsQuery } from "@/features/livestream/api"; // Add this import
-import LivestreamDetailModal from "@/components/clinicManager/livestream/livestream-detail-modal"; // Import the modal component
-
-// export function convertImageToBase64(file: File): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     const reader = new FileReader();
-
-//     reader.onload = () => {
-//       const base64String = reader.result as string;
-//       resolve(base64String);
-//     };
-
-//     reader.onerror = (error) => {
-//       reject(error);
-//     };
-
-//     reader.readAsDataURL(file);
-//   });
-// }
+import { useGetLiveStreamsQuery } from "@/features/livestream/api";
+import LivestreamDetailModal from "@/components/clinicManager/livestream/livestream-detail-modal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  useGetEventsQuery,
+  useCreateEventMutation,
+  useUpdateEventMutation,
+  useDeleteEventMutation,
+} from "@/features/event/api";
+import { toast } from "react-toastify";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useTranslations } from "next-intl";
 
 interface LivestreamRoom {
   id: string;
@@ -38,7 +52,17 @@ interface LivestreamRoom {
   coverImage?: string;
 }
 
+interface EventFormData {
+  id?: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  image?: File | null;
+}
+
 export default function LiveStreamPage() {
+  const t = useTranslations("livestream");
   const router = useRouter();
   const [livestreamName, setLivestreamName] = useState<string>("");
   const [livestreamDescription, setLivestreamDescription] =
@@ -46,10 +70,47 @@ export default function LiveStreamPage() {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const eventFileInputRef = useRef<HTMLInputElement>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pageSize] = useState<number>(10);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
+  const [activeTab, setActiveTab] = useState<string>("livestreams");
+
+  // Event management states
+  const [eventPageIndex, setEventPageIndex] = useState<number>(0);
+  const [eventPageSize] = useState<number>(10);
+  const [eventSearchTerm, setEventSearchTerm] = useState<string>("");
+  const debouncedEventSearchTerm = useDebounce(eventSearchTerm, 500); // 500ms delay
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState<boolean>(false);
+
+  // Reset page index when search term changes
+  useEffect(() => {
+    setPageIndex(0);
+  }, [debouncedSearchTerm]);
+
+  // Reset event page index when event search term changes
+  useEffect(() => {
+    setEventPageIndex(0);
+  }, [debouncedEventSearchTerm]);
+
+  // Initialize with current date and time
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const [eventFormData, setEventFormData] = useState<EventFormData>({
+    name: "",
+    description: "",
+    startDate: now.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM
+    endDate: tomorrow.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM
+    image: null,
+  });
+
+  const [eventImagePreview, setEventImagePreview] = useState<string>("");
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   // Add state for the modal
   const [selectedLivestreamId, setSelectedLivestreamId] = useState<
@@ -70,12 +131,41 @@ export default function LiveStreamPage() {
     clinicId: user?.clinicId || "",
     pageIndex,
     pageSize,
-    searchTerm,
+    searchTerm: debouncedSearchTerm,
   });
+
+  // Event RTK Query hooks
+  const {
+    data: eventsData,
+    isLoading: isLoadingEvents,
+    refetch: refetchEvents,
+  } = useGetEventsQuery({
+    clinicId: user?.clinicId || "",
+    pageIndex: eventPageIndex,
+    pageSize: eventPageSize,
+    searchTerm: debouncedEventSearchTerm,
+  });
+
+  const [createEvent, { isLoading: isCreatingEvent }] =
+    useCreateEventMutation();
+  const [updateEvent, { isLoading: isUpdatingEvent }] =
+    useUpdateEventMutation();
+  const [deleteEvent, { isLoading: isDeletingEvent }] =
+    useDeleteEventMutation();
 
   // Extract the livestreams from the response with proper type handling
   const pastLivestreams = data?.value?.items || [];
   const pagination = data?.value || {
+    pageIndex: 0,
+    pageSize: 10,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
+
+  // Extract events data
+  const events = eventsData?.value?.items || [];
+  const eventsPagination = eventsData?.value || {
     pageIndex: 0,
     pageSize: 10,
     totalCount: 0,
@@ -104,12 +194,29 @@ export default function LiveStreamPage() {
     }
   };
 
+  // Handle event image change
+  const handleEventImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setEventFormData({ ...eventFormData, image: file });
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        setEventImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreateLivestream = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isCreating) return;
     if (!livestreamName.trim()) {
-      alert("Please enter a name for your livestream");
+      alert(t("pleaseEnterName"));
       return;
     }
 
@@ -126,7 +233,7 @@ export default function LiveStreamPage() {
       router.push("/clinicManager/live-stream/host-page");
     } catch (error) {
       console.error("Error preparing livestream:", error);
-      alert("An error occurred while preparing the livestream.");
+      alert(t("errorPreparingLivestream"));
       setIsCreating(false);
     }
   };
@@ -144,16 +251,33 @@ export default function LiveStreamPage() {
     }
   };
 
+  // Handle event pagination
+  const handleEventNextPage = () => {
+    if (eventsPagination.hasNextPage) {
+      setEventPageIndex(eventPageIndex + 1);
+    }
+  };
+
+  const handleEventPreviousPage = () => {
+    if (eventsPagination.hasPreviousPage) {
+      setEventPageIndex(eventPageIndex - 1);
+    }
+  };
+
   // Format date for better readability
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (error) {
+      return dateString;
+    }
   };
 
   // Get time ago string
@@ -167,13 +291,166 @@ export default function LiveStreamPage() {
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffDays > 0) {
-      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+      return `${diffDays} ${diffDays > 1 ? t("daysAgo") : t("dayAgo")}`;
     } else if (diffHours > 0) {
-      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+      return `${diffHours} ${diffHours > 1 ? t("hoursAgo") : t("hourAgo")}`;
     } else if (diffMins > 0) {
-      return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+      return `${diffMins} ${diffMins > 1 ? t("minutesAgo") : t("minuteAgo")}`;
     } else {
-      return "Just now";
+      return t("justNow");
+    }
+  };
+
+  // Event form handlers
+  const resetEventForm = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    setEventFormData({
+      name: "",
+      description: "",
+      startDate: now.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM for input
+      endDate: tomorrow.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM for input
+      image: null,
+    });
+    setEventImagePreview("");
+    setIsEditMode(false);
+    setSelectedEventId(null);
+  };
+
+  const openAddEventDialog = () => {
+    resetEventForm();
+    setIsEventDialogOpen(true);
+  };
+
+  const openEditEventDialog = (event: any) => {
+    setIsEditMode(true);
+    setSelectedEventId(event.id);
+
+    // Format dates for datetime-local input (YYYY-MM-DDTHH:MM)
+    let startDate = "";
+    let endDate = "";
+
+    try {
+      startDate = new Date(event.startDate).toISOString().slice(0, 16);
+    } catch (error) {
+      console.error("Error parsing startDate:", error);
+      startDate = new Date().toISOString().slice(0, 16);
+    }
+
+    try {
+      endDate = new Date(event.endDate).toISOString().slice(0, 16);
+    } catch (error) {
+      console.error("Error parsing endDate:", error);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      endDate = tomorrow.toISOString().slice(0, 16);
+    }
+
+    setEventFormData({
+      id: event.id,
+      name: event.name,
+      description: event.description,
+      startDate: startDate,
+      endDate: endDate,
+      image: null,
+    });
+
+    if (event.imageUrl) {
+      setEventImagePreview(event.imageUrl);
+    }
+
+    setIsEventDialogOpen(true);
+  };
+
+  const handleEventFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate that end date is after start date
+    const startDate = new Date(eventFormData.startDate);
+    const endDate = new Date(eventFormData.endDate);
+
+    if (endDate <= startDate) {
+      toast.error(t("endDateMustBeAfterStartDate"));
+      return;
+    }
+
+    // Validate image requirement when editing
+    if (isEditMode && !eventImagePreview && !eventFormData.image) {
+      toast.error(t("imageRequired"));
+      return;
+    }
+
+    try {
+      // Format dates to ISO string format (2025-05-03T00:00:00.000Z)
+      const formattedData = {
+        ...eventFormData,
+        startDate: new Date(eventFormData.startDate).toISOString(),
+        endDate: new Date(eventFormData.endDate).toISOString(),
+        clinicId: user?.clinicId || "",
+      };
+
+      if (isEditMode && selectedEventId) {
+        await updateEvent({
+          id: selectedEventId,
+          ...formattedData,
+        }).unwrap();
+        toast.success(t("eventUpdatedSuccess"));
+      } else {
+        await createEvent(formattedData).unwrap();
+        toast.success(t("eventCreatedSuccess"));
+      }
+
+      setIsEventDialogOpen(false);
+      resetEventForm();
+      refetchEvents();
+    } catch (error: any) {
+      console.error("Error saving event:", error);
+
+      // Handle validation errors
+      if (error.data && error.data.errors && Array.isArray(error.data.errors)) {
+        // Display each validation error as a separate toast
+        error.data.errors.forEach((err: { message: string }) => {
+          toast.error(err.message);
+        });
+      } else if (error.data && error.data.detail) {
+        // Display the general error message if available
+        toast.error(error.data.detail);
+      } else {
+        // Fallback error message
+        toast.error(t("failedToSaveEvent"));
+      }
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    if (window.confirm(t("confirmDeleteEvent"))) {
+      try {
+        await deleteEvent(id).unwrap();
+        toast.success(t("eventDeletedSuccess"));
+        refetchEvents();
+      } catch (error: any) {
+        console.error("Error deleting event:", error);
+
+        // Handle validation errors
+        if (
+          error.data &&
+          error.data.errors &&
+          Array.isArray(error.data.errors)
+        ) {
+          // Display each validation error as a separate toast
+          error.data.errors.forEach((err: { message: string }) => {
+            toast.error(err.message);
+          });
+        } else if (error.data && error.data.detail) {
+          // Display the general error message if available
+          toast.error(error.data.detail);
+        } else {
+          // Fallback error message
+          toast.error(t("failedToDeleteEvent"));
+        }
+      }
     }
   };
 
@@ -183,392 +460,642 @@ export default function LiveStreamPage() {
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-rose-100 dark:border-rose-900/30">
         <div className="container mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-rose-700 dark:text-rose-400">
-            Create New Livestream
+            {t("livestreamManagement")}
           </h1>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 border border-rose-100 dark:border-rose-900/30">
-          <form onSubmit={handleCreateLivestream} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Livestream Name*
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={livestreamName}
-                    onChange={(e) => setLivestreamName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g., Spring Skincare Routine"
-                    required
-                  />
-                </div>
+        <Tabs
+          defaultValue="livestreams"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-gradient-to-r from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30 p-1 rounded-xl">
+            <TabsTrigger
+              value="livestreams"
+              className="text-base data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-sm rounded-lg transition-all"
+            >
+              <Camera className="mr-2 h-4 w-4" />
+              {t("livestreams")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="events"
+              className="text-base data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-sm rounded-lg transition-all"
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {t("events")}
+            </TabsTrigger>
+          </TabsList>
 
-                <div>
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    value={livestreamDescription}
-                    onChange={(e) => setLivestreamDescription(e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Describe what your livestream will be about..."
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Cover Image
-                </label>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-4 h-[200px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition ${
-                    coverImagePreview
-                      ? "border-rose-300 dark:border-rose-600"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {coverImagePreview ? (
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={coverImagePreview || "/placeholder.svg"}
-                        alt="Cover preview"
-                        width={200}
-                        height={200}
-                        className="w-full h-full object-cover rounded-lg"
+          <TabsContent
+            value="livestreams"
+            className="space-y-8 animate-in fade-in-50 slide-in-from-bottom-3 duration-300"
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 border border-rose-100 dark:border-rose-900/30">
+              <form onSubmit={handleCreateLivestream} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
+                        {t("livestreamName")}*
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        value={livestreamName}
+                        onChange={(e) => setLivestreamName(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
+                        placeholder={t("livestreamNamePlaceholder")}
+                        required
                       />
-                      <button
-                        type="button"
-                        className="absolute top-2 right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCoverImage(null);
-                          setCoverImagePreview("");
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-gray-600 dark:text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
                     </div>
-                  ) : (
-                    <>
-                      <Upload className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-2" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Click to upload a cover image
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        PNG, JPG up to 5MB
-                      </p>
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-            </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="flex items-center bg-gradient-to-r from-rose-500 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-rose-600 hover:to-pink-700 transition shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
-                disabled={!livestreamName.trim() || isCreating}
-              >
-                {isCreating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Camera className="mr-2 h-5 w-5" />
-                    Start Livestream
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Past Livestreams Section */}
-      <div className="container mx-auto px-4 py-8">
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-rose-800 dark:text-rose-400 flex items-center">
-              <History className="mr-2 h-5 w-5" />
-              Past Livestreams
-            </h2>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search livestreams..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-4 py-2 pr-10 border border-rose-200 dark:border-rose-800/50 rounded-lg text-sm focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
-                />
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <button
-                onClick={() => refetch()}
-                className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 text-sm font-medium flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                Refresh
-              </button>
-            </div>
-          </div>
-
-          {isLoadingHistory ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-rose-500 dark:text-rose-400" />
-            </div>
-          ) : error ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-rose-100 dark:border-rose-800/30">
-              <div className="flex flex-col items-center">
-                <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-3 mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-red-500 dark:text-red-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
-                  Error Loading Livestreams
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  There was a problem loading your livestream history. Please
-                  try again.
-                </p>
-                <button
-                  onClick={() => refetch()}
-                  className="px-4 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 transition"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          ) : pastLivestreams.length > 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-rose-100 dark:border-rose-800/30">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-rose-200 dark:divide-rose-800/30">
-                  <thead className="bg-rose-50 dark:bg-rose-900/20">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                    <div>
+                      <label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
-                      >
-                        Clinic
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
-                      >
-                        Start Date
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
-                      >
-                        Time Ago
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-rose-100 dark:divide-rose-800/30">
-                    {pastLivestreams.map((room, index) => (
-                      <tr
-                        key={room.id}
-                        className={
-                          index % 2 === 0
-                            ? "bg-white dark:bg-gray-800"
-                            : "bg-rose-50/30 dark:bg-rose-900/10"
+                        {t("description")}
+                      </label>
+                      <textarea
+                        id="description"
+                        value={livestreamDescription}
+                        onChange={(e) =>
+                          setLivestreamDescription(e.target.value)
                         }
-                        style={{ cursor: "pointer" }}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center">
-                              {room.coverImage ? (
-                                <Image
-                                  src={room.coverImage || "/placeholder.svg"}
-                                  alt=""
-                                  width={40}
-                                  height={40}
-                                  className="h-10 w-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <Camera className="h-5 w-5 text-rose-500 dark:text-rose-400" />
-                              )}
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
-                                {room.name}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                ID: {room.id.substring(0, 8)}...
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-white">
-                            {room.clinicName}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-white">
-                            {formatDate(room.startDate)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-300">
-                            {getTimeAgo(room.startDate)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        rows={4}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
+                        placeholder={t("livestreamDescriptionPlaceholder")}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {t("coverImage")}
+                    </label>
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-4 h-[200px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition ${
+                        coverImagePreview
+                          ? "border-rose-300 dark:border-rose-600"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {coverImagePreview ? (
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={coverImagePreview || "/placeholder.svg"}
+                            alt={t("coverPreview")}
+                            width={200}
+                            height={200}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
                           <button
+                            type="button"
+                            className="absolute top-2 right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openLivestreamDetails(room);
+                              setCoverImage(null);
+                              setCoverImagePreview("");
                             }}
-                            className="text-rose-600 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-300 flex items-center justify-end"
                           >
-                            View Details
-                            <ArrowRight className="ml-1 h-4 w-4" />
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="bg-white dark:bg-gray-800 px-6 py-3 border-t border-rose-100 dark:border-rose-800/30 flex justify-between items-center">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Showing{" "}
-                  <span className="font-medium">{pastLivestreams.length}</span>{" "}
-                  of{" "}
-                  <span className="font-medium">{pagination.totalCount}</span>{" "}
-                  livestreams
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-2" />
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {t("clickToUploadCoverImage")}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            {t("imageFormatInfo")}
+                          </p>
+                        </>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex space-x-2">
+
+                <div className="flex justify-end">
                   <button
-                    className={`px-3 py-1 border border-rose-200 dark:border-rose-800/50 rounded-md text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 ${
-                      !pagination.hasPreviousPage
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                    onClick={handlePreviousPage}
-                    disabled={!pagination.hasPreviousPage}
+                    type="submit"
+                    className="flex items-center bg-gradient-to-r from-rose-500 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-rose-600 hover:to-pink-700 transition shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+                    disabled={!livestreamName.trim() || isCreating}
                   >
-                    Previous
+                    {isCreating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                        {t("creating")}
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="mr-2 h-5 w-5" />
+                        {t("startLivestream")}
+                      </>
+                    )}
                   </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Past Livestreams Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-rose-800 dark:text-rose-400 flex items-center">
+                  <History className="mr-2 h-5 w-5" />
+                  {t("pastLivestreams")}
+                </h2>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={t("searchLivestreams")}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="px-4 py-2 pr-10 border border-rose-200 dark:border-rose-800/50 rounded-lg text-sm focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
+                    />
+                    <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                  </div>
                   <button
-                    className={`px-3 py-1 bg-rose-500 dark:bg-rose-600 text-white rounded-md text-sm hover:bg-rose-600 dark:hover:bg-rose-700 ${
-                      !pagination.hasNextPage
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                    onClick={handleNextPage}
-                    disabled={!pagination.hasNextPage}
+                    onClick={() => refetch()}
+                    className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 text-sm font-medium flex items-center"
                   >
-                    Next
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    {t("refresh")}
                   </button>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-rose-100 dark:border-rose-800/30">
-              <div className="flex flex-col items-center">
-                <div className="bg-rose-100 dark:bg-rose-900/30 rounded-full p-3 mb-4">
-                  <History className="h-8 w-8 text-rose-500 dark:text-rose-400" />
+
+              {isLoadingHistory ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-rose-500 dark:text-rose-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
-                  No Past Livestreams
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  You haven&apos;t created any livestreams yet.
-                </p>
-              </div>
+              ) : error ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-rose-100 dark:border-rose-800/30">
+                  <div className="flex flex-col items-center">
+                    <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-3 mb-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 text-red-500 dark:text-red-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                      {t("errorLoadingLivestreams")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {t("livestreamLoadingErrorMessage")}
+                    </p>
+                    <button
+                      onClick={() => refetch()}
+                      className="px-4 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 transition"
+                    >
+                      {t("tryAgain")}
+                    </button>
+                  </div>
+                </div>
+              ) : pastLivestreams.length > 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-rose-100 dark:border-rose-800/30 mx-auto">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-rose-200 dark:divide-rose-800/30">
+                      <thead className="bg-rose-50 dark:bg-rose-900/20">
+                        <tr className="text-center">
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("name")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("description")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("startDate")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("timeAgo")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("actions")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-rose-100 dark:divide-rose-800/30">
+                        {pastLivestreams.map((room, index) => (
+                          <tr
+                            key={room.id}
+                            className={
+                              index % 2 === 0
+                                ? "bg-white dark:bg-gray-800"
+                                : "bg-rose-50/30 dark:bg-rose-900/10"
+                            }
+                            style={{ cursor: "pointer" }}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center">
+                                  {room.coverImage ? (
+                                    <Image
+                                      src={
+                                        room.coverImage || "/placeholder.svg"
+                                      }
+                                      alt=""
+                                      width={40}
+                                      height={40}
+                                      className="h-10 w-10 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <Camera className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+                                  )}
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
+                                    {room.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    ID: {room.id.substring(0, 8)}...
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div
+                                className="text-sm text-gray-900 dark:text-white truncate max-w-[200px] mx-auto"
+                                title={room.description || t("noDescription")}
+                              >
+                                {room.description || t("noDescription")}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <div className="text-sm text-gray-900 dark:text-white">
+                                {formatDate(room.startDate)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-300">
+                                {getTimeAgo(room.startDate)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openLivestreamDetails(room);
+                                }}
+                                className="text-rose-600 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-300 flex items-center justify-center mx-auto"
+                              >
+                                {t("viewDetails")}
+                                <ArrowRight className="ml-1 h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 px-6 py-3 border-t border-rose-100 dark:border-rose-800/30 flex justify-between items-center">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {t("showing")}{" "}
+                      <span className="font-medium">
+                        {pastLivestreams.length}
+                      </span>{" "}
+                      {t("of")}{" "}
+                      <span className="font-medium">
+                        {pagination.totalCount}
+                      </span>{" "}
+                      {t("livestreams")}
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        className={`px-3 py-1 border border-rose-200 dark:border-rose-800/50 rounded-md text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 ${
+                          !pagination.hasPreviousPage
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={handlePreviousPage}
+                        disabled={!pagination.hasPreviousPage}
+                      >
+                        {t("previous")}
+                      </button>
+                      <button
+                        className={`px-3 py-1 bg-rose-500 dark:bg-rose-600 text-white rounded-md text-sm hover:bg-rose-600 dark:hover:bg-rose-700 ${
+                          !pagination.hasNextPage
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={handleNextPage}
+                        disabled={!pagination.hasNextPage}
+                      >
+                        {t("next")}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-rose-100 dark:border-rose-800/30">
+                  <div className="flex flex-col items-center">
+                    <div className="bg-rose-100 dark:bg-rose-900/30 rounded-full p-3 mb-4">
+                      <History className="h-8 w-8 text-rose-500 dark:text-rose-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                      {t("noPastLivestreams")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {t("noLivestreamsCreatedYet")}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </TabsContent>
+
+          <TabsContent
+            value="events"
+            className="space-y-8 animate-in fade-in-50 slide-in-from-bottom-3 duration-300"
+          >
+            {/* Events Management Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-rose-800 dark:text-rose-400 flex items-center">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  {t("eventManagement")}
+                </h2>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={t("searchEvents")}
+                      value={eventSearchTerm}
+                      onChange={(e) => setEventSearchTerm(e.target.value)}
+                      className="px-4 py-2 pr-10 border border-rose-200 dark:border-rose-800/50 rounded-lg text-sm focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-white"
+                    />
+                    <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <button
+                    onClick={() => refetchEvents()}
+                    className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 text-sm font-medium flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    {t("refresh")}
+                  </button>
+                  <Button
+                    onClick={openAddEventDialog}
+                    className="bg-rose-500 hover:bg-rose-600 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("addEvent")}
+                  </Button>
+                </div>
+              </div>
+
+              {isLoadingEvents ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-rose-500 dark:text-rose-400" />
+                </div>
+              ) : events.length > 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-rose-100 dark:border-rose-800/30 mx-auto">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-rose-200 dark:divide-rose-800/30">
+                      <thead className="bg-rose-50 dark:bg-rose-900/20">
+                        <tr className="text-center">
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("event")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("description")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("startDate")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("endDate")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-rose-800 dark:text-rose-300 uppercase tracking-wider"
+                          >
+                            {t("actions")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-rose-100 dark:divide-rose-800/30">
+                        {events.map((event, index) => (
+                          <tr
+                            key={event.id}
+                            className={
+                              index % 2 === 0
+                                ? "bg-white dark:bg-gray-800"
+                                : "bg-rose-50/30 dark:bg-rose-900/10"
+                            }
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center overflow-hidden">
+                                  {event.imageUrl ? (
+                                    <Image
+                                      src={event.imageUrl || "/placeholder.svg"}
+                                      alt=""
+                                      width={40}
+                                      height={40}
+                                      className="h-10 w-10 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <Calendar className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+                                  )}
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
+                                    {event.name}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div
+                                className="text-sm text-gray-900 dark:text-white truncate max-w-[200px] mx-auto"
+                                title={event.description || t("noDescription")}
+                              >
+                                {event.description || t("noDescription")}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <div className="text-sm text-gray-900 dark:text-white">
+                                {formatDate(event.startDate)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <div className="text-sm text-gray-900 dark:text-white">
+                                {formatDate(event.endDate)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <div className="flex items-center justify-center space-x-2">
+                                <button
+                                  onClick={() => openEditEventDialog(event)}
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteEvent(event.id)}
+                                  className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 px-6 py-3 border-t border-rose-100 dark:border-rose-800/30 flex justify-between items-center">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {t("showing")}{" "}
+                      <span className="font-medium">{events.length}</span>{" "}
+                      {t("of")}{" "}
+                      <span className="font-medium">
+                        {eventsPagination.totalCount}
+                      </span>{" "}
+                      {t("events")}
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        className={`px-3 py-1 border border-rose-200 dark:border-rose-800/50 rounded-md text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 ${
+                          !eventsPagination.hasPreviousPage
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={handleEventPreviousPage}
+                        disabled={!eventsPagination.hasPreviousPage}
+                      >
+                        {t("previous")}
+                      </button>
+                      <button
+                        className={`px-3 py-1 bg-rose-500 dark:bg-rose-600 text-white rounded-md text-sm hover:bg-rose-600 dark:hover:bg-rose-700 ${
+                          !eventsPagination.hasNextPage
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={handleEventNextPage}
+                        disabled={!eventsPagination.hasNextPage}
+                      >
+                        {t("next")}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-rose-100 dark:border-rose-800/30">
+                  <div className="flex flex-col items-center">
+                    <div className="bg-rose-100 dark:bg-rose-900/30 rounded-full p-3 mb-4">
+                      <Calendar className="h-8 w-8 text-rose-500 dark:text-rose-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                      {t("noEventsFound")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {t("noEventsCreatedYet")}
+                    </p>
+                    <Button
+                      onClick={openAddEventDialog}
+                      className="bg-rose-500 hover:bg-rose-600 text-white"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t("createFirstEvent")}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Livestream Detail Modal */}
@@ -578,6 +1105,191 @@ export default function LiveStreamPage() {
         livestreamId={selectedLivestreamId}
         livestreamInfo={selectedLivestreamInfo}
       />
+
+      {/* Event Form Dialog */}
+      <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditMode ? t("editEvent") : t("addNewEvent")}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEventFormSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="event-name"
+                  className="text-right text-sm font-medium col-span-1"
+                >
+                  {t("name")}*
+                </label>
+                <Input
+                  id="event-name"
+                  value={eventFormData.name}
+                  onChange={(e) =>
+                    setEventFormData({ ...eventFormData, name: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="event-description"
+                  className="text-right text-sm font-medium col-span-1"
+                >
+                  {t("description")}
+                </label>
+                <Textarea
+                  id="event-description"
+                  value={eventFormData.description}
+                  onChange={(e) =>
+                    setEventFormData({
+                      ...eventFormData,
+                      description: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="event-start-date"
+                  className="text-right text-sm font-medium col-span-1"
+                >
+                  {t("startDate")}*
+                </label>
+                <Input
+                  id="event-start-date"
+                  type="datetime-local"
+                  value={eventFormData.startDate}
+                  onChange={(e) =>
+                    setEventFormData({
+                      ...eventFormData,
+                      startDate: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="event-end-date"
+                  className="text-right text-sm font-medium col-span-1"
+                >
+                  {t("endDate")}*
+                </label>
+                <Input
+                  id="event-end-date"
+                  type="datetime-local"
+                  value={eventFormData.endDate}
+                  onChange={(e) =>
+                    setEventFormData({
+                      ...eventFormData,
+                      endDate: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label className="text-right text-sm font-medium col-span-1">
+                  {t("image")}
+                </label>
+                <div className="col-span-3">
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-4 h-[150px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition ${
+                      eventImagePreview
+                        ? "border-rose-300 dark:border-rose-600"
+                        : "border-gray-300 dark:border-gray-600"
+                    }`}
+                    onClick={() => eventFileInputRef.current?.click()}
+                  >
+                    {eventImagePreview ? (
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={eventImagePreview || "/placeholder.svg"}
+                          alt={t("eventImagePreview")}
+                          width={150}
+                          height={150}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEventFormData({ ...eventFormData, image: null });
+                            setEventImagePreview("");
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-2" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {t("clickToUploadImage")}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                          {t("imageFormatInfo")}
+                        </p>
+                      </>
+                    )}
+                    <input
+                      ref={eventFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEventImageChange}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEventDialogOpen(false)}
+              >
+                {t("cancel")}
+              </Button>
+              <Button
+                type="submit"
+                className="bg-rose-500 hover:bg-rose-600 text-white"
+                disabled={isCreatingEvent || isUpdatingEvent}
+              >
+                {isCreatingEvent || isUpdatingEvent ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditMode ? t("updating") : t("creating")}
+                  </>
+                ) : (
+                  <>{isEditMode ? t("updateEvent") : t("createEvent")}</>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

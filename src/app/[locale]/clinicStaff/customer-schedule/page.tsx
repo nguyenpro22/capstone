@@ -916,10 +916,10 @@ export default function SchedulesPage() {
 
   const handleViewNextAppointment = async (schedule: CustomerSchedule) => {
     try {
-      // Show loading state
-      toast.info(t("loadingNextAppointment"), {
-        autoClose: 2000,
-      });
+      // // Show loading state
+      // toast.info(t("loadingNextAppointment"), {
+      //   autoClose: 2000,
+      // });
 
       // Call the API with isNextSchedule = true
       const result = await getScheduleById({
@@ -1485,174 +1485,190 @@ export default function SchedulesPage() {
                             <TableCell className="text-center">
                               {getStatusBadge(schedule.status)}
                             </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex gap-2 justify-center items-center min-w-[220px]">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-[100px] justify-center"
-                                  onClick={() => handleViewSchedule(schedule)}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  {t("view")}
-                                </Button>
+                            <TableCell>
+                              <div className="grid grid-cols-[1fr_auto_1fr] items-center min-w-[220px] gap-2">
+                                <div className="flex justify-end gap-2 items-center">
+                                  {schedule.status.toLowerCase() ===
+                                    "completed" &&
+                                    renderCompletedScheduleButton(
+                                      schedule,
+                                      scheduleWithStatus
+                                    )}
 
-                                {schedule.status === "In Progress" && (
-                                  <>
-                                    {schedule.isFirstCheckIn ? (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
-                                        onClick={() => handleCheckout(schedule)}
-                                      >
-                                        <CreditCard className="h-4 w-4 mr-1" />
-                                        {t("checkout")}
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
-                                        onClick={() => {
-                                          updateScheduleStatus({
-                                            scheduleId: schedule.id,
-                                            status: "Completed",
-                                          })
-                                            .unwrap()
-                                            .then(() => {
-                                              toast.success(
-                                                t(
-                                                  "appointmentCompletedSuccessfully"
-                                                )
-                                              );
-                                              if (searchPerformed) {
-                                                delayedGetCustomerSchedules({
-                                                  customerName,
-                                                  customerPhone,
-                                                });
-                                              } else {
-                                                fetchClinicSchedules();
-                                              }
+                                  {schedule.status === "In Progress" && (
+                                    <>
+                                      {schedule.isFirstCheckIn ? (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white justify-center"
+                                          onClick={() =>
+                                            handleCheckout(schedule)
+                                          }
+                                        >
+                                          <CreditCard className="h-4 w-4 mr-1" />
+                                          {t("checkout")}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white justify-center"
+                                          onClick={() => {
+                                            updateScheduleStatus({
+                                              scheduleId: schedule.id,
+                                              status: "Completed",
                                             })
-                                            .catch((error) => {
-                                              console.error(
-                                                "Failed to complete appointment:",
-                                                error
-                                              );
-                                              toast.error(
-                                                t("failedToCompleteAppointment")
-                                              );
-                                            });
-                                        }}
-                                      >
-                                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                                        {t("complete")}
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-
-                                {schedule.status === "Uncompleted" &&
-                                  (() => {
-                                    const bookingDate = new Date(
-                                      schedule.bookingDate
-                                    );
-                                    const today = new Date();
-                                    bookingDate.setHours(0, 0, 0, 0);
-                                    today.setHours(0, 0, 0, 0);
-                                    return bookingDate.getTime() ===
-                                      today.getTime() ? (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
-                                        onClick={() => handleCheckout(schedule)}
-                                      >
-                                        <CreditCard className="h-4 w-4 mr-1" />
-                                        {t("reCheckout")}
-                                      </Button>
-                                    ) : null;
-                                  })()}
-
-                                {shouldShowCheckInButton(schedule) && (
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
-                                    onClick={() => handleCheckIn(schedule)}
-                                    disabled={isUpdatingStatus}
-                                  >
-                                    {isUpdatingStatus ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      t("checkIn")
-                                    )}
-                                  </Button>
-                                )}
-
-                                {schedule.status.toLowerCase() ===
-                                  "completed" &&
-                                  renderCompletedScheduleButton(
-                                    schedule,
-                                    scheduleWithStatus
+                                              .unwrap()
+                                              .then(() => {
+                                                toast.success(
+                                                  t(
+                                                    "appointmentCompletedSuccessfully"
+                                                  )
+                                                );
+                                                if (searchPerformed) {
+                                                  delayedGetCustomerSchedules({
+                                                    customerName,
+                                                    customerPhone,
+                                                  });
+                                                } else {
+                                                  fetchClinicSchedules();
+                                                }
+                                              })
+                                              .catch((error) => {
+                                                console.error(
+                                                  "Failed to complete appointment:",
+                                                  error
+                                                );
+                                                toast.error(
+                                                  t(
+                                                    "failedToCompleteAppointment"
+                                                  )
+                                                );
+                                              });
+                                          }}
+                                        >
+                                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                                          {t("complete")}
+                                        </Button>
+                                      )}
+                                    </>
                                   )}
 
-                                {shouldShowDropdownMenu(scheduleWithStatus) && (
-                                  <DropdownMenu
-                                    open={openDropdownId === schedule.id}
-                                    onOpenChange={(open) => {
-                                      setOpenDropdownId(
-                                        open ? schedule.id : null
+                                  {schedule.status === "Uncompleted" &&
+                                    (() => {
+                                      const bookingDate = new Date(
+                                        schedule.bookingDate
                                       );
-                                    }}
-                                  >
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="w-[40px] h-[32px] flex-shrink-0"
-                                      >
-                                        <MoreHorizontal className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      {schedule.status.toLowerCase() ===
-                                        "completed" && (
-                                        <DropdownMenuItem
-                                          onClick={() => {
-                                            setOpenDropdownId(null);
-                                            handleScheduleFollowUp(schedule);
-                                          }}
+                                      const today = new Date();
+                                      bookingDate.setHours(0, 0, 0, 0);
+                                      today.setHours(0, 0, 0, 0);
+                                      return bookingDate.getTime() ===
+                                        today.getTime() ? (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white justify-center"
+                                          onClick={() =>
+                                            handleCheckout(schedule)
+                                          }
                                         >
-                                          {t("scheduleFollowUp")}
-                                        </DropdownMenuItem>
-                                      )}
+                                          <CreditCard className="h-4 w-4 mr-1" />
+                                          {t("reCheckout")}
+                                        </Button>
+                                      ) : null;
+                                    })()}
 
-                                      {schedule.status.toLowerCase() ===
-                                        "pending" && (
+                                  {shouldShowCheckInButton(schedule) && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white justify-center"
+                                      onClick={() => handleCheckIn(schedule)}
+                                      disabled={isUpdatingStatus}
+                                    >
+                                      {isUpdatingStatus ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        t("checkIn")
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
+
+                                <div className="flex justify-center">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-[100px] justify-center"
+                                    onClick={() => handleViewSchedule(schedule)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    {t("view")}
+                                  </Button>
+                                </div>
+
+                                <div className="flex justify-start">
+                                  {shouldShowDropdownMenu(
+                                    scheduleWithStatus
+                                  ) ? (
+                                    <DropdownMenu
+                                      open={openDropdownId === schedule.id}
+                                      onOpenChange={(open) => {
+                                        setOpenDropdownId(
+                                          open ? schedule.id : null
+                                        );
+                                      }}
+                                    >
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-[32px] w-[40px] flex-shrink-0"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        {schedule.status.toLowerCase() ===
+                                          "completed" && (
+                                          <DropdownMenuItem
+                                            onClick={() => {
+                                              setOpenDropdownId(null);
+                                              handleScheduleFollowUp(schedule);
+                                            }}
+                                          >
+                                            {t("scheduleFollowUp")}
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {schedule.status.toLowerCase() ===
+                                          "pending" && (
+                                          <DropdownMenuItem
+                                            onClick={() => {
+                                              setOpenDropdownId(null);
+                                              handleReschedule(schedule);
+                                            }}
+                                          >
+                                            {t("reschedule")}
+                                          </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem
+                                          className="text-red-600"
                                           onClick={() => {
                                             setOpenDropdownId(null);
-                                            handleReschedule(schedule);
+                                            // Your cancel logic here
                                           }}
                                         >
-                                          {t("reschedule")}
+                                          {t("cancel")}
                                         </DropdownMenuItem>
-                                      )}
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        className="text-red-600"
-                                        onClick={() => {
-                                          setOpenDropdownId(null);
-                                          // Your cancel logic here
-                                        }}
-                                      >
-                                        {t("cancel")}
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                )}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  ) : (
+                                    <div className="w-[40px]"></div> // Empty div with width to maintain layout
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1707,167 +1723,183 @@ export default function SchedulesPage() {
                             <TableCell className="text-center">
                               {getStatusBadge(schedule.status)}
                             </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex gap-2 justify-center items-center min-w-[220px]">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-[100px] justify-center"
-                                  onClick={() => handleViewSchedule(schedule)}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  {t("view")}
-                                </Button>
+                            <TableCell>
+                              <div className="grid grid-cols-[1fr_auto_1fr] items-center min-w-[220px] gap-2">
+                                <div className="flex justify-end gap-2 items-center">
+                                  {schedule.status.toLowerCase() ===
+                                    "completed" &&
+                                    renderCompletedScheduleButton(
+                                      schedule,
+                                      scheduleWithStatus
+                                    )}
 
-                                {schedule.status === "In Progress" && (
-                                  <>
-                                    {schedule.isFirstCheckIn ? (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
-                                        onClick={() => handleCheckout(schedule)}
-                                      >
-                                        <CreditCard className="h-4 w-4 mr-1" />
-                                        {t("checkout")}
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
-                                        onClick={() => {
-                                          updateScheduleStatus({
-                                            scheduleId: schedule.id,
-                                            status: "Completed",
-                                          })
-                                            .unwrap()
-                                            .then(() => {
-                                              toast.success(
-                                                t(
-                                                  "appointmentCompletedSuccessfully"
-                                                )
-                                              );
-                                              fetchClinicSchedules();
+                                  {schedule.status === "In Progress" && (
+                                    <>
+                                      {schedule.isFirstCheckIn ? (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white justify-center"
+                                          onClick={() =>
+                                            handleCheckout(schedule)
+                                          }
+                                        >
+                                          <CreditCard className="h-4 w-4 mr-1" />
+                                          {t("checkout")}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white justify-center"
+                                          onClick={() => {
+                                            updateScheduleStatus({
+                                              scheduleId: schedule.id,
+                                              status: "Completed",
                                             })
-                                            .catch((error) => {
-                                              console.error(
-                                                "Failed to complete appointment:",
-                                                error
-                                              );
-                                              toast.error(
-                                                t("failedToCompleteAppointment")
-                                              );
-                                            });
-                                        }}
-                                      >
-                                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                                        {t("complete")}
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-
-                                {schedule.status === "Uncompleted" &&
-                                  (() => {
-                                    const bookingDate = new Date(
-                                      schedule.bookingDate
-                                    );
-                                    const today = new Date();
-                                    bookingDate.setHours(0, 0, 0, 0);
-                                    today.setHours(0, 0, 0, 0);
-                                    return bookingDate.getTime() ===
-                                      today.getTime() ? (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white w-[100px] justify-center"
-                                        onClick={() => handleCheckout(schedule)}
-                                      >
-                                        <CreditCard className="h-4 w-4 mr-1" />
-                                        {t("reCheckout")}
-                                      </Button>
-                                    ) : null;
-                                  })()}
-
-                                {shouldShowCheckInButton(schedule) && (
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white w-[100px] justify-center"
-                                    onClick={() => handleCheckIn(schedule)}
-                                    disabled={isUpdatingStatus}
-                                  >
-                                    {isUpdatingStatus ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      t("checkIn")
-                                    )}
-                                  </Button>
-                                )}
-
-                                {schedule.status.toLowerCase() ===
-                                  "completed" &&
-                                  renderCompletedScheduleButton(
-                                    schedule,
-                                    scheduleWithStatus
+                                              .unwrap()
+                                              .then(() => {
+                                                toast.success(
+                                                  t(
+                                                    "appointmentCompletedSuccessfully"
+                                                  )
+                                                );
+                                                fetchClinicSchedules();
+                                              })
+                                              .catch((error) => {
+                                                console.error(
+                                                  "Failed to complete appointment:",
+                                                  error
+                                                );
+                                                toast.error(
+                                                  t(
+                                                    "failedToCompleteAppointment"
+                                                  )
+                                                );
+                                              });
+                                          }}
+                                        >
+                                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                                          {t("complete")}
+                                        </Button>
+                                      )}
+                                    </>
                                   )}
 
-                                {shouldShowDropdownMenu(scheduleWithStatus) && (
-                                  <DropdownMenu
-                                    open={openDropdownId === schedule.id}
-                                    onOpenChange={(open) => {
-                                      setOpenDropdownId(
-                                        open ? schedule.id : null
+                                  {schedule.status === "Uncompleted" &&
+                                    (() => {
+                                      const bookingDate = new Date(
+                                        schedule.bookingDate
                                       );
-                                    }}
-                                  >
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="w-[40px] h-[32px] flex-shrink-0"
-                                      >
-                                        <MoreHorizontal className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      {schedule.status.toLowerCase() ===
-                                        "completed" && (
-                                        <DropdownMenuItem
-                                          onClick={() => {
-                                            setOpenDropdownId(null);
-                                            handleScheduleFollowUp(schedule);
-                                          }}
+                                      const today = new Date();
+                                      bookingDate.setHours(0, 0, 0, 0);
+                                      today.setHours(0, 0, 0, 0);
+                                      return bookingDate.getTime() ===
+                                        today.getTime() ? (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white justify-center"
+                                          onClick={() =>
+                                            handleCheckout(schedule)
+                                          }
                                         >
-                                          {t("scheduleFollowUp")}
-                                        </DropdownMenuItem>
-                                      )}
+                                          <CreditCard className="h-4 w-4 mr-1" />
+                                          {t("reCheckout")}
+                                        </Button>
+                                      ) : null;
+                                    })()}
 
-                                      {schedule.status.toLowerCase() ===
-                                        "pending" && (
+                                  {shouldShowCheckInButton(schedule) && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white justify-center"
+                                      onClick={() => handleCheckIn(schedule)}
+                                      disabled={isUpdatingStatus}
+                                    >
+                                      {isUpdatingStatus ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        t("checkIn")
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
+
+                                <div className="flex justify-center">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-[100px] justify-center"
+                                    onClick={() => handleViewSchedule(schedule)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    {t("view")}
+                                  </Button>
+                                </div>
+
+                                <div className="flex justify-start">
+                                  {shouldShowDropdownMenu(
+                                    scheduleWithStatus
+                                  ) ? (
+                                    <DropdownMenu
+                                      open={openDropdownId === schedule.id}
+                                      onOpenChange={(open) => {
+                                        setOpenDropdownId(
+                                          open ? schedule.id : null
+                                        );
+                                      }}
+                                    >
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-[32px] w-[40px] flex-shrink-0"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        {schedule.status.toLowerCase() ===
+                                          "completed" && (
+                                          <DropdownMenuItem
+                                            onClick={() => {
+                                              setOpenDropdownId(null);
+                                              handleScheduleFollowUp(schedule);
+                                            }}
+                                          >
+                                            {t("scheduleFollowUp")}
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {schedule.status.toLowerCase() ===
+                                          "pending" && (
+                                          <DropdownMenuItem
+                                            onClick={() => {
+                                              setOpenDropdownId(null);
+                                              handleReschedule(schedule);
+                                            }}
+                                          >
+                                            {t("reschedule")}
+                                          </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem
+                                          className="text-red-600"
                                           onClick={() => {
                                             setOpenDropdownId(null);
-                                            handleReschedule(schedule);
+                                            // Your cancel logic here
                                           }}
                                         >
-                                          {t("reschedule")}
+                                          {t("cancel")}
                                         </DropdownMenuItem>
-                                      )}
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        className="text-red-600"
-                                        onClick={() => {
-                                          setOpenDropdownId(null);
-                                          // Your cancel logic here
-                                        }}
-                                      >
-                                        {t("cancel")}
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                )}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  ) : (
+                                    <div className="w-[40px]"></div> // Empty div with width to maintain layout
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>
