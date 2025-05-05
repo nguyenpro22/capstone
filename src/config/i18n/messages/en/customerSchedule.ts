@@ -178,5 +178,12 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   nextAppointmentNotFound: "Next appointment not found",
   failedToFindNextAppointment: "Failed to find next appointment",
   errorFetchingNextAppointment: "Error fetching next appointment",
-  doctorNote: "Doctor notes"
+  doctorNote: "Doctor notes",
+  // cancel schedule
+  appointmentCancelledSuccessfully: "Appointment cancelled successfully",
+  failedToCancelAppointment: "Failed to cancel appointment",
+  onlyPendingAppointmentsCanBeCancelled: "Only pending appointments can be cancelled",
+  searchError: "An error occurred while searching",
+  serverErrorMessage: "A server error occurred. Please try again later.",
+  cancelling: "Cancelling...",
 };
