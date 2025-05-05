@@ -124,5 +124,18 @@ export const clinicMessages: Messages["clinic"] = {
    city: "Thành phố",
    noDetailsAvailable: "Không có thông tin chi tiết cho yêu cầu này",
    branchRequestsTitle:"Danh sách chi nhánh cần phê duyệt",
-   dateApplied: "Ngày nộp đơn"
+   dateApplied: "Ngày nộp đơn",
+   selectReasons: "Chọn lý do",
+   otherReason: "Lý do khác",
+   enterCustomRejectReason: "Nhập lý do từ chối tùy chỉnh",
+   enterCustomBanReason: "Nhập lý do cấm tùy chỉnh",
+   defaultRejectReason: "Yêu cầu của bạn đã bị từ chối",
+   defaultBanReason: "Yêu cầu của bạn đã bị cấm",
+
+   expiredLicense: "Giấy phép hết hạn",
+   invalidTaxCode: "Mã số thuế không hợp lệ",
+   invalidBusinessLicense: "Giấy phép kinh doanh không hợp lệ",
+   invalidOperatingLicense: "Giấy phép hoạt động không hợp lệ",
+   invalidContactInfo: "Thông tin về tên, số điện thoại, email không hợp lệ",
+   otherReasonLabel: "Lý do khác",
 }

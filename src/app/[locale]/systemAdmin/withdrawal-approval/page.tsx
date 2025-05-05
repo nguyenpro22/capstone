@@ -51,6 +51,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { useGetWalletTransactionsQuery } from "@/features/wallet-transaction/api";
 import { useUpdateWithdrawalStatusMutation } from "@/features/wallet-transaction/api";
+import { useUpdateWithdrawalRequestStatusMutation } from "@/features/wallet-transaction/api";
 import {
   Tooltip,
   TooltipContent,
@@ -69,11 +70,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import PaymentService from "@/hooks/usePaymentStatus";
-import { getAccessToken, getRefreshToken } from "@/utils";
 import { useRefreshTokenMutation } from "@/features/auth/api";
-import { setAccessToken, setRefreshToken } from "@/utils";
-import * as signalR from "@microsoft/signalr";
 import { useTranslations } from "next-intl"; // Import useTranslations hook
 
 export default function WithdrawalApprovalPage() {
@@ -84,7 +81,7 @@ export default function WithdrawalApprovalPage() {
 
   // State for pagination and filtering
   const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(8);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState("createOnUtc");
@@ -145,6 +142,11 @@ export default function WithdrawalApprovalPage() {
   const [updateWithdrawalStatus, { isLoading: isUpdatingStatus }] =
     useUpdateWithdrawalStatusMutation();
 
+  const [
+    updateWithdrawalRequestStatus,
+    { isLoading: isUpdatingRequestStatus },
+  ] = useUpdateWithdrawalRequestStatusMutation();
+
   // Add the refreshToken mutation hook
   const [refreshToken] = useRefreshTokenMutation();
 
@@ -176,96 +178,6 @@ export default function WithdrawalApprovalPage() {
   useEffect(() => {
     setPageIndex(1);
   }, [debouncedSearchTerm]);
-
-  // SignalR connection for payment status
-  useEffect(() => {
-    if (!transactionId) return;
-
-    const setupConnection = async () => {
-      try {
-        await PaymentService.startConnection();
-        await PaymentService.joinPaymentSession(transactionId);
-
-        // Set up the payment status listener
-        PaymentService.onPaymentStatusReceived(
-          async (
-            status: boolean,
-            details?: {
-              amount?: number;
-              timestamp?: string;
-              message?: string;
-            }
-          ) => {
-            setPaymentStatus(status ? "success" : "failed");
-
-            // Store payment details if available
-            if (details) {
-              setPaymentDetails({
-                amount: details.amount || null,
-                timestamp: details.timestamp || new Date().toISOString(),
-                message: details.message || null,
-              });
-            }
-
-            // If payment is successful
-            if (status) {
-              toast.success(t("paymentSuccessful"));
-              // Close the QR dialog and show payment result
-              setShowQR(false);
-              setShowPaymentResult(true);
-
-              // Refresh tokens
-              const accessToken = getAccessToken() as string;
-              const refreshTokenValue = getRefreshToken() as string;
-
-              if (accessToken && refreshTokenValue) {
-                try {
-                  const result = await refreshToken({
-                    accessToken,
-                    refreshToken: refreshTokenValue,
-                  }).unwrap();
-
-                  if (result.isSuccess) {
-                    // Save the new tokens
-                    setAccessToken(result.value.accessToken);
-                    setRefreshToken(result.value.refreshToken);
-                    console.log("Tokens refreshed successfully after payment");
-                  }
-                } catch (error) {
-                  console.error(
-                    "Failed to refresh tokens after payment:",
-                    error
-                  );
-                }
-              }
-
-              // Refresh the data after a delay
-              setTimeout(() => {
-                refetch();
-              }, 2000);
-            } else {
-              toast.error(details?.message || t("paymentFailedTryAgain"));
-              // Show payment result with failure details
-              setShowQR(false);
-              setShowPaymentResult(true);
-            }
-          }
-        );
-      } catch (error) {
-        console.error("Failed to set up SignalR connection:", error);
-        // toast.error(t("failedToConnectPayment"));
-      }
-    };
-
-    setupConnection();
-
-    // Clean up the connection when component unmounts
-    return () => {
-      if (transactionId) {
-        PaymentService.leavePaymentSession(transactionId);
-      }
-    };
-  }, [transactionId, refetch, refreshToken, t]);
 
   // Get transactions from API data
   const transactions = transactionsData?.value?.items || [];
@@ -595,45 +507,97 @@ export default function WithdrawalApprovalPage() {
 
     // Check if the transaction has a newestQrUrl property
     if (transaction.newestQrUrl) {
-      // We already have the QR URL from the transaction data
-      setQrUrl(transaction.newestQrUrl);
+      // Check if the QR URL is valid
+      try {
+        // Try to create a URL object to validate the URL format
+        new URL(transaction.newestQrUrl);
 
-      // Extract the transaction ID from the QR URL
-      const extractedTransactionId = extractTransactionIdFromQrUrl(
-        transaction.newestQrUrl
-      );
+        // Check if the URL contains a QR code (basic validation)
+        if (
+          !transaction.newestQrUrl.trim() ||
+          transaction.newestQrUrl.trim().length < 10
+        ) {
+          toast.error(t("qrCodeInvalid") || "Mã QR không hợp lệ");
+          return;
+        }
 
-      // Use the extracted transaction ID if available, otherwise fall back to the transaction ID
-      const sessionTransactionId = extractedTransactionId || transaction.id;
-      setTransactionId(sessionTransactionId);
+        // We already have the QR URL from the transaction data
+        setQrUrl(transaction.newestQrUrl);
 
-      setPaymentStatus("pending");
-      setShowQR(true);
+        // Extract the transaction ID from the QR URL
+        const extractedTransactionId = extractTransactionIdFromQrUrl(
+          transaction.newestQrUrl
+        );
 
-      // Set up the payment session with the extracted transaction ID
-      // First establish the connection, then join the session
-      PaymentService.startConnection()
-        .then(() => {
-          // Add a small delay to ensure the connection is fully established
-          return new Promise((resolve) => setTimeout(resolve, 1000));
-        })
-        .then(() => {
-          // Check if the connection is actually connected before joining
-          if (
-            PaymentService.getConnectionState() ===
-            signalR.HubConnectionState.Connected
-          ) {
-            return PaymentService.joinPaymentSession(sessionTransactionId);
-          } else {
-            throw new Error("Connection not established yet");
-          }
-        })
-        .catch((error) => {
-          console.error("Failed to set up payment session:", error);
-          toast.error(t("failedToConnectPaymentTryAgain"));
-        });
+        // Use the extracted transaction ID if available, otherwise fall back to the transaction ID
+        const sessionTransactionId = extractedTransactionId || transaction.id;
+        setTransactionId(sessionTransactionId);
+
+        setPaymentStatus("pending");
+        setShowQR(true);
+      } catch (error) {
+        console.error("Invalid QR URL:", error);
+        toast.error(t("qrCodeInvalid") || "Mã QR không hợp lệ");
+      }
     } else {
       toast.error(t("qrCodeNotAvailable"));
+    }
+  };
+
+  // Handle confirm transfer
+  const handleConfirmTransfer = async () => {
+    if (!selectedTransaction) return;
+
+    try {
+      // Show loading state
+      toast.info(t("processingConfirmation"), { autoClose: 2000 });
+
+      const response = await updateWithdrawalRequestStatus({
+        id: selectedTransaction.id,
+      }).unwrap();
+
+      console.log("Confirmation response:", response);
+
+      // Immediately refetch data after successful API call
+      refetch();
+
+      // Update payment status to success
+      setPaymentStatus("success");
+
+      // Show success message
+      toast.success(t("transferConfirmed"));
+
+      // Close QR dialog and show payment result
+      setShowQR(false);
+      setShowPaymentResult(true);
+
+      // Set payment details
+      setPaymentDetails({
+        amount: selectedTransaction.amount,
+        timestamp: new Date().toISOString(),
+        message: null,
+      });
+    } catch (error: any) {
+      console.error("Failed to confirm transfer:", error);
+
+      // Extract error message from the error response with fallbacks
+      const errorDetail =
+        error.data?.detail || error.data?.message || error.message;
+      toast.error(`${t("failedToConfirmTransfer")}: ${errorDetail}`);
+
+      // Update payment status to failed
+      setPaymentStatus("failed");
+
+      // Show payment result with failure details
+      setShowQR(false);
+      setShowPaymentResult(true);
+
+      // Set payment details with error message
+      setPaymentDetails({
+        amount: selectedTransaction.amount,
+        timestamp: new Date().toISOString(),
+        message: errorDetail || t("paymentProcessingIssue"),
+      });
     }
   };
 
@@ -787,11 +751,11 @@ export default function WithdrawalApprovalPage() {
                           <ArrowUpDown className="h-4 w-4" />
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[220px]">
+                      <TableHead className="w-[220px] text-center">
                         <Button
                           variant="ghost"
                           onClick={() => handleSort("clinicName")}
-                          className="flex items-center gap-1 font-semibold"
+                          className="flex items-center justify-center gap-1 font-semibold w-full"
                         >
                           {t("clinic")}
                           <ArrowUpDown className="h-4 w-4" />
@@ -813,8 +777,10 @@ export default function WithdrawalApprovalPage() {
                       <TableHead className="w-[150px] text-center">
                         {t("status")}
                       </TableHead>
-                      <TableHead>{t("description")}</TableHead>
-                      <TableHead className="w-[150px] text-right">
+                      <TableHead className="text-center">
+                        {t("description")}
+                      </TableHead>
+                      <TableHead className="w-[150px] text-center">
                         {t("actions")}
                       </TableHead>
                     </TableRow>
@@ -849,8 +815,8 @@ export default function WithdrawalApprovalPage() {
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="line-clamp-2 overflow-hidden">
+                          <TableCell className="text-center">
+                            <div className="line-clamp-2 overflow-hidden text-center mx-auto">
                               {transaction.clinicName}
                             </div>
                           </TableCell>
@@ -880,11 +846,11 @@ export default function WithdrawalApprovalPage() {
                               {getStatusBadge(transaction.status)}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <div className="max-w-[200px] line-clamp-2 overflow-hidden">
+                                  <div className="max-w-[200px] line-clamp-2 overflow-hidden mx-auto text-center">
                                     {transaction.description}
                                   </div>
                                 </TooltipTrigger>
@@ -896,8 +862,8 @@ export default function WithdrawalApprovalPage() {
                               </Tooltip>
                             </TooltipProvider>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                          <TableCell className="text-center">
+                            <div className="flex justify-center gap-2 mx-auto">
                               {transaction.status.toLowerCase() ===
                                 "waiting approval" &&
                                 transaction.transactionType.toLowerCase() ===
@@ -1200,20 +1166,6 @@ export default function WithdrawalApprovalPage() {
         open={showQR}
         onOpenChange={(open) => {
           if (!open) {
-            // When closing the dialog, safely leave the payment session
-            if (transactionId) {
-              try {
-                // Wrap in try-catch to prevent errors from bubbling up
-                PaymentService.leavePaymentSession(transactionId).catch(
-                  (error) => {
-                    console.error("Error leaving payment session:", error);
-                    // Don't throw the error further
-                  }
-                );
-              } catch (error) {
-                console.error("Error in payment session cleanup:", error);
-              }
-            }
             setShowQR(open);
           }
         }}
@@ -1230,11 +1182,32 @@ export default function WithdrawalApprovalPage() {
           <div className="flex flex-col items-center p-6">
             {qrUrl ? (
               <div className="relative w-64 h-64 mb-4">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <CreditCard className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                </div>
                 <Image
-                  src={qrUrl || "/placeholder.svg"}
+                  src={qrUrl || "/invalid.png"}
                   alt={t("paymentQRCode")}
                   fill
                   className="object-contain rounded-lg"
+                  onError={(e) => {
+                    // Prevent the default broken image behavior
+                    e.preventDefault();
+
+                    // Hide the broken image by making it transparent
+                    e.currentTarget.style.opacity = "0";
+
+                    // Show the fallback container that's underneath
+                    e.currentTarget.parentElement
+                      ?.querySelector(".bg-gray-100")
+                      ?.classList.remove("hidden");
+
+                    // Only log the error once
+                    console.error("Failed to load QR code image");
+
+                    // Remove the error handler to prevent infinite loops
+                    e.currentTarget.onerror = null;
+                  }}
                 />
               </div>
             ) : (
@@ -1278,6 +1251,23 @@ export default function WithdrawalApprovalPage() {
                 )}
               </div>
             </div>
+            <Button
+              onClick={handleConfirmTransfer}
+              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isUpdatingRequestStatus}
+            >
+              {isUpdatingRequestStatus ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("confirming")}
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  {t("confirmTransfer")}
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -85,6 +85,7 @@ export const withdrawalMessages: Messages["withdrawal"] = {
   // Toast messages
   processingApproval: "Đang xử lý phê duyệt...",
   processingRejection: "Đang xử lý từ chối...",
+  processingConfirmation: "Đang xử lý xác nhận...",
   withdrawalApprovedCompletePayment: "Rút tiền đã được phê duyệt. Vui lòng hoàn tất thanh toán.",
   withdrawalRequestApproved: "Yêu cầu rút tiền đã được phê duyệt thành công",
   withdrawalRequestRejected: "Yêu cầu rút tiền đã bị từ chối thành công",
@@ -94,8 +95,13 @@ export const withdrawalMessages: Messages["withdrawal"] = {
   failedToConnectPaymentTryAgain: "Không thể kết nối với dịch vụ thanh toán. Vui lòng thử lại.",
   qrCodeNotAvailable: "Mã QR không có sẵn cho giao dịch này",
   paymentFailedTryAgain: "Thanh toán thất bại. Vui lòng thử lại.",
+  transferConfirmed: "Chuyển khoản đã được xác nhận",
+  failedToConfirmTransfer: "Không thể xác nhận chuyển khoản",
+  confirming: "Đang xác nhận...",
+  qrCodeInvalid: "Mã QR không hợp lệ",
 
   // Misc
   viewQR: "Xem QR",
   exportFunctionalityMessage: "Chức năng xuất sẽ được triển khai tại đây",
+  confirmTransfer: "Xác nhận chuyển khoản",
 }

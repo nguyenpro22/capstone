@@ -17,24 +17,22 @@ export const customerScheduleQueryApi = createApi({
     getCustomerSchedules: builder.query<
       IResCommon<IListResponse<CustomerSchedule>>,
       {
-        customerName: string;
-        customerPhone: string;
-        pageIndex?: number;
-        pageSize?: number;
+        customerName: string
+        customerPhone: string
+        pageIndex?: number
+        pageSize?: number
+        searchTerm?: string
       }
     >({
-      query: ({
-        customerName,
-        customerPhone,
-        pageIndex = 1,
-        pageSize = 8,
-      }) => ({
-        url: `/customer-schedules/customer/${encodeURIComponent(
-          customerName
-        )}?customerPhone=${encodeURIComponent(
-          customerPhone
-        )}&pageIndex=${pageIndex}&pageSize=${pageSize}`,
+      query: ({ customerName= "", customerPhone = "", pageIndex = 1, pageSize = 8, searchTerm = "" }) => ({
+        url: `/customer-schedules/customer/${encodeURIComponent(customerName)}`,
         method: "GET",
+        params: {
+          customerPhone: customerPhone,
+          pageIndex: pageIndex,
+          pageSize: pageSize,
+          searchTerm: searchTerm,
+        },
       }),
       keepUnusedDataFor: 0,
     }),
@@ -71,11 +69,15 @@ export const customerScheduleQueryApi = createApi({
     }),
 
     // Get schedule by ID
-    getScheduleById: builder.query<IResCommon<CustomerSchedule>, string>({
-      query: (id) => ({
-        url: `/customer-schedules/${id}`,
-        method: "GET",
-      }),
+    getScheduleById: builder.query<IResCommon<CustomerSchedule>, { id: string; isNextSchedule?: boolean }>({
+      query: (params) => {
+        const { id, isNextSchedule = false } = params
+        return {
+          url: `customer-schedules/${id}`,
+          method: "GET",
+          params: { isNextSchedule },
+        }
+      },
       keepUnusedDataFor: 0,
     }),
 

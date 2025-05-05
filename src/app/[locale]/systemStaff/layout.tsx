@@ -18,7 +18,7 @@ export default function SystemStaffLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-[#FFF5F7] dark:bg-gray-950">
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-950 shadow-md dark:shadow-gray-900 transform transition-transform duration-300 ${
@@ -61,7 +61,7 @@ export default function SystemStaffLayout({
         </div>
 
         {/* Content with padding-top to account for fixed navbar */}
-        <main className="p-6 pt-[calc(4rem+1.5rem)] dark:bg-gray-950 dark:text-white">
+        <main className="p-6 pt-[calc(4rem+1.5rem)] bg-[#FFF5F7] dark:bg-gray-950 dark:text-white">
           {children}
         </main>
       </div>

@@ -124,5 +124,18 @@ export const clinicMessages: Messages["clinic"] = {
    city: "City",
    noDetailsAvailable: "No details available for this request",
    branchRequestsTitle: " Branch Requests List",
-   dateApplied: "Date Applied"
+   dateApplied: "Date Applied",
+   // Rejection reason translations
+   selectReasons: "Select reasons",
+   otherReason: "Other reason",
+   enterCustomRejectReason: "Enter custom rejection reason",
+   enterCustomBanReason: "Enter custom ban reason",
+   defaultRejectReason: "Your request has been rejected",
+   defaultBanReason: "Your request has been banned",
+   expiredLicense: "Expired license",
+   invalidTaxCode: "Invalid tax code",
+   invalidBusinessLicense: "Invalid business license",
+   invalidOperatingLicense: "Invalid operating license",
+   invalidContactInfo: "Invalid contact information (name, phone, email)",
+   otherReasonLabel: "Other reason"
 }

@@ -15,7 +15,6 @@ export type clinicMessages = {
   deleteClinic: string
   previous: string
   next: string
-
   // Added keys for ClinicDetailModal
   clinicDetails: string
   clinicName: string
@@ -29,7 +28,6 @@ export type clinicMessages = {
   profilePicture: string
   viewProfilePicture: string
   close: string
-
   // Added keys for clinic-form
   updateClinicInfo: string
   basicInfo: string
@@ -67,14 +65,12 @@ export type clinicMessages = {
   updateSuccess: string
   updateFailed: string
   fixErrors: string
-
   // Added keys for bank selection
   loadingBanks: string
   searchBank: string
   noBanksFound: string
   bankingInfoHelp: string
   copyToClipboard: string
-  
   // New fields for partnership request component
   partnershipRequests: string
   totalRequests: string
@@ -102,14 +98,12 @@ export type clinicMessages = {
   partnershipRequestAccepted: string
   partnershipRequestRejected: string
   partnershipRequestBanned: string
-  failedToUpdateRequest: string
-  
+  failedToUpdateRequest: string 
   // New fields for branch request component
   branchName: string
   requestDate: string
   parentEmail: string
   branchRequests: string
-  
   // New fields for branch request detail component
   partnershipRequestDetails: string
   detailedInformationAboutRequest: string
@@ -124,4 +118,19 @@ export type clinicMessages = {
   noDetailsAvailable: string
   branchRequestsTitle: string
   dateApplied: string
+  // New fields for rejection reasons
+  selectReasons: string
+  otherReason: string
+  enterCustomRejectReason: string
+  enterCustomBanReason: string
+  defaultRejectReason: string
+  defaultBanReason: string
+
+  // Specific rejection reasons
+  expiredLicense: string
+  invalidTaxCode: string
+  invalidBusinessLicense: string
+  invalidOperatingLicense: string
+  invalidContactInfo: string
+  otherReasonLabel: string
 }

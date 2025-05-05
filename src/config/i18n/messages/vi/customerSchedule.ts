@@ -19,15 +19,15 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   search: "Tìm kiếm",
   clear: "Xóa",
   found: "Tìm thấy",
-  scheduleFor: "lịch hẹn cho",
+  scheduleFor: "lịch hẹn",
   noSchedulesFound: "Không tìm thấy lịch hẹn cho",
   showingAllAppointments: "Hiển thị tất cả các cuộc hẹn",
   from: "từ",
   to: "đến",
   showingUpcomingAppointments: "Hiển thị các cuộc hẹn sắp tới",
-  forTheNext90Days: "trong 90 ngày tới",
+  forTheNext180Days: "trong 180 ngày tới",
   showingPastAppointments: "Hiển thị các cuộc hẹn đã qua",
-  fromTheLast90Days: "từ 90 ngày trước",
+  fromTheLast180Days: "từ 180 ngày trước",
   customer: "Khách hàng",
   service: "Dịch vụ",
   doctor: "Bác sĩ",
@@ -164,4 +164,11 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   back: "Quay lại",
 
   rescheduleSuccess: "Đặt lại lịch thành công",
+
+  // Các field còn thiếu từ schedules-page.tsx
+  loadingNextAppointment: "Đang tải cuộc hẹn tiếp theo...",
+  nextAppointmentFound: "Đã tìm thấy cuộc hẹn tiếp theo",
+  nextAppointmentNotFound: "Không tìm thấy cuộc hẹn tiếp theo",
+  failedToFindNextAppointment: "Không thể tìm thấy cuộc hẹn tiếp theo",
+  errorFetchingNextAppointment: "Lỗi khi tìm kiếm cuộc hẹn tiếp theo"
 }

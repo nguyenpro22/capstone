@@ -76,6 +76,13 @@ const menuItems = {
       path: "/systemAdmin/dashboard",
       icon: LayoutDashboard,
     },
+    { label: "clinic", path: "/systemAdmin/clinic", icon: Building2 },
+    { label: "partnership", path: "/systemAdmin/partnership", icon: Layers },
+    {
+      label: "branchRequest",
+      path: "/systemAdmin/branch-request",
+      icon: Building2,
+    },
     { label: "user", path: "/systemAdmin/user", icon: User },
     { label: "package", path: "/systemAdmin/package", icon: Archive },
     {
