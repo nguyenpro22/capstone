@@ -660,10 +660,10 @@ const TimeSeriesBarChart: React.FC<{
               </svg>
             </div>
             <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              {t("dailyView.noData.title")}
+              {t("charts.noData.title")}
             </h4>
             <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
-              {t("dailyView.noData.message")}
+              {t("charts.noData.message")}
             </p>
           </div>
         )}
@@ -1188,10 +1188,10 @@ const Dashboard: React.FC = () => {
                         </svg>
                       </div>
                       <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        {t("dailyView.noData.title")}
+                        {t("charts.noData.title")}
                       </h4>
                       <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
-                        {t("dailyView.noData.message")}
+                        {t("charts.noData.message")}
                       </p>
                     </div>
                   )}

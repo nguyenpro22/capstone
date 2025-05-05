@@ -130,7 +130,11 @@ export const dashboardMessages: Messages["dashboard"] = {
       customerOrders: "Customer Orders",
       scheduleStatus: "Schedule Status",
       revenuePerformance: "Revenue Performance",
-      scheduleStatusDistribution: "Schedule Status Distribution"
+      scheduleStatusDistribution: "Schedule Status Distribution",
+      noData: {
+        title: "No Weekly Data Available",
+        message: "No data is available for the selected date range. Try selecting a different date range."
+      }
       
     },
     metrics: {
