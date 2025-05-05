@@ -26,6 +26,8 @@ export const service: Messages["service"] = {
   retry: "Retry",
   noData: "No Data Available",
   unableToLoadServices: "Unable to load services at this time",
+  serviceCategories: "Service Categories",
+  category: "Category",
 
   // Service card messages
   serviceCard: {

@@ -255,6 +255,8 @@ export const service: Messages["service"] = {
   retry: "Thử lại",
   noData: "Không có dữ liệu",
   unableToLoadServices: "Không thể tải dịch vụ vào lúc này",
+  serviceCategories: "Danh mục dịch vụ",
+  category: "Danh mục",
 
   // Service card messages
   serviceCard: {
