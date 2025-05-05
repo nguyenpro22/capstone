@@ -127,7 +127,7 @@ export function BookingSuccess({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col sm:flex-row gap-3 w-full">
+      {/* <div className="flex flex-col sm:flex-row gap-3 w-full">
         <Button variant="outline" className="flex-1" onClick={onClose}>
           <Home className="mr-2 h-4 w-4" />
           {t("backToHome")}
@@ -136,7 +136,7 @@ export function BookingSuccess({
           <Calendar className="mr-2 h-4 w-4" />
           {t("viewAppointments")}
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -1880,6 +1880,9 @@ export default function ServiceDetail() {
                         variant="outline"
                         size="sm"
                         className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                        onClick={() => {
+                          router.push(`/clinic-view/${service.branding.id}`);
+                        }}
                       >
                         {t("viewProfile")}
                         <ArrowUpRight className="h-3 w-3 ml-1" />
