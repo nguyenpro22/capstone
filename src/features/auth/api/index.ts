@@ -43,7 +43,10 @@ export const authApi = createApi({
       },
     }),
 
-    refreshToken: builder.mutation<IResCommon<IRefreshToken>, IRefreshTokenRequest>({
+    refreshToken: builder.mutation<
+      IResCommon<IRefreshToken>,
+      IRefreshTokenRequest
+    >({
       query: (credentials) => ({
         url: "/auth/refresh_token",
         method: "POST",
@@ -56,7 +59,6 @@ export const authApi = createApi({
         method: "POST",
         body: userData,
       }),
-      
     }),
     verify: builder.mutation<IResCommon<ILoginResponse>, IVerifyRequest>({
       query: (credentials) => ({
@@ -79,7 +81,10 @@ export const authApi = createApi({
         body: data,
       }),
     }),
-    changePasswordStaff: builder.mutation<Response, IChangePasswordStaffRequest>({
+    changePasswordStaff: builder.mutation<
+      Response,
+      IChangePasswordStaffRequest
+    >({
       query: (data) => ({
         url: "/auth/change_password/staff",
         method: "POST",
