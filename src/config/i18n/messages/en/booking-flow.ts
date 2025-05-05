@@ -128,4 +128,5 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
     10: "November",
     11: "December",
   },
+  bookingCancelledMessage: "Booking cancelled successfully.",
 };

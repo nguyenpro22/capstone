@@ -129,4 +129,5 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
     10: "11",
     11: "12",
   },
+  bookingCancelledMessage: "Hủy đặt lịch thành công.",
 };
