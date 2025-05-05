@@ -882,10 +882,23 @@ export default function SchedulesPage() {
       toast.success(t("checkedInSuccessfully"));
 
       if (searchPerformed) {
-        delayedGetCustomerSchedules({
-          customerName,
-          customerPhone,
-        });
+        // Nếu đang xem lịch hẹn tiếp theo (sau khi nhấn viewNext)
+        if (searchResults.length === 1 && searchResults[0].id === schedule.id) {
+          // Cập nhật trực tiếp searchResults với trạng thái mới
+          setSearchResults((prev) =>
+            prev.map((item) =>
+              item.id === schedule.id
+                ? { ...item, status: "In Progress" }
+                : item
+            )
+          );
+        } else {
+          // Trường hợp tìm kiếm thông thường
+          delayedGetCustomerSchedules({
+            customerName,
+            customerPhone,
+          });
+        }
       } else {
         fetchClinicSchedules();
       }
@@ -907,10 +920,27 @@ export default function SchedulesPage() {
       toast.success(t("checkedInSuccessfully"));
 
       if (searchPerformed) {
-        delayedGetCustomerSchedules({
-          customerName,
-          customerPhone,
-        });
+        // Nếu đang xem lịch hẹn tiếp theo (sau khi nhấn viewNext)
+        if (
+          searchResults.length === 1 &&
+          earlyCheckInSchedule &&
+          searchResults[0].id === earlyCheckInSchedule.id
+        ) {
+          // Cập nhật trực tiếp searchResults với trạng thái mới
+          setSearchResults((prev) =>
+            prev.map((item) =>
+              item.id === earlyCheckInSchedule.id
+                ? { ...item, status: "In Progress" }
+                : item
+            )
+          );
+        } else {
+          // Trường hợp tìm kiếm thông thường
+          delayedGetCustomerSchedules({
+            customerName,
+            customerPhone,
+          });
+        }
       } else {
         fetchClinicSchedules();
       }
@@ -1565,10 +1595,34 @@ export default function SchedulesPage() {
                                                   )
                                                 );
                                                 if (searchPerformed) {
-                                                  delayedGetCustomerSchedules({
-                                                    customerName,
-                                                    customerPhone,
-                                                  });
+                                                  // Nếu đang xem lịch hẹn tiếp theo (sau khi nhấn viewNext)
+                                                  if (
+                                                    searchResults.length ===
+                                                      1 &&
+                                                    searchResults[0].id ===
+                                                      schedule.id
+                                                  ) {
+                                                    // Cập nhật trực tiếp searchResults với trạng thái mới
+                                                    setSearchResults((prev) =>
+                                                      prev.map((item) =>
+                                                        item.id === schedule.id
+                                                          ? {
+                                                              ...item,
+                                                              status:
+                                                                "Completed",
+                                                            }
+                                                          : item
+                                                      )
+                                                    );
+                                                  } else {
+                                                    // Trường hợp tìm kiếm thông thường
+                                                    delayedGetCustomerSchedules(
+                                                      {
+                                                        customerName,
+                                                        customerPhone,
+                                                      }
+                                                    );
+                                                  }
                                                 } else {
                                                   fetchClinicSchedules();
                                                 }

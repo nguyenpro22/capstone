@@ -97,7 +97,7 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
   // Handle actual logout after confirmation
   const handleConfirmedLogout = () => {
     clearCookieStorage();
-    router.push("/login");
+    router.push("/login-partner");
   };
 
   // Handle success dialog confirmation
@@ -105,9 +105,9 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
     // Only proceed if component is still mounted
     if (isMounted.current) {
       setShowSuccessDialog(false);
-      if (onComplete) onComplete();
+      // if (onComplete) onComplete();
       clearCookieStorage();
-      router.push("/login");
+      router.push("/login-partner");
     }
   };
 
