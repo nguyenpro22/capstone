@@ -90,4 +90,14 @@ export type livestream = {
   minutesAgo: string
   justNow: string
   noDescription: string
+  // New fields for event wizard
+  basicInformation: string
+  eventDescription: string
+  enterEventName: string
+  enterEventDescription: string
+  // Additional fields for delete confirmation dialog
+  deleting: string
+  delete: string
+  confirmDeleteTitle: string
+  createNewEvent: string
 };

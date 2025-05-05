@@ -37,10 +37,10 @@ export default function ConfigsContent() {
       <TabsContent value="shifts" className="mt-6">
         <Card className="border-purple-100 dark:border-purple-800/20 shadow-sm">
           <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/5 dark:to-indigo-900/5 rounded-t-lg">
-            <CardTitle className="text-xl text-purple-800 dark:text-purple-300 flex items-center gap-2">
+            {/* <CardTitle className="text-xl text-purple-800 dark:text-purple-300 flex items-center gap-2">
               <Clock className="h-5 w-5" />
               {t("shifts.title")}
-            </CardTitle>
+            </CardTitle> */}
             <CardDescription className="text-purple-600/80 dark:text-purple-400/80">
               {t("shifts.description")}
             </CardDescription>

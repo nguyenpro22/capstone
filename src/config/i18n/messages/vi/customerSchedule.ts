@@ -53,7 +53,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   completed: "Đã hoàn thành",
   pending: "Đang chờ",
   inProgress: "Đang tiến hành",
-  uncompleted: "Chưa hoàn thành",
+  cancelled: "hủy bỏ",
   waitingApproval: "Chờ duyệt",
   badRequest: "Yêu cầu không hợp lệ",
   pleaseEnterNameOrPhone: "Vui lòng nhập tên hoặc số điện thoại",
@@ -170,5 +170,6 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   nextAppointmentFound: "Đã tìm thấy cuộc hẹn tiếp theo",
   nextAppointmentNotFound: "Không tìm thấy cuộc hẹn tiếp theo",
   failedToFindNextAppointment: "Không thể tìm thấy cuộc hẹn tiếp theo",
-  errorFetchingNextAppointment: "Lỗi khi tìm kiếm cuộc hẹn tiếp theo"
+  errorFetchingNextAppointment: "Lỗi khi tìm kiếm cuộc hẹn tiếp theo",
+  doctorNote:"Ghi chú của bác sĩ",
 }

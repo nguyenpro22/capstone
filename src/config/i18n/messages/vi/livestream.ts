@@ -95,4 +95,14 @@ export const livestream: Messages["livestream"] = {
   minutesAgo: "phút trước",
   justNow: "Vừa xong",
   noDescription: "Không có mô tả",
+  // Add these fields to the Vietnamese translation file
+  basicInformation: "Thông Tin Cơ Bản",
+  eventDescription: "Mô Tả Sự Kiện",
+  enterEventName: "Nhập tên sự kiện",
+  enterEventDescription: "Nhập mô tả sự kiện",
+  // Add missing fields for event wizard and confirmation dialog
+  deleting: "Đang xóa...",
+  delete: "Xóa",
+  confirmDeleteTitle: "Xác Nhận Xóa",
+  createNewEvent: "Tạo Sự Kiện Mới",
 };

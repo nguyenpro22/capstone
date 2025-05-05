@@ -95,4 +95,14 @@ export const livestream: Messages["livestream"] = {
   minutesAgo: "minutes ago",
   justNow: "Just now",
   noDescription: "No description",
+  // Add these fields to the English translation file
+  basicInformation: "Basic Information",
+  eventDescription: "Event Description",
+  enterEventName: "Enter event name",
+  enterEventDescription: "Enter event description",
+  // Add missing fields for event wizard and confirmation dialog
+  deleting: "Deleting...",
+  delete: "Delete",
+  confirmDeleteTitle: "Confirm Deletion",
+  createNewEvent: "Create New Event",
 };

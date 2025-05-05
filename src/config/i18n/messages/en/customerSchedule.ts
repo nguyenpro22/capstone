@@ -53,7 +53,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   completed: "Completed",
   pending: "Pending",
   inProgress: "In Progress",
-  uncompleted: "Uncompleted",
+  cancelled: "Cancelled",
   waitingApproval:"Waiting Approval",
   badRequest: "Bad Request",
   pleaseEnterNameOrPhone: "Please enter a name or phone number",
@@ -178,4 +178,5 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   nextAppointmentNotFound: "Next appointment not found",
   failedToFindNextAppointment: "Failed to find next appointment",
   errorFetchingNextAppointment: "Error fetching next appointment",
+  doctorNote: "Doctor notes"
 };

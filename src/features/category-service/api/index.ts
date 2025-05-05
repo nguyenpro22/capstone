@@ -26,6 +26,10 @@ export const categoryQueryApi = createApi({
     getAllCategories: builder.query<IResCommon<IListResponse<CategoryDetail>>, void>({
       query: () => `/categories?pageIndex=1&pageSize=1000&sortOrder=desc&searchTerm=IsParent==true`,
     }),
+
+    getAllCategoriesV2: builder.query<IResCommon<IListResponse<CategoryDetail>>, void>({
+      query: () => `/categories?pageIndex=1&pageSize=1000&sortOrder=desc&searchTerm=IsParent==false`,
+    }),
     
     getCategoryById: builder.query<IResCommon<CategoryDetail>, string>({
       query: (id) => `categories/${id}?id=${id}`,
@@ -72,6 +76,7 @@ export const categoryCommandApi = createApi({
 
 export const { useGetCategoriesQuery, useLazyGetCategoryByIdQuery,
   useGetAllCategoriesQuery,
+  useGetAllCategoriesV2Query,
  } = categoryQueryApi;
 export const { useCreateCategoryMutation,
               useUpdateCategoryMutation, // Thêm API cập nhật gói

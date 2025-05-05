@@ -50,7 +50,7 @@ export type customerScheduleTranslations = {
   completed: string
   pending: string
   inProgress: string
-  uncompleted: string
+  cancelled: string
   waitingApproval: string
   badRequest: string
   pleaseEnterNameOrPhone: string
@@ -163,4 +163,5 @@ export type customerScheduleTranslations = {
   nextAppointmentNotFound: string
   failedToFindNextAppointment: string
   errorFetchingNextAppointment: string
+  doctorNote: string
 }

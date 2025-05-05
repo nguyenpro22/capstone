@@ -90,4 +90,5 @@ export const branchMessages: Messages["branch"] = {
   operatingHours: "Operating Hours",
   workingTimeStart: "Opening Time",
   workingTimeEnd: "Closing Time",
+  errorFetching: "An error occurred, please try again later."
 }

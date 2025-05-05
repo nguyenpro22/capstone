@@ -1,6 +1,6 @@
 export type doctorMessages = {
-    // Page titles and general
-    doctorList: string
+  // Page titles and general
+  doctorList: string
   addNewDoctor: string
   noDoctorsAvailable: string
   addYourFirstDoctor: string
@@ -68,6 +68,25 @@ export type doctorMessages = {
 
   // Certificate related
   doctorCertificates: string
+  certificateName: string
+  editCertificate: string
+  deleteCertificate: string
+  addCertificate: string
+  updateCertificate: string
+  certificateNameAndExpiryRequired: string
+  certificateUpdatedSuccess: string
+  certificateUpdateFailed: string
+  certificateDeletedSuccess: string
+  certificateDeleteFailed: string
+  replaceCertificateFile: string
+  clickToUploadNewFile: string
+  currentCertificate: string
+  optional: string
+  deleting: string
+  deleteCertificateConfirmation: string
+  categoryId: string
+  selectCategory: string
+  loadingCategories: string
   expiryDate: string
   note: string
   viewCertificate: string

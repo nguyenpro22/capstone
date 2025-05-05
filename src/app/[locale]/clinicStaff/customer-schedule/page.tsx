@@ -241,10 +241,10 @@ export default function SchedulesPage() {
             {t("inProgress")}
           </Badge>
         );
-      case "uncompleted":
+      case "cancelled":
         return (
           <Badge className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700">
-            {t("uncompleted")}
+            {t("cancelled")}
           </Badge>
         );
       default:
@@ -916,11 +916,6 @@ export default function SchedulesPage() {
 
   const handleViewNextAppointment = async (schedule: CustomerSchedule) => {
     try {
-      // // Show loading state
-      // toast.info(t("loadingNextAppointment"), {
-      //   autoClose: 2000,
-      // });
-
       // Call the API with isNextSchedule = true
       const result = await getScheduleById({
         id: schedule.id,
@@ -1658,7 +1653,35 @@ export default function SchedulesPage() {
                                           className="text-red-600"
                                           onClick={() => {
                                             setOpenDropdownId(null);
-                                            // Your cancel logic here
+                                            updateScheduleStatus({
+                                              scheduleId: schedule.id,
+                                              status: "Cancelled",
+                                            })
+                                              .unwrap()
+                                              .then(() => {
+                                                toast.success(
+                                                  t(
+                                                    "appointmentCancelledSuccessfully"
+                                                  )
+                                                );
+                                                if (searchPerformed) {
+                                                  delayedGetCustomerSchedules({
+                                                    customerName,
+                                                    customerPhone,
+                                                  });
+                                                } else {
+                                                  fetchClinicSchedules();
+                                                }
+                                              })
+                                              .catch((error) => {
+                                                console.error(
+                                                  "Failed to cancel appointment:",
+                                                  error
+                                                );
+                                                toast.error(
+                                                  t("failedToCancelAppointment")
+                                                );
+                                              });
                                           }}
                                         >
                                           {t("cancel")}
@@ -1889,7 +1912,35 @@ export default function SchedulesPage() {
                                           className="text-red-600"
                                           onClick={() => {
                                             setOpenDropdownId(null);
-                                            // Your cancel logic here
+                                            updateScheduleStatus({
+                                              scheduleId: schedule.id,
+                                              status: "Cancelled",
+                                            })
+                                              .unwrap()
+                                              .then(() => {
+                                                toast.success(
+                                                  t(
+                                                    "appointmentCancelledSuccessfully"
+                                                  )
+                                                );
+                                                if (searchPerformed) {
+                                                  delayedGetCustomerSchedules({
+                                                    customerName,
+                                                    customerPhone,
+                                                  });
+                                                } else {
+                                                  fetchClinicSchedules();
+                                                }
+                                              })
+                                              .catch((error) => {
+                                                console.error(
+                                                  "Failed to cancel appointment:",
+                                                  error
+                                                );
+                                                toast.error(
+                                                  t("failedToCancelAppointment")
+                                                );
+                                              });
                                           }}
                                         >
                                           {t("cancel")}

@@ -1,103 +1,122 @@
 import { Messages } from "../types";
 
 export const doctorMessages: Messages["staffDoctor"] = {
-  // Page titles and general
-  doctorList: "Doctor List",
-  addNewDoctor: "Add New Doctor",
-  noDoctorsAvailable: "No doctors available",
-  addYourFirstDoctor: "Add your first doctor",
+ // Page titles and general
+ doctorList: "Doctor List",
+ addNewDoctor: "Add New Doctor",
+ noDoctorsAvailable: "No doctors available",
+ addYourFirstDoctor: "Add your first doctor",
 
-  // Table headers
-  no: "No.",
-  fullName: "Full Name",
-  firstName: "First Name",
-  lastName: "Last Name",
-  email: "Email",
-  phoneNumber: "Phone Number",
-  role: "Role",
-  branches: "Branches",
-  branch: "Branch",
-  address: "Address",
-  action: "Action",
+ // Table headers
+ no: "No.",
+ fullName: "Full Name",
+ firstName: "First Name",
+ lastName: "Last Name",
+ email: "Email",
+ phoneNumber: "Phone Number",
+ role: "Role",
+ branches: "Branches",
+ branch: "Branch",
+ address: "Address",
+ action: "Action",
 
-  // Actions and buttons
-  viewDoctorDetail: "View Doctor Detail",
-  editDoctor: "Edit Doctor",
-  deleteDoctor: "Delete Doctor",
-  changeBranch: "Change Branch",
-  save: "Save",
-  saving: "Saving...",
-  cancel: "Cancel",
-  close: "Close",
+ // Actions and buttons
+ viewDoctorDetail: "View Doctor Detail",
+ editDoctor: "Edit Doctor",
+ deleteDoctor: "Delete Doctor",
+ changeBranch: "Change Branch",
+ save: "Save",
+ saving: "Saving...",
+ cancel: "Cancel",
+ close: "Close",
 
-  // Form fields and validation
-  branchRequired: "Branch is required",
-  selectBranch: "Select branch",
-  loadingBranches: "Loading branches...",
+ // Form fields and validation
+ branchRequired: "Branch is required",
+ selectBranch: "Select branch",
+ loadingBranches: "Loading branches...",
 
-  // Success and error messages
-  doctorAddedSuccess: "Doctor added successfully!",
-  doctorAddedFailed: "Failed to add doctor. Please try again.",
-  doctorUpdatedSuccess: "Doctor updated successfully!",
-  doctorUpdatedFailed: "Failed to update doctor. Please try again.",
-  doctorDeletedSuccess: "Doctor deleted successfully!",
-  doctorDeletedFailed: "Failed to delete doctor!",
-  branchChangedSuccess: "Doctor's branch changed successfully!",
-  branchChangeFailed: "Failed to change doctor's branch. Please try again.",
-  clinicIdNotFound: "Clinic ID not found. Please try again or contact support.",
+ // Success and error messages
+ doctorAddedSuccess: "Doctor added successfully!",
+ doctorAddedFailed: "Failed to add doctor. Please try again.",
+ doctorUpdatedSuccess: "Doctor updated successfully!",
+ doctorUpdatedFailed: "Failed to update doctor. Please try again.",
+ doctorDeletedSuccess: "Doctor deleted successfully!",
+ doctorDeletedFailed: "Failed to delete doctor!",
+ branchChangedSuccess: "Doctor's branch changed successfully!",
+ branchChangeFailed: "Failed to change doctor's branch. Please try again.",
+ clinicIdNotFound: "Clinic ID not found. Please try again or contact support.",
 
-  // Doctor details
-  doctorDetails: "Doctor Details",
-  profilePicture: "Profile Picture",
+ // Doctor details
+ doctorDetails: "Doctor Details",
+ profilePicture: "Profile Picture",
 
-  // Branch related
-  changingBranchFor: "Changing branch for",
-  currentBranch: "Current Branch",
-  newBranch: "New Branch",
-  selectDestinationBranch: "Select Destination Branch",
-  noAvailableBranches: "No available branches to transfer to",
-  processing: "Processing...",
-  viewAllBranches: "View all",
-  allBranches: "All Branches",
+ // Branch related
+ changingBranchFor: "Changing branch for",
+ currentBranch: "Current Branch",
+ newBranch: "New Branch",
+ selectDestinationBranch: "Select Destination Branch",
+ noAvailableBranches: "No available branches to transfer to",
+ processing: "Processing...",
+ viewAllBranches: "View all",
+ allBranches: "All Branches",
 
-  // Search
-  searchByName: "Search by name",
+ // Search
+ searchByName: "Search by name",
 
-  // Edit doctor form tabs
-  basicInfo: "Basic Info",
-  certificates: "Certificates",
-  photo: "Photo",
+ // Edit doctor form tabs
+ basicInfo: "Basic Info",
+ certificates: "Certificates",
+ photo: "Photo",
 
-  // Certificate related
-  doctorCertificates: "Doctor Certificates",
-  expiryDate: "Expiry Date",
-  note: "Note",
-  viewCertificate: "View Certificate",
-  expired: "Expired",
-  noCertificates: "No certificates available",
-  certificateNote:
-    "Certificates can be added or updated through the doctor management section. Changes made here will only update the doctor's basic information.",
+ // Certificate related
+ doctorCertificates: "Doctor Certificates",
+ certificateName: "Certificate Name",
+ editCertificate: "Edit Certificate",
+ deleteCertificate: "Delete Certificate",
+ addCertificate: "Add Certificate",
+ updateCertificate: "Update Certificate",
+ certificateNameAndExpiryRequired: "Certificate name and expiry date are required",
+ certificateUpdatedSuccess: "Certificate updated successfully!",
+ certificateUpdateFailed: "Failed to update certificate. Please try again.",
+ certificateDeletedSuccess: "Certificate deleted successfully!",
+ certificateDeleteFailed: "Failed to delete certificate. Please try again.",
+ replaceCertificateFile: "Replace Certificate File",
+ clickToUploadNewFile: "Click to upload new certificate file",
+ currentCertificate: "Current Certificate",
+ optional: "Optional",
+ deleting: "Deleting...",
+ deleteCertificateConfirmation: "Are you sure you want to delete this certificate? This action cannot be undone.",
+ categoryId: "Category",
+ selectCategory: "Select a category",
+ loadingCategories: "Loading categories...",
+ expiryDate: "Expiry Date",
+ note: "Note",
+ viewCertificate: "View Certificate",
+ expired: "Expired",
+ noCertificates: "No certificates available",
+ certificateNote:
+   "Certificates can be added or updated through the doctor management section. Changes made here will only update the doctor's basic information.",
 
-  // Address related
-  city: "Province/City",
-  district: "District",
-  ward: "Ward",
-  fullAddress: "Full Address",
+ // Address related
+ city: "Province/City",
+ district: "District",
+ ward: "Ward",
+ fullAddress: "Full Address",
 
-  // Photo related
-  uploadProfilePictureDesc: "Upload a profile picture for this doctor",
-  uploadImage: "Upload Image",
-  remove: "Remove",
-  currentPhoto: "Current photo",
+ // Photo related
+ uploadProfilePictureDesc: "Upload a profile picture for this doctor",
+ uploadImage: "Upload Image",
+ remove: "Remove",
+ currentPhoto: "Current photo",
 
-  // Status messages
-  editingBasicInfo: "Editing basic information",
-  viewingCertificates: "Viewing certificates",
-  editingAddress: "Editing address information",
-  editingPhoto: "Editing profile photo",
-  updateDoctorInfo: "Update doctor information",
-  changeDoctorBranch: "Change Doctor's Branch",
-  updateDoctorBranch: "Update the branch assignment for this doctor",
-  deleteDoctorConfirmation:"Are you sure you want to delete this doctor? This action cannot be undone.",
-  confirmDelete: "Confirm Delete",
+ // Status messages
+ editingBasicInfo: "Editing basic information",
+ viewingCertificates: "Viewing certificates",
+ editingAddress: "Editing address information",
+ editingPhoto: "Editing profile photo",
+ updateDoctorInfo: "Update doctor information",
+ changeDoctorBranch: "Change Doctor's Branch",
+ updateDoctorBranch: "Update the branch assignment for this doctor",
+ deleteDoctorConfirmation:"Are you sure you want to delete this doctor? This action cannot be undone.",
+ confirmDelete: "Confirm Delete",
 }
