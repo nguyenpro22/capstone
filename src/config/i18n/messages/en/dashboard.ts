@@ -131,6 +131,7 @@ export const dashboardMessages: Messages["dashboard"] = {
       scheduleStatus: "Schedule Status",
       revenuePerformance: "Revenue Performance",
       scheduleStatusDistribution: "Schedule Status Distribution"
+      
     },
     metrics: {
       customerMetrics: "Customer Metrics",

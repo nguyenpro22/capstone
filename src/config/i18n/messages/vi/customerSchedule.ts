@@ -172,4 +172,10 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   failedToFindNextAppointment: "Không thể tìm thấy cuộc hẹn tiếp theo",
   errorFetchingNextAppointment: "Lỗi khi tìm kiếm cuộc hẹn tiếp theo",
   doctorNote:"Ghi chú của bác sĩ",
+  appointmentCancelledSuccessfully: "Hủy lịch hẹn thành công",
+  failedToCancelAppointment: "Không thể hủy lịch hẹn",
+  onlyPendingAppointmentsCanBeCancelled: "Chỉ có thể hủy các lịch hẹn đang chờ xử lý",
+  searchError: "Đã xảy ra lỗi khi tìm kiếm",
+  serverErrorMessage: "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau.",
+  cancelling: "Đang hủy..."
 }

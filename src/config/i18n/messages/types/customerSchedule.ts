@@ -164,4 +164,11 @@ export type customerScheduleTranslations = {
   failedToFindNextAppointment: string
   errorFetchingNextAppointment: string
   doctorNote: string
+  
+  appointmentCancelledSuccessfully: string;
+  failedToCancelAppointment: string;
+  onlyPendingAppointmentsCanBeCancelled: string;
+  searchError: string;
+  serverErrorMessage: string;
+  cancelling: string;
 }
