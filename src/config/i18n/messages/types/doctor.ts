@@ -19,6 +19,7 @@ type Calendar = {
   cancel: string;
   noNotes: string;
   enterNotes: string;
+  noteAdded: string;
 };
 
 type Time = {

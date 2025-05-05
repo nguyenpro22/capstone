@@ -49,6 +49,8 @@ import { livestreamMessages } from "./livestream-view";
 import { userProfileMessages } from "./user-profile";
 import { policy } from "./policy";
 import { livestreamRoomMessages } from "./livestream-room-view";
+import { bookingDetailDialog } from "./bookingDetailDialog";
+import { events } from "./events";
 
 const en = {
   home: homeMessages,
@@ -102,6 +104,8 @@ const en = {
   userProfileMessages,
   policy,
   livestreamRoomMessages,
+  bookingDetailDialog,
+  events,
 };
 
 export default en;

@@ -18,6 +18,7 @@ import authReducer from "@/features/auth/slice";
 // APIs
 import { authApi } from "@/features/auth/api";
 import { landingApi } from "@/features/landing/api";
+import { landingQueryApi } from "@/features/landing/api";
 import { addressApi } from "@/features/address/api";
 import { paymentsApi } from "@/features/payment/api";
 import {
@@ -72,13 +73,14 @@ import {
 import { livestreamQueryApi } from "@/features/livestream/api";
 import { configsCommandApi, configsQueryApi } from "@/features/configs/api";
 import { userQueryApi } from "@/features/user/api";
+import { followQueryApi, followCommandApi } from "@/features/follows/api";
 import { eventCommandApi, eventQueryApi } from "@/features/event/api";
 
 // Redux Persist config
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"], // only persist auth slice
+  whitelist: ["auth"],
 };
 
 // Combine reducers
@@ -138,10 +140,11 @@ const rootReducer = combineReducers({
   [configsCommandApi.reducerPath]: configsCommandApi.reducer,
   [userQueryApi.reducerPath]: userQueryApi.reducer,
   [doctorServiceApi.reducerPath]: doctorServiceApi.reducer,
+  [landingQueryApi.reducerPath]: landingQueryApi.reducer,
+  [followQueryApi.reducerPath]: followQueryApi.reducer,
+  [followCommandApi.reducerPath]: followCommandApi.reducer,
   [eventQueryApi.reducerPath]: eventQueryApi.reducer,
   [eventCommandApi.reducerPath]: eventCommandApi.reducer,
-
-
 });
 
 // Persisted reducer
@@ -203,9 +206,11 @@ const store = configureStore({
       configsCommandApi.middleware,
       userQueryApi.middleware,
       doctorServiceApi.middleware,
+      landingQueryApi.middleware,
+      followQueryApi.middleware,
+      followCommandApi.middleware,
       eventQueryApi.middleware,
-      eventCommandApi.middleware,
-
+      eventCommandApi.middleware
     ),
 });
 

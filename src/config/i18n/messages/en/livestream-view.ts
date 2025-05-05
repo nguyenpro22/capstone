@@ -48,4 +48,8 @@ export const livestreamMessages: Messages["livestreamMessages"] = {
     privacy: "Privacy Policy",
     contact: "Contact",
   },
+  tabs: {
+    livestream: "Livestream Preview",
+    events: "All Events",
+  },
 };

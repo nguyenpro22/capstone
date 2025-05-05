@@ -48,4 +48,8 @@ export const livestreamMessages: Messages["livestreamMessages"] = {
     privacy: "Chính Sách Bảo Mật",
     contact: "Liên Hệ",
   },
+  tabs: {
+    livestream: "Xem Trước Phát Trực Tiếp",
+    events: "Tất Cả Sự Kiện",
+  },
 };

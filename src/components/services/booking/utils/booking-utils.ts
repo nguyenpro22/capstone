@@ -62,8 +62,12 @@ export function generateTimeSlots(
     const startMinutes = startHour * 60 + startMinute;
     const endMinutes = endHour * 60 + endMinute;
 
-    // Generate slots at 30-minute intervals
-    for (let time = startMinutes; time < endMinutes; time += INTERVAL_MINUTES) {
+    // Làm tròn lên mốc 30 phút gần nhất
+    const firstSlot =
+      Math.ceil(startMinutes / INTERVAL_MINUTES) * INTERVAL_MINUTES;
+
+    // Generate slots at 30-minute intervals, bắt đầu từ firstSlot
+    for (let time = firstSlot; time < endMinutes; time += INTERVAL_MINUTES) {
       slots.push(minutesToTime(time));
     }
   });

@@ -18,7 +18,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-40 overflow-hidden">
+    <section className="relative pt-10 pb-16 md:pt-10 md:pb-10 lg:pt-10 overflow-hidden">
       <div className="container px-4 mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 max-w-xl">

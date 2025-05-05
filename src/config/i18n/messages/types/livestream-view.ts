@@ -45,4 +45,8 @@ export interface LivestreamViewMessages {
     privacy: string;
     contact: string;
   };
+  tabs: {
+    livestream: string;
+    events: string;
+  };
 }

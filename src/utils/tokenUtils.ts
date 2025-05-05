@@ -73,6 +73,7 @@ export const GetDataByToken = (token: string): TokenData | null => {
   const roleId = decoded?.RoleId;
   const userId = decoded?.UserId;
   const clinicId = decoded?.ClinicId;
+  const hasSurvey = decoded?.HasSurvey;
   const phone = decoded?.PhoneNumber;
   const name = decoded?.Name;
   const email = decoded?.Email;
@@ -85,19 +86,21 @@ export const GetDataByToken = (token: string): TokenData | null => {
     roleId,
     userId,
     clinicId,
+    hasSurvey,
     name,
     email,
     subscriptionPackageId,
     isFirstLogin,
     phone,
     isRejected,
-    dateJoined
+    dateJoined,
   };
 };
 
 export type TokenData = {
   roleName: string;
   roleId: string;
+  hasSurvey?: string;
   userId: string;
   clinicId?: string;
   name?: string;

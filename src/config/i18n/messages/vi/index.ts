@@ -50,6 +50,8 @@ import { livestreamMessages } from "./livestream-view";
 import { userProfileMessages } from "./user-profile";
 import { policy } from "./policy";
 import { livestreamRoomMessages } from "./livestream-room-view";
+import { bookingDetailDialog } from "./bookingDetailDialog";
+import { events } from "./events";
 
 const vi = {
   home: homeMessages,
@@ -103,6 +105,8 @@ const vi = {
   userProfileMessages,
   policy,
   livestreamRoomMessages,
+  bookingDetailDialog,
+  events,
 };
 
 export default vi;

@@ -23,6 +23,7 @@ export const doctor: Messages["doctorService"] = {
     cancel: "Cancel",
     noNotes: "No notes available for this appointment.",
     enterNotes: "Enter notes about this appointment...",
+    noteAdded: "Note added to appointment.",
   },
   time: {
     startTime: "Start Time",
