@@ -129,6 +129,10 @@ export type dashboardMessages = {
       scheduleStatus: string
       revenuePerformance: string
       scheduleStatusDistribution: string
+      noData: {
+        title: string
+        message: string
+        }
     }
     metrics: {
       customerMetrics: string

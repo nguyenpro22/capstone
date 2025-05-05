@@ -130,7 +130,11 @@ export const dashboardMessages: Messages["dashboard"] = {
       customerOrders: "Đơn hàng khách hàng",
       scheduleStatus: "Trạng thái lịch hẹn",
       revenuePerformance: "Hiệu suất doanh thu",
-      scheduleStatusDistribution: "Phân bố trạng thái lịch hẹn"
+      scheduleStatusDistribution: "Phân bố trạng thái lịch hẹn",
+      noData: {
+        title: "Không có dữ liệu hàng tuần nào khả dụng",
+        message: "Không có dữ liệu nào khả dụng cho phạm vi ngày đã chọn. Hãy thử chọn phạm vi ngày khác."
+        }
     },
     metrics: {
       customerMetrics: "Số liệu khách hàng",
