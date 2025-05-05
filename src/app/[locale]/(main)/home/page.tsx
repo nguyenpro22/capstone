@@ -19,6 +19,7 @@ import type { SurveyItem, SurveyQuestion } from "@/features/landing/types";
 import type { QuizItem, QuizQuestion } from "@/features/quiz/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { EventsSection } from "@/components/home/events-section";
 
 const convertToQuizItems = (surveys: SurveyItem[]): QuizItem[] => {
   return surveys.map((survey) => ({
@@ -62,6 +63,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-gray-900 dark:to-gray-950">
       <HeroSection />
       <ServicesSection />
+      <EventsSection />
       <WhyChooseUsSection />
       <ClinicsSliderSection />
       {/* <TestimonialsSection /> */}

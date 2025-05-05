@@ -80,7 +80,7 @@ import { eventCommandApi, eventQueryApi } from "@/features/event/api";
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"], // only persist auth slice
+  whitelist: ["auth"],
 };
 
 // Combine reducers

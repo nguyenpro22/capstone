@@ -1,0 +1,27 @@
+export type EventsMessages = {
+  pageTitle: string;
+  live: string;
+  joinNow: string;
+  viewDetails: string;
+  noEvents: string;
+  checkBackLater: string;
+  fetchSuccess: string;
+  fetchError: string;
+  showing: string;
+  of: string;
+  previous: string;
+  next: string;
+  joiningEvent: string;
+  upcomingEvents: string;
+  discoverEvents: string;
+  duration: string;
+  hours: string;
+  upcoming: string;
+  featured: string;
+  setReminder: string;
+  searchPlaceholder: string;
+  filter: string;
+  page: string;
+  viewAll: string;
+  learnMore: string;
+};
