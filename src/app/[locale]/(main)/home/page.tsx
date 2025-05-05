@@ -64,7 +64,7 @@ export default function Home() {
       <ServicesSection />
       <WhyChooseUsSection />
       <ClinicsSliderSection />
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
       <FooterSection />
       {quizData && (
         <FloatingQuizButton
