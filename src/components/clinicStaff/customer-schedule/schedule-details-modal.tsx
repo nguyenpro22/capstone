@@ -412,7 +412,7 @@ export default function ScheduleDetailsModal({
                 </div>
 
                 {/* Notes Section */}
-                {schedule.note && (
+                {schedule.doctorNote && (
                   <div
                     className={`${secondaryCardBgClass} p-4 rounded-lg border ${
                       isDark ? "border-gray-700" : "border-gray-200"
@@ -422,7 +422,7 @@ export default function ScheduleDetailsModal({
                       {t("notes") || "Ghi chú"}
                     </h3>
                     <p className={`text-sm ${secondaryTextClass}`}>
-                      {schedule.note}
+                      {schedule.doctorNote}
                     </p>
                   </div>
                 )}
