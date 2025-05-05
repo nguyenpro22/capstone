@@ -23,6 +23,7 @@ export const doctor: Messages["doctorService"] = {
     cancel: "Hủy",
     noNotes: "Không có ghi chú cho lịch hẹn này.",
     enterNotes: "Nhập ghi chú về lịch hẹn này...",
+    noteAdded: "Ghi chú đã được thêm vào lịch hẹn.",
   },
   time: {
     startTime: "Giờ bắt đầu",

@@ -105,7 +105,7 @@ export const bookingFlowMessages: Messages["bookingFlow"] = {
   doctor: "Bác sĩ",
   time: "Thời gian",
   depositRequired: "Cần Đặt Cọc",
-  depositInfo: "Tiền đặt cọc: {percent} ({amount})",
+  depositInfo: "Tiền đặt cọc:",
   customer: {
     customer: "Khách hàng",
     name: "Tên Khách Hàng",

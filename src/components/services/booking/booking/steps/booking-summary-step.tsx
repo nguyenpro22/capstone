@@ -186,12 +186,11 @@ export function BookingSummaryStep({
                     {t("depositRequired")}
                   </AlertTitle>
                   <AlertDescription className="text-purple-600/80 dark:text-purple-400/80">
-                    {t("depositInfo", { percent: "10%" })} (
+                    {t("depositInfo")}
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(depositAmount)}
-                    )
                   </AlertDescription>
                 </Alert>
               </div>
