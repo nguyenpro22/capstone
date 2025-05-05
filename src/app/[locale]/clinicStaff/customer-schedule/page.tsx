@@ -48,6 +48,7 @@ import {
   useUpdateScheduleStatusMutation,
   useLazyGetNextScheduleAvailabilityQuery,
   useLazyGetScheduleByIdQuery,
+  useCancelScheduleMutation,
 } from "@/features/customer-schedule/api";
 import {
   Popover,
@@ -69,6 +70,7 @@ import { useTranslations } from "next-intl";
 import FollowUpSelectionModal from "@/components/clinicStaff/customer-schedule/follow-up-selection-modal";
 import EarlyCheckInModal from "@/components/clinicStaff/customer-schedule/early-check-in-modal";
 import ScheduleChangeForCustomerModal from "@/components/clinicStaff/customer-schedule/schedule-change-for-customer";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 
 // Types
 interface ErrorResponse {
@@ -108,6 +110,8 @@ export default function SchedulesPage() {
   ] = useLazyGetClinicSchedulesQuery();
   const [updateScheduleStatus, { isLoading: isUpdatingStatus }] =
     useUpdateScheduleStatusMutation();
+  const [cancelSchedule, { isLoading: isCancellingSchedule }] =
+    useCancelScheduleMutation();
   const [getNextScheduleAvailability, { isLoading: isCheckingNextSchedule }] =
     useLazyGetNextScheduleAvailabilityQuery();
   const [getScheduleById, { isLoading: isLoadingNextSchedule }] =
@@ -144,6 +148,9 @@ export default function SchedulesPage() {
     useState(false);
   const [isEarlyCheckInModalOpen, setIsEarlyCheckInModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [scheduleToCancel, setScheduleToCancel] =
+    useState<CustomerSchedule | null>(null);
 
   // Schedule states
   const [schedulesNeedingFollowUp, setSchedulesNeedingFollowUp] = useState<
@@ -270,12 +277,24 @@ export default function SchedulesPage() {
     };
   };
 
+  // Add a new helper function to check if there are any menu items to display for a schedule
+  const hasMenuItems = (schedule: CustomerSchedule) => {
+    // Check if the schedule has any actions that would appear in the dropdown
+    return (
+      schedule.status.toLowerCase() === "completed" || // For follow-up
+      schedule.status.toLowerCase() === "pending" // For reschedule and cancel
+    );
+  };
+
+  // Update the shouldShowDropdownMenu function to also check if there are menu items
   const shouldShowDropdownMenu = (
     scheduleWithStatus: ScheduleWithFollowUpStatus
   ) => {
-    return !(
-      scheduleWithStatus.checkCompleted &&
-      scheduleWithStatus.followUpStatus === "Already scheduled for next step"
+    return (
+      !(
+        scheduleWithStatus.checkCompleted &&
+        scheduleWithStatus.followUpStatus === "Already scheduled for next step"
+      ) && hasMenuItems(scheduleWithStatus)
     );
   };
 
@@ -1075,6 +1094,30 @@ export default function SchedulesPage() {
     setActiveTab("all");
   }, []);
 
+  const handleConfirmCancel = async () => {
+    if (!scheduleToCancel) return;
+
+    try {
+      await cancelSchedule({
+        customerScheduleId: scheduleToCancel.id,
+      }).unwrap();
+      toast.success(t("scheduleCancelledSuccessfully"));
+      setIsCancelDialogOpen(false);
+
+      if (searchPerformed) {
+        delayedGetCustomerSchedules({
+          customerName,
+          customerPhone,
+        });
+      } else {
+        fetchClinicSchedules();
+      }
+    } catch (error) {
+      console.error("Failed to cancel schedule:", error);
+      toast.error(t("failedToCancelSchedule"));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("customerSchedules")}</h1>
@@ -1649,43 +1692,19 @@ export default function SchedulesPage() {
                                           </DropdownMenuItem>
                                         )}
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                          className="text-red-600"
-                                          onClick={() => {
-                                            setOpenDropdownId(null);
-                                            updateScheduleStatus({
-                                              scheduleId: schedule.id,
-                                              status: "Cancelled",
-                                            })
-                                              .unwrap()
-                                              .then(() => {
-                                                toast.success(
-                                                  t(
-                                                    "appointmentCancelledSuccessfully"
-                                                  )
-                                                );
-                                                if (searchPerformed) {
-                                                  delayedGetCustomerSchedules({
-                                                    customerName,
-                                                    customerPhone,
-                                                  });
-                                                } else {
-                                                  fetchClinicSchedules();
-                                                }
-                                              })
-                                              .catch((error) => {
-                                                console.error(
-                                                  "Failed to cancel appointment:",
-                                                  error
-                                                );
-                                                toast.error(
-                                                  t("failedToCancelAppointment")
-                                                );
-                                              });
-                                          }}
-                                        >
-                                          {t("cancel")}
-                                        </DropdownMenuItem>
+                                        {schedule.status.toLowerCase() ===
+                                          "pending" && (
+                                          <DropdownMenuItem
+                                            className="text-red-600"
+                                            onClick={() => {
+                                              setOpenDropdownId(null);
+                                              setScheduleToCancel(schedule);
+                                              setIsCancelDialogOpen(true);
+                                            }}
+                                          >
+                                            {t("cancel")}
+                                          </DropdownMenuItem>
+                                        )}
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   ) : (
@@ -1908,43 +1927,19 @@ export default function SchedulesPage() {
                                           </DropdownMenuItem>
                                         )}
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                          className="text-red-600"
-                                          onClick={() => {
-                                            setOpenDropdownId(null);
-                                            updateScheduleStatus({
-                                              scheduleId: schedule.id,
-                                              status: "Cancelled",
-                                            })
-                                              .unwrap()
-                                              .then(() => {
-                                                toast.success(
-                                                  t(
-                                                    "appointmentCancelledSuccessfully"
-                                                  )
-                                                );
-                                                if (searchPerformed) {
-                                                  delayedGetCustomerSchedules({
-                                                    customerName,
-                                                    customerPhone,
-                                                  });
-                                                } else {
-                                                  fetchClinicSchedules();
-                                                }
-                                              })
-                                              .catch((error) => {
-                                                console.error(
-                                                  "Failed to cancel appointment:",
-                                                  error
-                                                );
-                                                toast.error(
-                                                  t("failedToCancelAppointment")
-                                                );
-                                              });
-                                          }}
-                                        >
-                                          {t("cancel")}
-                                        </DropdownMenuItem>
+                                        {schedule.status.toLowerCase() ===
+                                          "pending" && (
+                                          <DropdownMenuItem
+                                            className="text-red-600"
+                                            onClick={() => {
+                                              setOpenDropdownId(null);
+                                              setScheduleToCancel(schedule);
+                                              setIsCancelDialogOpen(true);
+                                            }}
+                                          >
+                                            {t("cancel")}
+                                          </DropdownMenuItem>
+                                        )}
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   ) : (
@@ -2065,6 +2060,23 @@ export default function SchedulesPage() {
           handleRescheduleSuccess();
           setOpenDropdownId(null);
         }}
+      />
+      <ConfirmationDialog
+        isOpen={isCancelDialogOpen}
+        onClose={() => setIsCancelDialogOpen(false)}
+        onConfirm={handleConfirmCancel}
+        title={t("cancel")}
+        message={
+          scheduleToCancel
+            ? `${t("onlyPendingAppointmentsCanBeCancelled")}. ${t(
+                "appointmentFor"
+              )} ${scheduleToCancel.customerName}?`
+            : t("onlyPendingAppointmentsCanBeCancelled")
+        }
+        confirmButtonText={t("cancel")}
+        cancelButtonText={t("goBack")}
+        isLoading={isCancellingSchedule}
+        type="warning"
       />
     </div>
   );
