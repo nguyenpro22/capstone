@@ -8,6 +8,7 @@ export interface CustomerSchedule {
   serviceName: string;
   doctorId: string;
   doctorName: string;
+  doctorNote:string;
   bookingDate: string;
   startTime: string;
   endTime: string;

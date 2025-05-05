@@ -1,7 +1,8 @@
 "use client";
+
 import { useState, useRef, useEffect } from "react";
 import type React from "react";
-import { Stethoscope, Building2 } from "lucide-react";
+import { Stethoscope, Building2, X, Eye, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   useGetDoctorsQuery,
@@ -17,19 +18,28 @@ import DoctorForm from "@/components/clinicManager/doctor/DoctorForm";
 import EditDoctorForm from "@/components/clinicManager/doctor/EditDoctorForm";
 import ViewDoctorModal from "@/components/clinicManager/doctor/view-doctor-modal";
 import ChangeDoctorBranchForm from "@/components/clinicManager/doctor/ChangeDoctorBranchForm";
+import DoctorCertificateForm from "@/components/clinicManager/doctor/DoctorCertificateForm";
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MoreVertical } from "lucide-react";
 import { MenuPortal } from "@/components/ui/menu-portal";
+import Image from "next/image";
 
 // Add the import for getAccessToken and GetDataByToken
 import { getAccessToken, GetDataByToken, type TokenData } from "@/utils";
 import type { Doctor } from "@/features/clinic/types";
 import ConfirmationDialog from "@/components/ui/confirmation-dialog";
+import type { Certificate as CertificateType } from "@/features/doctor/types";
 
 interface BranchViewModalProps {
   branches: Array<{ id: string; name: string; fullAddress?: string }>;
+  onClose: () => void;
+}
+
+interface CertificateViewModalProps {
+  certificates: CertificateType[];
+  doctorName: string;
   onClose: () => void;
 }
 
@@ -86,6 +96,105 @@ const BranchViewModal = ({ branches, onClose }: BranchViewModalProps) => {
   );
 };
 
+const CertificateViewModal = ({
+  certificates,
+  doctorName,
+  onClose,
+}: CertificateViewModalProps) => {
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-3xl p-6 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h3 className="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+          {doctorName}&apos;s Certificates
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 max-h-[70vh] overflow-y-auto p-2">
+          {certificates.map((cert) => (
+            <div
+              key={cert.id}
+              className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col"
+            >
+              <div className="relative aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800">
+                {cert.certificateUrl ? (
+                  <a
+                    href={cert.certificateUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block h-full"
+                  >
+                    <Image
+                      src={cert.certificateUrl || "/placeholder.svg"}
+                      alt={cert.certificateName}
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        // If image fails to load, replace with a placeholder
+                        (e.target as HTMLImageElement).src =
+                          "/formal-certificate.png";
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all">
+                      <Eye className="w-8 h-8 text-white opacity-0 hover:opacity-100 transition-opacity" />
+                    </div>
+                  </a>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                    No image available
+                  </div>
+                )}
+              </div>
+              <div className="p-3">
+                <h4
+                  className="font-medium text-sm mb-1 truncate"
+                  title={cert.certificateName}
+                >
+                  {cert.certificateName}
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Expires: {new Date(cert.expiryDate).toLocaleDateString()}
+                </p>
+                {cert.note && (
+                  <p
+                    className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate"
+                    title={cert.note}
+                  >
+                    Note: {cert.note}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 export default function DoctorPage() {
   const t = useTranslations("staffDoctor"); // Using namespace "doctor"
 
@@ -108,6 +217,12 @@ export default function DoctorPage() {
     name: string;
     fullAddress?: string;
   }> | null>(null);
+
+  // State for viewing certificates
+  const [viewingCertificates, setViewingCertificates] = useState<{
+    certificates: CertificateType[];
+    doctorName: string;
+  } | null>(null);
 
   // State to track which branch is being hovered
   const [hoveredBranchId, setHoveredBranchId] = useState<string | null>(null);
@@ -158,6 +273,8 @@ export default function DoctorPage() {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
 
+  const [showCertificateForm, setShowCertificateForm] = useState(false);
+
   const handleCloseMenu = () => {
     setMenuOpen(null);
   };
@@ -166,6 +283,15 @@ export default function DoctorPage() {
     branches: Array<{ id: string; name: string; fullAddress?: string }> = []
   ) => {
     setViewingBranches(branches);
+  };
+
+  const handleViewAllCertificates = (doctor: Doctor) => {
+    if (doctor.doctorCertificates && doctor.doctorCertificates.length > 0) {
+      setViewingCertificates({
+        certificates: doctor.doctorCertificates,
+        doctorName: doctor.fullName,
+      });
+    }
   };
 
   // Handle mouse enter on branch with position capture
@@ -319,6 +445,9 @@ export default function DoctorPage() {
     }
   };
 
+  // Maximum number of certificates to show before "View More" button
+  const MAX_CERTIFICATES_TO_SHOW = 2;
+
   return (
     <div className="p-6 dark:bg-gray-950" onClick={handleCloseMenu}>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -388,25 +517,25 @@ export default function DoctorPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 text-left">
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tl-lg dark:text-gray-200">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tl-lg dark:text-gray-200 w-[5%]">
                     {t("no") || "No."}
                   </th>
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200 w-[20%]">
                     {t("fullName") || "Full Name"}
                   </th>
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200 w-[25%]">
                     {t("email") || "Email"}
                   </th>
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200 w-[15%]">
                     {t("phoneNumber") || "Phone Number"}
                   </th>
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
-                    {t("role") || "Role"}
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200 w-[15%]">
+                    {t("doctorCertificates") || "Certificates"}
                   </th>
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 dark:text-gray-200 w-[15%]">
                     {t("branches") || "Branches"}
                   </th>
-                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tr-lg dark:text-gray-200">
+                  <th className="p-3 border border-gray-200 dark:border-gray-700 rounded-tr-lg dark:text-gray-200 w-[5%]">
                     {t("action") || "Action"}
                   </th>
                 </tr>
@@ -432,28 +561,101 @@ export default function DoctorPage() {
                       {doctor.phoneNumber || "-"}
                     </td>
                     <td className="p-3 border border-gray-200 dark:border-gray-700">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                        {doctor.role}
-                      </span>
+                      <div className="flex items-center">
+                        {doctor.doctorCertificates &&
+                        doctor.doctorCertificates.length > 0 ? (
+                          <div className="flex items-center">
+                            <div className="flex -space-x-1 mr-2">
+                              {doctor.doctorCertificates
+                                .slice(0, MAX_CERTIFICATES_TO_SHOW)
+                                .map((cert: CertificateType) => (
+                                  <div
+                                    key={cert.id}
+                                    className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm hover:z-10 transition-all"
+                                    title={cert.certificateName}
+                                  >
+                                    <a
+                                      href={cert.certificateUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block w-full h-full"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewAllCertificates(doctor);
+                                        return false;
+                                      }}
+                                    >
+                                      <Image
+                                        src={
+                                          cert.certificateUrl ||
+                                          "/placeholder.svg"
+                                        }
+                                        alt={cert.certificateName}
+                                        fill
+                                        className="object-cover"
+                                        onError={(e) => {
+                                          // If image fails to load, replace with a placeholder
+                                          (e.target as HTMLImageElement).src =
+                                            "/formal-certificate.png";
+                                        }}
+                                      />
+                                    </a>
+                                  </div>
+                                ))}
+                            </div>
+                            {doctor.doctorCertificates.length > 0 && (
+                              <button
+                                onClick={() =>
+                                  handleViewAllCertificates(doctor)
+                                }
+                                className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 whitespace-nowrap"
+                              >
+                                {doctor.doctorCertificates.length}{" "}
+                                {doctor.doctorCertificates.length === 1
+                                  ? "cert"
+                                  : "certs"}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            No certificates
+                          </span>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDoctorId(doctor.employeeId);
+                            setShowCertificateForm(true);
+                          }}
+                          className="ml-auto w-6 h-6 flex items-center justify-center rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/30 transition-colors"
+                          title="Add Certificate"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
                     </td>
                     <td className="p-3 border border-gray-200 dark:border-gray-700">
                       {doctor.branchs && doctor.branchs.length > 0 ? (
-                        <div>
-                          <div className="flex flex-wrap gap-1 mb-1">
-                            {doctor.branchs.slice(0, 2).map((branch, idx) => (
-                              <div key={idx} className="relative">
-                                <span
-                                  className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors max-w-[100px] inline-block truncate align-bottom"
-                                  onMouseEnter={(e) =>
-                                    handleBranchMouseEnter(branch.id, e)
-                                  }
-                                  onMouseLeave={() => setHoveredBranchId(null)}
-                                >
-                                  {branch.name}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="flex flex-wrap gap-1">
+                          {doctor.branchs.slice(0, 2).map((branch, idx) => (
+                            <div key={idx} className="relative">
+                              <span
+                                className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors max-w-[100px] inline-block truncate align-bottom"
+                                onMouseEnter={(e) =>
+                                  handleBranchMouseEnter(branch.id, e)
+                                }
+                                onMouseLeave={() => setHoveredBranchId(null)}
+                              >
+                                {branch.name}
+                              </span>
+                            </div>
+                          ))}
+                          {doctor.branchs.length > 2 && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              +{doctor.branchs.length - 2}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-gray-400 dark:text-gray-500 text-sm">
@@ -461,7 +663,7 @@ export default function DoctorPage() {
                         </span>
                       )}
                     </td>
-                    <td className="p-3 border border-gray-200 dark:border-gray-700 relative">
+                    <td className="p-3 border border-gray-200 dark:border-gray-700 relative text-center">
                       <button
                         className="p-2 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                         onClick={(e) => {
@@ -592,13 +794,6 @@ export default function DoctorPage() {
                     handleMenuAction("delete", doctor.employeeId);
                   }}
                 >
-                  {/* <li
-                  className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer flex items-center gap-2 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteDoctor(doctor.employeeId, doctor.branchs?.[0]?.id)
-                  }}
-                > */}
                   <span className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"></span>
                   </span>
@@ -650,6 +845,18 @@ export default function DoctorPage() {
               setEditDoctor(null);
               delayedRefetch(); // Use delayed refetch instead of immediate refetch
             }}
+            onSaveSuccessCertificate={(doctorId) => {
+              // Fetch updated doctor details after certificate operations
+              fetchDoctorById({
+                clinicId,
+                employeeId: doctorId,
+              }).then((result) => {
+                if (result.data) {
+                  setEditDoctor(result.data.value);
+                }
+                delayedRefetch(); // Also refresh the list
+              });
+            }}
           />
         </div>
       )}
@@ -677,6 +884,15 @@ export default function DoctorPage() {
         <BranchViewModal
           branches={viewingBranches}
           onClose={() => setViewingBranches(null)}
+        />
+      )}
+
+      {/* View All Certificates Modal */}
+      {viewingCertificates && (
+        <CertificateViewModal
+          certificates={viewingCertificates.certificates}
+          doctorName={viewingCertificates.doctorName}
+          onClose={() => setViewingCertificates(null)}
         />
       )}
 
@@ -717,6 +933,23 @@ export default function DoctorPage() {
         isLoading={isDeleting}
         type="delete"
       />
+
+      {/* Certificate Form Modal */}
+      {showCertificateForm && selectedDoctorId && (
+        <DoctorCertificateForm
+          doctorId={selectedDoctorId}
+          onClose={() => {
+            setShowCertificateForm(false);
+            setSelectedDoctorId(null);
+          }}
+          onSaveSuccess={() => {
+            setShowCertificateForm(false);
+            setSelectedDoctorId(null);
+            delayedRefetch();
+            toast.success("Certificate added successfully!");
+          }}
+        />
+      )}
     </div>
   );
 }

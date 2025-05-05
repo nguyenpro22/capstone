@@ -207,6 +207,16 @@ export const customerScheduleCommandApi = createApi({
         },
       }),
     }),
+    // Update schedule status directly (using the new endpoint)
+    cancelSchedule: builder.mutation<
+      IResCommon<CustomerSchedule>,
+      { customerScheduleId: string}
+    >({
+      query: ({ customerScheduleId }) => ({
+        url: `customer-schedules/staff/${customerScheduleId}/cancellation`,
+        method: "PATCH",
+      }),
+    }),
   }),
 });
 
@@ -234,4 +244,5 @@ export const {
   useGenerateSchedulesMutation,
   useUpdateCustomerScheduleMutation, // Export the new hook
   useApproveScheduleMutation,
+  useCancelScheduleMutation
 } = customerScheduleCommandApi;

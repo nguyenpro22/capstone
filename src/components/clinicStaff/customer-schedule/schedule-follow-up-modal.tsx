@@ -650,6 +650,16 @@ export default function ScheduleFollowUpModal({
                   </div>
                 </div>
               )}
+              {scheduleDetail?.doctorNote && (
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <p className="font-medium mb-2">
+                    {t("doctorNote") || "Doctor's Note"}:
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">
+                    {scheduleDetail.doctorNote}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -22,16 +22,8 @@ import Image from "next/image";
 import { useGetLiveStreamsQuery } from "@/features/livestream/api";
 import LivestreamDetailModal from "@/components/clinicManager/livestream/livestream-detail-modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   useGetEventsQuery,
   useCreateEventMutation,
@@ -41,6 +33,9 @@ import {
 import { toast } from "react-toastify";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useTranslations } from "next-intl";
+import EventCreationWizard from "@/components/clinicManager/event/event-creation-wizard";
+import EventEditForm from "@/components/clinicManager/event/event-edit-form";
+import DeleteConfirmationDialog from "@/components/clinicManager/event/delete-confirmation-dialog";
 
 interface LivestreamRoom {
   id: string;
@@ -70,13 +65,16 @@ export default function LiveStreamPage() {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const eventFileInputRef = useRef<HTMLInputElement>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pageSize] = useState<number>(10);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
   const [activeTab, setActiveTab] = useState<string>("livestreams");
+
+  // Delete confirmation dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
 
   // Event management states
   const [eventPageIndex, setEventPageIndex] = useState<number>(0);
@@ -194,20 +192,85 @@ export default function LiveStreamPage() {
     }
   };
 
-  // Handle event image change
-  const handleEventImageChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setEventFormData({ ...eventFormData, image: file });
+  // Event form handlers
+  const resetEventForm = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64String = event.target?.result as string;
-        setEventImagePreview(base64String);
-      };
-      reader.readAsDataURL(file);
+    setEventFormData({
+      name: "",
+      description: "",
+      startDate: now.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM for input
+      endDate: tomorrow.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM for input
+      image: null,
+    });
+    setEventImagePreview("");
+    setIsEditMode(false);
+    setSelectedEventId(null);
+  };
+
+  const handleEventFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate that end date is after start date
+    const startDate = new Date(eventFormData.startDate);
+    const endDate = new Date(eventFormData.endDate);
+
+    if (endDate <= startDate) {
+      toast.error(t("endDateMustBeAfterStartDate"));
+      return;
+    }
+
+    // Validate image requirement when editing
+    if (isEditMode && !eventImagePreview && !eventFormData.image) {
+      toast.error(t("imageRequired"));
+      return;
+    }
+
+    try {
+      // Create FormData object
+      const formData = new FormData();
+      if (eventFormData.image) formData.append("image", eventFormData.image);
+      formData.append("name", eventFormData.name);
+      formData.append("description", eventFormData.description);
+      formData.append(
+        "startDate",
+        new Date(eventFormData.startDate).toISOString()
+      );
+      formData.append("endDate", new Date(eventFormData.endDate).toISOString());
+      formData.append("clinicId", user?.clinicId || "");
+
+      if (isEditMode && selectedEventId) {
+        await updateEvent({
+          id: selectedEventId,
+          formData,
+        }).unwrap();
+        toast.success(t("eventUpdatedSuccess"));
+      } else {
+        await createEvent(formData).unwrap();
+        toast.success(t("eventCreatedSuccess"));
+      }
+
+      setIsEventDialogOpen(false);
+      resetEventForm();
+      refetchEvents();
+    } catch (error: any) {
+      console.error("Error saving event:", error);
+
+      // Handle validation errors
+      if (error.data && error.data.errors && Array.isArray(error.data.errors)) {
+        // Display each validation error as a separate toast
+        error.data.errors.forEach((err: { message: string }) => {
+          toast.error(err.message);
+        });
+      } else if (error.data && error.data.detail) {
+        // Display the general error message if available
+        toast.error(error.data.detail);
+      } else {
+        // Fallback error message
+        toast.error(t("failedToSaveEvent"));
+      }
     }
   };
 
@@ -287,7 +350,7 @@ export default function LiveStreamPage() {
     const diffMs = now.getTime() - date.getTime();
     const diffSecs = Math.floor(diffMs / 1000);
     const diffMins = Math.floor(diffSecs / 60);
-    const diffHours = Math.floor(diffMins / 60);
+    const diffHours = Math.floor(diffMs / (60 * 60));
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffDays > 0) {
@@ -301,112 +364,46 @@ export default function LiveStreamPage() {
     }
   };
 
-  // Event form handlers
-  const resetEventForm = () => {
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    setEventFormData({
-      name: "",
-      description: "",
-      startDate: now.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM for input
-      endDate: tomorrow.toISOString().slice(0, 16), // Format: YYYY-MM-DDTHH:MM for input
-      image: null,
-    });
-    setEventImagePreview("");
+  const openAddEventDialog = () => {
     setIsEditMode(false);
     setSelectedEventId(null);
-  };
-
-  const openAddEventDialog = () => {
-    resetEventForm();
     setIsEventDialogOpen(true);
+    resetEventForm();
   };
 
   const openEditEventDialog = (event: any) => {
     setIsEditMode(true);
     setSelectedEventId(event.id);
+    setIsEventDialogOpen(true);
 
-    // Format dates for datetime-local input (YYYY-MM-DDTHH:MM)
-    let startDate = "";
-    let endDate = "";
-
-    try {
-      startDate = new Date(event.startDate).toISOString().slice(0, 16);
-    } catch (error) {
-      console.error("Error parsing startDate:", error);
-      startDate = new Date().toISOString().slice(0, 16);
-    }
-
-    try {
-      endDate = new Date(event.endDate).toISOString().slice(0, 16);
-    } catch (error) {
-      console.error("Error parsing endDate:", error);
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      endDate = tomorrow.toISOString().slice(0, 16);
-    }
-
+    // Populate the form with the event data for editing
     setEventFormData({
       id: event.id,
       name: event.name,
       description: event.description,
-      startDate: startDate,
-      endDate: endDate,
-      image: null,
+      startDate: new Date(event.startDate).toISOString().slice(0, 16),
+      endDate: new Date(event.endDate).toISOString().slice(0, 16),
+      image: null, // Assuming you don't want to pre-fill the image
     });
-
-    if (event.imageUrl) {
-      setEventImagePreview(event.imageUrl);
-    }
-
-    setIsEventDialogOpen(true);
+    setEventImagePreview(event.imageUrl || "");
   };
 
-  const handleEventFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Open delete confirmation dialog
+  const openDeleteConfirmation = (id: string) => {
+    setEventToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
 
-    // Validate that end date is after start date
-    const startDate = new Date(eventFormData.startDate);
-    const endDate = new Date(eventFormData.endDate);
-
-    if (endDate <= startDate) {
-      toast.error(t("endDateMustBeAfterStartDate"));
-      return;
-    }
-
-    // Validate image requirement when editing
-    if (isEditMode && !eventImagePreview && !eventFormData.image) {
-      toast.error(t("imageRequired"));
-      return;
-    }
+  // Handle event deletion
+  const handleDeleteEvent = async () => {
+    if (!eventToDelete) return;
 
     try {
-      // Format dates to ISO string format (2025-05-03T00:00:00.000Z)
-      const formattedData = {
-        ...eventFormData,
-        startDate: new Date(eventFormData.startDate).toISOString(),
-        endDate: new Date(eventFormData.endDate).toISOString(),
-        clinicId: user?.clinicId || "",
-      };
-
-      if (isEditMode && selectedEventId) {
-        await updateEvent({
-          id: selectedEventId,
-          ...formattedData,
-        }).unwrap();
-        toast.success(t("eventUpdatedSuccess"));
-      } else {
-        await createEvent(formattedData).unwrap();
-        toast.success(t("eventCreatedSuccess"));
-      }
-
-      setIsEventDialogOpen(false);
-      resetEventForm();
+      await deleteEvent(eventToDelete).unwrap();
+      toast.success(t("eventDeletedSuccess"));
       refetchEvents();
     } catch (error: any) {
-      console.error("Error saving event:", error);
+      console.error("Error deleting event:", error);
 
       // Handle validation errors
       if (error.data && error.data.errors && Array.isArray(error.data.errors)) {
@@ -419,39 +416,23 @@ export default function LiveStreamPage() {
         toast.error(error.data.detail);
       } else {
         // Fallback error message
-        toast.error(t("failedToSaveEvent"));
+        toast.error(t("failedToDeleteEvent"));
       }
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setEventToDelete(null);
     }
   };
 
-  const handleDeleteEvent = async (id: string) => {
-    if (window.confirm(t("confirmDeleteEvent"))) {
-      try {
-        await deleteEvent(id).unwrap();
-        toast.success(t("eventDeletedSuccess"));
-        refetchEvents();
-      } catch (error: any) {
-        console.error("Error deleting event:", error);
+  // Add this CSS helper function to limit image sizes in HTML content
+  const renderHTML = (htmlContent: string) => {
+    // Process HTML to limit image sizes
+    const processedHTML = htmlContent.replace(
+      /<img\s/g,
+      '<img style="max-height: 20px; max-width: 100px; object-fit: contain; display: inline-block; vertical-align: middle;" '
+    );
 
-        // Handle validation errors
-        if (
-          error.data &&
-          error.data.errors &&
-          Array.isArray(error.data.errors)
-        ) {
-          // Display each validation error as a separate toast
-          error.data.errors.forEach((err: { message: string }) => {
-            toast.error(err.message);
-          });
-        } else if (error.data && error.data.detail) {
-          // Display the general error message if available
-          toast.error(error.data.detail);
-        } else {
-          // Fallback error message
-          toast.error(t("failedToDeleteEvent"));
-        }
-      }
-    }
+    return { __html: processedHTML };
   };
 
   return (
@@ -973,6 +954,7 @@ export default function LiveStreamPage() {
                                 ? "bg-white dark:bg-gray-800"
                                 : "bg-rose-50/30 dark:bg-rose-900/10"
                             }
+                            style={{ height: "48px" }}
                           >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
@@ -998,10 +980,28 @@ export default function LiveStreamPage() {
                             </td>
                             <td className="px-6 py-4 text-center">
                               <div
-                                className="text-sm text-gray-900 dark:text-white truncate max-w-[200px] mx-auto"
-                                title={event.description || t("noDescription")}
+                                className="text-sm text-gray-900 dark:text-white truncate max-w-[200px] mx-auto h-6 overflow-hidden"
+                                title={
+                                  event.description
+                                    ? event.description.replace(/<[^>]*>/g, "")
+                                    : t("noDescription")
+                                }
                               >
-                                {event.description || t("noDescription")}
+                                {event.description ? (
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: event.description,
+                                    }}
+                                    className="max-h-6 overflow-hidden"
+                                    style={{
+                                      display: "-webkit-box",
+                                      WebkitLineClamp: 1,
+                                      WebkitBoxOrient: "vertical",
+                                    }}
+                                  />
+                                ) : (
+                                  t("noDescription")
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -1023,7 +1023,9 @@ export default function LiveStreamPage() {
                                   <Pencil className="h-4 w-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteEvent(event.id)}
+                                  onClick={() =>
+                                    openDeleteConfirmation(event.id)
+                                  }
                                   className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -1108,188 +1110,38 @@ export default function LiveStreamPage() {
 
       {/* Event Form Dialog */}
       <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditMode ? t("editEvent") : t("addNewEvent")}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEventFormSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label
-                  htmlFor="event-name"
-                  className="text-right text-sm font-medium col-span-1"
-                >
-                  {t("name")}*
-                </label>
-                <Input
-                  id="event-name"
-                  value={eventFormData.name}
-                  onChange={(e) =>
-                    setEventFormData({ ...eventFormData, name: e.target.value })
-                  }
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label
-                  htmlFor="event-description"
-                  className="text-right text-sm font-medium col-span-1"
-                >
-                  {t("description")}
-                </label>
-                <Textarea
-                  id="event-description"
-                  value={eventFormData.description}
-                  onChange={(e) =>
-                    setEventFormData({
-                      ...eventFormData,
-                      description: e.target.value,
-                    })
-                  }
-                  className="col-span-3"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label
-                  htmlFor="event-start-date"
-                  className="text-right text-sm font-medium col-span-1"
-                >
-                  {t("startDate")}*
-                </label>
-                <Input
-                  id="event-start-date"
-                  type="datetime-local"
-                  value={eventFormData.startDate}
-                  onChange={(e) =>
-                    setEventFormData({
-                      ...eventFormData,
-                      startDate: e.target.value,
-                    })
-                  }
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label
-                  htmlFor="event-end-date"
-                  className="text-right text-sm font-medium col-span-1"
-                >
-                  {t("endDate")}*
-                </label>
-                <Input
-                  id="event-end-date"
-                  type="datetime-local"
-                  value={eventFormData.endDate}
-                  onChange={(e) =>
-                    setEventFormData({
-                      ...eventFormData,
-                      endDate: e.target.value,
-                    })
-                  }
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm font-medium col-span-1">
-                  {t("image")}
-                </label>
-                <div className="col-span-3">
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-4 h-[150px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition ${
-                      eventImagePreview
-                        ? "border-rose-300 dark:border-rose-600"
-                        : "border-gray-300 dark:border-gray-600"
-                    }`}
-                    onClick={() => eventFileInputRef.current?.click()}
-                  >
-                    {eventImagePreview ? (
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={eventImagePreview || "/placeholder.svg"}
-                          alt={t("eventImagePreview")}
-                          width={150}
-                          height={150}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          className="absolute top-2 right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEventFormData({ ...eventFormData, image: null });
-                            setEventImagePreview("");
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 text-gray-600 dark:text-gray-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-2" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {t("clickToUploadImage")}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          {t("imageFormatInfo")}
-                        </p>
-                      </>
-                    )}
-                    <input
-                      ref={eventFileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleEventImageChange}
-                      className="hidden"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsEventDialogOpen(false)}
-              >
-                {t("cancel")}
-              </Button>
-              <Button
-                type="submit"
-                className="bg-rose-500 hover:bg-rose-600 text-white"
-                disabled={isCreatingEvent || isUpdatingEvent}
-              >
-                {isCreatingEvent || isUpdatingEvent ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isEditMode ? t("updating") : t("creating")}
-                  </>
-                ) : (
-                  <>{isEditMode ? t("updateEvent") : t("createEvent")}</>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+        <DialogContent className="sm:max-w-[550px] rounded-lg overflow-hidden p-0 max-h-[95vh]">
+          {isEditMode ? (
+            <EventEditForm
+              eventFormData={eventFormData}
+              setEventFormData={setEventFormData}
+              eventImagePreview={eventImagePreview}
+              setEventImagePreview={setEventImagePreview}
+              onSuccess={refetchEvents}
+              isLoading={isUpdatingEvent}
+              onClose={() => setIsEventDialogOpen(false)}
+            />
+          ) : (
+            <EventCreationWizard
+              isOpen={isEventDialogOpen}
+              onClose={() => setIsEventDialogOpen(false)}
+              isEditMode={false}
+              onSuccess={refetchEvents}
+            />
+          )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setEventToDelete(null);
+        }}
+        onConfirm={handleDeleteEvent}
+        isDeleting={isDeletingEvent}
+      />
     </div>
   );
 }

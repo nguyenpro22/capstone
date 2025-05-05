@@ -88,4 +88,5 @@ export const branchMessages: Messages["branch"] = {
   operatingHours: "Thời Gian Hoạt Động",
   workingTimeStart: "Giờ Mở Cửa",
   workingTimeEnd: "Giờ Đóng Cửa",
+  errorFetching: "Có lỗi xảy ra, vui lòng thử lại sau!!!"
 }

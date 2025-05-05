@@ -87,4 +87,5 @@ export type branchMessages = {
   operatingHours: string
   workingTimeStart: string
   workingTimeEnd: string
+  errorFetching: string
 }

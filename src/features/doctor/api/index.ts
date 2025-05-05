@@ -116,6 +116,32 @@ export const doctorCommandApi = createApi({
         },
       }
     ),
+    createDoctorCertificate: builder.mutation({
+      query: (payload) => ({
+        url: 'doctor-certificates',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+    updateDoctorCertificate: builder.mutation<IResCommon<null>, { id: string; formData: FormData }>({
+      query: ({ id, formData }) => ({
+        url: `/doctor-certificates/${id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      transformErrorResponse: (response: {
+        status: number
+        data: ErrorResponse
+      }) => {
+        return response
+      },
+    }),
+    deleteDoctorCertificate: builder.mutation({
+      query: (id) => ({
+        url: `doctor-certificates/${id}`,
+        method: 'DELETE',
+      }),
+    }),
   }),
 });
 
@@ -125,5 +151,9 @@ export const {
   useLazyGetDoctorCertificatesQuery,
   useGetClinicShiftSchedulesQuery,
 } = doctorQueryApi;
-export const { useAddAppointmentNoteMutation, useRegisterScheduleMutation } =
+export const { useAddAppointmentNoteMutation, useRegisterScheduleMutation,
+  useCreateDoctorCertificateMutation,
+  useUpdateDoctorCertificateMutation,
+  useDeleteDoctorCertificateMutation
+ } =
   doctorCommandApi;
