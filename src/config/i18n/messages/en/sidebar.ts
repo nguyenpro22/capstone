@@ -6,7 +6,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   settings: "Settings",
   logout: "Logout",
   profile: "Profile",
-  inbox: "Inbox",
+  inbox: "Chat",
   order: "Order",
   service: "Service",
 
