@@ -171,4 +171,10 @@ export type customerScheduleTranslations = {
   searchError: string;
   serverErrorMessage: string;
   cancelling: string;
+
+  // Missing translations
+  scheduleCancelledSuccessfully: string;
+  failedToCancelSchedule: string;
+  appointmentFor: string;
+  goBack: string;
 }

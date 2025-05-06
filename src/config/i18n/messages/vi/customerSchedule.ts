@@ -177,5 +177,9 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   onlyPendingAppointmentsCanBeCancelled: "Chỉ có thể hủy các lịch hẹn đang chờ xử lý",
   searchError: "Đã xảy ra lỗi khi tìm kiếm",
   serverErrorMessage: "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau.",
-  cancelling: "Đang hủy..."
+  cancelling: "Đang hủy...",
+  scheduleCancelledSuccessfully: "Hủy lịch thành công",
+  failedToCancelSchedule: "Không thể hủy lịch",
+  appointmentFor: "lịch hẹn cho",
+  goBack: "Quay lại"
 }

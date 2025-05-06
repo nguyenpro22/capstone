@@ -74,7 +74,7 @@ export default function OrderPage() {
 
   // State for pagination, search, and sorting
   const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(8);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState("");
   const [sortOrder, setSortOrder] = useState("");
@@ -85,36 +85,39 @@ export default function OrderPage() {
 
   // Define column keys as a type for type safety
   type ColumnKey =
-    | "orderId"
     | "customerName"
     | "service"
     | "date"
     | "finalAmount"
     | "status"
+    | "bookingType"
     | "actions";
 
   // State for column visibility
   const [columnVisibility, setColumnVisibility] = useState<
     Record<ColumnKey, boolean>
   >({
-    orderId: true,
     customerName: true,
     service: true,
     date: true,
     finalAmount: true,
     status: true,
+    bookingType: true,
     actions: true,
   });
 
   // Define available columns
   const availableColumns = useMemo(
     () => [
-      { id: "orderId" as ColumnKey, label: t("orderId") },
       { id: "customerName" as ColumnKey, label: t("customerName") },
       { id: "service" as ColumnKey, label: t("service") },
       { id: "date" as ColumnKey, label: t("date") },
       { id: "finalAmount" as ColumnKey, label: t("finalAmount") },
       { id: "status" as ColumnKey, label: t("status") },
+      {
+        id: "bookingType" as ColumnKey,
+        label: t("bookingType") || "Booking Type",
+      },
       { id: "actions" as ColumnKey, label: t("actions") },
     ],
     [t]
@@ -191,12 +194,12 @@ export default function OrderPage() {
   // Reset column visibility to default
   const resetColumnVisibility = () => {
     setColumnVisibility({
-      orderId: true,
       customerName: true,
       service: true,
       date: true,
       finalAmount: true,
       status: true,
+      bookingType: true,
       actions: true,
     } as Record<ColumnKey, boolean>);
   };
@@ -282,16 +285,6 @@ export default function OrderPage() {
                   ) : (
                     orders.map((order: OrderItem) => (
                       <TableRow key={order.id}>
-                        {columnVisibility.orderId && (
-                          <TableCell className="font-medium text-center">
-                            <div
-                              className="max-w-[100px] truncate"
-                              title={order.id}
-                            >
-                              {order.id}
-                            </div>
-                          </TableCell>
-                        )}
                         {columnVisibility.customerName && (
                           <TableCell className="text-center">
                             {order.customerName}
@@ -315,6 +308,19 @@ export default function OrderPage() {
                         {columnVisibility.status && (
                           <TableCell className="text-center">
                             {getStatusBadge(order.status, t)}
+                          </TableCell>
+                        )}
+                        {columnVisibility.bookingType && (
+                          <TableCell className="text-center">
+                            <Badge
+                              variant={
+                                order.isFromLivestream ? "secondary" : "outline"
+                              }
+                            >
+                              {order.isFromLivestream
+                                ? t("livestreamBooking") || "Livestream"
+                                : t("webBooking") || "Website"}
+                            </Badge>
                           </TableCell>
                         )}
                         {columnVisibility.actions && (

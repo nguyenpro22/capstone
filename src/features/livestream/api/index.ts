@@ -12,11 +12,26 @@ export const livestreamQueryApi = createApi({
       query: ({ clinicId, pageIndex, pageSize, searchTerm }) =>
         `/LiveStream/Rooms?clinicId=${clinicId}&pageIndex=${pageIndex}&pageSize=${pageSize}&searchTerm=${searchTerm}`,
     }),
-    getLiveStreamById: builder.query<IResCommon<LivestreamRoomDetail>, string>({
-        query: (id) =>
-          `/LiveStream/Rooms/${id}`,
-      }),
-     
+    getLiveStreamById: builder.query<IResCommon<LivestreamRoomDetail>, string | { id: string; pageIndex?: number; pageSize?: number; type?: number }>({
+      query: (params) => {
+        // If params is just a string, it's the ID
+        if (typeof params === 'string') {
+          return `/LiveStream/Rooms/${params}`;
+        }
+        
+        // Otherwise, it's an object with ID and optional query parameters
+        const { id, ...queryParams } = params;
+        
+        // Build the query string from the parameters
+        const queryString = Object.entries(queryParams)
+          .filter(([_, value]) => value !== undefined)
+          .map(([key, value]) => `${key}=${value}`)
+          .join('&');
+        
+        // Return the endpoint with query parameters if they exist
+        return `/LiveStream/Rooms/${id}${queryString ? `?${queryString}` : ''}`;
+      },
+    }),
   }),
 })
 

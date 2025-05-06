@@ -116,13 +116,13 @@ function SortableTableHead({
 
 // Add this new interface after the SortableTableHead component
 interface ColumnVisibility {
-  id: boolean;
   customerName: boolean;
   customerPhone: boolean;
   serviceName: boolean;
   orderDate: boolean;
   finalAmount: boolean;
   status: boolean;
+  bookingType: boolean;
   actions: boolean;
 }
 
@@ -144,13 +144,13 @@ export default function OrderPage() {
 
   // Add this state for column visibility after the other state declarations in the OrderPage component
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
-    id: true,
     customerName: true,
     customerPhone: true,
     serviceName: true,
     orderDate: true,
     finalAmount: true,
     status: true,
+    bookingType: true,
     actions: true,
   });
 
@@ -253,13 +253,13 @@ export default function OrderPage() {
     setSortOrder("");
     setPageIndex(1);
     setColumnVisibility({
-      id: true,
       customerName: true,
       customerPhone: true,
       serviceName: true,
       orderDate: true,
       finalAmount: true,
       status: true,
+      bookingType: true,
       actions: true,
     });
   };
@@ -302,19 +302,6 @@ export default function OrderPage() {
                   {t("columns") || "Columns"}
                 </h4>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="column-id"
-                      checked={columnVisibility.id}
-                      onCheckedChange={() => toggleColumnVisibility("id")}
-                    />
-                    <label
-                      htmlFor="column-id"
-                      className="text-sm cursor-pointer"
-                    >
-                      {t("orderId")}
-                    </label>
-                  </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="column-customerName"
@@ -403,6 +390,21 @@ export default function OrderPage() {
                       {t("status")}
                     </label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="column-bookingType"
+                      checked={columnVisibility.bookingType}
+                      onCheckedChange={() =>
+                        toggleColumnVisibility("bookingType")
+                      }
+                    />
+                    <label
+                      htmlFor="column-bookingType"
+                      className="text-sm cursor-pointer"
+                    >
+                      {t("bookingType") || "Booking Type"}
+                    </label>
+                  </div>
                 </div>
               </div>
               <DropdownMenuSeparator />
@@ -473,17 +475,6 @@ export default function OrderPage() {
                   {/* Modify the TableHeader section to respect column visibility */}
                   <TableHeader>
                     <TableRow>
-                      {columnVisibility.id && (
-                        <SortableTableHead
-                          column="id"
-                          currentSortColumn={sortColumn}
-                          currentSortOrder={sortOrder}
-                          onSort={handleSort}
-                          className="text-center"
-                        >
-                          {t("orderId")}
-                        </SortableTableHead>
-                      )}
                       {columnVisibility.customerName && (
                         <SortableTableHead
                           column="customerName"
@@ -553,6 +544,17 @@ export default function OrderPage() {
                           {t("status")}
                         </SortableTableHead>
                       )}
+                      {columnVisibility.bookingType && (
+                        <SortableTableHead
+                          column="isFromLivestream"
+                          currentSortColumn={sortColumn}
+                          currentSortOrder={sortOrder}
+                          onSort={handleSort}
+                          className="text-center"
+                        >
+                          {t("bookingType") || "Booking Type"}
+                        </SortableTableHead>
+                      )}
                       {columnVisibility.actions && (
                         <TableHead className="text-center">
                           {t("actions") || "Actions"}
@@ -577,16 +579,6 @@ export default function OrderPage() {
                     ) : (
                       orders.map((order: OrderItem) => (
                         <TableRow key={order.id}>
-                          {columnVisibility.id && (
-                            <TableCell className="font-medium text-center">
-                              <div
-                                className="max-w-[100px] truncate mx-auto"
-                                title={order.id}
-                              >
-                                {order.id}
-                              </div>
-                            </TableCell>
-                          )}
                           {columnVisibility.customerName && (
                             <TableCell className="text-center">
                               {order.customerName}
@@ -624,6 +616,21 @@ export default function OrderPage() {
                               {getStatusBadge(order.status, t)}
                             </TableCell>
                           )}
+                          {columnVisibility.bookingType && (
+                            <TableCell className="text-center">
+                              <Badge
+                                variant={
+                                  order.isFromLivestream
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                              >
+                                {order.isFromLivestream
+                                  ? t("livestreamBooking") || "Livestream"
+                                  : t("webBooking") || "Website"}
+                              </Badge>
+                            </TableCell>
+                          )}
                           {columnVisibility.actions && (
                             <TableCell className="text-center">
                               <div className="flex justify-center gap-2">
@@ -641,12 +648,12 @@ export default function OrderPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
+                                    {/* <DropdownMenuItem>
                                       {t("printInvoice")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
                                       {t("updateStatus")}
-                                    </DropdownMenuItem>
+                                    </DropdownMenuItem> */}
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-red-600">
                                       {t("cancelOrder")}
