@@ -1,57 +1,72 @@
-"use client"
-import { motion } from "framer-motion"
-import type React from "react"
+"use client";
+import { motion } from "framer-motion";
+import type React from "react";
 
-import { X, Mail, MapPin, Building2, FileText, Phone, Calendar, Info, ExternalLink, Copy } from 'lucide-react'
-import { useTranslations } from "next-intl"
-import type { Certificate, Doctor } from "@/features/clinic/types"
-import Image from "next/image"
-import { useState, useRef } from "react"
-import { CopyNotification } from "@/components/systemStaff/copy-notification"
+import {
+  X,
+  Mail,
+  MapPin,
+  Building2,
+  FileText,
+  Phone,
+  Calendar,
+  Info,
+  ExternalLink,
+  Copy,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import type { Certificate, Doctor } from "@/features/clinic/types";
+import Image from "next/image";
+import { useState, useRef } from "react";
+import { CopyNotification } from "@/components/systemStaff/copy-notification";
 
 interface ViewDoctorModalProps {
-  viewDoctor: Doctor
-  onClose: () => void
+  viewDoctor: Doctor;
+  onClose: () => void;
 }
 
-export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModalProps) {
-  const t = useTranslations("staffDoctor")
-  const [expandedCertificates, setExpandedCertificates] = useState(false)
-  const [hoveredCertificate, setHoveredCertificate] = useState<Certificate | null>(null)
-  const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
-  const [showCopyNotification, setShowCopyNotification] = useState(false)
+export default function ViewDoctorModal({
+  viewDoctor,
+  onClose,
+}: ViewDoctorModalProps) {
+  const t = useTranslations("staffDoctor");
+  const [expandedCertificates, setExpandedCertificates] = useState(false);
+  const [hoveredCertificate, setHoveredCertificate] =
+    useState<Certificate | null>(null);
+  const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   // Format date for display
   const formatDate = (dateString: string): string => {
     try {
-      const date = new Date(dateString)
+      const date = new Date(dateString);
       return new Intl.DateTimeFormat("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
-      }).format(date)
+      }).format(date);
     } catch (error) {
-      return dateString
+      return dateString;
     }
-  }
+  };
 
   // Open certificate in new tab
   const openCertificateUrl = (url: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    window.open(url, "_blank")
-  }
+    e.stopPropagation();
+    window.open(url, "_blank");
+  };
 
   // Copy to clipboard function
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        setShowCopyNotification(true)
+        setShowCopyNotification(true);
       })
       .catch((err) => {
-        console.error("Failed to copy: ", err)
-      })
-  }
+        console.error("Failed to copy: ", err);
+      });
+  };
 
   return (
     <>
@@ -96,7 +111,9 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
           {/* Doctor name and role */}
           <div className="pt-20 px-6 flex-shrink-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold text-gray-800">{viewDoctor.fullName}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {viewDoctor.fullName}
+              </h2>
               <button
                 onClick={() => copyToClipboard(viewDoctor.fullName)}
                 className="p-1 hover:bg-purple-100 rounded-full transition-colors"
@@ -159,7 +176,9 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
                         {viewDoctor.phoneNumber}
                       </p>
                       <button
-                        onClick={() => copyToClipboard(viewDoctor.phoneNumber || "")}
+                        onClick={() =>
+                          copyToClipboard(viewDoctor.phoneNumber || "")
+                        }
                         className="p-1 hover:bg-purple-100 rounded-full transition-colors"
                         title={t("copyToClipboard") || "Copy to clipboard"}
                       >
@@ -198,152 +217,204 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
               )}
 
               {/* Certificates */}
-              {viewDoctor.doctorCertificates && viewDoctor.doctorCertificates.length > 0 && (
-                <div className="relative">
-                  <motion.div
-                    className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                    whileHover={{ x: 5 }}
-                    onClick={() => setExpandedCertificates(!expandedCertificates)}
-                  >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-indigo-500" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-500">{t("doctorCertificates") || "Doctor Certificates"}</p>
-                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-                          {viewDoctor.doctorCertificates.length}
-                        </span>
-                      </div>
-                      <p className="font-medium flex items-center gap-1">
-                        {expandedCertificates ? "Hide certificates" : "View certificates"}
-                        <svg
-                          className={`w-4 h-4 transition-transform ${expandedCertificates ? "rotate-180" : ""}`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </p>
-                    </div>
-                  </motion.div>
-
-                  {/* Certificate List */}
-                  {expandedCertificates && (
+              {viewDoctor.doctorCertificates &&
+                viewDoctor.doctorCertificates.length > 0 && (
+                  <div className="relative">
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="ml-14 mt-2 space-y-3"
+                      className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                      whileHover={{ x: 5 }}
+                      onClick={() =>
+                        setExpandedCertificates(!expandedCertificates)
+                      }
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {viewDoctor.doctorCertificates.map((cert: Certificate) => (
-                          <div
-                            key={cert.id}
-                            className="relative"
-                            ref={(el) => {
-                              if (el) certificateRefs.current[cert.id] = el
-                            }}
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-indigo-500" />
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">
+                            {t("doctorCertificates") || "Doctor Certificates"}
+                          </p>
+                          <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                            {viewDoctor.doctorCertificates.length}
+                          </span>
+                        </div>
+                        <p className="font-medium flex items-center gap-1">
+                          {expandedCertificates
+                            ? "Hide certificates"
+                            : "View certificates"}
+                          <svg
+                            className={`w-4 h-4 transition-transform ${
+                              expandedCertificates ? "rotate-180" : ""
+                            }`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
-                            <div
-                              className="p-3 rounded-lg border border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer group"
-                              onMouseEnter={() => setHoveredCertificate(cert)}
-                              onMouseLeave={() => setHoveredCertificate(null)}
-                              onClick={(e) => openCertificateUrl(cert.certificateUrl, e)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <FileText className="w-4 h-4 text-indigo-600" />
-                                  <span className="font-medium text-indigo-700 truncate" title={cert.certificateName}>
-                                    {cert.certificateName}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      copyToClipboard(cert.certificateName)
-                                    }}
-                                    className="p-1 hover:bg-indigo-200 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                                    title={t("copyToClipboard") || "Copy to clipboard"}
-                                  >
-                                    <Copy className="w-3 h-3 text-indigo-600" />
-                                  </button>
-                                  <ExternalLink className="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                              </div>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </p>
+                      </div>
+                    </motion.div>
 
-                              <div className="mt-1 flex items-center gap-2 text-xs text-indigo-600">
-                                <Calendar className="w-3 h-3" />
-                                <span>
-                                  {t("expiryDate") || "Expiry Date"}: {formatDate(cert.expiryDate)}
-                                </span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    copyToClipboard(formatDate(cert.expiryDate))
-                                  }}
-                                  className="p-0.5 hover:bg-indigo-200 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                                  title={t("copyToClipboard") || "Copy to clipboard"}
-                                >
-                                  <Copy className="w-2.5 h-2.5 text-indigo-600" />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Certificate Preview Popup - Positioned above the certificate */}
-                            {hoveredCertificate && hoveredCertificate.id === cert.id && (
+                    {/* Certificate List */}
+                    {expandedCertificates && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="ml-14 mt-2 space-y-3"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {viewDoctor.doctorCertificates.map(
+                            (cert: Certificate) => (
                               <div
-                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 bg-white rounded-lg shadow-2xl border border-gray-200 p-2"
-                                style={{ width: "200px", height: "200px" }}
+                                key={cert.id}
+                                className="relative"
+                                ref={(el) => {
+                                  if (el) certificateRefs.current[cert.id] = el;
+                                }}
                               >
-                                {/* Triangle pointer */}
-                                <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200"></div>
-
-                                <div className="w-full h-full flex items-center justify-center bg-gray-50 overflow-hidden">
-                                  <Image
-                                    src={cert.certificateUrl || "/placeholder.svg"}
-                                    alt={cert.certificateName}
-                                    className="max-w-full max-h-full object-contain"
-                                    width={100}
-                                    height={100}
-                                  />
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Note on Hover */}
-                            {hoveredCertificate && hoveredCertificate.id === cert.id && cert.note && (
-                              <div className="absolute left-0 right-0 top-full mt-2 p-3 bg-white rounded-lg shadow-lg border border-indigo-100 z-10">
-                                <div className="flex items-start gap-2">
-                                  <Info className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-                                  <div className="flex-1">
-                                    <p className="text-xs font-medium text-gray-700">{t("note") || "Note"}:</p>
-                                    <div className="flex items-start gap-2 mt-1">
-                                      <p className="text-sm text-gray-600">{cert.note}</p>
+                                <div
+                                  className="p-3 rounded-lg border border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer group"
+                                  onMouseEnter={() =>
+                                    setHoveredCertificate(cert)
+                                  }
+                                  onMouseLeave={() =>
+                                    setHoveredCertificate(null)
+                                  }
+                                  onClick={(e) =>
+                                    openCertificateUrl(cert.certificateUrl, e)
+                                  }
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="w-4 h-4 text-indigo-600" />
+                                      <span
+                                        className="font-medium text-indigo-700 truncate max-w-[150px] inline-block"
+                                        title={cert.certificateName}
+                                      >
+                                        {cert.certificateName}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
                                       <button
                                         onClick={(e) => {
-                                          e.stopPropagation()
-                                          copyToClipboard(cert.note || "")
+                                          e.stopPropagation();
+                                          copyToClipboard(cert.certificateName);
                                         }}
-                                        className="p-1 hover:bg-indigo-100 rounded-full transition-colors flex-shrink-0"
-                                        title={t("copyToClipboard") || "Copy to clipboard"}
+                                        className="p-1 hover:bg-indigo-200 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                        title={
+                                          t("copyToClipboard") ||
+                                          "Copy to clipboard"
+                                        }
                                       >
                                         <Copy className="w-3 h-3 text-indigo-600" />
                                       </button>
+                                      <ExternalLink className="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
                                   </div>
+
+                                  <div className="mt-1 flex items-center gap-2 text-xs text-indigo-600">
+                                    <Calendar className="w-3 h-3" />
+                                    <span>
+                                      {t("expiryDate") || "Expiry Date"}:{" "}
+                                      {formatDate(cert.expiryDate)}
+                                    </span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        copyToClipboard(
+                                          formatDate(cert.expiryDate)
+                                        );
+                                      }}
+                                      className="p-0.5 hover:bg-indigo-200 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                      title={
+                                        t("copyToClipboard") ||
+                                        "Copy to clipboard"
+                                      }
+                                    >
+                                      <Copy className="w-2.5 h-2.5 text-indigo-600" />
+                                    </button>
+                                  </div>
                                 </div>
+
+                                {/* Certificate Preview Popup - Positioned above the certificate */}
+                                {hoveredCertificate &&
+                                  hoveredCertificate.id === cert.id && (
+                                    <div
+                                      className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 bg-white rounded-lg shadow-2xl border border-gray-200 p-2"
+                                      style={{
+                                        width: "200px",
+                                        height: "200px",
+                                      }}
+                                    >
+                                      {/* Triangle pointer */}
+                                      <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200"></div>
+
+                                      <div className="w-full h-full flex items-center justify-center bg-gray-50 overflow-hidden">
+                                        <Image
+                                          src={
+                                            cert.certificateUrl ||
+                                            "/placeholder.svg"
+                                          }
+                                          alt={cert.certificateName}
+                                          className="max-w-full max-h-full object-contain"
+                                          width={100}
+                                          height={100}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                {/* Note on Hover */}
+                                {hoveredCertificate &&
+                                  hoveredCertificate.id === cert.id &&
+                                  cert.note && (
+                                    <div className="absolute left-0 right-0 top-full mt-2 p-3 bg-white rounded-lg shadow-lg border border-indigo-100 z-10">
+                                      <div className="flex items-start gap-2">
+                                        <Info className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                          <p className="text-xs font-medium text-gray-700">
+                                            {t("note") || "Note"}:
+                                          </p>
+                                          <div className="flex items-start gap-2 mt-1">
+                                            <p className="text-sm text-gray-600">
+                                              {cert.note}
+                                            </p>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                copyToClipboard(
+                                                  cert.note || ""
+                                                );
+                                              }}
+                                              className="p-1 hover:bg-indigo-100 rounded-full transition-colors flex-shrink-0"
+                                              title={
+                                                t("copyToClipboard") ||
+                                                "Copy to clipboard"
+                                              }
+                                            >
+                                              <Copy className="w-3 h-3 text-indigo-600" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              )}
+                            )
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
 
               {/* Branches */}
               {viewDoctor.branchs && viewDoctor.branchs.length > 0 && (
@@ -357,7 +428,6 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
                   <div className="ml-4 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-xs text-gray-500">{t("branches")}</p>
-                      
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {viewDoctor.branchs.map((branch, idx) => (
@@ -394,7 +464,10 @@ export default function ViewDoctorModal({ viewDoctor, onClose }: ViewDoctorModal
           </div>
         </motion.div>
       </div>
-      <CopyNotification show={showCopyNotification} onClose={() => setShowCopyNotification(false)} />
+      <CopyNotification
+        show={showCopyNotification}
+        onClose={() => setShowCopyNotification(false)}
+      />
     </>
-  )
+  );
 }

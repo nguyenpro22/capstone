@@ -1069,14 +1069,14 @@ export default function WithdrawalApprovalPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              {/* <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
                   {t("createdBy")}
                 </p>
                 <p className="text-sm">
                   {selectedTransaction.isMakeBySystem ? t("system") : t("user")}
                 </p>
-              </div>
+              </div> */}
 
               {showRejectionInput && (
                 <div className="space-y-2">
@@ -1136,7 +1136,7 @@ export default function WithdrawalApprovalPage() {
                       </Button>
                     )}
 
-                    <Button
+                    {/* <Button
                       variant="default"
                       className="bg-green-600 hover:bg-green-700"
                       onClick={handleApprove}
@@ -1153,7 +1153,7 @@ export default function WithdrawalApprovalPage() {
                           {t("approve")}
                         </>
                       )}
-                    </Button>
+                    </Button> */}
                   </div>
                 )}
             </DialogFooter>

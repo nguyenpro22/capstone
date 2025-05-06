@@ -87,7 +87,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   evening: "Buổi tối",
   noAvailableTimes: "Không có thời gian trống",
   doctorFullyBooked: "Bác sĩ đã kín lịch vào ngày này. Vui lòng chọn ngày khác.",
-  selectedAppointment: "Cuộc hẹn đã chọn:",
+  selectedAppointment: "Cuộc hẹn đã chọn",
   scheduling: "Đang lên lịch...",
   // Payment modal translations
   schedulePayment: "Thanh toán lịch hẹn",

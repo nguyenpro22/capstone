@@ -95,8 +95,26 @@ export function ShiftForm({ shift, onSuccess, onCancel }: ShiftFormProps) {
       }
 
       onSuccess();
-    } catch (error) {
-      toast.error("Failed to save shift");
+    } catch (error: any) {
+      // Extract the error detail from the response if available
+      let errorMessage = "Failed to save shift";
+
+      if (error.data) {
+        // Handle structured error response
+        if (error.data.detail) {
+          errorMessage = error.data.detail;
+        } else if (error.data.title) {
+          errorMessage = error.data.title;
+        }
+      } else if (error.message) {
+        // Fallback to error message if available
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
+        className: "bg-red-600 text-white",
+        progressClassName: "bg-white",
+      });
     }
   };
 
