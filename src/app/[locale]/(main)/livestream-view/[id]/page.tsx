@@ -816,7 +816,7 @@ export default function LivestreamRoomPage() {
     originalPrice: number,
     discountPercent: number
   ) => {
-    return originalPrice * (1 - discountPercent / 100);
+    return originalPrice * (1 - discountPercent);
   };
 
   // Helper function to get service category icon
@@ -1019,7 +1019,7 @@ export default function LivestreamRoomPage() {
                         {service.discountPercent > 0 && (
                           <div className="absolute top-2 left-2 bg-red-100 text-red-600 px-2 py-1 rounded-lg text-xs font-bold discount-badge">
                             {t("services.discount", {
-                              percent: service.discountPercent,
+                              percent: service.discountPercent * 100,
                             })}
                           </div>
                         )}
