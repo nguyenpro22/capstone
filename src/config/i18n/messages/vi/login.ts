@@ -58,6 +58,10 @@ export const loginMessage: Messages["login"] = {
   processing: "Đang xử lý...",
   updateSuccess: "Cập nhật thông tin thành công!",
   updateError: "Đã xảy ra lỗi khi cập nhật thông tin",
+  bankName: "Tên ngân hàng",
+searchBank: "Tìm kiếm ngân hàng",
+bankAccountNumber: "Số tài khoản ngân hàng",
+enterAccountNumber: "Nhập số tài khoản",
 
   // Validation error messages
   requiredField: "Trường này là bắt buộc",

@@ -56,6 +56,10 @@ export type LoginTranslations = {
   processing: string
   updateSuccess: string
   updateError: string
+  bankName: string
+  searchBank: string
+  bankAccountNumber: string
+  enterAccountNumber:string
 
   // Validation error messages
   requiredField: string

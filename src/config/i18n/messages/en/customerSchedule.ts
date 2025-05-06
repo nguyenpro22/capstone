@@ -90,7 +90,7 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   noAvailableTimes: "No Available Times",
   doctorFullyBooked:
     "The doctor is fully booked on this date. Please select another date.",
-  selectedAppointment: "Selected appointment:",
+  selectedAppointment: "Selected appointment",
   scheduling: "Scheduling...",
   // Payment modal translations
   schedulePayment: "Schedule Payment",

@@ -14,8 +14,13 @@ import {
   ArrowLeft,
   CheckCircle2,
   LogOut,
+  CreditCard,
+  Search,
 } from "lucide-react";
 import { useChangePasswordStaffMutation } from "@/features/auth/api";
+import { useUpdateClinicMutation } from "@/features/clinic/api";
+import { useGetBanksQuery } from "@/features/bank/api";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,10 +35,12 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Stepper } from "./stepper";
-import { clearCookieStorage } from "@/utils";
+import { clearCookieStorage, TokenData } from "@/utils";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import ConfirmationDialog from "@/components/ui/confirmation-dialogv2";
+import type { Bank } from "@/features/bank/types";
+import { getAccessToken, GetDataByToken } from "@/utils";
 
 interface FirstLoginFlowProps {
   onComplete: () => void;
@@ -45,6 +52,7 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
   const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [clinicHours, setClinicHours] = useState<any>(null);
+  const [bankInfo, setBankInfo] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
@@ -54,7 +62,15 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
   // Add ref to track if component is mounted
   const isMounted = useRef(true);
 
+  // Bank selection states
+  const [bankSearchTerm, setBankSearchTerm] = useState("");
+  const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
+  const [showBankDropdown, setShowBankDropdown] = useState(false);
+  const bankDropdownRef = useRef<HTMLDivElement>(null);
+
   const [changePasswordStaff] = useChangePasswordStaffMutation();
+  const [updateClinic] = useUpdateClinicMutation();
+  const { data: bankData, isLoading: isBanksLoading } = useGetBanksQuery();
 
   // Set up countdown timer when success dialog is shown
   useEffect(() => {
@@ -81,6 +97,23 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
       };
     }
   }, [showSuccessDialog]);
+
+  // Close bank dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        bankDropdownRef.current &&
+        !bankDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowBankDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [bankDropdownRef]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -117,6 +150,13 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
     workingTimeEnd: z.string().min(1, t("enterWorkingTimeEnd")),
   });
 
+  const bankInfoSchema = z.object({
+    bankName: z.string().min(1, t("enterBankName") || "Please enter bank name"),
+    bankAccountNumber: z
+      .string()
+      .min(1, t("enterAccountNumber") || "Please enter account number"),
+  });
+
   const passwordChangeSchema = z
     .object({
       oldPassword: z.string().min(1, t("enterOldPassword")),
@@ -129,6 +169,7 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
     });
 
   type ClinicHoursFormValues = z.infer<typeof clinicHoursSchema>;
+  type BankInfoFormValues = z.infer<typeof bankInfoSchema>;
   type PasswordChangeFormValues = z.infer<typeof passwordChangeSchema>;
 
   // Step 1 form - Clinic operating hours
@@ -144,7 +185,21 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
     },
   });
 
-  // Step 2 form - Password change
+  // Step 2 form - Bank information
+  const {
+    register: registerBankInfo,
+    handleSubmit: handleSubmitBankInfo,
+    setValue: setBankInfoValue,
+    formState: { errors: bankInfoErrors },
+  } = useForm<BankInfoFormValues>({
+    resolver: zodResolver(bankInfoSchema),
+    defaultValues: {
+      bankName: "",
+      bankAccountNumber: "",
+    },
+  });
+
+  // Step 3 form - Password change
   const {
     register: registerPasswordChange,
     handleSubmit: handleSubmitPasswordChange,
@@ -165,23 +220,63 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
   };
 
   // Handle Step 2 submission
+  const onSubmitBankInfo = (data: BankInfoFormValues) => {
+    setBankInfo(data);
+    setCurrentStep(3);
+  };
+
+  // Handle bank selection
+  const handleBankSelect = (bank: Bank) => {
+    setSelectedBank(bank);
+    setBankInfoValue("bankName", bank.shortName);
+    setBankSearchTerm("");
+    setShowBankDropdown(false);
+  };
+
+  // Filter banks based on search term
+  const filteredBanks =
+    bankData?.data?.filter(
+      (bank) =>
+        bank.name.toLowerCase().includes(bankSearchTerm.toLowerCase()) ||
+        bank.shortName.toLowerCase().includes(bankSearchTerm.toLowerCase())
+    ) || [];
+
+  // Handle Step 3 submission
   const onSubmitPasswordChange = async (data: PasswordChangeFormValues) => {
-    if (!clinicHours) return;
+    if (!clinicHours || !bankInfo) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Combine data from both steps
-      const changePasswordData = {
-        oldPassword: data.oldPassword,
-        newPassword: data.newPassword,
-        workingTimeStart: clinicHours.workingTimeStart,
-        workingTimeEnd: clinicHours.workingTimeEnd,
-      };
+      // Get clinicId from token
+      const token = getAccessToken();
+      const tokenData = token ? (GetDataByToken(token) as TokenData) : null;
+      const clinicId = tokenData?.clinicId || "";
 
-      // Call the API to change password
-      const response = await changePasswordStaff(changePasswordData).unwrap();
+      if (!clinicId) {
+        throw new Error("Clinic ID not found");
+      }
+
+      // Create FormData for clinic update (only bank information)
+      const clinicFormData = new FormData();
+      clinicFormData.append("clinicId", clinicId);
+      clinicFormData.append("bankName", bankInfo.bankName);
+      clinicFormData.append("bankAccountNumber", bankInfo.bankAccountNumber);
+
+      // Call both APIs in parallel
+      const [updateClinicResponse, changePasswordResponse] = await Promise.all([
+        updateClinic({
+          clinicId: clinicId,
+          data: clinicFormData,
+        }).unwrap(),
+        changePasswordStaff({
+          oldPassword: data.oldPassword,
+          newPassword: data.newPassword,
+          workingTimeStart: clinicHours.workingTimeStart,
+          workingTimeEnd: clinicHours.workingTimeEnd,
+        }).unwrap(),
+      ]);
 
       // Show success toast
       toast.success(t("updateSuccess"), {
@@ -192,7 +287,7 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
       // Show success dialog
       setShowSuccessDialog(true);
     } catch (error) {
-      console.error("Password change error:", error);
+      console.error("Update error:", error);
 
       // Handle API error
       if (error && typeof error === "object" && "data" in error) {
@@ -242,7 +337,7 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
 
             <Stepper
               currentStep={currentStep}
-              totalSteps={2}
+              totalSteps={3}
               className="mt-6"
             />
           </CardHeader>
@@ -307,6 +402,134 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
                   {clinicHoursErrors.workingTimeEnd && (
                     <p className="text-red-500 text-sm mt-1 animate-fadeIn">
                       {clinicHoursErrors.workingTimeEnd.message}
+                    </p>
+                  )}
+                </div>
+              </form>
+            ) : currentStep === 2 ? (
+              <form
+                id="bank-info-form"
+                onSubmit={handleSubmitBankInfo(onSubmitBankInfo)}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="bankName"
+                    className="flex items-center gap-2 text-gray-700 dark:text-gray-200 font-medium"
+                  >
+                    <CreditCard className="h-4 w-4 text-blue-500" />
+                    {t("bankName") || "Bank Name"}
+                  </Label>
+                  <div className="relative" ref={bankDropdownRef}>
+                    {isBanksLoading ? (
+                      <div className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                        {t("loadingBanks") || "Loading banks..."}
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={bankSearchTerm}
+                            onChange={(e) => {
+                              setBankSearchTerm(e.target.value);
+                              setShowBankDropdown(true);
+                            }}
+                            onFocus={() => setShowBankDropdown(true)}
+                            className="w-full pl-10 pr-3 py-2 md:py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
+                            placeholder={t("searchBank") || "Search bank"}
+                          />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                          <input
+                            type="hidden"
+                            {...registerBankInfo("bankName")}
+                          />
+                        </div>
+
+                        {selectedBank && (
+                          <div className="mt-2 flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-100 dark:border-blue-800">
+                            {selectedBank.logo && (
+                              <Image
+                                src={selectedBank.logo || "/placeholder.svg"}
+                                alt={selectedBank.shortName}
+                                className="h-6 w-auto"
+                                width={100}
+                                height={100}
+                              />
+                            )}
+                            <span className="font-medium text-blue-700 dark:text-blue-300">
+                              {selectedBank.name}
+                            </span>
+                          </div>
+                        )}
+
+                        {showBankDropdown && bankSearchTerm && (
+                          <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
+                            {filteredBanks.length > 0 ? (
+                              filteredBanks.map((bank) => (
+                                <div
+                                  key={bank.id}
+                                  className="flex items-center gap-2 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer"
+                                  onClick={() => handleBankSelect(bank)}
+                                >
+                                  {bank.logo && (
+                                    <Image
+                                      src={bank.logo || "/placeholder.svg"}
+                                      alt={bank.shortName}
+                                      className="h-6 w-auto"
+                                      width={100}
+                                      height={100}
+                                    />
+                                  )}
+                                  <div>
+                                    <div className="font-medium text-gray-800 dark:text-gray-200">
+                                      {bank.name}
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                      {bank.shortName}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                                {t("noBanksFound") || "No banks found"}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {bankInfoErrors.bankName && (
+                    <p className="text-red-500 text-sm mt-1 animate-fadeIn">
+                      {bankInfoErrors.bankName.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="bankAccountNumber"
+                    className="flex items-center gap-2 text-gray-700 dark:text-gray-200 font-medium"
+                  >
+                    <CreditCard className="h-4 w-4 text-blue-500" />
+                    {t("bankAccountNumber") || "Bank Account Number"}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      {...registerBankInfo("bankAccountNumber")}
+                      id="bankAccountNumber"
+                      type="text"
+                      className="h-12 pl-4 pr-4 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder={
+                        t("enterAccountNumber") || "Enter account number"
+                      }
+                    />
+                  </div>
+                  {bankInfoErrors.bankAccountNumber && (
+                    <p className="text-red-500 text-sm mt-1 animate-fadeIn">
+                      {bankInfoErrors.bankAccountNumber.message}
                     </p>
                   )}
                 </div>
@@ -390,11 +613,11 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
           </CardContent>
 
           <CardFooter className="flex justify-between px-8 py-6 bg-gray-50 dark:bg-gray-800/50">
-            {currentStep === 2 ? (
+            {currentStep > 1 ? (
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setCurrentStep(1)}
+                onClick={() => setCurrentStep(currentStep - 1)}
                 disabled={isSubmitting}
                 className="flex items-center gap-2 border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
               >
@@ -408,7 +631,11 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
             <Button
               type="submit"
               form={
-                currentStep === 1 ? "clinic-hours-form" : "password-change-form"
+                currentStep === 1
+                  ? "clinic-hours-form"
+                  : currentStep === 2
+                  ? "bank-info-form"
+                  : "password-change-form"
               }
               className="ml-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
               disabled={isSubmitting}
@@ -418,7 +645,7 @@ export default function FirstLoginFlow({ onComplete }: FirstLoginFlowProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {t("processing")}
                 </div>
-              ) : currentStep === 1 ? (
+              ) : currentStep < 3 ? (
                 <div className="flex items-center">
                   {t("next")}
                   <ArrowRight className="ml-2 h-4 w-4" />

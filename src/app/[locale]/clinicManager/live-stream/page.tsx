@@ -348,9 +348,11 @@ export default function LiveStreamPage() {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
+
+    // Calculate time differences properly
     const diffSecs = Math.floor(diffMs / 1000);
     const diffMins = Math.floor(diffSecs / 60);
-    const diffHours = Math.floor(diffMs / (60 * 60));
+    const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffDays > 0) {

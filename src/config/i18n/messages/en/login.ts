@@ -58,6 +58,10 @@ export const loginMessage: Messages["login"] = {
   processing: "Processing...",
   updateSuccess: "Information updated successfully!",
   updateError: "An error occurred while updating information",
+  bankName: "Bank Name",
+  searchBank: "Search bank",
+  bankAccountNumber: "Bank Account Number",
+  enterAccountNumber:"Enter account number",
 
   // Validation error messages
   requiredField: "This field is required",
