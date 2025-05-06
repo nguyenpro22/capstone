@@ -178,6 +178,8 @@ export default function ServicePage() {
     }
   };
 
+  // Make sure the refetchServiceData function is properly implemented and passed to ViewServiceModal
+
   // Hàm để refetch dữ liệu service khi cần thiết (ví dụ: sau khi thêm/xóa bác sĩ)
   const refetchServiceData = async () => {
     if (viewService && viewService.id) {
@@ -186,6 +188,8 @@ export default function ServicePage() {
         const result = await fetchServiceById(viewService.id).unwrap();
         // Cập nhật state với dữ liệu mới
         setViewService(result.value);
+        // Also refetch the main service list to ensure everything is up to date
+        delayedRefetch();
       } catch (error) {
         console.error("Error refreshing service data:", error);
         toast.error(t("errors.refreshServiceFailed"));
@@ -258,7 +262,6 @@ export default function ServicePage() {
           </motion.button>
         </div>
       </div>
-
       <div className="bg-white dark:bg-gray-900 p-6 shadow-md dark:shadow-gray-900/20 rounded-lg relative">
         {services.length > 0 ? (
           <div className="overflow-x-auto">
@@ -319,6 +322,7 @@ export default function ServicePage() {
                               <Image
                                 src={
                                   service.coverImage[0].url ||
+                                  "/placeholder.svg" ||
                                   "/placeholder.svg"
                                 }
                                 alt="Cover"
@@ -469,7 +473,6 @@ export default function ServicePage() {
           <ImageModal images={selectedImages} onClose={handleCloseModal} />
         )}
       </div>
-
       {/* Keeping the original form structure as requested */}
       {showForm && (
         <div
@@ -496,7 +499,6 @@ export default function ServicePage() {
           />
         </div>
       )}
-
       {/* Hiển thị PromotionForm khi click */}
       {modalType === "promotion" && selectedServiceId && (
         <PromotionForm
@@ -505,7 +507,6 @@ export default function ServicePage() {
           onSuccess={() => delayedRefetch()}
         />
       )}
-
       {modalType === "procedure" && selectedServiceId && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <AddProcedure
@@ -515,7 +516,6 @@ export default function ServicePage() {
           />
         </div>
       )}
-
       {showEditForm && editService && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <EditServiceForm
@@ -533,7 +533,6 @@ export default function ServicePage() {
           />
         </div>
       )}
-
       <div className="mt-6">
         <Pagination
           pageIndex={pageIndex}
@@ -544,8 +543,6 @@ export default function ServicePage() {
           onPageChange={setPageIndex}
         />
       </div>
-
-      {/* Truyền refetchService vào ViewServiceModal */}
       {viewService && (
         <ViewServiceModal
           viewService={viewService}
@@ -553,7 +550,6 @@ export default function ServicePage() {
           refetchService={refetchServiceData}
         />
       )}
-
       {/* Use the reusable confirmation dialog component */}
       <ConfirmationDialog
         isOpen={confirmDialogOpen}

@@ -1,30 +1,35 @@
-"use client"
-import type { Staff } from "@/features/clinic/types"
-import { motion } from "framer-motion"
-import { X, Mail, MapPin, User, Phone, Copy } from "lucide-react"
-import { useTranslations } from "next-intl"
-import { useState } from "react"
-import { CopyNotification } from "@/components/systemStaff/copy-notification"
+"use client";
+import type { Staff } from "@/features/clinic/types";
+import { motion } from "framer-motion";
+import { X, Mail, MapPin, User, Phone, Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { CopyNotification } from "@/components/systemStaff/copy-notification";
+import Image from "next/image";
 
 interface ViewStaffModalProps {
-  viewStaff: Staff
-  onClose: () => void
+  viewStaff: Staff;
+  onClose: () => void;
 }
 
-export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalProps) {
-  const t = useTranslations("staff")
-  const [showCopyNotification, setShowCopyNotification] = useState(false)
+export default function ViewStaffModal({
+  viewStaff,
+  onClose,
+}: ViewStaffModalProps) {
+  const t = useTranslations("staff");
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        setShowCopyNotification(true)
+        setShowCopyNotification(true);
       })
       .catch((err) => {
-        console.error("Failed to copy: ", err)
-      })
-  }
+        console.error("Failed to copy: ", err);
+      });
+  };
 
   return (
     <>
@@ -34,11 +39,11 @@ export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalPro
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="bg-white rounded-xl shadow-2xl w-full max-w-xl relative flex flex-col"
+          className="bg-white rounded-xl shadow-2xl w-full max-w-xl relative flex flex-col overflow-hidden"
           style={{ maxHeight: "90vh" }}
         >
-          {/* Header with gradient background */}
-          <div className="relative h-32 bg-gradient-to-r from-purple-600 to-pink-600 flex-shrink-0">
+          {/* Header with gradient background - now with rounded corners */}
+          <div className="relative h-32 bg-gradient-to-r from-purple-600 to-pink-600 flex-shrink-0 rounded-t-xl">
             <button
               onClick={onClose}
               className="absolute right-4 top-4 text-white hover:bg-white/20 p-1.5 rounded-full transition-colors"
@@ -47,11 +52,22 @@ export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalPro
             </button>
 
             <div className="absolute -bottom-16 left-6">
-              <div className="w-32 h-32 rounded-full border-4 border-white bg-purple-100 flex items-center justify-center shadow-lg">
-                <div className="text-4xl font-bold text-purple-500">
-                  {viewStaff.firstName.charAt(0)}
-                  {viewStaff.lastName.charAt(0)}
-                </div>
+              <div className="w-32 h-32 rounded-full border-4 border-white bg-purple-100 flex items-center justify-center shadow-lg overflow-hidden">
+                {viewStaff.profilePictureUrl && !imageError ? (
+                  <Image
+                    src={viewStaff.profilePictureUrl || "/placeholder.svg"}
+                    alt={`${viewStaff.firstName} ${viewStaff.lastName}`}
+                    width={128}
+                    height={128}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div className="text-4xl font-bold text-purple-500">
+                    {viewStaff.firstName.charAt(0)}
+                    {viewStaff.lastName.charAt(0)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -86,7 +102,9 @@ export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalPro
                   <Mail className="w-5 h-5 text-blue-500" />
                 </div>
                 <div className="ml-4 flex-1 overflow-hidden">
-                  <p className="text-xs text-gray-500">{t("email") || "Email"}</p>
+                  <p className="text-xs text-gray-500">
+                    {t("email") || "Email"}
+                  </p>
                   <div className="flex items-center gap-2">
                     <p
                       className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 truncate"
@@ -115,13 +133,20 @@ export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalPro
                     <Phone className="w-5 h-5 text-green-500" />
                   </div>
                   <div className="ml-4 flex-1 overflow-hidden">
-                    <p className="text-xs text-gray-500">{t("phoneNumber") || "Phone Number"}</p>
+                    <p className="text-xs text-gray-500">
+                      {t("phoneNumber") || "Phone Number"}
+                    </p>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium truncate" title={viewStaff.phoneNumber}>
+                      <p
+                        className="font-medium truncate"
+                        title={viewStaff.phoneNumber}
+                      >
                         {viewStaff.phoneNumber}
                       </p>
                       <button
-                        onClick={() => copyToClipboard(viewStaff.phoneNumber || "")}
+                        onClick={() =>
+                          copyToClipboard(viewStaff.phoneNumber || "")
+                        }
                         className="p-1 hover:bg-purple-100 rounded-full transition-colors"
                         title={t("copyToClipboard") || "Copy to clipboard"}
                       >
@@ -142,9 +167,14 @@ export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalPro
                     <MapPin className="w-5 h-5 text-amber-500" />
                   </div>
                   <div className="ml-4 flex-1 overflow-hidden">
-                    <p className="text-xs text-gray-500">{t("address") || "Address"}</p>
+                    <p className="text-xs text-gray-500">
+                      {t("address") || "Address"}
+                    </p>
                     <div className="flex items-start gap-2">
-                      <p className="font-medium break-words" title={viewStaff.fullAddress}>
+                      <p
+                        className="font-medium break-words"
+                        title={viewStaff.fullAddress}
+                      >
                         {viewStaff.fullAddress}
                       </p>
                       <button
@@ -175,17 +205,17 @@ export default function ViewStaffModal({ viewStaff, onClose }: ViewStaffModalPro
                         {viewStaff.role}
                       </span>
                     </p>
-                   
                   </div>
                 </div>
               </motion.div>
             </div>
           </div>
-
-          {/* Fixed footer with close button */}
         </motion.div>
       </div>
-      <CopyNotification show={showCopyNotification} onClose={() => setShowCopyNotification(false)} />
+      <CopyNotification
+        show={showCopyNotification}
+        onClose={() => setShowCopyNotification(false)}
+      />
     </>
-  )
+  );
 }
