@@ -112,4 +112,5 @@ export type BookingFlowMessages = {
   months: {
     [key: number]: string; // Key là số tháng từ 0 đến 11
   };
+  bookingCancelledMessage: string;
 };

@@ -192,7 +192,7 @@ export default function LivestreamViewPage() {
           setTotalCount(data.value.totalCount);
           setHasNextPage(data.value.hasNextPage);
           setHasPreviousPage(data.value.hasPreviousPage);
-          toast.success(tEvents("fetchSuccess"));
+          // toast.success(tEvents("fetchSuccess"));
         } else {
           setEventsError(data?.error?.message || tEvents("fetchError"));
           toast.error(data?.error?.message || tEvents("fetchError"));

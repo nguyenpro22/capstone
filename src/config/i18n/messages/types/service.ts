@@ -22,7 +22,8 @@ export type service = {
   retry: string;
   noData: string;
   unableToLoadServices: string;
-
+  serviceCategories: string;
+  category: string;
   // Service card messages
   serviceCard: {
     book: string;

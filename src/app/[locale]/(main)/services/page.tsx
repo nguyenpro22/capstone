@@ -866,7 +866,7 @@ export default function ServicesPage(): JSX.Element {
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-lg text-white flex items-center">
                     <FolderTree className="h-4 w-4 mr-2" />
-                    Danh mục dịch vụ
+                    {t("serviceCategories")}
                   </h3>
                   <Button
                     variant="ghost"
@@ -884,7 +884,7 @@ export default function ServicesPage(): JSX.Element {
                   <div className="border-b border-gray-100 dark:border-gray-700 pb-5">
                     <label className="text-sm font-medium mb-3 block text-gray-700 dark:text-gray-200 flex items-center">
                       <FolderTree className="h-4 w-4 mr-2 text-purple-500 dark:text-purple-400" />
-                      Danh mục
+                      {t("category")}
                     </label>
                     <CategoryFilter
                       categories={categories}
