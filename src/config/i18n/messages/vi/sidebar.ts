@@ -6,7 +6,7 @@ export const sidebarMessages: Messages["sidebar"] = {
   settings: "Cài Đặt",
   logout: "Đăng Xuất",
   profile: "Hồ Sơ",
-  inbox: "Hộp Thoại",
+  inbox: "Tin Nhắn",
   order: "Đơn Hàng",
   service: "Dịch Vụ",
 

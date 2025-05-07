@@ -281,8 +281,9 @@ export default function SchedulesPage() {
   const hasMenuItems = (schedule: CustomerSchedule) => {
     // Check if the schedule has any actions that would appear in the dropdown
     return (
-      schedule.status.toLowerCase() === "completed" || // For follow-up
-      schedule.status.toLowerCase() === "pending" // For reschedule and cancel
+      // schedule.status.toLowerCase() === "completed" || // For follow-up
+      schedule.status.toLowerCase() === "pending" || // For reschedule and cancel
+      schedule.status.toLowerCase() === "in progress" // Added to show menu items for in progress status
     );
   };
 
@@ -1135,10 +1136,25 @@ export default function SchedulesPage() {
       setIsCancelDialogOpen(false);
 
       if (searchPerformed) {
-        delayedGetCustomerSchedules({
-          customerName,
-          customerPhone,
-        });
+        // If we're viewing a single schedule after viewNext, update it directly in the state
+        if (
+          searchResults.length === 1 &&
+          searchResults[0].id === scheduleToCancel.id
+        ) {
+          setSearchResults((prev) =>
+            prev.map((item) =>
+              item.id === scheduleToCancel.id
+                ? { ...item, status: "Cancelled" }
+                : item
+            )
+          );
+        } else {
+          // Otherwise do a normal refetch
+          delayedGetCustomerSchedules({
+            customerName,
+            customerPhone,
+          });
+        }
       } else {
         fetchClinicSchedules();
       }
@@ -1146,6 +1162,12 @@ export default function SchedulesPage() {
       console.error("Failed to cancel schedule:", error);
       toast.error(t("failedToCancelSchedule"));
     }
+  };
+
+  // Helper function to check if cancel button should be shown
+  const shouldShowCancelButton = (schedule: CustomerSchedule) => {
+    const status = schedule.status.toLowerCase();
+    return status !== "completed" && status !== "cancelled";
   };
 
   return (
@@ -1746,8 +1768,7 @@ export default function SchedulesPage() {
                                           </DropdownMenuItem>
                                         )}
                                         <DropdownMenuSeparator />
-                                        {schedule.status.toLowerCase() ===
-                                          "pending" && (
+                                        {shouldShowCancelButton(schedule) && (
                                           <DropdownMenuItem
                                             className="text-red-600"
                                             onClick={() => {
@@ -1981,8 +2002,7 @@ export default function SchedulesPage() {
                                           </DropdownMenuItem>
                                         )}
                                         <DropdownMenuSeparator />
-                                        {schedule.status.toLowerCase() ===
-                                          "pending" && (
+                                        {shouldShowCancelButton(schedule) && (
                                           <DropdownMenuItem
                                             className="text-red-600"
                                             onClick={() => {

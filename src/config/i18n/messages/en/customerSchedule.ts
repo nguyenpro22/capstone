@@ -186,4 +186,8 @@ export const customerScheduleMessage: Messages["customerSchedule"] = {
   searchError: "An error occurred while searching",
   serverErrorMessage: "A server error occurred. Please try again later.",
   cancelling: "Cancelling...",
+  scheduleCancelledSuccessfully: "Schedule cancelled successfully",
+  failedToCancelSchedule: "Failed to cancel schedule",
+  appointmentFor: "appointment for",
+  goBack: "Go back"
 };

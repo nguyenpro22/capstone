@@ -78,7 +78,10 @@ export const clinicStaffOrderMessages: Messages["clinicStaffOrder"] = {
     remainingAmount: "Remaining Amount",
     actions: "Actions",
     columns: "Columns",
-    columnDisplay:"Column Display"
-
+    columnDisplay:"Column Display",
+// Booking type
+bookingType: "Booking Type",
+livestreamBooking: "Livestream",
+webBooking: "Website",
 
 }

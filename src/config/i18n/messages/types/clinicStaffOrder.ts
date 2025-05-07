@@ -77,4 +77,8 @@ export type clinicStaffOrderMessages = {
   actions: string
   columns: string
   columnDisplay: string
+  // Booking type
+  bookingType: string
+  livestreamBooking: string
+  webBooking: string
 }
